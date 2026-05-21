@@ -1,0 +1,188 @@
+@model t.Models.Entities.Lease
+@using t.Models.Entities
+@{
+    ViewData["Title"] = "Hợp đồng của tôi";
+    string Money(decimal v) => v.ToString("N0");
+    string Pill(LeaseStatus s) => s switch
+    {
+        LeaseStatus.Active => "pill pill-success",
+        LeaseStatus.Pending => "pill pill-warning",
+        LeaseStatus.Renewing => "pill pill-info",
+        LeaseStatus.Expired => "pill pill-neutral",
+        LeaseStatus.Terminated => "pill pill-danger",
+        _ => "pill"
+    };
+    string DaysLeftText(Lease l)
+    {
+        var d = (int)(l.EndDate.Date - t.Infrastructure.Time.VnTime.Today).TotalDays;
+        return l.Status switch
+        {
+            LeaseStatus.Expired => "Đã hết hạn",
+            LeaseStatus.Terminated => "Đã chấm dứt",
+            _ when d < 0 => $"Quá hạn {Math.Abs(d)} ngày",
+            _ when d == 0 => "Hết hạn hôm nay",
+            _ => $"{d} ngày còn lại"
+        };
+    }
+    var history = (ViewBag.History as System.Collections.IEnumerable)?.Cast<dynamic>().ToList() ?? new List<dynamic>();
+}
+
+@if (Model == null)
+{
+    <section class="page-header"><div><h1>Hợp đồng của tôi</h1></div></section>
+    <div class="card"><div class="empty-state"><span class="material-symbols-outlined">description</span><h3>Bạn chưa có hợp đồng</h3></div></div>
+    return;
+}
+
+<section class="page-header">
+    <div>
+        <h1>@Model.LeaseNumber</h1>
+        <p class="subtitle">@Model.Apartment.Title @(Model.Apartment.Building != null ? "· " + Model.Apartment.Building.Name : "")</p>
+    </div>
+    <div class="actions">
+        <span class="@Pill(Model.Status)">@Model.Status.Vi()</span>
+        <a class="btn btn-outline" asp-action="ContractPdf" asp-route-id="@Model.Id" target="_blank"><span class="material-symbols-outlined">picture_as_pdf</span>Tải PDF</a>
+        @if (!string.IsNullOrEmpty(Model.ContractUrl))
+        {
+            <a class="btn btn-ghost" href="@Model.ContractUrl" target="_blank"><span class="material-symbols-outlined">open_in_new</span>Bản đã ký</a>
+        }
+    </div>
+</section>
+
+@if (history.Count > 1)
+{
+    <div class="hstack mb-2" style="flex-wrap:wrap;gap:.4rem;align-items:center;">
+        <span class="text-muted" style="font-size:13px;">Hợp đồng của bạn (@history.Count):</span>
+        @foreach (var h in history.Take(4))
+        {
+            var isCurrent = (int?)ViewBag.CurrentId == (int)h.Id;
+            <a class="@(isCurrent ? "btn btn-primary btn-sm" : "btn btn-ghost btn-sm")"
+               asp-action="Index" asp-route-id="@h.Id">
+                @h.LeaseNumber <span class="text-muted" style="font-size:11px;">(@(((DateTime)h.StartDate).ToString("MM/yy")) – @(((DateTime)h.EndDate).ToString("MM/yy")))</span>
+            </a>
+        }
+        <a class="btn btn-outline btn-sm" asp-action="History"><span class="material-symbols-outlined">history</span>Xem tất cả</a>
+    </div>
+}
+else
+{
+    <div class="hstack mb-2">
+        <a class="btn btn-ghost btn-sm" asp-action="History"><span class="material-symbols-outlined">history</span>Lịch sử hợp đồng</a>
+    </div>
+}
+
+<section class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Tiền thuê / tháng</div><div class="kpi-value">@Money(Model.MonthlyRent)</div><div class="kpi-meta">VNĐ</div></div>
+    <div class="kpi-card"><div class="kpi-label">Tiền cọc</div><div class="kpi-value">@Money(Model.Deposit)</div><div class="kpi-meta">Đang giữ: @Money(Model.DepositHeld)</div></div>
+    <div class="kpi-card"><div class="kpi-label">Bắt đầu</div><div class="kpi-value" style="font-size:1.3rem;">@Model.StartDate.ToString("dd/MM/yyyy")</div></div>
+    <div class="kpi-card"><div class="kpi-label">Kết thúc</div><div class="kpi-value" style="font-size:1.3rem;">@Model.EndDate.ToString("dd/MM/yyyy")</div><div class="kpi-meta">@DaysLeftText(Model)</div></div>
+</section>
+
+<div style="display:grid;grid-template-columns:1.4fr 1fr;gap:1.2rem;">
+    <div class="vstack">
+        <div class="card">
+            <div class="card-header"><h2>Thông tin căn hộ</h2></div>
+            <div class="card-body">
+                <dl class="dl-pairs">
+                    <dt>Tên</dt><dd>@Model.Apartment.Title</dd>
+                    <dt>Mã căn</dt><dd>@(Model.Apartment.UnitCode ?? "—")</dd>
+                    <dt>Toà nhà</dt><dd>@(Model.Apartment.Building?.Name ?? "—")</dd>
+                    <dt>Tầng</dt><dd>@(Model.Apartment.Floor?.Label ?? "—")</dd>
+                    <dt>Diện tích</dt><dd>@Model.Apartment.Area m²</dd>
+                    <dt>Phòng</dt><dd>@Model.Apartment.Bedrooms PN · @Model.Apartment.Bathrooms WC</dd>
+                    <dt>Địa chỉ</dt><dd>@Model.Apartment.Address</dd>
+                </dl>
+                @if (Model.Apartment.ApartmentAmenities.Any())
+                {
+                    <div class="hstack mt-3" style="flex-wrap:wrap;">
+                        @foreach (var aa in Model.Apartment.ApartmentAmenities)
+                        {
+                            <span class="pill pill-info"><span class="material-symbols-outlined" style="font-size:14px;">@aa.Amenity.Icon</span>@aa.Amenity.Name</span>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h2>Biên bản nhận / trả nhà</h2></div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>Loại</th><th>Ngày</th><th>Tình trạng</th><th>Khách ký</th></tr></thead>
+                    <tbody>
+                    @if (!Model.Inspections.Any())
+                    {
+                        <tr><td colspan="4"><div class="empty-state"><span class="material-symbols-outlined">fact_check</span><h3>Chưa có biên bản</h3></div></td></tr>
+                    }
+                    else
+                    {
+                        foreach (var i in Model.Inspections.OrderBy(x => x.InspectedAt))
+                        {
+                            <tr>
+                                <td><span class="pill @(i.Type == InspectionType.MoveIn ? "pill-info" : "pill-accent")">@i.Type.Vi()</span></td>
+                                <td>@i.InspectedAt.ToString("dd/MM/yyyy")</td>
+                                <td>@i.OverallCondition.Vi()</td>
+                                <td>@(i.TenantSigned ? Html.Raw("<span class=\"pill pill-success\">Đã ký</span>") : Html.Raw("<span class=\"pill pill-neutral\">Chưa</span>"))</td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="vstack">
+        <div class="card">
+            <div class="card-header"><h2>Điều khoản</h2></div>
+            <div class="card-body">
+                <dl class="dl-pairs">
+                    <dt>Ngày xuất HĐ</dt><dd>Ngày @Model.BillingDay hằng tháng</dd>
+                    <dt>Phí trễ hạn</dt><dd>@Model.LateFeePercent% sau @Model.LateFeeAfterDays ngày</dd>
+                    @if (!string.IsNullOrEmpty(Model.Notes)) { <dt>Ghi chú</dt><dd>@Model.Notes</dd> }
+                </dl>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h2>Sổ cọc</h2></div>
+            <div class="card-body">
+                <dl class="dl-pairs">
+                    <dt>Tổng cọc</dt><dd>@Money(Model.Deposit)</dd>
+                    <dt>Đang giữ</dt><dd><strong>@Money(Model.DepositHeld)</strong></dd>
+                    <dt>Đã hoàn</dt><dd>@Money(Model.DepositRefunded)</dd>
+                </dl>
+                @if (Model.DepositTransactions.Any())
+                {
+                    <div style="border-top:1px solid var(--admin-line);margin-top:.7rem;padding-top:.7rem;">
+                        @foreach (var tx in Model.DepositTransactions.OrderByDescending(x => x.RecordedAt).Take(8))
+                        {
+                            var sign = tx.Type == DepositTransactionType.Hold || tx.Type == DepositTransactionType.Adjustment ? "+" : "−";
+                            var color = tx.Type == DepositTransactionType.Hold ? "var(--admin-success)" : tx.Type == DepositTransactionType.Refund ? "var(--admin-info)" : "var(--admin-danger)";
+                            <div style="display:flex;justify-content:space-between;padding:.4rem 0;font-size:13px;border-bottom:1px solid var(--admin-line);">
+                                <div>
+                                    <div style="font-weight:600;color:@color;">@sign @Money(tx.Amount)</div>
+                                    <div class="text-muted">@tx.Reason</div>
+                                </div>
+                                <div class="text-muted no-wrap" style="font-size:11px;">@tx.RecordedAt.ToString("dd/MM")</div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (Model.AdditionalTenants.Any())
+        {
+            <div class="card">
+                <div class="card-header"><h2>Người thuê đi cùng</h2></div>
+                <div class="card-body vstack">
+                    @foreach (var t in Model.AdditionalTenants)
+                    {
+                        <div>@t.Tenant.FullName<div class="row-meta">@t.Tenant.Email · @(t.Relationship ?? "—")</div></div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

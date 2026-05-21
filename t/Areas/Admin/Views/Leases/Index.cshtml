@@ -1,0 +1,73 @@
+@model List<t.Areas.Admin.Models.LeaseListVm>
+@using t.Models.Entities
+@{
+    ViewData["Title"] = "Hợp đồng";
+    var pager = (t.Areas.Admin.Models.PageInfo)ViewBag.Pager;
+    var q = (string?)ViewBag.Q;
+    var status = (LeaseStatus?)ViewBag.Status;
+    var buildingId = (int?)ViewBag.BuildingId;
+    var buildings = (List<Building>)ViewBag.Buildings;
+    string Money(decimal v) => v >= 1_000_000 ? $"{v/1_000_000m:0.#}tr" : v.ToString("N0");
+    string Pill(LeaseStatus s) => s switch
+    {
+        LeaseStatus.Active => "pill pill-success",
+        LeaseStatus.Pending => "pill pill-warning",
+        LeaseStatus.Renewing => "pill pill-info",
+        LeaseStatus.Expired => "pill pill-neutral",
+        LeaseStatus.Terminated => "pill pill-danger",
+        _ => "pill"
+    };
+}
+
+<section class="page-header">
+    <div><h1>Hợp đồng thuê</h1><p class="subtitle">@pager.TotalCount hợp đồng</p></div>
+    <div class="actions"><a class="btn btn-primary" asp-action="Create"><span class="material-symbols-outlined">add</span>Tạo hợp đồng</a></div>
+</section>
+
+<form method="get" class="filter-bar">
+    <input type="search" name="q" value="@q" placeholder="Mã hợp đồng, tên/email khách, căn hộ..." />
+    <select name="status">
+        <option value="">— Trạng thái —</option>
+        @foreach (var s in Enum.GetValues<LeaseStatus>()) { <option value="@((int)s)" selected="@(status == s)">@s.Vi()</option> }
+    </select>
+    <select name="buildingId">
+        <option value="">— Toà nhà —</option>
+        @foreach (var b in buildings) { <option value="@b.Id" selected="@(buildingId == b.Id)">@b.Name</option> }
+    </select>
+    <button type="submit" class="btn btn-primary">Lọc</button>
+    <a class="btn btn-ghost" asp-action="Index">Xoá lọc</a>
+</form>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Mã</th><th>Khách thuê</th><th>Căn / Toà</th><th>Thời hạn</th><th class="num">Tiền/tháng</th><th class="num">Cọc</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="8"><div class="empty-state"><span class="material-symbols-outlined">description</span><h3>Chưa có hợp đồng</h3></div></td></tr>
+            }
+            else
+            {
+                foreach (var l in Model)
+                {
+                    <tr>
+                        <td><a class="row-title" asp-action="Details" asp-route-id="@l.Id">@l.LeaseNumber</a></td>
+                        <td><div>@l.TenantName</div><div class="row-meta">@l.TenantEmail</div></td>
+                        <td><div>@l.UnitTitle</div><div class="row-meta">@(l.BuildingName ?? "—")</div></td>
+                        <td class="text-muted no-wrap">@l.StartDate.ToString("dd/MM/yy") – @l.EndDate.ToString("dd/MM/yy")</td>
+                        <td class="num">@Money(l.MonthlyRent)</td>
+                        <td class="num">@Money(l.Deposit)</td>
+                        <td><span class="@Pill(l.Status)">@l.Status.Vi()</span></td>
+                        <td class="actions-cell">
+                            <a class="btn btn-ghost btn-sm" asp-action="Details" asp-route-id="@l.Id"><span class="material-symbols-outlined">visibility</span></a>
+                            <a class="btn btn-ghost btn-sm" asp-action="Edit" asp-route-id="@l.Id"><span class="material-symbols-outlined">edit</span></a>
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+    @await Html.PartialAsync("_Pagination", pager)
+</div>

@@ -1,0 +1,40 @@
+﻿@model t.Models.ViewModels.ProjectDetailViewModel
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<main class="container py-4">
+    <h1 class="mb-2">@Model.Name</h1>
+    <p class="mb-1">@Model.RegionName - @Model.Address</p>
+    <p class="mb-3">Giá từ: @Model.PriceFrom.ToString("N0") VND/thang</p>
+
+    <div class="row g-3 mb-4">
+        @foreach (var image in Model.GalleryUrls)
+        {
+            <div class="col-md-4">
+                <img src="@image" class="img-fluid rounded" alt="@Model.Name" />
+            </div>
+        }
+    </div>
+
+    <p class="mb-4">@Model.FullDescription</p>
+
+    <h2 class="h4 mb-3">Căn hộ trong dự án</h2>
+    <div class="row g-3">
+        @foreach (var apartment in Model.Apartments)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <img src="@apartment.CoverImageUrl" class="card-img-top" style="height:220px;object-fit:cover;" alt="@apartment.Title" />
+                    <div class="card-body">
+                        <h5 class="card-title">@apartment.Title</h5>
+                        <p class="card-text">@apartment.Address</p>
+                        <p class="card-text">@apartment.Price.ToString("N0") VND/thang</p>
+                        <a asp-controller="Home" asp-action="ApartmentDetail" asp-route-id="@apartment.Id" class="btn btn-outline-primary btn-sm">Xem chi tiết</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</main>
+

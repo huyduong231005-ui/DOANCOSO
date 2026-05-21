@@ -1,0 +1,499 @@
+﻿@model t.Models.ApartmentDetailPageViewModel
+@using t.Models.Entities
+@{
+    ViewData["Title"] = "Chi tiết căn hộ";
+    ViewData["BodyClass"] = "luxe-apartment-detail";
+    ViewData["ActiveNav"] = "rentals";
+
+    var apartment = Model.Apartment;
+    var entity = ViewBag.Entity as Apartment;
+
+    string NormalizePhone(string phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone)) return string.Empty;
+        var trimmed = phone.Trim();
+        var digits = new string(trimmed.Where(char.IsDigit).ToArray());
+        if (trimmed.StartsWith("+") && digits.Length > 0) return "+" + digits;
+        return digits;
+    }
+
+    string MaskPhone(string phone)
+    {
+        var digits = new string(phone.Where(char.IsDigit).ToArray());
+        if (digits.Length < 6) return phone;
+        return $"{digits[..3]} ••• •••";
+    }
+
+    var imageUrls = entity?.Images?
+        .OrderBy(i => i.SortOrder)
+        .Select(i => i.Url)
+        .Where(url => !string.IsNullOrWhiteSpace(url))
+        .Distinct()
+        .ToList() ?? new List<string>();
+
+    if (imageUrls.Count == 0 && !string.IsNullOrWhiteSpace(apartment.MainImage))
+    {
+        imageUrls.Add(apartment.MainImage);
+    }
+
+    var mainImage = imageUrls.FirstOrDefault() ?? "/img/detail/main.jpg";
+    var gallerySideImages = imageUrls.Skip(1).Take(3).ToList();
+    var showGallerySide = gallerySideImages.Count > 0;
+    var showGalleryMini = gallerySideImages.Count > 1;
+    var showGalleryMiniSecond = gallerySideImages.Count > 2;
+    var morePhotoCount = Math.Max(0, imageUrls.Count - 4);
+    var miniGridClass = showGalleryMiniSecond || morePhotoCount > 0 ? string.Empty : "is-single";
+    var sideImageThreeUrl = gallerySideImages.Count switch
+    {
+        >= 3 => gallerySideImages[2],
+        >= 2 => gallerySideImages[1],
+        _ => string.Empty
+    };
+    var sideImageThreeIndex = showGalleryMiniSecond ? 3 : 2;
+    var galleryImageUrls = imageUrls.Select(url => Url.Content(url)).ToList();
+    var galleryJson = System.Text.Json.JsonSerializer.Serialize(galleryImageUrls);
+
+    var amenities = entity?.ApartmentAmenities?
+        .Select(aa => aa.Amenity)
+        .Where(a => a is not null)
+        .ToList() ?? new List<Amenity>();
+
+    var reviews = entity?.Reviews?
+        .OrderByDescending(r => r.CreatedAt)
+        .ToList() ?? new List<Review>();
+
+    var hostName = entity?.Host?.FullName ?? "Đang cập nhật";
+    var hostTitle = !string.IsNullOrWhiteSpace(entity?.Host?.HostTitle)
+        ? entity!.Host!.HostTitle!
+        : "Chuyên viên tư vấn";
+    var hostAvatar = !string.IsNullOrWhiteSpace(entity?.Host?.AvatarUrl)
+        ? entity!.Host!.AvatarUrl!
+        : "/img/detail/agent.jpg";
+
+    var hostPhoneVisible = NormalizePhone(entity?.Host?.Phone ?? string.Empty);
+    if (string.IsNullOrWhiteSpace(hostPhoneVisible))
+    {
+        hostPhoneVisible = "Đang cập nhật";
+    }
+    var hostPhoneHidden = MaskPhone(hostPhoneVisible);
+}
+
+<div class="text-on-background">
+    <partial name="_LuxeTopbar" />
+
+    <main class="apartment-main">
+        <nav class="ap-breadcrumb reveal-item fx-up" aria-label="Breadcrumb">
+            <a asp-controller="Home" asp-action="Index" data-soft-nav="true">Trang chủ</a>
+            <span class="material-symbols-outlined">chevron_right</span>
+            <a asp-controller="Home" asp-action="Rentals" data-soft-nav="true">Thuê căn hộ</a>
+            <span class="material-symbols-outlined">chevron_right</span>
+            <span>Chi tiết căn hộ</span>
+        </nav>
+
+        <section class="ap-gallery @(showGallerySide ? string.Empty : "is-single")" data-gallery-images='@galleryJson'>
+            <div class="ap-gallery-main reveal-item fx-zoom">
+                <button type="button" class="ap-gallery-trigger" data-gallery-open data-gallery-index="0" aria-label="Xem ảnh 1">
+                    <img src="@Url.Content(mainImage)" alt="@apartment.Title" />
+                </button>
+            </div>
+            @if (showGallerySide)
+            {
+                <div class="ap-gallery-side reveal-item fx-right" data-reveal-delay="80">
+                    <div class="ap-gallery-item">
+                        <button type="button" class="ap-gallery-trigger" data-gallery-open data-gallery-index="1" aria-label="Xem ảnh 2">
+                            <img src="@Url.Content(gallerySideImages[0])" alt="@apartment.Title" />
+                        </button>
+                    </div>
+                    @if (showGalleryMini)
+                    {
+                        <div class="ap-gallery-mini @miniGridClass">
+                            <div class="ap-gallery-item">
+                                <button type="button" class="ap-gallery-trigger" data-gallery-open data-gallery-index="2" aria-label="Xem ảnh 3">
+                                    <img src="@Url.Content(gallerySideImages[1])" alt="@apartment.Title" />
+                                </button>
+                            </div>
+                            @if (showGalleryMiniSecond || morePhotoCount > 0)
+                            {
+                                <div class="ap-gallery-item ap-more-photos">
+                                    <button type="button" class="ap-gallery-trigger" data-gallery-open data-gallery-index="@sideImageThreeIndex" aria-label="Xem thêm ảnh">
+                                        <img src="@Url.Content(sideImageThreeUrl)" alt="@apartment.Title" />
+                                    </button>
+                                    @if (morePhotoCount > 0)
+                                    {
+                                        <div class="ap-more-overlay">+@morePhotoCount ảnh</div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </section>
+
+        <section class="ap-header reveal-item fx-up">
+            <div class="ap-header-copy">
+                <h1>@apartment.Title</h1>
+                <div class="ap-meta">
+                    <div><span class="material-symbols-outlined">location_on</span> @apartment.Location</div>
+                    <div><span class="material-symbols-outlined">square_foot</span> @apartment.Area</div>
+                    <div><span class="material-symbols-outlined">star</span> @apartment.Rating (@apartment.ReviewSummary)</div>
+                </div>
+            </div>
+            <div class="ap-price">
+                <div>@apartment.Price<span>/tháng</span></div>
+                <p>@apartment.FeeNote</p>
+                @{
+                    var favIds = (ViewBag.FavoriteIds as HashSet<int>) ?? new HashSet<int>();
+                    var isFav = favIds.Contains(apartment.Id);
+                    var isAuth = User?.Identity?.IsAuthenticated == true;
+                    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+                }
+                @if (isAuth)
+                {
+                    <form asp-controller="Favorites" asp-action="Toggle" method="post" style="margin-top:.5rem;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="apartmentId" value="@apartment.Id" />
+                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+                        <button type="submit" class="btn @(isFav ? "btn-primary" : "btn-outline")" style="display:inline-flex;align-items:center;gap:.4rem;">
+                            <span class="material-symbols-outlined" style="@(isFav ? "font-variation-settings:'FILL' 1;" : "")">favorite</span>
+                            @(isFav ? "Đã thích" : "Thêm vào yêu thích")
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <a asp-controller="Home" asp-action="Login" asp-route-returnUrl="@returnUrl" class="btn btn-outline" style="margin-top:.5rem;display:inline-flex;align-items:center;gap:.4rem;">
+                        <span class="material-symbols-outlined">favorite</span>Đăng nhập để lưu
+                    </a>
+                }
+            </div>
+        </section>
+
+        <div class="ap-grid">
+            <div class="ap-content">
+                <section class="ap-section reveal-item fx-left">
+                    <h2>Mô tả chi tiết</h2>
+                    <p>@apartment.DescriptionOne</p>
+                    @if (!string.IsNullOrWhiteSpace(apartment.DescriptionTwo))
+                    {
+                        <p>@apartment.DescriptionTwo</p>
+                    }
+                </section>
+
+                <section class="ap-section reveal-item fx-up" data-reveal-delay="40">
+                    <h2>Tiện ích căn hộ</h2>
+                    @if (amenities.Count == 0)
+                    {
+                        <p>Danh sách tiện ích đang được cập nhật.</p>
+                    }
+                    else
+                    {
+                        <div class="ap-amenities">
+                            @foreach (var amenity in amenities)
+                            {
+                                <div class="ap-amenity">
+                                    <span class="material-symbols-outlined">@(string.IsNullOrWhiteSpace(amenity.Icon) ? "check_circle" : amenity.Icon)</span>
+                                    <span>@amenity.Name</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                </section>
+
+                <section class="ap-section reveal-item fx-up" data-reveal-delay="80">
+                    <h2>Vị trí căn hộ</h2>
+                    <div class="ap-map">
+                        <img src="@Url.Content(string.IsNullOrWhiteSpace(apartment.MapImage) ? "/img/detail/map.jpg" : apartment.MapImage)" alt="Bản đồ vị trí @apartment.Title" />
+                        <button type="button">
+                            <span class="material-symbols-outlined">map</span>
+                            Xem trên bản đồ
+                        </button>
+                    </div>
+                </section>
+
+                <section class="ap-section reveal-item fx-left" data-reveal-delay="120">
+                    @{
+                        var canReview = (bool)(ViewBag.CanReview ?? false);
+                        var myReview = ViewBag.MyReview as t.Models.Entities.Review;
+                        var isAuthed = User?.Identity?.IsAuthenticated == true;
+                    }
+                    <div class="ap-review-head">
+                        <h2>Đánh giá khách hàng</h2>
+                        @if (isAuthed && canReview && (myReview == null || myReview.Status != ReviewStatus.Approved))
+                        {
+                            <button type="button" onclick="document.getElementById('reviewForm').style.display='block';this.style.display='none';">
+                                @(myReview == null ? "Viết đánh giá" : "Sửa đánh giá của tôi")
+                            </button>
+                        }
+                    </div>
+
+                    @if (myReview != null)
+                    {
+                        var statusLabel = myReview.Status switch
+                        {
+                            ReviewStatus.Pending => "<span style=\"background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:999px;font-size:11px;\">Đang chờ duyệt</span>",
+                            ReviewStatus.Approved => "<span style=\"background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:999px;font-size:11px;\">Đã duyệt</span>",
+                            ReviewStatus.Rejected => "<span style=\"background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:999px;font-size:11px;\">Bị từ chối</span>",
+                            _ => ""
+                        };
+                        <div style="border:1px solid #e5e7eb;padding:1rem;border-radius:8px;margin-bottom:1rem;background:#f9fafb;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <strong>Đánh giá của bạn:</strong> @Html.Raw(statusLabel)
+                            </div>
+                            <div style="margin-top:.4rem;">
+                                @for (var i = 1; i <= 5; i++)
+                                {
+                                    <span class="material-symbols-outlined" style="color:#f59e0b;">@(i <= myReview.Rating ? "star" : "star_outline")</span>
+                                }
+                            </div>
+                            <p style="margin-top:.3rem;">"@myReview.Content"</p>
+                        </div>
+                    }
+
+                    @if (isAuthed && canReview && (myReview == null || myReview.Status != ReviewStatus.Approved))
+                    {
+                        <form id="reviewForm" asp-controller="Reviews" asp-action="Create" method="post" style="display:none;border:1px solid #e5e7eb;padding:1rem;border-radius:8px;margin-bottom:1rem;background:#fff;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="ApartmentId" value="@apartment.Id" />
+                            <div style="margin-bottom:.5rem;">
+                                <label>Điểm:</label>
+                                <select name="Rating" required>
+                                    @for (var i = 5; i >= 1; i--)
+                                    {
+                                        var selected = myReview?.Rating == i ? "selected" : null;
+                                        <option value="@i" selected="@selected">@i sao</option>
+                                    }
+                                </select>
+                            </div>
+                            <div style="margin-bottom:.5rem;">
+                                <label>Nội dung (≥ 10 ký tự):</label>
+                                <textarea name="Content" rows="3" required minlength="10" style="width:100%;padding:.5rem;border:1px solid #d1d5db;border-radius:6px;">@(myReview?.Content)</textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+                        </form>
+                    }
+                    else if (isAuthed && !canReview)
+                    {
+                        <p style="color:#6b7280;font-style:italic;font-size:13px;">Bạn cần từng thuê căn hộ này để có thể đánh giá.</p>
+                    }
+                    else if (!isAuthed)
+                    {
+                        <p style="font-size:13px;"><a asp-controller="Home" asp-action="Login" asp-route-returnUrl="@(Context.Request.Path)">Đăng nhập</a> để viết đánh giá.</p>
+                    }
+
+                    @if (reviews.Count == 0)
+                    {
+                        <p>Chưa có đánh giá cho căn hộ này.</p>
+                    }
+                    else
+                    {
+                        <div class="ap-reviews">
+                            @foreach (var review in reviews.Take(4))
+                            {
+                                var reviewerName = review.User?.FullName ?? "Khách thuê";
+                                var reviewerNote = string.IsNullOrWhiteSpace(review.RenterNote) ? "Khách thuê" : review.RenterNote;
+                                var reviewerAvatar = string.IsNullOrWhiteSpace(review.User?.AvatarUrl) ? "/img/detail/user1.jpg" : review.User!.AvatarUrl!;
+
+                                <article class="ap-review-card">
+                                    <div class="ap-review-top">
+                                        <div class="ap-review-user">
+                                            <img src="@Url.Content(reviewerAvatar)" alt="@reviewerName" />
+                                            <div>
+                                                <h4>@reviewerName</h4>
+                                                <p>@reviewerNote</p>
+                                            </div>
+                                        </div>
+                                        <div class="ap-stars">
+                                            @for (var i = 1; i <= 5; i++)
+                                            {
+                                                <span class="material-symbols-outlined">@(i <= review.Rating ? "star" : "star_outline")</span>
+                                            }
+                                        </div>
+                                    </div>
+                                    <p>"@review.Content"</p>
+                                </article>
+                            }
+                        </div>
+                    }
+                </section>
+            </div>
+
+            <aside class="ap-sidebar reveal-item fx-right">
+                <div class="ap-agent-card">
+                    <div class="ap-agent-head">
+                        <img src="@Url.Content(hostAvatar)" alt="@hostName" />
+                        <div>
+                            <h3>@hostName</h3>
+                            <p>@hostTitle</p>
+                        </div>
+                    </div>
+
+                    <div class="ap-contact">
+                        <div class="ap-phone-row">
+                            <span data-phone-value data-phone-hidden="@hostPhoneHidden" data-phone-visible="@hostPhoneVisible">@hostPhoneHidden</span>
+                            <button type="button" data-phone-toggle>Hiện số</button>
+                        </div>
+                        <button class="ap-btn ap-btn-primary" type="button">
+                            <span class="material-symbols-outlined">call</span>
+                            Gọi điện ngay
+                        </button>
+                        <button class="ap-btn ap-btn-muted" type="button">
+                            <span class="material-symbols-outlined">chat</span>
+                            Nhắn tin Zalo
+                        </button>
+                    </div>
+
+                    <button class="ap-btn ap-btn-accent" type="button" data-toggle-booking>Đặt lịch xem phòng</button>
+
+                    <div class="ap-actions">
+                        <button type="button"><span class="material-symbols-outlined">bookmark</span> Lưu tin</button>
+                        <button type="button"><span class="material-symbols-outlined">share</span> Chia sẻ</button>
+                    </div>
+                </div>
+
+                @{
+                    var minDate = DateTime.Today.ToString("yyyy-MM-dd");
+                    var maxDate = DateTime.Today.AddMonths(2).ToString("yyyy-MM-dd");
+                    var defaultDate = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd");
+                }
+                <div class="ap-booking-card" id="ap-booking-card">
+                    <h4>
+                        <span class="material-symbols-outlined">event</span>
+                        Đặt lịch xem phòng
+                    </h4>
+                    <p class="ap-booking-hint">Chọn ngày và khung giờ bạn muốn đến xem. Chủ tin sẽ xác nhận trong 24h.</p>
+
+                    <form asp-controller="Home" asp-action="BookViewing" method="post" class="ap-booking-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="ApartmentId" value="@apartment.Id" />
+
+                        <label>
+                            <span>Ngày xem</span>
+                            <input type="date" name="ScheduledDate" min="@minDate" max="@maxDate" value="@defaultDate" required />
+                        </label>
+
+                        <label>
+                            <span>Khung giờ</span>
+                            <select name="SlotHour" required>
+                                @foreach (var h in t.Models.ViewModels.BookViewingViewModel.AvailableHours())
+                                {
+                                    <option value="@h" selected="@(h == 10)">@h.ToString("00"):00 - @((h + 1).ToString("00")):00</option>
+                                }
+                            </select>
+                        </label>
+
+                        <label>
+                            <span>Họ tên</span>
+                            <input type="text" name="ContactName" required maxlength="100" placeholder="Nguyễn Văn A" />
+                        </label>
+
+                        <label>
+                            <span>Số điện thoại</span>
+                            <input type="tel" name="ContactPhone" required maxlength="20" placeholder="09xx xxx xxx" />
+                        </label>
+
+                        <label>
+                            <span>Email <em>(tuỳ chọn)</em></span>
+                            <input type="email" name="ContactEmail" maxlength="200" placeholder="ten@domain.com" />
+                        </label>
+
+                        <label>
+                            <span>Ghi chú <em>(tuỳ chọn)</em></span>
+                            <textarea name="Note" rows="2" maxlength="500" placeholder="VD: Tôi muốn xem cả ban công và view"></textarea>
+                        </label>
+
+                        <button type="submit" class="ap-btn ap-btn-primary">
+                            <span class="material-symbols-outlined">send</span>
+                            Gửi yêu cầu
+                        </button>
+                    </form>
+                </div>
+
+                <div class="ap-promo">
+                    <h4>Đăng tin như @hostName?</h4>
+                    <p>Tiếp cận hàng triệu khách thuê tiềm năng mỗi tháng trên Luxe Haven.</p>
+                    <button type="button">Bắt đầu ngay</button>
+                </div>
+            </aside>
+        </div>
+
+        <section class="ap-similar reveal-item fx-up" data-reveal-delay="140">
+            <h2>Căn hộ tương tự</h2>
+            <div class="ap-similar-grid">
+                @foreach (var item in Model.SimilarApartments)
+                {
+                    <a asp-controller="Home" asp-action="ApartmentDetail" asp-route-id="@item.Id" data-soft-nav="true" class="ap-similar-card no-underline text-on-background">
+                        <div class="ap-similar-img">
+                            <img src="@Url.Content(item.Image)" alt="@item.Title" />
+                            <span>@item.Tag</span>
+                        </div>
+                        <div class="ap-similar-body">
+                            <h3>@item.Title</h3>
+                            <p>@item.Meta</p>
+                            <div class="ap-similar-meta">
+                                <strong>@item.Price</strong>
+                                <span>@item.Location</span>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>
+        </section>
+    </main>
+
+    <div class="ap-lightbox" data-ap-lightbox aria-hidden="true" role="dialog" aria-modal="true" tabindex="-1">
+        <button type="button" class="ap-lightbox-close" data-ap-lightbox-close aria-label="Đóng">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        <button type="button" class="ap-lightbox-nav is-prev" data-ap-lightbox-prev aria-label="Ảnh trước">
+            <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <figure class="ap-lightbox-frame">
+            <img src="" alt="Xem ảnh toàn màn hình" data-ap-lightbox-image />
+            <figcaption data-ap-lightbox-counter>1/1</figcaption>
+        </figure>
+        <button type="button" class="ap-lightbox-nav is-next" data-ap-lightbox-next aria-label="Ảnh sau">
+            <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+    </div>
+
+    <footer class="ap-footer reveal-item fx-up">
+        <div class="ap-footer-grid">
+            <div>
+                <span class="ap-footer-brand">Luxe Haven</span>
+                <p>Định nghĩa lại không gian sống đẳng cấp thông qua sự chọn lọc tinh tế và dịch vụ tận tâm.</p>
+            </div>
+            <div>
+                <h4>Khám phá</h4>
+                <ul>
+                    <li><a href="#">Về chúng tôi</a></li>
+                    <li><a href="#">Dự án mới</a></li>
+                    <li><a href="#">Tin tức thị trường</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Hỗ trợ</h4>
+                <ul>
+                    <li><a href="#">Quy chế hoạt động</a></li>
+                    <li><a href="#">Chính sách bảo mật</a></li>
+                    <li><a href="#">Câu hỏi thường gặp</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Liên hệ</h4>
+                <ul>
+                    <li>Landmark 81, Bình Thạnh, TP.HCM</li>
+                    <li>hello@luxehaven.vn</li>
+                    <li>1900 6789</li>
+                </ul>
+            </div>
+        </div>
+        <div class="ap-footer-bottom">
+            <span>© 2026 Luxe Haven. Bản quyền thuộc về Editorial Sanctuary Group.</span>
+            <div>
+                <a href="#">Việt Nam</a>
+                <a href="#">Tiếng Việt</a>
+            </div>
+        </div>
+    </footer>
+</div>

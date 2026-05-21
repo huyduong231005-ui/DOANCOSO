@@ -1,0 +1,59 @@
+@model List<t.Areas.Admin.Models.ForecastRow>
+@{
+    ViewData["Title"] = "Dự báo doanh thu";
+    string Money(decimal v) => v >= 1_000_000 ? $"{v/1_000_000m:0.#}tr" : v.ToString("N0");
+    var max = Model.Count == 0 ? 0 : Model.Max(x => x.ProjectedRevenue);
+    var total = Model.Sum(x => x.ProjectedRevenue);
+}
+
+<section class="page-header">
+    <div><h1>Dự báo doanh thu 6 tháng</h1><p class="subtitle">Dựa trên hợp đồng đang hoạt động</p></div>
+    <div class="actions">
+        <a class="btn btn-ghost" asp-action="Occupancy">Lấp đầy</a>
+        <a class="btn btn-ghost" asp-action="Arrears">Công nợ</a>
+    </div>
+</section>
+
+<section class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Tổng doanh thu dự kiến</div><div class="kpi-value">@Money(total)</div><div class="kpi-meta">VNĐ · 6 tháng tới</div></div>
+    <div class="kpi-card"><div class="kpi-label">Trung bình tháng</div><div class="kpi-value">@Money(Model.Count == 0 ? 0 : total / Model.Count)</div></div>
+</section>
+
+<div class="card">
+    <div class="card-header"><h2>Theo tháng</h2></div>
+    <div class="card-body">
+        @if (max == 0)
+        {
+            <div class="empty-state"><span class="material-symbols-outlined">show_chart</span><h3>Chưa có dữ liệu</h3></div>
+        }
+        else
+        {
+            <div style="display:flex;align-items:flex-end;gap:.6rem;height:200px;margin-bottom:1rem;">
+                @foreach (var r in Model)
+                {
+                    var pct = (int)Math.Round((double)(r.ProjectedRevenue / max) * 100);
+                    <div title="@r.Month.ToString("MM/yyyy"): @Money(r.ProjectedRevenue) đ" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:.4rem;">
+                        <div class="text-muted" style="font-size:11px;">@Money(r.ProjectedRevenue)</div>
+                        <div style="width:100%;height:@(pct)%;min-height:4px;background:linear-gradient(180deg,#003366,#001e40);border-radius:6px 6px 0 0;"></div>
+                        <div style="font-weight:600;font-size:12px;">@r.Month.ToString("MM/yy")</div>
+                    </div>
+                }
+            </div>
+        }
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>Tháng</th><th class="num">HĐ hoạt động</th><th class="num">Doanh thu dự kiến</th></tr></thead>
+                <tbody>
+                @foreach (var r in Model)
+                {
+                    <tr>
+                        <td class="row-title">@r.Month.ToString("MM/yyyy")</td>
+                        <td class="num">@r.ActiveLeases</td>
+                        <td class="num">@Money(r.ProjectedRevenue)</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

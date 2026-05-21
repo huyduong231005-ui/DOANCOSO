@@ -1,0 +1,45 @@
+@model t.Areas.Tenant.Models.TenantProfileVm
+@{
+    ViewData["Title"] = "Hồ sơ của tôi";
+}
+
+<section class="page-header">
+    <div><h1>Hồ sơ của tôi</h1></div>
+</section>
+
+<form asp-action="Index" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
+
+    <div class="card">
+        <div class="card-header"><h2>Thông tin cá nhân</h2></div>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-field span-6">
+                    <label asp-for="FullName">Họ và tên</label>
+                    <input asp-for="FullName" />
+                    <span class="err" asp-validation-for="FullName"></span>
+                </div>
+                <div class="form-field span-6">
+                    <label asp-for="Email">Email</label>
+                    <input asp-for="Email" readonly style="background:var(--admin-soft);" />
+                    <span class="hint">Liên hệ ban quản lý nếu cần đổi email</span>
+                </div>
+                <div class="form-field span-6">
+                    <label asp-for="Phone">Số điện thoại</label>
+                    <input asp-for="Phone" />
+                </div>
+                <div class="form-field span-6">
+                    <label asp-for="AvatarUrl">Avatar URL</label>
+                    <input asp-for="AvatarUrl" placeholder="https://..." />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hstack mt-3" style="justify-content:flex-end;">
+        <button type="submit" class="btn btn-primary">Lưu</button>
+    </div>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

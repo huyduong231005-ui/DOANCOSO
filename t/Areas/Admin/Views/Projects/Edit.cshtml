@@ -1,0 +1,80 @@
+@model t.Areas.Admin.Models.ProjectEditVm
+@using t.Models.Entities
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Thêm dự án" : Model.Name;
+}
+
+<section class="page-header">
+    <div>
+        <h1>@(Model.Id == 0 ? "Thêm dự án" : Model.Name)</h1>
+        <p class="subtitle">@(Model.Id == 0 ? "Tạo dự án bất động sản mới." : "Cập nhật thông tin dự án.")</p>
+    </div>
+    <div class="actions">
+        <a class="btn btn-ghost" asp-action="Index">Quay lại</a>
+    </div>
+</section>
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
+
+    <div class="card">
+        <div class="card-header"><h2>Thông tin dự án</h2></div>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-field span-8">
+                    <label asp-for="Name">Tên dự án</label>
+                    <input asp-for="Name" />
+                    <span class="err" asp-validation-for="Name"></span>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="Slug">Slug</label>
+                    <input asp-for="Slug" placeholder="auto-generate" />
+                </div>
+
+                <div class="form-field span-4">
+                    <label asp-for="RegionId">Khu vực</label>
+                    <select asp-for="RegionId">
+                        @foreach (var r in Model.Regions) { <option value="@r.Id">@r.Name</option> }
+                    </select>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="PriceFrom">Giá từ (VND)</label>
+                    <input asp-for="PriceFrom" type="number" step="100000" />
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="Status">Trạng thái</label>
+                    <select asp-for="Status">
+                        @foreach (var s in Enum.GetValues<ProjectStatus>()) { <option value="@((int)s)">@s.Vi()</option> }
+                    </select>
+                </div>
+
+                <div class="form-field span-12">
+                    <label asp-for="Address">Địa chỉ</label>
+                    <input asp-for="Address" />
+                </div>
+                <div class="form-field span-12">
+                    <label asp-for="ThumbnailUrl">URL ảnh đại diện</label>
+                    <input asp-for="ThumbnailUrl" placeholder="/img/..." />
+                </div>
+                <div class="form-field span-12">
+                    <label asp-for="ShortDescription">Mô tả ngắn</label>
+                    <input asp-for="ShortDescription" />
+                </div>
+                <div class="form-field span-12">
+                    <label asp-for="FullDescription">Mô tả đầy đủ</label>
+                    <textarea asp-for="FullDescription" rows="4"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hstack mt-3" style="justify-content:flex-end;">
+        <a class="btn btn-ghost" asp-action="Index">Huỷ</a>
+        <button type="submit" class="btn btn-primary">Lưu</button>
+    </div>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

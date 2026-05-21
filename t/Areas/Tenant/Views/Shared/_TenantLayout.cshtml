@@ -1,0 +1,92 @@
+@{
+    var pageTitle = (ViewData["Title"] as string) ?? "Khách thuê";
+    var displayName = User?.Identity?.Name ?? string.Empty;
+    var initial = string.IsNullOrEmpty(displayName) ? "T" : displayName.Substring(0, 1).ToUpperInvariant();
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@pageTitle · Luxe Haven</title>
+    <link rel="stylesheet" href="~/css/material-symbols-local.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/toast.css" asp-append-version="true" />
+    @await RenderSectionAsync("Head", required: false)
+</head>
+<body class="admin-shell">
+<div class="admin-layout">
+    @await Html.PartialAsync("_TenantSidebar")
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div class="crumbs">
+                <a asp-area="Tenant" asp-controller="Dashboard" asp-action="Index">
+                    <span class="material-symbols-outlined" style="font-size:18px;vertical-align:-3px;">home</span>
+                </a>
+                @{ var crumbs = ViewData["Breadcrumbs"] as List<(string Text, string? Url)>; }
+                @if (crumbs != null)
+                {
+                    foreach (var (text, url) in crumbs)
+                    {
+                        <span class="material-symbols-outlined" style="font-size:14px;">chevron_right</span>
+                        @if (!string.IsNullOrEmpty(url)) { <a href="@url">@text</a> }
+                        else { <span class="current">@text</span> }
+                    }
+                }
+            </div>
+
+            <div class="topbar-actions">
+                <a class="btn btn-ghost btn-sm" href="/" target="_blank" rel="noopener">
+                    <span class="material-symbols-outlined">open_in_new</span>Trang chủ
+                </a>
+                <div class="admin-user-pill" title="@displayName">
+                    <span class="avatar">@initial</span>
+                    <div class="vstack" style="gap:0;">
+                        <span>@(string.IsNullOrEmpty(displayName) ? "Khách" : displayName)</span>
+                        <span class="role">Khách thuê</span>
+                    </div>
+                </div>
+                <form asp-area="" asp-controller="Home" asp-action="Logout" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="admin-icon-btn" title="Đăng xuất">
+                        <span class="material-symbols-outlined">logout</span>
+                    </button>
+                </form>
+            </div>
+        </header>
+
+        <main class="admin-content">
+            @RenderBody()
+        </main>
+    </div>
+</div>
+
+@{
+    var _toastSuccess = TempData["Success"] as string;
+    var _toastDanger = TempData["Danger"] as string;
+    var _toastWarning = TempData["Warning"] as string;
+    var _toastInfo = TempData["Info"] as string;
+}
+@if (!string.IsNullOrEmpty(_toastSuccess))
+{
+    <div data-toast="success" data-toast-message="@_toastSuccess" hidden></div>
+}
+@if (!string.IsNullOrEmpty(_toastDanger))
+{
+    <div data-toast="danger" data-toast-message="@_toastDanger" hidden></div>
+}
+@if (!string.IsNullOrEmpty(_toastWarning))
+{
+    <div data-toast="warning" data-toast-message="@_toastWarning" hidden></div>
+}
+@if (!string.IsNullOrEmpty(_toastInfo))
+{
+    <div data-toast="info" data-toast-message="@_toastInfo" hidden></div>
+}
+
+<script src="~/js/admin-uploads.js" asp-append-version="true"></script>
+<script src="~/js/toast.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

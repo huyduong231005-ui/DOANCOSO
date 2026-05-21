@@ -1,0 +1,59 @@
+@model List<t.Areas.Admin.Models.ArrearsRow>
+@{
+    ViewData["Title"] = "Công nợ";
+    string Money(decimal v) => v >= 1_000_000 ? $"{v/1_000_000m:0.#}tr" : v.ToString("N0");
+    var labels = (string[])ViewBag.BucketLabels;
+    var totals = (decimal[])ViewBag.BucketTotals;
+    var grand = (decimal)ViewBag.GrandTotal;
+}
+
+<section class="page-header">
+    <div><h1>Công nợ phân tuổi</h1><p class="subtitle">@Model.Count hoá đơn còn dư · tổng @Money(grand) đ</p></div>
+    <div class="actions">
+        <a class="btn btn-ghost" asp-action="Occupancy">Lấp đầy</a>
+        <a class="btn btn-ghost" asp-action="RevenueForecast">Dự báo</a>
+    </div>
+</section>
+
+<section class="kpi-grid">
+    @for (int i = 0; i < labels.Length; i++)
+    {
+        var color = i == 0 ? "var(--admin-info)" : i == 1 ? "var(--admin-warning)" : i == 2 ? "var(--admin-accent)" : "var(--admin-danger)";
+        <div class="kpi-card">
+            <div class="kpi-label">@labels[i]</div>
+            <div class="kpi-value" style="color:@color;">@Money(totals[i])</div>
+        </div>
+    }
+</section>
+
+<div class="card">
+    <div class="card-header"><h2>Chi tiết hoá đơn nợ</h2></div>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Hoá đơn</th><th>Hợp đồng</th><th>Khách</th><th>Toà</th><th>Đến hạn</th><th class="num">Trễ (ngày)</th><th class="num">Số dư</th><th>Tuổi nợ</th></tr></thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="8"><div class="empty-state"><span class="material-symbols-outlined">money_off</span><h3>Không có công nợ</h3><p>Tất cả hoá đơn đã thanh toán đủ.</p></div></td></tr>
+            }
+            else
+            {
+                foreach (var r in Model)
+                {
+                    var pillCls = r.DaysLate <= 0 ? "pill pill-info" : r.DaysLate <= 30 ? "pill pill-warning" : r.DaysLate <= 60 ? "pill pill-accent" : "pill pill-danger";
+                    <tr>
+                        <td><a class="row-title" asp-controller="Invoices" asp-action="Details" asp-route-id="@r.InvoiceId">@r.InvoiceNumber</a></td>
+                        <td>@r.LeaseNumber</td>
+                        <td>@r.TenantName</td>
+                        <td>@(r.BuildingName ?? "—")</td>
+                        <td>@r.DueDate.ToString("dd/MM/yyyy")</td>
+                        <td class="num">@(r.DaysLate > 0 ? r.DaysLate.ToString() : "—")</td>
+                        <td class="num">@Money(r.Balance)</td>
+                        <td><span class="@pillCls">@r.Bucket</span></td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

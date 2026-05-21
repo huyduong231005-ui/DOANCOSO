@@ -1,0 +1,89 @@
+@model t.Areas.Admin.Models.BuildingEditVm
+@using t.Models.Entities
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Thêm toà nhà" : Model.Name;
+}
+
+<section class="page-header">
+    <div><h1>@(Model.Id == 0 ? "Thêm toà nhà" : Model.Name)</h1></div>
+    <div class="actions"><a class="btn btn-ghost" asp-action="Index">Quay lại</a></div>
+</section>
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
+
+    <div class="card">
+        <div class="card-header"><h2>Thông tin toà nhà</h2></div>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-field span-8">
+                    <label asp-for="Name">Tên toà nhà</label>
+                    <input asp-for="Name" />
+                    <span class="err" asp-validation-for="Name"></span>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="Code">Mã toà</label>
+                    <input asp-for="Code" placeholder="A, B, LMA..." />
+                </div>
+                <div class="form-field span-8">
+                    <label asp-for="Slug">Slug</label>
+                    <input asp-for="Slug" placeholder="auto-generate" />
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="FloorCount">Số tầng</label>
+                    <input asp-for="FloorCount" type="number" min="1" max="100" />
+                    <span class="hint">Khi tạo mới, các tầng sẽ tự sinh</span>
+                </div>
+
+                <div class="form-field span-4">
+                    <label asp-for="RegionId">Khu vực</label>
+                    <select asp-for="RegionId">
+                        @foreach (var r in Model.Regions) { <option value="@r.Id">@r.Name</option> }
+                    </select>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="ProjectId">Dự án</label>
+                    <select asp-for="ProjectId">
+                        <option value="">— Không thuộc dự án —</option>
+                        @foreach (var p in Model.Projects) { <option value="@p.Id">@p.Name</option> }
+                    </select>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="ManagerId">Quản lí phụ trách</label>
+                    <select asp-for="ManagerId">
+                        <option value="">— Chưa phân công —</option>
+                        @foreach (var m in Model.Managers) { <option value="@m.Id">@m.Label</option> }
+                    </select>
+                </div>
+
+                <div class="form-field span-12">
+                    <label asp-for="Address">Địa chỉ</label>
+                    <input asp-for="Address" />
+                </div>
+                <div class="form-field span-12">
+                    <label asp-for="ThumbnailUrl">URL ảnh đại diện</label>
+                    <input asp-for="ThumbnailUrl" />
+                </div>
+                <div class="form-field span-12">
+                    <label asp-for="Description">Mô tả</label>
+                    <textarea asp-for="Description" rows="3"></textarea>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="Status">Trạng thái</label>
+                    <select asp-for="Status">
+                        @foreach (var s in Enum.GetValues<BuildingStatus>()) { <option value="@((int)s)">@s.Vi()</option> }
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hstack mt-3" style="justify-content:flex-end;">
+        <a class="btn btn-ghost" asp-action="Index">Huỷ</a>
+        <button type="submit" class="btn btn-primary">Lưu</button>
+    </div>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

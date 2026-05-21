@@ -1,0 +1,125 @@
+﻿@{
+    var pageTitle = (ViewData["Title"] as string) ?? "Luxe Haven";
+    var bodyClass = (ViewData["BodyClass"] as string) ?? string.Empty;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@pageTitle - Luxe Haven</title>
+    <script>
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            darkMode: "class",
+            corePlugins: { preflight: false },
+            theme: {
+                extend: {
+                    colors: {
+                        "error": "#ba1a1a",
+                        "on-background": "#1a1c1d",
+                        "secondary-container": "#cbe7f5",
+                        "tertiary": "#460002",
+                        "inverse-surface": "#2f3132",
+                        "on-surface-variant": "#43474f",
+                        "surface-container-high": "#e8e8ea",
+                        "surface-dim": "#d9dadc",
+                        "on-primary-container": "#799dd6",
+                        "primary-container": "#003366",
+                        "error-container": "#ffdad6",
+                        "outline": "#737780",
+                        "on-tertiary-fixed-variant": "#8b1a16",
+                        "inverse-primary": "#a7c8ff",
+                        "background": "#f9f9fb",
+                        "on-primary-fixed-variant": "#1f477b",
+                        "secondary-fixed-dim": "#afcbd8",
+                        "surface-bright": "#f9f9fb",
+                        "surface-variant": "#e2e2e4",
+                        "inverse-on-surface": "#f0f0f2",
+                        "secondary-fixed": "#cbe7f5",
+                        "on-primary-fixed": "#001b3c",
+                        "primary-fixed-dim": "#a7c8ff",
+                        "secondary": "#48626e",
+                        "on-secondary-fixed-variant": "#304a55",
+                        "on-secondary-container": "#4e6874",
+                        "surface-container": "#eeeef0",
+                        "on-primary": "#ffffff",
+                        "surface": "#f9f9fb",
+                        "tertiary-container": "#6e0105",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed": "#021f29",
+                        "surface-container-low": "#f3f3f5",
+                        "primary-fixed": "#d5e3ff",
+                        "on-secondary": "#ffffff",
+                        "primary": "#001e40",
+                        "on-surface": "#1a1c1d",
+                        "on-error-container": "#93000a",
+                        "outline-variant": "#c3c6d1",
+                        "on-tertiary-container": "#fe6e60",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#ffdad5",
+                        "on-tertiary-fixed": "#410001",
+                        "tertiary-fixed-dim": "#ffb4aa",
+                        "surface-container-highest": "#e2e2e4",
+                        "surface-tint": "#3a5f94",
+                        "on-tertiary": "#ffffff"
+                    },
+                    fontFamily: {
+                        "headline": ["Be Vietnam Pro"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }
+                }
+            }
+        };
+    </script>
+    <script src="~/js/tailwind-local.js" asp-append-version="true"></script>
+    <link rel="stylesheet" href="~/css/material-symbols-local.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/luxe-haven.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/rentals-page.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/apartment-detail.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/auth-pages.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/posting-page.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/toast.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/t.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Head", required: false)
+</head>
+<body class="@bodyClass">
+    <div id="app-shell">
+        @RenderBody()
+    </div>
+
+    @{
+        var _toastSuccess = TempData["Success"] as string;
+        var _toastDanger = TempData["Danger"] as string;
+        var _toastWarning = TempData["Warning"] as string;
+        var _toastInfo = TempData["Info"] as string;
+    }
+    @if (!string.IsNullOrEmpty(_toastSuccess))
+    {
+        <div data-toast="success" data-toast-message="@_toastSuccess" hidden></div>
+    }
+    @if (!string.IsNullOrEmpty(_toastDanger))
+    {
+        <div data-toast="danger" data-toast-message="@_toastDanger" hidden></div>
+    }
+    @if (!string.IsNullOrEmpty(_toastWarning))
+    {
+        <div data-toast="warning" data-toast-message="@_toastWarning" hidden></div>
+    }
+    @if (!string.IsNullOrEmpty(_toastInfo))
+    {
+        <div data-toast="info" data-toast-message="@_toastInfo" hidden></div>
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/toast.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

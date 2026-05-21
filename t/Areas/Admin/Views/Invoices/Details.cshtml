@@ -1,0 +1,195 @@
+@model t.Models.Entities.Invoice
+@using t.Models.Entities
+@{
+    ViewData["Title"] = Model.InvoiceNumber;
+    string Money(decimal v) => v.ToString("N0");
+    string Pill(InvoiceStatus s) => s switch
+    {
+        InvoiceStatus.Paid => "pill pill-success",
+        InvoiceStatus.Issued => "pill pill-info",
+        InvoiceStatus.PartiallyPaid => "pill pill-accent",
+        InvoiceStatus.Overdue => "pill pill-danger",
+        InvoiceStatus.Draft => "pill pill-neutral",
+        _ => "pill pill-neutral"
+    };
+    string PayPill(PaymentStatus s) => s switch
+    {
+        PaymentStatus.Succeeded => "pill pill-success",
+        PaymentStatus.Pending => "pill pill-warning",
+        PaymentStatus.Failed => "pill pill-danger",
+        PaymentStatus.Refunded or PaymentStatus.PartiallyRefunded => "pill pill-neutral",
+        _ => "pill"
+    };
+}
+
+<section class="page-header">
+    <div>
+        <h1>@Model.InvoiceNumber</h1>
+        <p class="subtitle">Hợp đồng @Model.Lease.LeaseNumber · @Model.Lease.PrimaryTenant.FullName</p>
+    </div>
+    <div class="actions">
+        <span class="@Pill(Model.Status)">@Model.Status.Vi()</span>
+        <a class="btn btn-outline" asp-action="Pdf" asp-route-id="@Model.Id" target="_blank"><span class="material-symbols-outlined">picture_as_pdf</span>PDF</a>
+        @if (Model.Status is InvoiceStatus.Draft or InvoiceStatus.Issued or InvoiceStatus.PartiallyPaid or InvoiceStatus.Overdue)
+        {
+            <a class="btn btn-ghost" asp-action="EditItems" asp-route-id="@Model.Id"><span class="material-symbols-outlined">edit</span>Sửa dòng</a>
+        }
+        @if (Model.Status == InvoiceStatus.Draft)
+        {
+            <form asp-action="Issue" asp-route-id="@Model.Id" method="post" style="display:inline;">@Html.AntiForgeryToken()<button class="btn btn-primary"><span class="material-symbols-outlined">send</span>Phát hành</button></form>
+        }
+        @if (Model.Status is InvoiceStatus.Issued or InvoiceStatus.PartiallyPaid or InvoiceStatus.Overdue or InvoiceStatus.Draft)
+        {
+            <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" style="display:inline;" onsubmit="return confirm('Huỷ hoá đơn này?');">@Html.AntiForgeryToken()<button class="btn btn-danger"><span class="material-symbols-outlined">cancel</span>Huỷ</button></form>
+        }
+    </div>
+</section>
+
+<div style="display:grid;grid-template-columns:1.4fr 1fr;gap:1.2rem;">
+    <div class="vstack">
+        <div class="card">
+            <div class="card-header"><h2>Chi tiết</h2></div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>Mô tả</th><th class="num">Số lượng</th><th class="num">Đơn giá</th><th class="num">Thành tiền</th></tr></thead>
+                    <tbody>
+                    @foreach (var item in Model.Items.OrderBy(x => x.SortOrder))
+                    {
+                        <tr><td>@item.Description</td><td class="num">@item.Quantity</td><td class="num">@Money(item.UnitPrice)</td><td class="num">@Money(item.LineTotal)</td></tr>
+                    }
+                    </tbody>
+                    <tfoot>
+                        <tr><td colspan="3" class="num">Tạm tính</td><td class="num">@Money(Model.SubTotal)</td></tr>
+                        <tr><td colspan="3" class="num">Giảm giá</td><td class="num">@Money(Model.Discount)</td></tr>
+                        <tr><td colspan="3" class="num">Thuế</td><td class="num">@Money(Model.Tax)</td></tr>
+                        <tr><td colspan="3" class="num"><strong>Tổng cộng</strong></td><td class="num"><strong>@Money(Model.Total)</strong></td></tr>
+                        <tr><td colspan="3" class="num">Đã thanh toán</td><td class="num">@Money(Model.AmountPaid)</td></tr>
+                        <tr><td colspan="3" class="num"><strong>Còn lại</strong></td><td class="num"><strong>@Money(Model.Balance)</strong></td></tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h2>Thanh toán</h2></div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>Mã</th><th>Phương thức</th><th class="num">Số tiền</th><th>Thanh toán lúc</th><th>Mã GD</th><th>Trạng thái</th><th></th></tr></thead>
+                    <tbody>
+                    @if (!Model.Payments.Any())
+                    {
+                        <tr><td colspan="7"><div class="empty-state"><span class="material-symbols-outlined">payments</span><h3>Chưa có thanh toán</h3></div></td></tr>
+                    }
+                    else
+                    {
+                        foreach (var p in Model.Payments.OrderByDescending(x => x.PaidAt ?? x.CreatedAt))
+                        {
+                            <tr>
+                                <td class="row-title">@p.PaymentNumber</td>
+                                <td>@p.Method.Vi()</td>
+                                <td class="num">@Money(p.Amount)</td>
+                                <td>@(p.PaidAt?.ToString("HH:mm dd/MM/yyyy") ?? p.CreatedAt.ToString("HH:mm dd/MM"))</td>
+                                <td>@(p.TransactionRef ?? "—")</td>
+                                <td><span class="@PayPill(p.Status)">@p.Status.Vi()</span></td>
+                                <td class="actions-cell">
+                                    @if (p.Status == PaymentStatus.Pending)
+                                    {
+                                        <form asp-action="ApprovePayment" method="post" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="paymentId" value="@p.Id" />
+                                            <button class="btn btn-success btn-sm" title="Duyệt"><span class="material-symbols-outlined">check</span></button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm" title="Từ chối"
+                                                onclick="document.getElementById('rejectForm_@p.Id').style.display='block';">
+                                            <span class="material-symbols-outlined">close</span>
+                                        </button>
+                                    }
+                                    else if (p.Status == PaymentStatus.Succeeded && p.RefundedAmount < p.Amount)
+                                    {
+                                        <form asp-controller="Payments" asp-action="Refund" method="post" style="display:inline;"
+                                              onsubmit="return confirm('Hoàn toàn bộ số tiền của thanh toán này?');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@p.Id" />
+                                            <button class="btn btn-ghost btn-sm" title="Hoàn tiền"><span class="material-symbols-outlined">undo</span></button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                            @if (p.Status == PaymentStatus.Pending)
+                            {
+                                <tr id="rejectForm_@p.Id" style="display:none;background:#fef2f2;">
+                                    <td colspan="7">
+                                        <form asp-action="RejectPayment" method="post" class="hstack" style="gap:.5rem;align-items:center;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="paymentId" value="@p.Id" />
+                                            <input type="text" name="reason" placeholder="Lý do từ chối" style="flex:1;padding:.4rem;" />
+                                            <button class="btn btn-danger btn-sm">Xác nhận từ chối</button>
+                                            <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('rejectForm_@p.Id').style.display='none';">Huỷ</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                            @if (!string.IsNullOrEmpty(p.Note))
+                            {
+                                <tr><td colspan="7" class="text-muted" style="font-size:12px;">📝 @p.Note</td></tr>
+                            }
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="vstack">
+        <div class="card">
+            <div class="card-header"><h2>Thông tin</h2></div>
+            <div class="card-body">
+                <dl class="dl-pairs">
+                    <dt>Hợp đồng</dt><dd><a asp-controller="Leases" asp-action="Details" asp-route-id="@Model.LeaseId">@Model.Lease.LeaseNumber</a></dd>
+                    <dt>Khách thuê</dt><dd>@Model.Lease.PrimaryTenant.FullName</dd>
+                    <dt>Căn hộ</dt><dd>@Model.Lease.Apartment.Title @(Model.Lease.Apartment.Building != null ? "· " + Model.Lease.Apartment.Building.Name : "")</dd>
+                    <dt>Loại</dt><dd>@Model.Kind.Vi()</dd>
+                    @if (Model.BillingMonth > 0) { <dt>Kỳ</dt><dd>@(Model.BillingMonth/100)/@((Model.BillingMonth%100).ToString("00"))</dd> }
+                    <dt>Phát hành</dt><dd>@Model.IssueDate.ToString("dd/MM/yyyy")</dd>
+                    <dt>Đến hạn</dt><dd>@Model.DueDate.ToString("dd/MM/yyyy")</dd>
+                    <dt>Tiền tệ</dt><dd>@Model.Currency</dd>
+                </dl>
+            </div>
+        </div>
+
+        @if (Model.Balance > 0 && Model.Status != InvoiceStatus.Cancelled)
+        {
+            <div class="card">
+                <div class="card-header"><h2>Ghi nhận thanh toán</h2></div>
+                <div class="card-body">
+                    <form asp-action="RecordPayment" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="InvoiceId" value="@Model.Id" />
+                        <div class="form-grid">
+                            <div class="form-field span-12">
+                                <label>Số tiền</label>
+                                <input type="number" name="Amount" value="@Model.Balance" step="1000" />
+                            </div>
+                            <div class="form-field span-12">
+                                <label>Phương thức</label>
+                                <select name="Method">
+                                    @foreach (var m in Enum.GetValues<PaymentMethod>()) { <option value="@((int)m)">@m.Vi()</option> }
+                                </select>
+                            </div>
+                            <div class="form-field span-12">
+                                <label>Mã giao dịch</label>
+                                <input type="text" name="TransactionRef" />
+                            </div>
+                            <div class="form-field span-12">
+                                <label>Ghi chú</label>
+                                <textarea name="Note" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3" style="width:100%;"><span class="material-symbols-outlined">add</span>Ghi nhận</button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>

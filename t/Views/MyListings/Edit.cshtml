@@ -1,0 +1,115 @@
+@using t.Infrastructure.Localization
+@using t.Models.Entities
+@model t.Models.ViewModels.EditListingViewModel
+@{
+    ViewData["Title"] = "Sửa tin đăng";
+    ViewData["BodyClass"] = "luxe-rentals";
+}
+
+<partial name="_LuxeTopbar" />
+
+<main class="mx-auto w-full max-w-[960px] px-4 pb-10 pt-24 sm:px-6 lg:px-8">
+    <section class="rounded-3xl border border-outline-variant/60 bg-white/85 px-5 py-5 shadow-sm sm:px-6">
+        <div class="flex flex-wrap items-center gap-4">
+            @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+            {
+                <img src="@Model.CoverImageUrl" alt="@Model.Title" class="h-20 w-28 rounded-xl object-cover" />
+            }
+            <div class="flex-1">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">@Model.CategoryName</p>
+                <h1 class="font-headline text-2xl font-semibold text-primary">Sửa tin đăng</h1>
+                <p class="mt-1 text-sm text-on-surface-variant">Bạn có thể chỉnh sửa thông tin văn bản. Để thay ảnh, vui lòng xoá tin và đăng lại.</p>
+            </div>
+            <a asp-action="Index" class="inline-flex h-10 items-center rounded-xl border border-outline-variant px-4 text-sm font-semibold text-on-background">
+                <span class="material-symbols-outlined" style="font-size:18px;margin-right:4px;">arrow_back</span>Quay lại
+            </a>
+        </div>
+    </section>
+
+    <form asp-action="Edit" method="post" class="mt-6 space-y-6">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+
+        <div asp-validation-summary="ModelOnly" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+
+        <section class="rounded-3xl border border-outline-variant/60 bg-white px-5 py-5 shadow-sm sm:px-6">
+            <h2 class="text-lg font-semibold text-on-background">Thông tin cơ bản</h2>
+            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                <label class="block sm:col-span-2">
+                    <span class="text-sm font-semibold text-on-background">Tiêu đề</span>
+                    <input asp-for="Title" class="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm" />
+                    <span asp-validation-for="Title" class="text-xs text-red-600"></span>
+                </label>
+
+                <label class="block sm:col-span-2">
+                    <span class="text-sm font-semibold text-on-background">Mô tả</span>
+                    <textarea asp-for="Description" rows="4" class="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm"></textarea>
+                    <span asp-validation-for="Description" class="text-xs text-red-600"></span>
+                </label>
+
+                <label class="block sm:col-span-2">
+                    <span class="text-sm font-semibold text-on-background">Địa chỉ</span>
+                    <input asp-for="Address" class="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm" />
+                    <span asp-validation-for="Address" class="text-xs text-red-600"></span>
+                </label>
+
+                <label class="block">
+                    <span class="text-sm font-semibold text-on-background">Giá thuê (VND/tháng)</span>
+                    <input asp-for="Price" type="number" min="500000" step="100000" class="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm" />
+                    <span asp-validation-for="Price" class="text-xs text-red-600"></span>
+                </label>
+
+                <label class="block">
+                    <span class="text-sm font-semibold text-on-background">Tiền cọc (VND)</span>
+                    <input asp-for="DefaultDeposit" type="number" min="0" step="100000" class="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm" />
+                    <span asp-validation-for="DefaultDeposit" class="text-xs text-red-600"></span>
+                </label>
+
+                <label class="block">
+                    <span class="text-sm font-semibold text-on-background">Diện tích (m²)</span>
+                    <input asp-for="Area" type="number" min="5" step="0.1" class="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm" />
+                    <span asp-validation-for="Area" class="text-xs text-red-600"></span>
+                </label>
+
+                <label class="block">
+                    <span class="text-sm font-semibold text-on-background">Trạng thái</span>
+                    <select asp-for="Status" class="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm">
+                        <option value="@((int)ListingStatus.Active)">@ListingStatus.Active.Vi()</option>
+                        <option value="@((int)ListingStatus.Hidden)">@ListingStatus.Hidden.Vi()</option>
+                        <option value="@((int)ListingStatus.Draft)">@ListingStatus.Draft.Vi()</option>
+                        <option value="@((int)ListingStatus.Expired)">@ListingStatus.Expired.Vi()</option>
+                    </select>
+                </label>
+
+                <label class="block">
+                    <span class="text-sm font-semibold text-on-background">Phòng ngủ</span>
+                    <input asp-for="Bedrooms" type="number" min="0" max="20" class="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm" />
+                    <span asp-validation-for="Bedrooms" class="text-xs text-red-600"></span>
+                </label>
+
+                <label class="block">
+                    <span class="text-sm font-semibold text-on-background">Phòng tắm</span>
+                    <input asp-for="Bathrooms" type="number" min="0" max="20" class="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm" />
+                    <span asp-validation-for="Bathrooms" class="text-xs text-red-600"></span>
+                </label>
+
+                <label class="block sm:col-span-2">
+                    <span class="text-sm font-semibold text-on-background">Ghi chú phí</span>
+                    <input asp-for="FeeNote" class="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm" />
+                    <span asp-validation-for="FeeNote" class="text-xs text-red-600"></span>
+                </label>
+            </div>
+        </section>
+
+        <div class="flex flex-wrap items-center justify-end gap-3">
+            <a asp-action="Index" class="inline-flex h-11 items-center rounded-xl border border-outline-variant px-5 text-sm font-semibold text-on-background">Huỷ</a>
+            <button type="submit" class="inline-flex h-11 items-center rounded-xl bg-primary px-6 text-sm font-semibold text-white">
+                <span class="material-symbols-outlined" style="font-size:18px;margin-right:6px;">save</span>Lưu thay đổi
+            </button>
+        </div>
+    </form>
+</main>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

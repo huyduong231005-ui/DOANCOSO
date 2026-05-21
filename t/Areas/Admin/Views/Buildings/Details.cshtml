@@ -1,0 +1,114 @@
+@model t.Models.Entities.Building
+@using t.Models.Entities
+@{
+    ViewData["Title"] = Model.Name;
+    string Money(decimal v) => v >= 1_000_000 ? $"{v/1_000_000m:0.#}tr" : v.ToString("N0");
+    string Pill(BuildingStatus s) => s switch
+    {
+        BuildingStatus.Active => "pill pill-success",
+        BuildingStatus.UnderMaintenance => "pill pill-warning",
+        BuildingStatus.Closed => "pill pill-danger",
+        _ => "pill"
+    };
+    string OccPill(ApartmentOccupancy o) => o switch
+    {
+        ApartmentOccupancy.Occupied => "pill pill-success",
+        ApartmentOccupancy.Available => "pill pill-info",
+        ApartmentOccupancy.Reserved => "pill pill-warning",
+        ApartmentOccupancy.UnderMaintenance => "pill pill-danger",
+        _ => "pill"
+    };
+    var totalUnits = Model.Apartments.Count;
+    var occupied = Model.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.Occupied);
+    var rate = totalUnits == 0 ? 0 : Math.Round(occupied * 100.0 / totalUnits, 1);
+    var monthlyRev = Model.Apartments.SelectMany(a => a.Leases).Where(l => l.Status == LeaseStatus.Active).Sum(l => l.MonthlyRent);
+}
+
+<section class="page-header">
+    <div>
+        <h1>@Model.Name</h1>
+        <p class="subtitle">@Model.Address</p>
+    </div>
+    <div class="actions">
+        <span class="@Pill(Model.Status)">@Model.Status.Vi()</span>
+        <a class="btn btn-outline" asp-action="Edit" asp-route-id="@Model.Id"><span class="material-symbols-outlined">edit</span>Sửa</a>
+    </div>
+</section>
+
+<section class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Số tầng</div><div class="kpi-value">@Model.FloorCount</div></div>
+    <div class="kpi-card"><div class="kpi-label">Tổng units</div><div class="kpi-value">@totalUnits</div></div>
+    <div class="kpi-card"><div class="kpi-label">Đang ở</div><div class="kpi-value">@occupied</div><div class="kpi-meta">Lấp đầy @rate%</div></div>
+    <div class="kpi-card"><div class="kpi-label">Doanh thu/tháng</div><div class="kpi-value">@Money(monthlyRev)</div></div>
+</section>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:1.2rem;">
+    <div class="card">
+        <div class="card-header"><h2>Danh sách căn hộ</h2></div>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>Mã</th><th>Tên</th><th>Tầng</th><th class="num">Diện tích</th><th class="num">Giá/tháng</th><th>Tình trạng</th></tr></thead>
+                <tbody>
+                @if (!Model.Apartments.Any())
+                {
+                    <tr><td colspan="6"><div class="empty-state"><span class="material-symbols-outlined">apartment</span><h3>Chưa có căn hộ</h3></div></td></tr>
+                }
+                else
+                {
+                    foreach (var a in Model.Apartments.OrderBy(x => x.Floor?.Number).ThenBy(x => x.UnitCode))
+                    {
+                        <tr>
+                            <td><a class="row-title" asp-controller="Apartments" asp-action="Details" asp-route-id="@a.Id">@(a.UnitCode ?? "—")</a></td>
+                            <td>@a.Title</td>
+                            <td>@(a.Floor?.Label ?? "—")</td>
+                            <td class="num">@a.Area m²</td>
+                            <td class="num">@Money(a.Price)</td>
+                            <td><span class="@OccPill(a.Occupancy)">@a.Occupancy.Vi()</span></td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="vstack">
+        <div class="card">
+            <div class="card-header"><h2>Thông tin</h2></div>
+            <div class="card-body">
+                <dl class="dl-pairs">
+                    <dt>Mã toà</dt><dd>@Model.Code</dd>
+                    <dt>Slug</dt><dd>@Model.Slug</dd>
+                    <dt>Khu vực</dt><dd>@Model.Region?.Name</dd>
+                    <dt>Dự án</dt><dd>@(Model.Project?.Name ?? "—")</dd>
+                    <dt>Quản lí</dt><dd>@(Model.Manager?.FullName ?? "—")</dd>
+                    <dt>Số tầng</dt><dd>@Model.FloorCount</dd>
+                    <dt>Tạo lúc</dt><dd>@Model.CreatedAt.ToString("dd/MM/yyyy")</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h2>Sơ đồ tầng</h2></div>
+            <div class="card-body">
+                @foreach (var f in Model.Floors.OrderByDescending(x => x.Number))
+                {
+                    var fApts = Model.Apartments.Where(a => a.FloorId == f.Id).ToList();
+                    <div style="display:grid;grid-template-columns:60px 1fr;gap:.5rem;padding:.5rem 0;border-bottom:1px solid var(--admin-line);">
+                        <div style="font-weight:700;color:var(--admin-muted);">@f.Label</div>
+                        <div class="hstack" style="flex-wrap:wrap;">
+                            @if (!fApts.Any()) { <span class="text-muted">— trống —</span> }
+                            else
+                            {
+                                foreach (var a in fApts)
+                                {
+                                    <a class="pill @OccPill(a.Occupancy)" asp-controller="Apartments" asp-action="Details" asp-route-id="@a.Id" style="text-decoration:none;">@(a.UnitCode ?? a.Title)</a>
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

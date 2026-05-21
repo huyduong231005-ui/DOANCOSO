@@ -1,0 +1,70 @@
+@model t.Areas.Admin.Models.UtilityReadingEditVm
+@using t.Models.Entities
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Nhập chỉ số" : "Sửa chỉ số";
+}
+
+<section class="page-header">
+    <div><h1>@(Model.Id == 0 ? "Nhập chỉ số mới" : "Cập nhật chỉ số")</h1></div>
+    <div class="actions"><a class="btn btn-ghost" asp-action="Index">Quay lại</a></div>
+</section>
+
+<form asp-action="EditReading" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-field span-6">
+                    <label asp-for="LeaseId">Hợp đồng</label>
+                    <select asp-for="LeaseId">
+                        <option value="0">— Chọn hợp đồng —</option>
+                        @foreach (var l in Model.Leases)
+                        {
+                            <option value="@l.Id">@l.LeaseNumber · @l.PrimaryTenant.FullName · @l.Apartment.Title</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-field span-3">
+                    <label asp-for="UtilityTypeId">Loại</label>
+                    <select asp-for="UtilityTypeId">
+                        <option value="0">— Chọn —</option>
+                        @foreach (var t in Model.UtilityTypes) { <option value="@t.Id" data-rate="@t.DefaultRate">@t.Name (@t.Unit)</option> }
+                    </select>
+                </div>
+                <div class="form-field span-3">
+                    <label asp-for="BillingMonth">Kỳ (yyyymm)</label>
+                    <input asp-for="BillingMonth" type="number" />
+                </div>
+
+                <div class="form-field span-4">
+                    <label asp-for="PreviousReading">Chỉ số cũ</label>
+                    <input asp-for="PreviousReading" type="number" step="0.01" />
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="CurrentReading">Chỉ số mới</label>
+                    <input asp-for="CurrentReading" type="number" step="0.01" />
+                    <span class="err" asp-validation-for="CurrentReading"></span>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="Rate">Đơn giá</label>
+                    <input asp-for="Rate" type="number" step="100" />
+                </div>
+
+                <div class="form-field span-12">
+                    <label asp-for="Note">Ghi chú</label>
+                    <input asp-for="Note" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hstack mt-3" style="justify-content:flex-end;">
+        <a class="btn btn-ghost" asp-action="Index">Huỷ</a>
+        <button type="submit" class="btn btn-primary">Lưu</button>
+    </div>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

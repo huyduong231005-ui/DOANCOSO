@@ -1,0 +1,59 @@
+@{
+    var nav = (ViewData["ActiveNav"] as string ?? string.Empty).ToLowerInvariant();
+    string Cls(string key) => nav == key ? "active" : string.Empty;
+}
+<aside class="admin-sidebar">
+    <a class="brand" asp-area="Tenant" asp-controller="Dashboard" asp-action="Index">
+        <span class="brand-mark">L</span>
+        <span class="brand-name">Luxe Tenant</span>
+    </a>
+
+    <div>
+        <div class="sidebar-section">Tổng quan</div>
+        <nav>
+            <a class="@Cls("dashboard")" asp-area="Tenant" asp-controller="Dashboard" asp-action="Index">
+                <span class="material-symbols-outlined">dashboard</span><span>Trang chính</span>
+            </a>
+        </nav>
+    </div>
+
+    <div>
+        <div class="sidebar-section">Hợp đồng của tôi</div>
+        <nav>
+            <a class="@Cls("lease")" asp-area="Tenant" asp-controller="Lease" asp-action="Index">
+                <span class="material-symbols-outlined">description</span><span>Hợp đồng</span>
+            </a>
+            <a class="@Cls("invoices")" asp-area="Tenant" asp-controller="Invoices" asp-action="Index">
+                <span class="material-symbols-outlined">receipt_long</span><span>Hoá đơn</span>
+            </a>
+            <a class="@Cls("utilities")" asp-area="Tenant" asp-controller="Utilities" asp-action="Index">
+                <span class="material-symbols-outlined">bolt</span><span>Điện / Nước</span>
+            </a>
+        </nav>
+    </div>
+
+    <div>
+        <div class="sidebar-section">Hỗ trợ</div>
+        <nav>
+            <a class="@Cls("maintenance")" asp-area="Tenant" asp-controller="Maintenance" asp-action="Index">
+                <span class="material-symbols-outlined">build</span><span>Báo sự cố</span>
+            </a>
+            <a class="@Cls("viewings")" asp-area="Tenant" asp-controller="Viewings" asp-action="Index">
+                <span class="material-symbols-outlined">event</span><span>Lịch xem phòng</span>
+            </a>
+        </nav>
+    </div>
+
+    <div>
+        <div class="sidebar-section">Tài khoản</div>
+        <nav>
+            <a class="@Cls("profile")" asp-area="Tenant" asp-controller="Profile" asp-action="Index">
+                <span class="material-symbols-outlined">person</span><span>Hồ sơ</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="sidebar-footer">
+        <span>© Luxe Haven · @DateTime.Now.Year</span>
+    </div>
+</aside>

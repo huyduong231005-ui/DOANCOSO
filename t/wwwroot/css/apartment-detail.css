@@ -1,0 +1,1072 @@
+body.luxe-apartment-detail {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background: #f3f5f9;
+  color: #1a1c1d;
+}
+
+.luxe-apartment-detail .apartment-main {
+  animation: ap-page-enter 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.luxe-apartment-detail .material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 380, "GRAD" 0, "opsz" 24;
+  line-height: 1;
+}
+
+.apartment-main {
+  width: min(1280px, calc(100% - 56px));
+  margin: 0 auto;
+  padding: 7.5rem 0 5.5rem;
+}
+
+.ap-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 1.5rem;
+  color: #667085;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.ap-breadcrumb a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ap-breadcrumb a:hover {
+  color: #001e40;
+}
+
+.ap-breadcrumb > span:last-child {
+  color: #001e40;
+  font-weight: 700;
+}
+
+.ap-breadcrumb .material-symbols-outlined {
+  font-size: 1rem;
+  color: #98a2b3;
+}
+
+.ap-gallery {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.ap-gallery.is-single {
+  grid-template-columns: 1fr;
+}
+
+.ap-gallery-main,
+.ap-gallery-item {
+  border-radius: 1.35rem;
+  overflow: hidden;
+  background: #e6e9f0;
+  min-height: 0;
+}
+
+.ap-gallery-trigger {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: zoom-in;
+}
+
+.ap-gallery-trigger:focus-visible {
+  outline: 3px solid rgba(0, 30, 64, 0.42);
+  outline-offset: -3px;
+}
+
+.ap-gallery-main {
+  aspect-ratio: 16 / 9;
+}
+
+.ap-gallery-main img,
+.ap-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 820ms ease;
+}
+
+.ap-gallery-main:hover img,
+.ap-gallery-item:hover img {
+  transform: scale(1.06);
+}
+
+.ap-gallery-side {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 1rem;
+}
+
+.ap-gallery-side > .ap-gallery-item {
+  aspect-ratio: 16 / 10;
+}
+
+.ap-gallery-mini {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.ap-gallery-mini .ap-gallery-item {
+  aspect-ratio: 1 / 1;
+}
+
+.ap-gallery-mini.is-single {
+  grid-template-columns: 1fr;
+}
+
+.ap-more-photos {
+  position: relative;
+}
+
+.ap-more-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(2, 6, 23, 0.38);
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+body.ap-lightbox-open {
+  overflow: hidden;
+}
+
+.ap-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.84);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 1.2rem;
+}
+
+.ap-lightbox.is-open {
+  display: flex;
+}
+
+.ap-lightbox-frame {
+  margin: 0;
+  width: min(1220px, calc(100vw - 9rem));
+  max-height: calc(100vh - 6rem);
+  display: grid;
+  gap: 0.7rem;
+  justify-items: center;
+}
+
+.ap-lightbox-frame img {
+  width: auto;
+  max-width: 100%;
+  max-height: calc(100vh - 9rem);
+  object-fit: contain;
+  border-radius: 0.9rem;
+}
+
+.ap-lightbox-frame figcaption {
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.ap-lightbox-close,
+.ap-lightbox-nav {
+  border: none;
+  width: 2.85rem;
+  height: 2.85rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.ap-lightbox-close {
+  position: absolute;
+  right: 1.2rem;
+  top: 1.2rem;
+}
+
+.ap-lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.ap-lightbox-nav.is-prev {
+  left: 1.2rem;
+}
+
+.ap-lightbox-nav.is-next {
+  right: 1.2rem;
+}
+
+.ap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.25rem;
+  margin-bottom: 2.4rem;
+}
+
+.ap-header-copy h1 {
+  margin: 0 0 0.95rem;
+  font-family: "Be Vietnam Pro", sans-serif;
+  color: #001e40;
+  font-size: clamp(2rem, 3vw, 3.1rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+
+.ap-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.1rem;
+  color: #475467;
+}
+
+.ap-meta div {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  font-weight: 600;
+}
+
+.ap-meta .material-symbols-outlined {
+  font-size: 1.1rem;
+  color: #001e40;
+}
+
+.ap-price {
+  text-align: right;
+}
+
+.ap-price div {
+  color: #fe6e60;
+  font-size: 2.45rem;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.ap-price div span {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-left: 0.2rem;
+}
+
+.ap-price p {
+  margin: 0.48rem 0 0;
+  color: #667085;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.ap-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 2.15rem;
+}
+
+.ap-content {
+  display: grid;
+  gap: 2rem;
+}
+
+.ap-section {
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 1.65rem;
+  padding: 1.7rem 1.7rem 1.8rem;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+  transition: transform 360ms ease, box-shadow 360ms ease;
+}
+
+.ap-section:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 36px rgba(15, 23, 42, 0.09);
+}
+
+.ap-section h2 {
+  margin: 0 0 1rem;
+  font-family: "Be Vietnam Pro", sans-serif;
+  color: #001e40;
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.ap-section p {
+  margin: 0;
+  color: #475467;
+  line-height: 1.72;
+  font-size: 0.98rem;
+}
+
+.ap-section p + p {
+  margin-top: 0.95rem;
+}
+
+.ap-amenities {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.ap-amenity {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.88rem 0.9rem;
+  border-radius: 0.95rem;
+  background: #f8fafc;
+  border: 1px solid #e4e7ec;
+  font-size: 0.92rem;
+  font-weight: 600;
+  transition: transform 280ms ease, border-color 280ms ease, background-color 280ms ease;
+}
+
+.ap-amenity:hover {
+  transform: translateY(-2px);
+  border-color: #c9d4e4;
+  background: #fff;
+}
+
+.ap-amenity .material-symbols-outlined {
+  width: 1.9rem;
+  height: 1.9rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #fff;
+  color: #001e40;
+  font-size: 1.08rem;
+}
+
+.ap-map {
+  position: relative;
+  height: 360px;
+  border-radius: 1.2rem;
+  overflow: hidden;
+}
+
+.ap-map img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(0.22);
+  transition: transform 850ms ease, filter 850ms ease;
+}
+
+.ap-map:hover img {
+  transform: scale(1.04);
+  filter: grayscale(0.06);
+}
+
+.ap-map::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(2, 6, 23, 0.2), transparent 48%);
+}
+
+.ap-map button {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  border: none;
+  border-radius: 0.95rem;
+  background: #001e40;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  font-weight: 700;
+  font-size: 0.96rem;
+  padding: 0.95rem 1.28rem;
+  cursor: pointer;
+}
+
+.ap-review-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ap-review-head h2 {
+  margin-bottom: 0;
+}
+
+.ap-review-head button {
+  border: none;
+  background: transparent;
+  color: #001e40;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  cursor: pointer;
+}
+
+.ap-reviews {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.ap-review-card {
+  background: #f8fafc;
+  border: 1px solid #e4e7ec;
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.ap-review-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.7rem;
+}
+
+.ap-review-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ap-review-user img {
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.ap-review-user h4 {
+  margin: 0;
+  color: #001e40;
+  font-size: 0.95rem;
+}
+
+.ap-review-user p {
+  margin: 0.1rem 0 0;
+  font-size: 0.74rem;
+  color: #667085;
+}
+
+.ap-stars {
+  color: #fe6e60;
+  display: flex;
+  align-items: center;
+  gap: 0.04rem;
+}
+
+.ap-stars .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.ap-sidebar {
+  display: grid;
+  gap: 1rem;
+  align-self: start;
+  position: sticky;
+  top: 6.4rem;
+}
+
+.ap-agent-card {
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 1.65rem;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+  padding: 1.3rem;
+  transition: transform 320ms ease, box-shadow 320ms ease;
+}
+
+.ap-agent-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 35px rgba(15, 23, 42, 0.11);
+}
+
+.ap-agent-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.15rem;
+}
+
+.ap-agent-head img {
+  width: 3.4rem;
+  height: 3.4rem;
+  border-radius: 0.95rem;
+  object-fit: cover;
+}
+
+.ap-agent-head h3 {
+  margin: 0;
+  font-family: "Be Vietnam Pro", sans-serif;
+  color: #001e40;
+  font-size: 1.1rem;
+}
+
+.ap-agent-head p {
+  margin: 0.15rem 0 0;
+  font-size: 0.66rem;
+  color: #667085;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.ap-contact {
+  display: grid;
+  gap: 0.72rem;
+  margin-bottom: 0.95rem;
+}
+
+.ap-phone-row {
+  border: 1px solid #e4e7ec;
+  background: #f8fafc;
+  border-radius: 0.85rem;
+  padding: 0.7rem 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ap-phone-row span {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.ap-phone-row button {
+  border: none;
+  background: transparent;
+  color: #001e40;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ap-btn {
+  border: none;
+  border-radius: 0.9rem;
+  min-height: 2.9rem;
+  width: 100%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ap-btn .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
+.ap-btn-primary {
+  background: #001e40;
+  color: #fff;
+}
+
+.ap-btn-muted {
+  background: #e7ecf3;
+  color: #001e40;
+}
+
+.ap-btn-accent {
+  margin-top: 0.5rem;
+  margin-bottom: 0.9rem;
+  background: #fe6e60;
+  color: #fff;
+  min-height: 3.2rem;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.ap-actions {
+  border-top: 1px solid #e4e7ec;
+  padding-top: 0.78rem;
+  display: flex;
+  justify-content: center;
+  gap: 1.3rem;
+}
+
+.ap-actions button {
+  border: none;
+  background: transparent;
+  color: #001e40;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.23rem;
+  cursor: pointer;
+}
+
+.ap-actions .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.ap-promo {
+  background: #001e40;
+  color: #fff;
+  border-radius: 1.65rem;
+  padding: 1.2rem 1.3rem;
+}
+
+.ap-promo h4 {
+  margin: 0 0 0.48rem;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 1.42rem;
+}
+
+.ap-promo p {
+  margin: 0 0 1rem;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.55;
+}
+
+.ap-promo button {
+  border: none;
+  border-radius: 0.8rem;
+  background: #fff;
+  color: #001e40;
+  padding: 0.7rem 1rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ap-similar {
+  margin-top: 3rem;
+}
+
+.ap-similar h2 {
+  margin: 0 0 1.25rem;
+  font-family: "Be Vietnam Pro", sans-serif;
+  color: #001e40;
+  font-size: 1.9rem;
+  font-weight: 800;
+}
+
+.ap-similar-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.ap-similar-card {
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 1.35rem;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+  transition: transform 340ms ease, box-shadow 340ms ease;
+}
+
+.ap-similar-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 22px 36px rgba(15, 23, 42, 0.11);
+}
+
+.ap-similar-img {
+  position: relative;
+  height: 205px;
+}
+
+.ap-similar-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 860ms ease;
+}
+
+.ap-similar-card:hover .ap-similar-img img {
+  transform: scale(1.08);
+}
+
+.ap-similar-img span {
+  position: absolute;
+  left: 0.85rem;
+  top: 0.85rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: #001e40;
+  font-size: 0.63rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 0.34rem 0.62rem;
+}
+
+.ap-similar-body {
+  padding: 0.95rem 1rem 1.08rem;
+}
+
+.ap-similar-body h3 {
+  margin: 0 0 0.44rem;
+  font-family: "Be Vietnam Pro", sans-serif;
+  color: #001e40;
+  font-size: 1.08rem;
+}
+
+.ap-similar-body p {
+  margin: 0;
+  color: #667085;
+  font-size: 0.82rem;
+}
+
+.ap-similar-meta {
+  margin-top: 0.7rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #e4e7ec;
+  padding-top: 0.63rem;
+}
+
+.ap-similar-meta strong {
+  color: #fe6e60;
+  font-size: 1.08rem;
+  font-family: "Be Vietnam Pro", sans-serif;
+}
+
+.ap-similar-meta span {
+  color: #667085;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.ap-footer {
+  margin-top: 3.2rem;
+  background: #edf1f6;
+  border-top: 1px solid #d0d5dd;
+  border-radius: 2.3rem 2.3rem 0 0;
+  padding: 3.2rem 1.25rem 1.2rem;
+}
+
+.ap-footer-grid {
+  width: min(1440px, calc(100% - 30px));
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
+  gap: 1.8rem;
+  padding-bottom: 1.8rem;
+  border-bottom: 1px solid #d0d5dd;
+}
+
+.ap-footer-brand {
+  display: inline-block;
+  margin-bottom: 0.72rem;
+  font-family: "Be Vietnam Pro", sans-serif;
+  color: #001e40;
+  font-size: 1.9rem;
+  font-weight: 900;
+}
+
+.ap-footer-grid p {
+  margin: 0;
+  color: #667085;
+  line-height: 1.65;
+}
+
+.ap-footer-grid h4 {
+  margin: 0 0 0.72rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #001e40;
+  font-weight: 800;
+}
+
+.ap-footer-grid ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.58rem;
+}
+
+.ap-footer-grid li,
+.ap-footer-grid a {
+  color: #667085;
+  font-size: 0.91rem;
+  text-decoration: none;
+}
+
+.ap-footer-grid a:hover {
+  color: #001e40;
+}
+
+.ap-footer-bottom {
+  width: min(1440px, calc(100% - 30px));
+  margin: 0 auto;
+  padding: 0.95rem 0 0.55rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  font-size: 0.74rem;
+  color: #98a2b3;
+}
+
+.ap-footer-bottom div {
+  display: inline-flex;
+  gap: 1rem;
+}
+
+.ap-footer-bottom a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@keyframes ap-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(44px) scale(0.99);
+    filter: blur(3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@media (max-width: 1279.98px) {
+  .ap-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ap-sidebar {
+    position: static;
+    order: -1;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .apartment-main {
+    width: calc(100% - 32px);
+    padding-top: 6.2rem;
+  }
+
+  .ap-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .ap-gallery-main {
+    aspect-ratio: 4 / 3;
+  }
+
+  .ap-lightbox-frame {
+    width: calc(100vw - 5.4rem);
+  }
+
+  .ap-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ap-price {
+    text-align: left;
+  }
+
+  .ap-amenities {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ap-similar-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ap-footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767.98px) {
+  .ap-footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ap-footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ap-lightbox {
+    padding: 0.9rem;
+  }
+
+  .ap-lightbox-frame {
+    width: calc(100vw - 1.8rem);
+    max-height: calc(100vh - 7.8rem);
+  }
+
+  .ap-lightbox-frame img {
+    max-height: calc(100vh - 11.5rem);
+  }
+
+  .ap-lightbox-close {
+    right: 0.9rem;
+    top: 0.9rem;
+  }
+
+  .ap-lightbox-nav.is-prev {
+    left: 0.9rem;
+  }
+
+  .ap-lightbox-nav.is-next {
+    right: 0.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .luxe-apartment-detail .apartment-main,
+  .ap-gallery-main img,
+  .ap-gallery-item img,
+  .ap-section,
+  .ap-amenity,
+  .ap-map img,
+  .ap-agent-card,
+  .ap-similar-card,
+  .ap-similar-img img {
+    animation: none;
+    transition: none;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* ── Booking card (đặt lịch xem phòng) ───────────────────────────── */
+.ap-booking-card {
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+.ap-booking-card h4 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.4rem 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #001e40;
+}
+.ap-booking-card h4 .material-symbols-outlined { font-size: 22px; color: #fe6e60; }
+.ap-booking-hint {
+  margin: 0 0 1rem 0;
+  font-size: 13px;
+  color: #475569;
+}
+.ap-booking-alert {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+.ap-booking-alert .material-symbols-outlined { font-size: 20px; flex-shrink: 0; }
+.ap-booking-alert-success {
+  background: #ecfdf5;
+  color: #047857;
+  border-left: 3px solid #10b981;
+}
+.ap-booking-alert-danger {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-left: 3px solid #ef4444;
+}
+.ap-booking-form {
+  display: grid;
+  gap: 0.75rem;
+}
+.ap-booking-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.ap-booking-form label > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+.ap-booking-form label > span em {
+  font-style: normal;
+  font-weight: 400;
+  color: #94a3b8;
+}
+.ap-booking-form input,
+.ap-booking-form select,
+.ap-booking-form textarea {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #f8fafc;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.ap-booking-form input:focus,
+.ap-booking-form select:focus,
+.ap-booking-form textarea:focus {
+  outline: none;
+  border-color: #001e40;
+  background: white;
+}
+.ap-booking-form textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+.ap-booking-form button[type="submit"] {
+  margin-top: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.7rem 1rem;
+  background: #001e40;
+  color: white;
+  border: 0;
+  border-radius: 10px;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ap-booking-form button[type="submit"]:hover { background: #003366; }

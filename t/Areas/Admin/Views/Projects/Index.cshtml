@@ -1,0 +1,71 @@
+@model List<t.Areas.Admin.Models.ProjectListVm>
+@using t.Models.Entities
+@{
+    ViewData["Title"] = "Dự án";
+    var pager = (t.Areas.Admin.Models.PageInfo)ViewBag.Pager;
+    var q = (string?)ViewBag.Q;
+    var status = (ProjectStatus?)ViewBag.Status;
+    string Money(decimal v) => v >= 1_000_000 ? $"{v/1_000_000m:0.#}tr" : v.ToString("N0");
+    string Pill(ProjectStatus s) => s switch
+    {
+        ProjectStatus.OpenForRent => "pill pill-success",
+        ProjectStatus.Upcoming => "pill pill-info",
+        ProjectStatus.Completed => "pill pill-neutral",
+        _ => "pill"
+    };
+}
+
+<section class="page-header">
+    <div>
+        <h1>Dự án</h1>
+        <p class="subtitle">@pager.TotalCount dự án bất động sản</p>
+    </div>
+    <div class="actions">
+        <a class="btn btn-primary" asp-action="Create"><span class="material-symbols-outlined">add</span>Thêm dự án</a>
+    </div>
+</section>
+
+<form method="get" class="filter-bar">
+    <input type="search" name="q" value="@q" placeholder="Tìm theo tên hoặc slug..." />
+    <select name="status">
+        <option value="">— Trạng thái —</option>
+        @foreach (var s in Enum.GetValues<ProjectStatus>()) { <option value="@((int)s)" selected="@(status == s)">@s.Vi()</option> }
+    </select>
+    <button type="submit" class="btn btn-primary">Lọc</button>
+    <a class="btn btn-ghost" asp-action="Index">Xoá lọc</a>
+</form>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Dự án</th><th>Khu vực</th><th class="num">Giá từ</th><th class="num">Căn hộ</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="6"><div class="empty-state"><span class="material-symbols-outlined">domain</span><h3>Chưa có dự án</h3></div></td></tr>
+            }
+            else
+            {
+                foreach (var p in Model)
+                {
+                    <tr>
+                        <td><div class="row-title">@p.Name</div><div class="row-meta">@p.Slug</div></td>
+                        <td>@p.RegionName</td>
+                        <td class="num">@Money(p.PriceFrom)</td>
+                        <td class="num">@p.ApartmentCount</td>
+                        <td><span class="@Pill(p.Status)">@p.Status.Vi()</span></td>
+                        <td class="actions-cell">
+                            <a class="btn btn-ghost btn-sm" asp-action="Edit" asp-route-id="@p.Id"><span class="material-symbols-outlined">edit</span></a>
+                            <form asp-action="Delete" asp-route-id="@p.Id" method="post" style="display:inline;" onsubmit="return confirm('Xoá dự án này?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-ghost btn-sm"><span class="material-symbols-outlined">delete</span></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+    @await Html.PartialAsync("_Pagination", pager)
+</div>

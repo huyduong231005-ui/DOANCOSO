@@ -1,0 +1,87 @@
+@model List<t.Areas.Admin.Models.PaymentListVm>
+@using t.Models.Entities
+@{
+    ViewData["Title"] = "Thanh toán chờ duyệt";
+    string Money(decimal v) => v.ToString("N0");
+    // Group by invoice so multiple pending submissions on the same invoice stick together.
+    var groups = Model
+        .GroupBy(p => new { p.InvoiceNumber, p.TenantName })
+        .OrderByDescending(g => g.Count())
+        .ThenBy(g => g.Key.InvoiceNumber)
+        .ToList();
+}
+
+<section class="page-header">
+    <div><h1>Thanh toán chờ duyệt</h1><p class="subtitle">@Model.Count thanh toán · @groups.Count hoá đơn</p></div>
+    <div class="actions"><a class="btn btn-ghost" asp-action="Index">Tất cả hoá đơn</a></div>
+</section>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Mã thanh toán</th>
+                    <th>Hoá đơn</th>
+                    <th>Khách thuê</th>
+                    <th class="num">Số tiền</th>
+                    <th>Phương thức</th>
+                    <th>Mã giao dịch</th>
+                    <th>Gửi lúc</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="8"><div class="empty-state"><span class="material-symbols-outlined">inbox</span><h3>Không có thanh toán nào đang chờ</h3></div></td></tr>
+            }
+            else
+            {
+                foreach (var g in groups)
+                {
+                    var items = g.OrderBy(x => x.PaidAt).ToList();
+                    var isMulti = items.Count > 1;
+                    var groupTotal = items.Sum(x => x.Amount);
+                    var idx = 0;
+                    foreach (var p in items)
+                    {
+                        idx++;
+                        <tr>
+                            <td class="row-title">@p.PaymentNumber</td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@p.Id">@p.InvoiceNumber</a>
+                                @if (isMulti)
+                                {
+                                    <span class="pill pill-warning" style="margin-left:.4rem;" title="Có @items.Count lần gửi cùng hoá đơn — tổng @Money(groupTotal). Tránh duyệt trùng.">@idx/@items.Count</span>
+                                }
+                            </td>
+                            <td>@p.TenantName</td>
+                            <td class="num"><strong>@Money(p.Amount)</strong></td>
+                            <td>@p.Method.Vi()</td>
+                            <td>@(p.TransactionRef ?? "—")</td>
+                            <td>@(p.PaidAt?.ToString("HH:mm dd/MM") ?? "—")</td>
+                            <td class="actions-cell">
+                                <form asp-action="ApprovePayment" method="post" style="display:inline;" onsubmit="@(isMulti ? "return confirm('Hoá đơn này có nhiều xác nhận chờ duyệt — duyệt riêng cái này?');" : null)">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="paymentId" value="@p.Id" />
+                                    <button class="btn btn-success btn-sm"><span class="material-symbols-outlined">check</span>Duyệt</button>
+                                </form>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('rej_@p.Id').style.display='inline-flex';">
+                                    <span class="material-symbols-outlined">close</span>Từ chối
+                                </button>
+                                <form asp-action="RejectPayment" method="post" id="rej_@p.Id" style="display:none;gap:.3rem;align-items:center;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="paymentId" value="@p.Id" />
+                                    <input type="text" name="reason" placeholder="Lý do" style="padding:.3rem;" />
+                                    <button class="btn btn-danger btn-sm">OK</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

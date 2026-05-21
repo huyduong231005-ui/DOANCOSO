@@ -1,0 +1,289 @@
+﻿@model t.Models.ViewModels.CreateApartmentViewModel
+@{
+    ViewData["Title"] = "Đăng tin mới";
+    ViewData["BodyClass"] = "luxe-posting";
+}
+
+<div class="posting-page">
+    <header class="posting-topbar">
+        <div class="posting-topbar-left">
+            <a class="posting-brand" asp-controller="Home" asp-action="Index" data-soft-nav="true">Luxe Haven</a>
+            <nav class="posting-topnav">
+                <a asp-controller="Home" asp-action="Index" data-soft-nav="true">Trang chủ</a>
+                <a asp-controller="Home" asp-action="Rentals" data-soft-nav="true">Cho thuê</a>
+                <a class="is-active" asp-controller="Home" asp-action="PostListing">Đăng tin</a>
+                <a asp-controller="Projects" asp-action="Index" data-soft-nav="true">Dự án</a>
+            </nav>
+        </div>
+        <div class="posting-topbar-right">
+            <button type="button" class="posting-icon-btn" aria-label="Thông báo">
+                <span class="material-symbols-outlined">notifications</span>
+                <span class="posting-noti-dot"></span>
+            </button>
+            <form asp-controller="Home" asp-action="Logout" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="posting-primary-btn" style="border:none;">Đăng xuất</button>
+            </form>
+            <a asp-controller="Home" asp-action="Rentals" data-soft-nav="true" class="posting-primary-btn">Xem tin đăng</a>
+        </div>
+    </header>
+
+    <div class="posting-layout">
+        <aside class="posting-sidebar">
+            <div class="posting-user-card">
+                <img src="~/img/detail/agent.jpg" alt="Người đăng tin" />
+                <div>
+                    <p>Tài khoản đã xác minh</p>
+                    <span>host</span>
+                </div>
+            </div>
+
+            <nav class="posting-side-menu">
+                <a class="is-active" href="#thong-tin"><span class="material-symbols-outlined">apartment</span>Thông tin cơ bản</a>
+                <a href="#hinh-anh"><span class="material-symbols-outlined">imagesmode</span>Hình ảnh</a>
+                <a href="#tien-ich"><span class="material-symbols-outlined">featured_seasonal_and_gifts</span>Tiện ích</a>
+                <a href="#vi-tri"><span class="material-symbols-outlined">location_on</span>Vị trí</a>
+                <a href="#dang-tin"><span class="material-symbols-outlined">publish</span>Xuất bản <strong>1</strong></a>
+            </nav>
+
+            <div class="posting-pro-card">
+                <h4>Gói Pro Host</h4>
+                <p>Ưu tiên hiển thị tin đăng và đánh dấu nổi bật trên trang tìm kiếm.</p>
+                <button type="button">Nâng cấp ngay</button>
+            </div>
+        </aside>
+
+        <main class="posting-main">
+            <div class="posting-container">
+                <div class="posting-intro posting-fx">
+                    <div class="posting-breadcrumb">
+                        <a asp-controller="Home" asp-action="Index" data-soft-nav="true">Trang chủ</a>
+                        <span>/</span>
+                        <span>Đăng tin</span>
+                    </div>
+                    <h1>Tạo tin cho thuê</h1>
+                    <p>Hoàn thiện thông tin căn hộ, upload hình ảnh thực tế và xuất bản trong vài phút.</p>
+                </div>
+
+                <div class="posting-progress posting-fx delay-1" aria-hidden="true">
+                    <div class="posting-progress-line"></div>
+                    <div class="posting-progress-fill"></div>
+                    <div class="posting-step is-active"><span>1</span><small>Thông tin</small></div>
+                    <div class="posting-step"><span>2</span><small>Hình ảnh</small></div>
+                    <div class="posting-step"><span>3</span><small>Xác nhận</small></div>
+                    <div class="posting-step"><span>4</span><small>Xuất bản</small></div>
+                </div>
+
+                <form asp-action="PostListing" method="post" enctype="multipart/form-data" class="posting-sections">
+                    @Html.AntiForgeryToken()
+
+                    <section id="thong-tin" class="posting-card posting-fx delay-1">
+                        <div class="posting-card-head">
+                            <span class="material-symbols-outlined">home_work</span>
+                            <div>
+                                <h2>Thông tin cơ bản</h2>
+                                <p>Những trường bắt buộc cần hoàn tất trước khi đăng tin.</p>
+                            </div>
+                        </div>
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="posting-grid">
+                            <div class="posting-field full">
+                                <span>Tiêu đề</span>
+                                <input asp-for="Title" placeholder="Căn hộ 2PN full nội thất gần trung tâm" />
+                                <span asp-validation-for="Title" class="text-danger"></span>
+                            </div>
+
+                            <div class="posting-field">
+                                <span>Loại hình</span>
+                                <select asp-for="CategoryId" data-category-select>
+                                    <option value="">Chọn loại hình</option>
+                                    @foreach (var category in Model.Categories)
+                                    {
+                                        <option value="@category.Id" data-slug="@category.Slug">@category.Name</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="CategoryId" class="text-danger"></span>
+                                <small id="category-hint"></small>
+                            </div>
+
+                            <div class="posting-field">
+                                <span>Khu vực</span>
+                                <select asp-for="RegionId">
+                                    <option value="">Chọn khu vực</option>
+                                    @foreach (var region in Model.Regions)
+                                    {
+                                        <option value="@region.Id">@region.Name</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="RegionId" class="text-danger"></span>
+                            </div>
+
+                            <div class="posting-field">
+                                <span>Dự án</span>
+                                <select asp-for="ProjectId">
+                                    <option value="">Không gắn dự án</option>
+                                    @foreach (var project in Model.Projects)
+                                    {
+                                        <option value="@project.Id">@project.Name</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="posting-field">
+                                <span>Giá thuê</span>
+                                <div class="posting-unit-wrap">
+                                    <input asp-for="Price" class="is-price" type="number" min="500000" step="100000" placeholder="12000000" />
+                                    <em>VND/tháng</em>
+                                </div>
+                                <span asp-validation-for="Price" class="text-danger"></span>
+                            </div>
+
+                            <div class="posting-field">
+                                <span>Tiền cọc</span>
+                                <div class="posting-unit-wrap">
+                                    <input asp-for="DefaultDeposit" type="number" min="0" step="100000" placeholder="24000000" />
+                                    <em>VND</em>
+                                </div>
+                                <span asp-validation-for="DefaultDeposit" class="text-danger"></span>
+                            </div>
+
+                            <div class="posting-field">
+                                <span>Diện tích</span>
+                                <div class="posting-unit-wrap">
+                                    <input asp-for="Area" type="number" min="1" step="0.1" placeholder="68" />
+                                    <em>m2</em>
+                                </div>
+                                <span asp-validation-for="Area" class="text-danger"></span>
+                            </div>
+
+                            <div class="posting-field">
+                                <span>Phòng ngủ</span>
+                                <input asp-for="Bedrooms" type="number" min="0" max="20" />
+                                <span asp-validation-for="Bedrooms" class="text-danger"></span>
+                            </div>
+
+                            <div class="posting-field">
+                                <span>Phòng tắm</span>
+                                <input asp-for="Bathrooms" type="number" min="0" max="20" />
+                                <span asp-validation-for="Bathrooms" class="text-danger"></span>
+                            </div>
+
+                            <div class="posting-field full">
+                                <span>Địa chỉ</span>
+                                <input asp-for="Address" placeholder="Số nhà, đường, quận/huyện, tỉnh/thành" />
+                                <span asp-validation-for="Address" class="text-danger"></span>
+                            </div>
+
+                            <div class="posting-field full">
+                                <span>Mô tả</span>
+                                <textarea asp-for="Description" rows="4" class="posting-textarea"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+
+                            <div class="posting-field full">
+                                <span>Ghi chú phí</span>
+                                <input asp-for="FeeNote" placeholder="Ví dụ: Chưa bao gồm phí quản lý và giữ xe" />
+                                <span asp-validation-for="FeeNote" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="hinh-anh" class="posting-card posting-fx delay-2">
+                        <div class="posting-card-head posting-between">
+                            <div>
+                                <h2>Hình ảnh listing</h2>
+                                <p>Upload từ 1 đến 15 ảnh, định dạng jpg/png/webp, tối đa 5MB mỗi ảnh.</p>
+                            </div>
+                            <button type="button" class="posting-link-btn">Hướng dẫn chụp ảnh</button>
+                        </div>
+
+                        <label for="listing-images-input" class="lp-drop-zone" id="listing-drop-zone">
+                            <span class="material-symbols-outlined">cloud_upload</span>
+                            <p>Kéo & thả ảnh vào đây hoặc bấm để chọn</p>
+                            <small>JPG / PNG / WEBP · tối đa 5MB · tối đa 15 ảnh</small>
+                            <span class="lp-counter" id="listing-images-counter">0/15 ảnh</span>
+                        </label>
+                        <input type="file" id="listing-images-input" name="Images" multiple accept="image/jpeg,image/png,image/webp" />
+                        <input type="hidden" id="CoverImageIndex" name="CoverImageIndex" value="0" />
+
+                        <div id="listing-preview-grid" class="lp-preview-grid"></div>
+                        <span id="listing-images-error"></span>
+                        <span asp-validation-for="Images" class="text-danger"></span>
+
+                        <div class="posting-tip">
+                            <span class="material-symbols-outlined">info</span>
+                            <p>Bấm vào ảnh để chọn làm bìa · kéo thả để sắp xếp lại · bấm × để xoá ảnh.</p>
+                        </div>
+                    </section>
+
+                    <section id="tien-ich" class="posting-card posting-fx delay-3">
+                        <div class="posting-card-head">
+                            <span class="material-symbols-outlined">stacks</span>
+                            <div>
+                                <h2>Tiện ích nổi bật</h2>
+                                <p>Chọn những tiện ích có sẵn để tăng độ tin cậy của tin đăng.</p>
+                            </div>
+                        </div>
+
+                        <div class="posting-amenity-grid">
+                            @foreach (var amenity in Model.Amenities)
+                            {
+                                var isChecked = Model.AmenityIds.Contains(amenity.Id);
+                                <label>
+                                    <span class="material-symbols-outlined">check_circle</span>
+                                    @amenity.Name
+                                    <input type="checkbox" name="AmenityIds" value="@amenity.Id" data-amenity-slug="@amenity.Slug" checked="@isChecked" />
+                                </label>
+                            }
+                        </div>
+                    </section>
+
+                    <section id="vi-tri" class="posting-card posting-fx delay-4">
+                        <div class="posting-card-head">
+                            <span class="material-symbols-outlined">map</span>
+                            <div>
+                                <h2>Vị trí trên bản đồ</h2>
+                                <p>Xác nhận vị trí để người thuê dễ đánh giá khoảng cách và kết nối giao thông.</p>
+                            </div>
+                        </div>
+
+                        <div class="posting-map" aria-hidden="true">
+                            <img src="~/img/detail/map.jpg" alt="Map preview" />
+                            <div class="posting-map-pin">
+                                <span class="material-symbols-outlined">location_on</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div id="dang-tin" class="posting-actions posting-fx delay-4">
+                        <button type="button" class="posting-draft-btn">Lưu nháp</button>
+                        <button type="submit" class="posting-submit-btn">
+                            <span class="material-symbols-outlined">publish</span>
+                            Đăng tin ngay
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <footer class="posting-footer">
+        <div>
+            <strong>Luxe Haven Host Console</strong>
+            <p>Quản lý listing, lượt xem và liên hệ từ một nơi duy nhất.</p>
+        </div>
+        <nav>
+            <a href="#">Chính sách</a>
+            <a href="#">Điều khoản</a>
+            <a href="#">Hỗ trợ</a>
+        </nav>
+    </footer>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/post-listing.js" asp-append-version="true"></script>
+}
+

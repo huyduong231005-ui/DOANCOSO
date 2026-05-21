@@ -1,0 +1,57 @@
+@model t.Areas.Admin.Models.UtilityTypeEditVm
+@using t.Models.Entities
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Thêm loại tiện ích" : Model.Name;
+}
+
+<section class="page-header">
+    <div><h1>@(Model.Id == 0 ? "Thêm loại tiện ích" : Model.Name)</h1></div>
+    <div class="actions"><a class="btn btn-ghost" asp-action="Types">Quay lại</a></div>
+</section>
+
+<form asp-action="EditType" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-field span-3">
+                    <label asp-for="Code">Mã</label>
+                    <input asp-for="Code" placeholder="ELEC, WATER..." />
+                </div>
+                <div class="form-field span-6">
+                    <label asp-for="Name">Tên hiển thị</label>
+                    <input asp-for="Name" />
+                </div>
+                <div class="form-field span-3">
+                    <label asp-for="Unit">Đơn vị</label>
+                    <input asp-for="Unit" placeholder="kWh, m³, tháng..." />
+                </div>
+
+                <div class="form-field span-4">
+                    <label asp-for="BillingMode">Cách tính</label>
+                    <select asp-for="BillingMode">
+                        @foreach (var m in Enum.GetValues<UtilityBillingMode>()) { <option value="@((int)m)">@m.Vi()</option> }
+                    </select>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="DefaultRate">Đơn giá mặc định</label>
+                    <input asp-for="DefaultRate" type="number" step="100" />
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="Icon">Icon (Material Symbols)</label>
+                    <input asp-for="Icon" placeholder="bolt, water_drop, wifi..." />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hstack mt-3" style="justify-content:flex-end;">
+        <a class="btn btn-ghost" asp-action="Types">Huỷ</a>
+        <button type="submit" class="btn btn-primary">Lưu</button>
+    </div>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

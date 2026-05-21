@@ -1,0 +1,124 @@
+@model List<t.Areas.Admin.Models.InvoiceListVm>
+@using t.Models.Entities
+@{
+    ViewData["Title"] = "Hoá đơn";
+    var pager = (t.Areas.Admin.Models.PageInfo)ViewBag.Pager;
+    var q = (string?)ViewBag.Q;
+    var status = (InvoiceStatus?)ViewBag.Status;
+    var kind = (InvoiceKind?)ViewBag.Kind;
+    var month = (int?)ViewBag.Month;
+    var pendingCount = (int)(ViewBag.PendingPaymentsCount ?? 0);
+    var sumTotal = (decimal)(ViewBag.SumTotal ?? 0m);
+    var sumPaid = (decimal)(ViewBag.SumPaid ?? 0m);
+    var sumBalance = (decimal)(ViewBag.SumBalance ?? 0m);
+    string Money(decimal v) => v.ToString("N0");
+    string Pill(InvoiceStatus s) => s switch
+    {
+        InvoiceStatus.Paid => "pill pill-success",
+        InvoiceStatus.Issued => "pill pill-info",
+        InvoiceStatus.PartiallyPaid => "pill pill-accent",
+        InvoiceStatus.Overdue => "pill pill-danger",
+        InvoiceStatus.Draft => "pill pill-neutral",
+        InvoiceStatus.Cancelled or InvoiceStatus.Refunded => "pill pill-neutral",
+        _ => "pill"
+    };
+}
+
+<section class="page-header">
+    <div><h1>Hoá đơn</h1><p class="subtitle">@pager.TotalCount hoá đơn</p></div>
+    <div class="actions">
+        <a class="btn btn-outline" asp-action="PendingPayments">
+            <span class="material-symbols-outlined">pending_actions</span>Chờ duyệt
+            @if (pendingCount > 0) { <span class="pill pill-warning" style="margin-left:.4rem;">@pendingCount</span> }
+        </a>
+        <a class="btn btn-primary" asp-action="CreateOneOff"><span class="material-symbols-outlined">add</span>Tạo hoá đơn bổ sung</a>
+    </div>
+</section>
+
+<section class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Tổng (kết quả lọc)</div><div class="kpi-value" style="font-size:1.3rem;">@Money(sumTotal)</div></div>
+    <div class="kpi-card"><div class="kpi-label">Đã thu</div><div class="kpi-value" style="font-size:1.3rem;color:var(--admin-success);">@Money(sumPaid)</div></div>
+    <div class="kpi-card"><div class="kpi-label">Còn nợ</div><div class="kpi-value" style="font-size:1.3rem;color:var(--admin-danger);">@Money(sumBalance)</div></div>
+</section>
+
+<form method="get" class="filter-bar">
+    <input type="search" name="q" value="@q" placeholder="Số hoá đơn, hợp đồng, tên khách..." />
+    <select name="status">
+        <option value="">— Trạng thái —</option>
+        @foreach (var s in Enum.GetValues<InvoiceStatus>()) { <option value="@((int)s)" selected="@(status == s)">@s.Vi()</option> }
+    </select>
+    <select name="kind">
+        <option value="">— Loại —</option>
+        @foreach (var k in Enum.GetValues<InvoiceKind>()) { <option value="@((int)k)" selected="@(kind == k)">@k.Vi()</option> }
+    </select>
+    <input type="number" name="month" value="@month" placeholder="Kỳ (YYYYMM)" min="200000" max="299912" />
+    <button type="submit" class="btn btn-primary">Lọc</button>
+    <a class="btn btn-ghost" asp-action="Index">Xoá lọc</a>
+</form>
+
+<form asp-action="BulkMarkOverdue" method="post" id="bulkForm">
+    @Html.AntiForgeryToken()
+    <div class="card">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="hstack">
+                <button type="submit" class="btn btn-outline btn-sm" onclick="return confirm('Đánh dấu các hoá đơn đã chọn là Quá hạn?');" disabled id="bulkBtn">
+                    <span class="material-symbols-outlined">flag</span>Đánh dấu Quá hạn (đã chọn)
+                </button>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:30px;"><input type="checkbox" id="chkAll" /></th>
+                        <th>Số hoá đơn</th><th>Hợp đồng</th><th>Khách / Căn</th>
+                        <th>Phát hành</th><th>Đến hạn</th>
+                        <th class="num">Tổng</th><th class="num">Đã trả</th><th class="num">Còn lại</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="10"><div class="empty-state"><span class="material-symbols-outlined">receipt_long</span><h3>Chưa có hoá đơn</h3></div></td></tr>
+                }
+                else
+                {
+                    foreach (var i in Model)
+                    {
+                        var canBulk = i.Status is InvoiceStatus.Issued or InvoiceStatus.PartiallyPaid;
+                        <tr>
+                            <td>@(canBulk ? Html.Raw($"<input type=\"checkbox\" name=\"ids\" value=\"{i.Id}\" class=\"chkRow\" />") : Html.Raw(""))</td>
+                            <td><a class="row-title" asp-action="Details" asp-route-id="@i.Id">@i.InvoiceNumber</a><div class="row-meta">@i.Kind.Vi() · @(i.BillingMonth > 0 ? $"{i.BillingMonth/100}/{i.BillingMonth%100:00}" : "")</div></td>
+                            <td>@i.LeaseNumber</td>
+                            <td><div>@i.TenantName</div><div class="row-meta">@i.UnitTitle</div></td>
+                            <td>@i.IssueDate.ToString("dd/MM/yyyy")</td>
+                            <td>@i.DueDate.ToString("dd/MM/yyyy")</td>
+                            <td class="num">@Money(i.Total)</td>
+                            <td class="num">@Money(i.AmountPaid)</td>
+                            <td class="num"><strong>@Money(i.Balance)</strong></td>
+                            <td><span class="@Pill(i.Status)">@i.Status.Vi()</span></td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+        @await Html.PartialAsync("_Pagination", pager)
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        (function () {
+            const chkAll = document.getElementById('chkAll');
+            const rows = document.querySelectorAll('.chkRow');
+            const btn = document.getElementById('bulkBtn');
+            function refresh() {
+                btn.disabled = ![...rows].some(c => c.checked);
+            }
+            chkAll?.addEventListener('change', () => { rows.forEach(c => c.checked = chkAll.checked); refresh(); });
+            rows.forEach(c => c.addEventListener('change', refresh));
+        })();
+    </script>
+}

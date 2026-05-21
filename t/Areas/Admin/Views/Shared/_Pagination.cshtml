@@ -1,0 +1,32 @@
+@model t.Areas.Admin.Models.PageInfo
+@{
+    if (Model == null || Model.TotalPages <= 0) { return; }
+    var current = Model.Page;
+    var total = Model.TotalPages;
+    int from = Math.Max(1, current - 2);
+    int to = Math.Min(total, from + 4);
+    if (to - from < 4) from = Math.Max(1, to - 4);
+    var startItem = (current - 1) * Model.PageSize + 1;
+    var endItem = Math.Min(Model.TotalCount, current * Model.PageSize);
+}
+<div class="pagination">
+    <span>Hiển thị <strong>@startItem–@endItem</strong> trong <strong>@Model.TotalCount</strong></span>
+    <div class="pages">
+        <a class="page @(current <= 1 ? "disabled" : "")" href="@Model.Url(current - 1)">‹</a>
+        @if (from > 1)
+        {
+            <a class="page" href="@Model.Url(1)">1</a>
+            @if (from > 2) { <span class="page disabled">…</span> }
+        }
+        @for (int i = from; i <= to; i++)
+        {
+            <a class="page @(i == current ? "active" : "")" href="@Model.Url(i)">@i</a>
+        }
+        @if (to < total)
+        {
+            @if (to < total - 1) { <span class="page disabled">…</span> }
+            <a class="page" href="@Model.Url(total)">@total</a>
+        }
+        <a class="page @(current >= total ? "disabled" : "")" href="@Model.Url(current + 1)">›</a>
+    </div>
+</div>

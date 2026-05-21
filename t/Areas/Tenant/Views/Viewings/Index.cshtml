@@ -1,0 +1,86 @@
+@using t.Infrastructure.Localization
+@using t.Models.Entities
+@model List<t.Models.Entities.ViewingAppointment>
+@{
+    ViewData["Title"] = "Lịch xem phòng";
+    var status = (ViewingStatus?)ViewBag.Status;
+    string Pill(ViewingStatus s) => s switch
+    {
+        ViewingStatus.Pending => "pill pill-warning",
+        ViewingStatus.Confirmed => "pill pill-success",
+        ViewingStatus.Cancelled => "pill pill-danger",
+        ViewingStatus.Completed => "pill pill-info",
+        ViewingStatus.NoShow => "pill pill-neutral",
+        _ => "pill"
+    };
+}
+
+<section class="page-header">
+    <div><h1>Lịch xem phòng</h1><p class="subtitle">@Model.Count lịch hẹn của tôi</p></div>
+</section>
+
+<form method="get" class="filter-bar">
+    <select name="status">
+        <option value="">— Tất cả —</option>
+        @foreach (var s in Enum.GetValues<ViewingStatus>())
+        {
+            <option value="@((int)s)" selected="@(status == s)">@s.Vi()</option>
+        }
+    </select>
+    <button type="submit" class="btn btn-primary">Lọc</button>
+    <a class="btn btn-ghost" asp-action="Index">Xoá lọc</a>
+</form>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Lịch hẹn</th>
+                    <th>Tin đăng</th>
+                    <th>Liên hệ</th>
+                    <th>Ghi chú</th>
+                    <th>Trạng thái</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="6"><div class="empty-state"><span class="material-symbols-outlined">event_busy</span><h3>Bạn chưa đặt lịch nào</h3></div></td></tr>
+                }
+                else
+                {
+                    foreach (var v in Model)
+                    {
+                        <tr>
+                            <td class="no-wrap">
+                                <strong>@v.ScheduledDate.ToString("dd/MM/yyyy")</strong>
+                                <div class="row-meta">@v.SlotHour.ToString("00"):00 - @((v.SlotHour + 1).ToString("00")):00</div>
+                            </td>
+                            <td>
+                                <a class="row-title" href="/Home/ApartmentDetail/@v.ApartmentId">@v.Apartment.Title</a>
+                                <div class="row-meta">@v.Apartment.Address</div>
+                            </td>
+                            <td class="no-wrap">
+                                <div>@v.ContactName</div>
+                                <div class="row-meta">@v.ContactPhone</div>
+                            </td>
+                            <td class="text-muted" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;">@(v.Note ?? "—")</td>
+                            <td><span class="@Pill(v.Status)">@v.Status.Vi()</span></td>
+                            <td class="actions-cell">
+                                @if (v.Status is ViewingStatus.Pending or ViewingStatus.Confirmed)
+                                {
+                                    <form asp-action="Cancel" asp-route-id="@v.Id" method="post" class="d-inline" onsubmit="return confirm('Huỷ lịch này?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Huỷ"><span class="material-symbols-outlined">close</span></button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

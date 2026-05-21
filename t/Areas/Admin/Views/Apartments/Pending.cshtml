@@ -1,0 +1,71 @@
+@model List<t.Models.Entities.Apartment>
+@{
+    ViewData["Title"] = "Tin đăng chờ duyệt";
+    string Money(decimal v) => v >= 1_000_000 ? $"{v/1_000_000m:0.#}tr" : v.ToString("N0");
+}
+
+<section class="page-header">
+    <div><h1>Tin đăng chờ duyệt</h1><p class="subtitle">@Model.Count tin đăng cần kiểm duyệt</p></div>
+    <div class="actions"><a class="btn btn-ghost" asp-action="Index">Tất cả căn hộ</a></div>
+</section>
+
+@if (!Model.Any())
+{
+    <div class="card">
+        <div class="empty-state">
+            <span class="material-symbols-outlined">inbox</span>
+            <h3>Không có tin đang chờ duyệt</h3>
+        </div>
+    </div>
+}
+else
+{
+    foreach (var apt in Model)
+    {
+        var cover = apt.Images.FirstOrDefault(i => i.IsCover)?.Url
+                  ?? apt.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).FirstOrDefault()
+                  ?? "/img/rent-1.jpg";
+        <div class="card mt-3">
+            <div class="card-body" style="display:grid;grid-template-columns:200px 1fr auto;gap:1rem;align-items:start;">
+                <a asp-controller="Home" asp-action="ApartmentDetail" asp-route-id="@apt.Id" target="_blank">
+                    <img src="@cover" alt="@apt.Title" style="width:200px;height:130px;object-fit:cover;border-radius:8px;" />
+                </a>
+                <div>
+                    <h3 style="margin:0;">@apt.Title</h3>
+                    <div class="row-meta">@apt.Category?.Name · @apt.Region?.Name</div>
+                    <div class="hstack mt-2" style="gap:1rem;font-size:13px;">
+                        <span><strong>@Money(apt.Price)</strong>/tháng</span>
+                        <span>@apt.Area m²</span>
+                        <span>@apt.Bedrooms PN · @apt.Bathrooms WC</span>
+                    </div>
+                    <p class="text-muted mt-2" style="font-size:13px;">@apt.Address</p>
+                    <p style="font-size:13px;">Đăng bởi <strong>@apt.Host.FullName</strong> · @apt.CreatedAt.ToString("HH:mm dd/MM/yyyy")</p>
+                    @if (!string.IsNullOrEmpty(apt.Description))
+                    {
+                        <p style="font-size:13px;max-height:60px;overflow:hidden;color:#4b5563;">@apt.Description</p>
+                    }
+                </div>
+                <div class="vstack" style="gap:.5rem;min-width:200px;">
+                    <a class="btn btn-ghost btn-sm" asp-controller="Home" asp-action="ApartmentDetail" asp-route-id="@apt.Id" target="_blank">
+                        <span class="material-symbols-outlined">visibility</span>Xem trước
+                    </a>
+                    <form asp-action="Approve" asp-route-id="@apt.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success btn-sm" style="width:100%;">
+                            <span class="material-symbols-outlined">check</span>Duyệt
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-danger btn-sm" style="width:100%;"
+                            onclick="document.getElementById('rejForm_@apt.Id').style.display='block';">
+                        <span class="material-symbols-outlined">close</span>Từ chối
+                    </button>
+                    <form asp-action="Reject" asp-route-id="@apt.Id" method="post" id="rejForm_@apt.Id" style="display:none;" class="vstack">
+                        @Html.AntiForgeryToken()
+                        <input type="text" name="reason" placeholder="Lý do từ chối" required style="padding:.4rem;border:1px solid var(--admin-line);border-radius:6px;font-size:12px;" />
+                        <button type="submit" class="btn btn-danger btn-sm" style="width:100%;">Xác nhận từ chối</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+}

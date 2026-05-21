@@ -1,0 +1,66 @@
+## Build results
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Ll]og/
+[Ll]ogs/
+
+## Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Build / publish
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Pp]ublish/
+PublishScripts/
+*.pubxml
+*.pubxml.user
+*.publishproj
+
+## NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+
+## Test results / coverage
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+coverage*.info
+
+## EF Core local DB files
+*.mdf
+*.ldf
+*.ndf
+
+## OS / misc
+.DS_Store
+Thumbs.db
+
+## Secrets / Claude / scratch dirs
+appsettings.*.local.json
+secrets.json
+.claude/
+.agent/
+.tmp/
+
+## Luxe Haven dev artifacts (do not commit)
+t/wwwroot/dev-emails/
+t/wwwroot/uploads/test/
+t/wwwroot/img/.backup-hero/

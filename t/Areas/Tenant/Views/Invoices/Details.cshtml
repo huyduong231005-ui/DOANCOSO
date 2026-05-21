@@ -1,0 +1,181 @@
+@model t.Models.Entities.Invoice
+@using t.Models.Entities
+@inject t.Infrastructure.Payments.VietQrService Qr
+@{
+    ViewData["Title"] = Model.InvoiceNumber;
+    string Money(decimal v) => v.ToString("N0");
+    string Pill(InvoiceStatus s) => s switch
+    {
+        InvoiceStatus.Paid => "pill pill-success",
+        InvoiceStatus.Issued => "pill pill-info",
+        InvoiceStatus.PartiallyPaid => "pill pill-accent",
+        InvoiceStatus.Overdue => "pill pill-danger",
+        _ => "pill pill-neutral"
+    };
+    string PayPill(PaymentStatus s) => s switch
+    {
+        PaymentStatus.Succeeded => "pill pill-success",
+        PaymentStatus.Pending => "pill pill-warning",
+        PaymentStatus.Failed => "pill pill-danger",
+        _ => "pill pill-neutral"
+    };
+    var pendingTotal = Model.Payments.Where(p => p.Status == PaymentStatus.Pending).Sum(p => p.Amount);
+    var daysToDue = (int)(Model.DueDate.Date - t.Infrastructure.Time.VnTime.Today).TotalDays;
+}
+
+<section class="page-header">
+    <div><h1>@Model.InvoiceNumber</h1><p class="subtitle">@Model.Lease.Apartment.Title</p></div>
+    <div class="actions">
+        <span class="@Pill(Model.Status)">@Model.Status.Vi()</span>
+        <a class="btn btn-outline" asp-action="Pdf" asp-route-id="@Model.Id" target="_blank"><span class="material-symbols-outlined">picture_as_pdf</span>Tải PDF</a>
+        <a class="btn btn-ghost" asp-action="Index">Quay lại</a>
+    </div>
+</section>
+
+<div style="display:grid;grid-template-columns:1.4fr 1fr;gap:1.2rem;">
+    <div class="vstack">
+        <div class="card">
+            <div class="card-header"><h2>Chi tiết</h2></div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>Mô tả</th><th class="num">SL</th><th class="num">Đơn giá</th><th class="num">Thành tiền</th></tr></thead>
+                    <tbody>
+                    @foreach (var item in Model.Items.OrderBy(x => x.SortOrder))
+                    {
+                        <tr><td>@item.Description</td><td class="num">@item.Quantity</td><td class="num">@Money(item.UnitPrice)</td><td class="num">@Money(item.LineTotal)</td></tr>
+                    }
+                    </tbody>
+                    <tfoot>
+                        <tr><td colspan="3" class="num">Tạm tính</td><td class="num">@Money(Model.SubTotal)</td></tr>
+                        @if (Model.Discount > 0) { <tr><td colspan="3" class="num">Giảm giá</td><td class="num">-@Money(Model.Discount)</td></tr> }
+                        @if (Model.Tax > 0) { <tr><td colspan="3" class="num">Thuế</td><td class="num">@Money(Model.Tax)</td></tr> }
+                        @if (Model.LateFee > 0) { <tr><td colspan="3" class="num">Phí trễ</td><td class="num">@Money(Model.LateFee)</td></tr> }
+                        <tr><td colspan="3" class="num"><strong>Tổng cộng</strong></td><td class="num"><strong>@Money(Model.Total)</strong></td></tr>
+                        <tr><td colspan="3" class="num">Đã thanh toán</td><td class="num">@Money(Model.AmountPaid)</td></tr>
+                        <tr><td colspan="3" class="num"><strong>Còn lại</strong></td><td class="num"><strong>@Money(Model.Balance)</strong></td></tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h2>Lịch sử thanh toán</h2></div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>Mã</th><th class="num">Số tiền</th><th>Phương thức</th><th>Lúc</th><th>Trạng thái</th></tr></thead>
+                    <tbody>
+                    @if (!Model.Payments.Any())
+                    {
+                        <tr><td colspan="5"><div class="empty-state"><span class="material-symbols-outlined">payments</span><h3>Chưa có thanh toán</h3></div></td></tr>
+                    }
+                    else
+                    {
+                        foreach (var p in Model.Payments.OrderByDescending(x => x.PaidAt ?? x.CreatedAt))
+                        {
+                            <tr>
+                                <td class="row-title">@p.PaymentNumber</td>
+                                <td class="num">@Money(p.Amount)</td>
+                                <td>@p.Method.Vi()</td>
+                                <td>@(p.PaidAt?.ToString("HH:mm dd/MM") ?? p.CreatedAt.ToString("HH:mm dd/MM"))</td>
+                                <td><span class="@PayPill(p.Status)">@p.Status.Vi()</span></td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="vstack">
+        <div class="card">
+            <div class="card-header"><h2>Thông tin</h2></div>
+            <div class="card-body">
+                <dl class="dl-pairs">
+                    <dt>Loại</dt><dd>@Model.Kind.Vi()</dd>
+                    @if (Model.BillingMonth > 0) { <dt>Kỳ</dt><dd>@(Model.BillingMonth/100)/@((Model.BillingMonth%100).ToString("00"))</dd> }
+                    <dt>Phát hành</dt><dd>@Model.IssueDate.ToString("dd/MM/yyyy")</dd>
+                    <dt>Đến hạn</dt><dd>@Model.DueDate.ToString("dd/MM/yyyy")</dd>
+                    <dt>Tiền tệ</dt><dd>@Model.Currency</dd>
+                </dl>
+            </div>
+        </div>
+
+        @if (pendingTotal > 0)
+        {
+            <div class="alert alert-warning">
+                <span class="material-symbols-outlined">hourglass_top</span>
+                <div>Đang chờ ban quản lý xác nhận <strong>@Money(pendingTotal) VNĐ</strong>.</div>
+            </div>
+        }
+        @if (Model.Balance > 0 && Model.Status is not (InvoiceStatus.Cancelled or InvoiceStatus.Draft))
+        {
+            if (daysToDue < 0)
+            {
+                <div class="alert alert-danger">
+                    <span class="material-symbols-outlined">warning</span>
+                    <div>Đã trễ hạn <strong>@Math.Abs(daysToDue) ngày</strong> — vui lòng thanh toán sớm.</div>
+                </div>
+            }
+            else if (daysToDue <= 3)
+            {
+                <div class="alert alert-warning">
+                    <span class="material-symbols-outlined">schedule</span>
+                    <div>Còn <strong>@daysToDue ngày</strong> đến hạn (@Model.DueDate.ToString("dd/MM/yyyy")).</div>
+                </div>
+            }
+            var bank = Qr.GetBank();
+            var qrUrl = Qr.BuildQrImageUrl(Model.Balance, "TT " + Model.InvoiceNumber);
+            if (bank != null)
+            {
+                <div class="card">
+                    <div class="card-header"><h2>Quét VietQR</h2></div>
+                    <div class="card-body" style="text-align:center;">
+                        @if (qrUrl != null)
+                        {
+                            <img src="@qrUrl" alt="VietQR" style="max-width:240px;width:100%;border:1px solid var(--admin-line);border-radius:8px;" loading="lazy" />
+                        }
+                        <dl class="dl-pairs mt-2" style="text-align:left;">
+                            <dt>Ngân hàng</dt><dd>@bank.BankName</dd>
+                            <dt>STK</dt><dd><strong>@bank.AccountNumber</strong></dd>
+                            <dt>Chủ TK</dt><dd>@bank.AccountName</dd>
+                            <dt>Số tiền</dt><dd><strong>@Money(Model.Balance) VNĐ</strong></dd>
+                            <dt>Nội dung</dt><dd><code>TT @Model.InvoiceNumber</code></dd>
+                        </dl>
+                    </div>
+                </div>
+            }
+            <div class="card">
+                <div class="card-header"><h2>Gửi thông tin thanh toán</h2></div>
+                <div class="card-body">
+                    <p class="text-muted" style="font-size:13px;">Sau khi chuyển khoản, gửi thông tin để ban quản lý xác nhận.</p>
+                    <form asp-action="SubmitPayment" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="InvoiceId" value="@Model.Id" />
+                        <div class="form-grid">
+                            <div class="form-field span-12">
+                                <label>Số tiền đã chuyển</label>
+                                <input type="number" name="Amount" value="@Model.Balance" step="1000" />
+                            </div>
+                            <div class="form-field span-12">
+                                <label>Phương thức</label>
+                                <select name="Method">
+                                    @foreach (var m in Enum.GetValues<PaymentMethod>()) { <option value="@((int)m)">@m.Vi()</option> }
+                                </select>
+                            </div>
+                            <div class="form-field span-12">
+                                <label>Mã giao dịch / nội dung CK</label>
+                                <input type="text" name="TransactionRef" />
+                            </div>
+                            <div class="form-field span-12">
+                                <label>Ghi chú</label>
+                                <textarea name="Note" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-accent mt-3" style="width:100%;"><span class="material-symbols-outlined">send</span>Gửi xác nhận</button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>

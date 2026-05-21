@@ -1,0 +1,153 @@
+@using t.Infrastructure.Localization
+@using t.Models.Entities
+@model List<t.Models.Entities.ViewingAppointment>
+@{
+    ViewData["Title"] = "Lịch xem phòng";
+    var pager = (t.Areas.Admin.Models.PageInfo)ViewBag.Pager;
+    var status = (ViewingStatus?)ViewBag.Status;
+    var q = (string?)ViewBag.Query;
+    string Pill(ViewingStatus s) => s switch
+    {
+        ViewingStatus.Pending => "pill pill-warning",
+        ViewingStatus.Confirmed => "pill pill-success",
+        ViewingStatus.Cancelled => "pill pill-danger",
+        ViewingStatus.Completed => "pill pill-info",
+        ViewingStatus.NoShow => "pill pill-neutral",
+        _ => "pill"
+    };
+}
+
+<section class="page-header">
+    <div>
+        <h1>Lịch xem phòng</h1>
+        <p class="subtitle">@pager.TotalCount lịch hẹn</p>
+    </div>
+    <div class="actions">
+        @if ((int)ViewBag.CancelledCount > 0)
+        {
+            <form asp-action="PurgeCancelled" method="post" class="d-inline" onsubmit="return confirm('Xoá toàn bộ @ViewBag.CancelledCount lịch hẹn đã huỷ?');">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline">
+                    <span class="material-symbols-outlined">delete_sweep</span>
+                    Xoá tất cả đã huỷ
+                </button>
+            </form>
+        }
+    </div>
+</section>
+
+<section class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">schedule</span></div>
+        <div class="kpi-label">Chờ xác nhận</div>
+        <div class="kpi-value">@ViewBag.PendingCount</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">check_circle</span></div>
+        <div class="kpi-label">Đã xác nhận</div>
+        <div class="kpi-value">@ViewBag.ConfirmedCount</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">visibility</span></div>
+        <div class="kpi-label">Đã xem</div>
+        <div class="kpi-value">@ViewBag.CompletedCount</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">block</span></div>
+        <div class="kpi-label">Đã huỷ</div>
+        <div class="kpi-value">@ViewBag.CancelledCount</div>
+    </div>
+</section>
+
+<form method="get" class="filter-bar">
+    <input type="search" name="q" value="@q" placeholder="Tên / SĐT / email / tin đăng..." />
+    <select name="status">
+        <option value="">— Trạng thái —</option>
+        @foreach (var v in Enum.GetValues<ViewingStatus>())
+        {
+            <option value="@((int)v)" selected="@(status == v)">@v.Vi()</option>
+        }
+    </select>
+    <button type="submit" class="btn btn-primary">Lọc</button>
+    <a class="btn btn-ghost" asp-action="Index">Xoá lọc</a>
+</form>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Lịch hẹn</th>
+                    <th>Tin đăng</th>
+                    <th>Khách</th>
+                    <th>Liên hệ</th>
+                    <th>Ghi chú</th>
+                    <th>Trạng thái</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="7"><div class="empty-state"><span class="material-symbols-outlined">event_busy</span><h3>Chưa có lịch hẹn</h3></div></td></tr>
+                }
+                else
+                {
+                    foreach (var v in Model)
+                    {
+                        <tr>
+                            <td class="no-wrap">
+                                <strong>@v.ScheduledDate.ToString("dd/MM/yyyy")</strong>
+                                <div class="row-meta">@v.SlotHour.ToString("00"):00 - @((v.SlotHour + 1).ToString("00")):00</div>
+                            </td>
+                            <td>
+                                <a class="row-title" asp-area="Admin" asp-controller="Apartments" asp-action="Details" asp-route-id="@v.ApartmentId">@v.Apartment.Title</a>
+                            </td>
+                            <td>
+                                @v.ContactName
+                                @if (v.User != null) { <div class="row-meta">User: @v.User.UserName</div> }
+                            </td>
+                            <td class="no-wrap">
+                                <div>@v.ContactPhone</div>
+                                @if (!string.IsNullOrEmpty(v.ContactEmail)) { <div class="row-meta">@v.ContactEmail</div> }
+                            </td>
+                            <td class="text-muted" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;">@(v.Note ?? "—")</td>
+                            <td><span class="@Pill(v.Status)">@v.Status.Vi()</span></td>
+                            <td class="actions-cell">
+                                @if (v.Status == ViewingStatus.Pending)
+                                {
+                                    <form asp-action="Confirm" asp-route-id="@v.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-success btn-sm" title="Xác nhận"><span class="material-symbols-outlined">check</span></button>
+                                    </form>
+                                }
+                                @if (v.Status == ViewingStatus.Confirmed)
+                                {
+                                    <form asp-action="Complete" asp-route-id="@v.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-info btn-sm" title="Đánh dấu đã xem"><span class="material-symbols-outlined">visibility</span></button>
+                                    </form>
+                                }
+                                @if (v.Status is ViewingStatus.Pending or ViewingStatus.Confirmed)
+                                {
+                                    <form asp-action="Cancel" asp-route-id="@v.Id" method="post" class="d-inline" onsubmit="return confirm('Huỷ lịch hẹn này?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Huỷ"><span class="material-symbols-outlined">close</span></button>
+                                    </form>
+                                }
+                                @if (v.Status is ViewingStatus.Cancelled or ViewingStatus.Completed or ViewingStatus.NoShow)
+                                {
+                                    <form asp-action="Delete" asp-route-id="@v.Id" method="post" class="d-inline" onsubmit="return confirm('Xoá vĩnh viễn lịch hẹn này?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-ghost btn-sm" title="Xoá"><span class="material-symbols-outlined">delete</span></button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+    @await Html.PartialAsync("_Pagination", pager)
+</div>

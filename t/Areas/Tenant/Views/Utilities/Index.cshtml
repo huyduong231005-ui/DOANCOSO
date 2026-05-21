@@ -1,0 +1,47 @@
+@model List<t.Models.Entities.UtilityReading>
+@using t.Models.Entities
+@{
+    ViewData["Title"] = "Chỉ số điện / nước";
+    string Money(decimal v) => v.ToString("N0");
+    var groups = Model.GroupBy(r => r.BillingMonth).OrderByDescending(g => g.Key).ToList();
+}
+
+<section class="page-header">
+    <div><h1>Đồng hồ điện / nước</h1><p class="subtitle">@Model.Count chỉ số · @groups.Count kỳ</p></div>
+</section>
+
+@if (!Model.Any())
+{
+    <div class="card"><div class="empty-state"><span class="material-symbols-outlined">bolt</span><h3>Chưa có chỉ số</h3><p>Khi ban quản lý nhập chỉ số sẽ hiện ở đây.</p></div></div>
+    return;
+}
+
+@foreach (var grp in groups)
+{
+    var groupTotal = grp.Sum(x => x.Amount);
+    <div class="card">
+        <div class="card-header">
+            <h2>Kỳ @(grp.Key/100)/@((grp.Key%100).ToString("00"))</h2>
+            <strong>@Money(groupTotal) đ</strong>
+        </div>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>Loại</th><th class="num">Cũ</th><th class="num">Mới</th><th class="num">Tiêu thụ</th><th class="num">Đơn giá</th><th class="num">Thành tiền</th><th>Trạng thái</th></tr></thead>
+                <tbody>
+                @foreach (var r in grp.OrderBy(x => x.UtilityType.Name))
+                {
+                    <tr>
+                        <td><span class="material-symbols-outlined" style="font-size:14px;">@(r.UtilityType.Icon ?? "bolt")</span> @r.UtilityType.Name</td>
+                        <td class="num">@r.PreviousReading</td>
+                        <td class="num">@r.CurrentReading</td>
+                        <td class="num">@r.Consumption @r.UtilityType.Unit</td>
+                        <td class="num">@Money(r.Rate)</td>
+                        <td class="num">@Money(r.Amount)</td>
+                        <td>@(r.Billed ? Html.Raw("<span class=\"pill pill-success\">Đã tính HĐ</span>") : Html.Raw("<span class=\"pill pill-warning\">Chưa</span>"))</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

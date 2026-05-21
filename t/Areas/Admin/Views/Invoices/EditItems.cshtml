@@ -1,0 +1,131 @@
+@model t.Areas.Admin.Models.EditInvoiceItemsVm
+@{
+    ViewData["Title"] = "Sửa dòng " + Model.InvoiceNumber;
+}
+
+<section class="page-header">
+    <div><h1>Sửa hoá đơn @Model.InvoiceNumber</h1><p class="subtitle">Cập nhật các dòng và tính lại tổng.</p></div>
+    <div class="actions"><a class="btn btn-ghost" asp-action="Details" asp-route-id="@Model.InvoiceId">Quay lại</a></div>
+</section>
+
+<form asp-action="EditItems" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="InvoiceId" />
+
+    <div class="card">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <h2>Dòng hoá đơn</h2>
+            <button type="button" class="btn btn-ghost btn-sm" id="addLineBtn"><span class="material-symbols-outlined">add</span>Thêm dòng</button>
+        </div>
+        <div class="table-wrap">
+            <table class="data-table" id="linesTable">
+                <thead>
+                    <tr><th>Mô tả</th><th class="num" style="width:100px;">SL</th><th class="num" style="width:160px;">Đơn giá</th><th class="num" style="width:160px;">Thành tiền</th><th style="width:40px;"></th></tr>
+                </thead>
+                <tbody>
+                    @for (var i = 0; i < Model.Lines.Count; i++)
+                    {
+                        <tr class="line-row">
+                            <td>
+                                <input type="hidden" name="Lines[@i].Id" value="@Model.Lines[i].Id" />
+                                <input name="Lines[@i].Description" value="@Model.Lines[i].Description" />
+                            </td>
+                            <td><input name="Lines[@i].Quantity" value="@Model.Lines[i].Quantity" type="number" step="0.01" class="qty num" /></td>
+                            <td><input name="Lines[@i].UnitPrice" value="@Model.Lines[i].UnitPrice" type="number" step="1000" class="price num" /></td>
+                            <td class="num lineTotal">0</td>
+                            <td><button type="button" class="btn btn-ghost btn-sm rm"><span class="material-symbols-outlined">delete</span></button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header"><h2>Tổng cộng</h2></div>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-field span-4">
+                    <label>Tạm tính</label>
+                    <input id="subTotal" readonly />
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="Discount">Giảm giá</label>
+                    <input asp-for="Discount" type="number" step="1000" />
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="Tax">Thuế</label>
+                    <input asp-for="Tax" type="number" step="1000" />
+                </div>
+                <div class="form-field span-12">
+                    <label>Tổng cộng (Tạm tính - Giảm + Thuế + Phí trễ)</label>
+                    <input id="grandTotal" readonly style="font-weight:700;color:var(--admin-primary);" />
+                </div>
+                <div class="form-field span-12">
+                    <label asp-for="Note">Ghi chú</label>
+                    <textarea asp-for="Note" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hstack mt-3" style="justify-content:flex-end;">
+        <a class="btn btn-ghost" asp-action="Details" asp-route-id="@Model.InvoiceId">Huỷ</a>
+        <button type="submit" class="btn btn-primary">Lưu</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        (function () {
+            const tbody = document.querySelector('#linesTable tbody');
+            const discount = document.querySelector('input[name="Discount"]');
+            const tax = document.querySelector('input[name="Tax"]');
+            function recompute() {
+                let subtotal = 0;
+                tbody.querySelectorAll('.line-row').forEach(row => {
+                    const q = parseFloat(row.querySelector('.qty').value) || 0;
+                    const p = parseFloat(row.querySelector('.price').value) || 0;
+                    const lt = Math.round(q * p);
+                    row.querySelector('.lineTotal').textContent = lt.toLocaleString('vi-VN');
+                    subtotal += lt;
+                });
+                document.getElementById('subTotal').value = subtotal.toLocaleString('vi-VN');
+                const d = parseFloat(discount.value) || 0;
+                const t = parseFloat(tax.value) || 0;
+                document.getElementById('grandTotal').value = (subtotal - d + t).toLocaleString('vi-VN');
+            }
+            function bindRow(row) {
+                row.querySelectorAll('input').forEach(i => i.addEventListener('input', recompute));
+                row.querySelector('.rm').addEventListener('click', () => { row.remove(); reindex(); recompute(); });
+            }
+            function reindex() {
+                tbody.querySelectorAll('.line-row').forEach((row, idx) => {
+                    row.querySelectorAll('input').forEach(inp => {
+                        inp.name = inp.name.replace(/Lines\[\d+\]/, `Lines[${idx}]`);
+                    });
+                });
+            }
+            tbody.querySelectorAll('.line-row').forEach(bindRow);
+            discount.addEventListener('input', recompute);
+            tax.addEventListener('input', recompute);
+            document.getElementById('addLineBtn').addEventListener('click', () => {
+                const idx = tbody.querySelectorAll('.line-row').length;
+                const tr = document.createElement('tr');
+                tr.className = 'line-row';
+                tr.innerHTML = `
+                    <td>
+                        <input type="hidden" name="Lines[${idx}].Id" value="0" />
+                        <input name="Lines[${idx}].Description" placeholder="Mô tả..." />
+                    </td>
+                    <td><input name="Lines[${idx}].Quantity" type="number" step="0.01" class="qty num" value="1" /></td>
+                    <td><input name="Lines[${idx}].UnitPrice" type="number" step="1000" class="price num" value="0" /></td>
+                    <td class="num lineTotal">0</td>
+                    <td><button type="button" class="btn btn-ghost btn-sm rm"><span class="material-symbols-outlined">delete</span></button></td>`;
+                tbody.appendChild(tr);
+                bindRow(tr);
+            });
+            recompute();
+        })();
+    </script>
+}

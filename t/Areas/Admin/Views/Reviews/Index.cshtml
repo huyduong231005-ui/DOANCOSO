@@ -1,0 +1,74 @@
+@model List<t.Areas.Admin.Models.ReviewListVm>
+@using t.Models.Entities
+@{
+    ViewData["Title"] = "Đánh giá";
+    var pager = (t.Areas.Admin.Models.PageInfo)ViewBag.Pager;
+    var q = (string?)ViewBag.Q;
+    var status = (ReviewStatus?)ViewBag.Status;
+    var rating = (int?)ViewBag.Rating;
+    string Pill(ReviewStatus s) => s switch
+    {
+        ReviewStatus.Approved => "pill pill-success",
+        ReviewStatus.Pending => "pill pill-warning",
+        ReviewStatus.Rejected => "pill pill-danger",
+        _ => "pill"
+    };
+    string Stars(int n) => string.Concat(Enumerable.Repeat("★", n)) + string.Concat(Enumerable.Repeat("☆", 5 - n));
+}
+
+<section class="page-header">
+    <div><h1>Kiểm duyệt đánh giá</h1><p class="subtitle">@pager.TotalCount đánh giá</p></div>
+</section>
+
+<form method="get" class="filter-bar">
+    <input type="search" name="q" value="@q" placeholder="Nội dung, tên căn hộ, khách..." />
+    <select name="status">
+        <option value="">— Trạng thái —</option>
+        @foreach (var s in Enum.GetValues<ReviewStatus>()) { <option value="@((int)s)" selected="@(status == s)">@s.Vi()</option> }
+    </select>
+    <select name="rating">
+        <option value="">— Sao —</option>
+        @for (int i = 5; i >= 1; i--) { <option value="@i" selected="@(rating == i)">@i ★</option> }
+    </select>
+    <button type="submit" class="btn btn-primary">Lọc</button>
+    <a class="btn btn-ghost" asp-action="Index">Xoá lọc</a>
+</form>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Khách / Căn hộ</th><th>Đánh giá</th><th>Nội dung</th><th>Ngày</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="6"><div class="empty-state"><span class="material-symbols-outlined">reviews</span><h3>Chưa có đánh giá</h3></div></td></tr>
+            }
+            else
+            {
+                foreach (var r in Model)
+                {
+                    <tr>
+                        <td><div class="row-title">@r.UserName</div><div class="row-meta"><a asp-controller="Apartments" asp-action="Details" asp-route-id="@r.ApartmentId">@r.ApartmentTitle</a></div></td>
+                        <td><span class="pill pill-warning" style="font-family:inherit;">@Stars(r.Rating)</span></td>
+                        <td style="max-width:420px;">@r.Content</td>
+                        <td class="text-muted">@r.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        <td><span class="@Pill(r.Status)">@r.Status.Vi()</span></td>
+                        <td class="actions-cell">
+                            @if (r.Status != ReviewStatus.Approved)
+                            {
+                                <form asp-action="Approve" asp-route-id="@r.Id" method="post" style="display:inline;">@Html.AntiForgeryToken()<button class="btn btn-ghost btn-sm" title="Duyệt"><span class="material-symbols-outlined" style="color:var(--admin-success);">check_circle</span></button></form>
+                            }
+                            @if (r.Status != ReviewStatus.Rejected)
+                            {
+                                <form asp-action="Reject" asp-route-id="@r.Id" method="post" style="display:inline;">@Html.AntiForgeryToken()<button class="btn btn-ghost btn-sm" title="Từ chối"><span class="material-symbols-outlined" style="color:var(--admin-danger);">block</span></button></form>
+                            }
+                            <form asp-action="Delete" asp-route-id="@r.Id" method="post" style="display:inline;" onsubmit="return confirm('Xoá đánh giá này?');">@Html.AntiForgeryToken()<button class="btn btn-ghost btn-sm" title="Xoá"><span class="material-symbols-outlined">delete</span></button></form>
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+    @await Html.PartialAsync("_Pagination", pager)
+</div>

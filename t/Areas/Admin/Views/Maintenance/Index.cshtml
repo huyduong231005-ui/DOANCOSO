@@ -1,0 +1,139 @@
+@model List<t.Areas.Admin.Models.MaintenanceListVm>
+@using t.Models.Entities
+@{
+    ViewData["Title"] = "Bảo trì / Sự cố";
+    var pager = (t.Areas.Admin.Models.PageInfo)ViewBag.Pager;
+    var q = (string?)ViewBag.Q;
+    var status = (MaintenanceStatus?)ViewBag.Status;
+    var prio = (MaintenancePriority?)ViewBag.Priority;
+    var cat = (MaintenanceCategory?)ViewBag.Category;
+    var bldId = (int?)ViewBag.BuildingId;
+    var buildings = (List<Building>)ViewBag.Buildings;
+
+    string StatusPill(MaintenanceStatus s) => s switch
+    {
+        MaintenanceStatus.Open => "pill pill-warning",
+        MaintenanceStatus.Acknowledged => "pill pill-info",
+        MaintenanceStatus.InProgress => "pill pill-accent",
+        MaintenanceStatus.Resolved => "pill pill-success",
+        MaintenanceStatus.Closed => "pill pill-neutral",
+        MaintenanceStatus.Rejected => "pill pill-danger",
+        _ => "pill"
+    };
+    string PrioPill(MaintenancePriority p) => p switch
+    {
+        MaintenancePriority.Urgent => "pill pill-danger",
+        MaintenancePriority.High => "pill pill-warning",
+        MaintenancePriority.Medium => "pill pill-info",
+        _ => "pill pill-neutral"
+    };
+    string CatIcon(MaintenanceCategory c) => c switch
+    {
+        MaintenanceCategory.Plumbing => "plumbing",
+        MaintenanceCategory.Electrical => "bolt",
+        MaintenanceCategory.Appliance => "kitchen",
+        MaintenanceCategory.Structural => "construction",
+        MaintenanceCategory.Cleaning => "cleaning_services",
+        MaintenanceCategory.Pest => "pest_control",
+        MaintenanceCategory.Network => "wifi",
+        _ => "build"
+    };
+}
+
+<section class="page-header">
+    <div><h1>Bảo trì &amp; sự cố</h1><p class="subtitle">@pager.TotalCount yêu cầu</p></div>
+    <div class="actions"><a class="btn btn-primary" asp-action="Create"><span class="material-symbols-outlined">add</span>Tạo yêu cầu</a></div>
+</section>
+
+<section class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">priority_high</span></div>
+        <div class="kpi-label">Khẩn cấp đang mở</div>
+        <div class="kpi-value">@ViewBag.UrgentCount</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">inbox</span></div>
+        <div class="kpi-label">Mới gửi</div>
+        <div class="kpi-value">@ViewBag.OpenCount</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">visibility</span></div>
+        <div class="kpi-label">Đã tiếp nhận</div>
+        <div class="kpi-value">@ViewBag.AckCount</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">build</span></div>
+        <div class="kpi-label">Đang xử lí</div>
+        <div class="kpi-value">@ViewBag.InProgressCount</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">task_alt</span></div>
+        <div class="kpi-label">Đã hoàn tất</div>
+        <div class="kpi-value">@ViewBag.ResolvedCount</div>
+    </div>
+</section>
+
+<form method="get" class="filter-bar">
+    <input type="search" name="q" value="@q" placeholder="Mã, tiêu đề, mô tả..." />
+    <select name="status">
+        <option value="">— Trạng thái —</option>
+        @foreach (var s in Enum.GetValues<MaintenanceStatus>()) { <option value="@((int)s)" selected="@(status == s)">@s.Vi()</option> }
+    </select>
+    <select name="priority">
+        <option value="">— Mức độ —</option>
+        @foreach (var p in Enum.GetValues<MaintenancePriority>()) { <option value="@((int)p)" selected="@(prio == p)">@p.Vi()</option> }
+    </select>
+    <select name="category">
+        <option value="">— Loại —</option>
+        @foreach (var c in Enum.GetValues<MaintenanceCategory>()) { <option value="@((int)c)" selected="@(cat == c)">@c.Vi()</option> }
+    </select>
+    <select name="buildingId">
+        <option value="">— Toà nhà —</option>
+        @foreach (var b in buildings) { <option value="@b.Id" selected="@(bldId == b.Id)">@b.Name</option> }
+    </select>
+    <button type="submit" class="btn btn-primary">Lọc</button>
+    <a class="btn btn-ghost" asp-action="Index">Xoá lọc</a>
+</form>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Mã / Tiêu đề</th><th>Loại</th><th>Mức độ</th><th>Căn / Toà</th><th>Phụ trách</th><th>Báo lúc</th><th>Trạng thái</th><th>Cập nhật</th></tr></thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="8"><div class="empty-state"><span class="material-symbols-outlined">build</span><h3>Chưa có yêu cầu</h3></div></td></tr>
+            }
+            else
+            {
+                foreach (var r in Model)
+                {
+                    <tr>
+                        <td><a class="row-title" asp-action="Details" asp-route-id="@r.Id">@r.RequestNumber</a><div class="row-meta">@r.Title</div></td>
+                        <td><span class="material-symbols-outlined" style="font-size:14px;">@CatIcon(r.Category)</span> @r.Category.Vi()</td>
+                        <td><span class="@PrioPill(r.Priority)">@r.Priority.Vi()</span></td>
+                        <td>@(r.UnitCode ?? "—") · @r.UnitTitle<div class="row-meta">@(r.BuildingName ?? "—")</div></td>
+                        <td>@(r.AssignedToName ?? "—")<div class="row-meta">Báo: @(r.ReporterName ?? "—")</div></td>
+                        <td class="text-muted no-wrap">@r.ReportedAt.ToString("HH:mm dd/MM")</td>
+                        <td><span class="@StatusPill(r.Status)">@r.Status.Vi()</span></td>
+                        <td class="actions-cell">
+                            <form asp-action="ChangeStatus" method="post" class="quick-status-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@r.Id" />
+                                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                <select name="status" onchange="this.form.requestSubmit()">
+                                    @foreach (var s in Enum.GetValues<MaintenanceStatus>())
+                                    {
+                                        <option value="@((int)s)" selected="@(r.Status == s)">@s.Vi()</option>
+                                    }
+                                </select>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+    @await Html.PartialAsync("_Pagination", pager)
+</div>

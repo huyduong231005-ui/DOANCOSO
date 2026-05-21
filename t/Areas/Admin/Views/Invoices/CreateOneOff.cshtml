@@ -1,0 +1,120 @@
+@model t.Areas.Admin.Models.OneOffInvoiceVm
+@{
+    ViewData["Title"] = "Tạo hoá đơn bổ sung";
+}
+
+<section class="page-header">
+    <div><h1>Tạo hoá đơn bổ sung</h1><p class="subtitle">Phí dọn nhà, sửa chữa, đền bù, v.v.</p></div>
+    <div class="actions"><a class="btn btn-ghost" asp-action="Index">Quay lại</a></div>
+</section>
+
+<form asp-action="CreateOneOff" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="All" class="alert alert-danger"></div>
+
+    <div class="card">
+        <div class="card-header"><h2>Thông tin chung</h2></div>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-field span-6">
+                    <label asp-for="LeaseId">Hợp đồng</label>
+                    <select asp-for="LeaseId">
+                        <option value="0">— Chọn hợp đồng —</option>
+                        @foreach (var l in Model.Leases) { <option value="@l.Id">@l.Label</option> }
+                    </select>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="DueDate">Ngày đến hạn</label>
+                    <input asp-for="DueDate" type="date" />
+                </div>
+                <div class="form-field span-2">
+                    <label asp-for="Title">Tiêu đề (log)</label>
+                    <input asp-for="Title" placeholder="Phí dọn nhà..." />
+                </div>
+                <div class="form-field span-12">
+                    <label asp-for="Note">Ghi chú</label>
+                    <textarea asp-for="Note" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <h2>Dòng hoá đơn</h2>
+            <button type="button" class="btn btn-ghost btn-sm" id="addLineBtn"><span class="material-symbols-outlined">add</span>Thêm dòng</button>
+        </div>
+        <div class="table-wrap">
+            <table class="data-table" id="linesTable">
+                <thead>
+                    <tr><th>Mô tả</th><th class="num" style="width:100px;">Số lượng</th><th class="num" style="width:160px;">Đơn giá</th><th class="num" style="width:160px;">Thành tiền</th><th style="width:40px;"></th></tr>
+                </thead>
+                <tbody>
+                    @for (var i = 0; i < Model.Lines.Count; i++)
+                    {
+                        <tr class="line-row">
+                            <td><input name="Lines[@i].Description" value="@Model.Lines[i].Description" placeholder="Phí..." /></td>
+                            <td><input name="Lines[@i].Quantity" value="@Model.Lines[i].Quantity" type="number" step="0.01" class="qty num" /></td>
+                            <td><input name="Lines[@i].UnitPrice" value="@Model.Lines[i].UnitPrice" type="number" step="1000" class="price num" /></td>
+                            <td class="num lineTotal">0</td>
+                            <td><button type="button" class="btn btn-ghost btn-sm rm"><span class="material-symbols-outlined">delete</span></button></td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr><td colspan="3" class="num"><strong>Tổng cộng</strong></td><td class="num"><strong id="grandTotal">0</strong></td><td></td></tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="hstack mt-3" style="justify-content:flex-end;">
+        <a class="btn btn-ghost" asp-action="Index">Huỷ</a>
+        <button type="submit" class="btn btn-primary"><span class="material-symbols-outlined">receipt_long</span>Tạo hoá đơn</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        (function () {
+            const tbody = document.querySelector('#linesTable tbody');
+            function recompute() {
+                let total = 0;
+                tbody.querySelectorAll('.line-row').forEach(row => {
+                    const q = parseFloat(row.querySelector('.qty').value) || 0;
+                    const p = parseFloat(row.querySelector('.price').value) || 0;
+                    const lt = Math.round(q * p);
+                    row.querySelector('.lineTotal').textContent = lt.toLocaleString('vi-VN');
+                    total += lt;
+                });
+                document.getElementById('grandTotal').textContent = total.toLocaleString('vi-VN');
+            }
+            function bindRow(row) {
+                row.querySelectorAll('input').forEach(i => i.addEventListener('input', recompute));
+                row.querySelector('.rm').addEventListener('click', () => { row.remove(); reindex(); recompute(); });
+            }
+            function reindex() {
+                tbody.querySelectorAll('.line-row').forEach((row, idx) => {
+                    row.querySelectorAll('input').forEach(inp => {
+                        inp.name = inp.name.replace(/Lines\[\d+\]/, `Lines[${idx}]`);
+                    });
+                });
+            }
+            tbody.querySelectorAll('.line-row').forEach(bindRow);
+            document.getElementById('addLineBtn').addEventListener('click', () => {
+                const idx = tbody.querySelectorAll('.line-row').length;
+                const tr = document.createElement('tr');
+                tr.className = 'line-row';
+                tr.innerHTML = `
+                    <td><input name="Lines[${idx}].Description" placeholder="Phí..." /></td>
+                    <td><input name="Lines[${idx}].Quantity" type="number" step="0.01" class="qty num" value="1" /></td>
+                    <td><input name="Lines[${idx}].UnitPrice" type="number" step="1000" class="price num" value="0" /></td>
+                    <td class="num lineTotal">0</td>
+                    <td><button type="button" class="btn btn-ghost btn-sm rm"><span class="material-symbols-outlined">delete</span></button></td>`;
+                tbody.appendChild(tr);
+                bindRow(tr);
+            });
+            recompute();
+        })();
+    </script>
+}

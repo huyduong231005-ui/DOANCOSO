@@ -1,0 +1,69 @@
+@model List<t.Areas.Admin.Models.UtilityReadingListVm>
+@using t.Models.Entities
+@{
+    ViewData["Title"] = "Chỉ số điện / nước";
+    var pager = (t.Areas.Admin.Models.PageInfo)ViewBag.Pager;
+    var typeId = (int?)ViewBag.UtilityTypeId;
+    var bmonth = (int?)ViewBag.BillingMonth;
+    var types = (List<UtilityType>)ViewBag.UtilityTypes;
+    string Money(decimal v) => v.ToString("N0");
+}
+
+<section class="page-header">
+    <div><h1>Điện / Nước</h1><p class="subtitle">@pager.TotalCount chỉ số · @types.Count loại tiện ích</p></div>
+    <div class="actions">
+        <a class="btn btn-outline" asp-action="Types"><span class="material-symbols-outlined">tune</span>Loại tiện ích</a>
+        <a class="btn btn-primary" asp-action="CreateReading"><span class="material-symbols-outlined">add</span>Nhập chỉ số</a>
+    </div>
+</section>
+
+<form method="get" class="filter-bar">
+    <select name="utilityTypeId">
+        <option value="">— Loại —</option>
+        @foreach (var t in types) { <option value="@t.Id" selected="@(typeId == t.Id)">@t.Name</option> }
+    </select>
+    <input type="number" name="billingMonth" value="@bmonth" placeholder="Kỳ (yyyymm)" />
+    <button type="submit" class="btn btn-primary">Lọc</button>
+    <a class="btn btn-ghost" asp-action="Index">Xoá lọc</a>
+</form>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Loại</th><th>Hợp đồng / Khách</th><th>Kỳ</th><th class="num">Cũ</th><th class="num">Mới</th><th class="num">Tiêu thụ</th><th class="num">Thành tiền</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="9"><div class="empty-state"><span class="material-symbols-outlined">bolt</span><h3>Chưa có chỉ số</h3></div></td></tr>
+            }
+            else
+            {
+                foreach (var r in Model)
+                {
+                    <tr>
+                        <td><span class="material-symbols-outlined" style="font-size:14px;">@(string.IsNullOrEmpty(r.UtilityIcon) ? "bolt" : r.UtilityIcon)</span> @r.UtilityName</td>
+                        <td><a class="row-title" asp-controller="Leases" asp-action="Details" asp-route-id="@r.LeaseId">@r.LeaseNumber</a><div class="row-meta">@r.TenantName · @r.UnitTitle</div></td>
+                        <td>@(r.BillingMonth/100)/@((r.BillingMonth%100).ToString("00"))</td>
+                        <td class="num">@r.Previous</td>
+                        <td class="num">@r.Current</td>
+                        <td class="num">@r.Consumption</td>
+                        <td class="num">@Money(r.Amount)</td>
+                        <td>@(r.Billed ? Html.Raw("<span class=\"pill pill-success\">Đã tính</span>") : Html.Raw("<span class=\"pill pill-warning\">Chưa</span>"))</td>
+                        <td class="actions-cell">
+                            <a class="btn btn-ghost btn-sm" asp-action="EditReading" asp-route-id="@r.Id"><span class="material-symbols-outlined">edit</span></a>
+                            @if (!r.Billed)
+                            {
+                                <form asp-action="DeleteReading" asp-route-id="@r.Id" method="post" style="display:inline;" onsubmit="return confirm('Xoá chỉ số này?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-ghost btn-sm"><span class="material-symbols-outlined">delete</span></button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+    @await Html.PartialAsync("_Pagination", pager)
+</div>

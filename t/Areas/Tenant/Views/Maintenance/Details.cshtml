@@ -1,0 +1,85 @@
+@model t.Models.Entities.MaintenanceRequest
+@using t.Models.Entities
+@{
+    ViewData["Title"] = Model.RequestNumber;
+    string Pill(MaintenanceStatus s) => s switch
+    {
+        MaintenanceStatus.Open => "pill pill-warning",
+        MaintenanceStatus.Acknowledged => "pill pill-info",
+        MaintenanceStatus.InProgress => "pill pill-accent",
+        MaintenanceStatus.Resolved => "pill pill-success",
+        MaintenanceStatus.Closed => "pill pill-neutral",
+        MaintenanceStatus.Rejected => "pill pill-danger",
+        _ => "pill"
+    };
+    string PrioPill(MaintenancePriority p) => p switch
+    {
+        MaintenancePriority.Urgent => "pill pill-danger",
+        MaintenancePriority.High => "pill pill-warning",
+        MaintenancePriority.Medium => "pill pill-info",
+        _ => "pill pill-neutral"
+    };
+}
+
+<section class="page-header">
+    <div><h1>@Model.RequestNumber</h1><p class="subtitle">@Model.Title</p></div>
+    <div class="actions">
+        <span class="@PrioPill(Model.Priority)">@Model.Priority.Vi()</span>
+        <span class="@Pill(Model.Status)">@Model.Status.Vi()</span>
+        <a class="btn btn-ghost" asp-action="Index">Quay lại</a>
+    </div>
+</section>
+
+<div style="display:grid;grid-template-columns:1.4fr 1fr;gap:1.2rem;">
+    <div class="vstack">
+        <div class="card">
+            <div class="card-header"><h2>Mô tả</h2></div>
+            <div class="card-body">
+                <p style="white-space:pre-wrap;">@Model.Description</p>
+                @if (!string.IsNullOrEmpty(Model.PhotoUrls))
+                {
+                    <div class="hstack mt-2" style="flex-wrap:wrap;">
+                        @foreach (var url in Model.PhotoUrls.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                        {
+                            <img src="@url" style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--admin-line);" />
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.ResolutionNote))
+        {
+            <div class="card">
+                <div class="card-header"><h2>Phản hồi từ ban quản lý</h2></div>
+                <div class="card-body">
+                    <p style="white-space:pre-wrap;">@Model.ResolutionNote</p>
+                </div>
+            </div>
+        }
+
+        <div class="card">
+            <div class="card-header"><h2>Tiến độ</h2></div>
+            <div class="card-body vstack">
+                <div class="hstack"><span class="material-symbols-outlined" style="color:var(--admin-muted);">add_circle</span><div><strong>Đã gửi</strong><div class="text-muted">@Model.ReportedAt.ToString("HH:mm dd/MM/yyyy")</div></div></div>
+                @if (Model.AcknowledgedAt.HasValue) { <div class="hstack"><span class="material-symbols-outlined" style="color:var(--admin-info);">visibility</span><div><strong>Đã tiếp nhận</strong><div class="text-muted">@Model.AcknowledgedAt.Value.ToString("HH:mm dd/MM/yyyy")</div></div></div> }
+                @if (Model.AssignedTo != null) { <div class="hstack"><span class="material-symbols-outlined" style="color:var(--admin-accent);">person</span><div><strong>Phân công</strong><div class="text-muted">@Model.AssignedTo.FullName</div></div></div> }
+                @if (Model.ResolvedAt.HasValue) { <div class="hstack"><span class="material-symbols-outlined" style="color:var(--admin-success);">task_alt</span><div><strong>Đã hoàn tất</strong><div class="text-muted">@Model.ResolvedAt.Value.ToString("HH:mm dd/MM/yyyy")</div></div></div> }
+                @if (Model.ClosedAt.HasValue && Model.Status == MaintenanceStatus.Closed) { <div class="hstack"><span class="material-symbols-outlined">check</span><div><strong>Đã đóng</strong><div class="text-muted">@Model.ClosedAt.Value.ToString("HH:mm dd/MM/yyyy")</div></div></div> }
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h2>Thông tin</h2></div>
+        <div class="card-body">
+            <dl class="dl-pairs">
+                <dt>Loại</dt><dd>@Model.Category.Vi()</dd>
+                <dt>Mức độ</dt><dd>@Model.Priority.Vi()</dd>
+                <dt>Căn hộ</dt><dd>@Model.Apartment.Title</dd>
+                @if (Model.Apartment.Building != null) { <dt>Toà</dt><dd>@Model.Apartment.Building.Name</dd> }
+                <dt>Phụ trách</dt><dd>@(Model.AssignedTo?.FullName ?? "Chưa phân công")</dd>
+            </dl>
+        </div>
+    </div>
+</div>

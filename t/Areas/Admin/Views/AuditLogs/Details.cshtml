@@ -1,0 +1,42 @@
+@model t.Models.Entities.AuditLog
+@{
+    ViewData["Title"] = $"Audit #{Model.Id}";
+}
+
+<section class="page-header">
+    <div><h1>Audit #@Model.Id</h1><p class="subtitle">@Model.EntityName · @Model.Action</p></div>
+    <div class="actions"><a class="btn btn-ghost" asp-action="Index">Quay lại</a></div>
+</section>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;">
+    <div class="card">
+        <div class="card-header"><h2>Thông tin</h2></div>
+        <div class="card-body">
+            <dl class="dl-pairs">
+                <dt>Lúc</dt><dd>@Model.Timestamp.ToString("HH:mm:ss dd/MM/yyyy")</dd>
+                <dt>Đối tượng</dt><dd>@Model.EntityName</dd>
+                <dt>Khoá</dt><dd>@(Model.EntityKey ?? "—")</dd>
+                <dt>Hành động</dt><dd>@Model.Action.Vi()</dd>
+                <dt>Người dùng</dt><dd>@(Model.UserName ?? "—") <span class="text-muted">@(Model.UserId ?? "")</span></dd>
+                <dt>IP</dt><dd>@(Model.IpAddress ?? "—")</dd>
+                <dt>User-Agent</dt><dd class="text-muted" style="word-break:break-all;">@(Model.UserAgent ?? "—")</dd>
+                <dt>Cột đổi</dt><dd>@(Model.ChangedColumns ?? "—")</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="vstack">
+        <div class="card">
+            <div class="card-header"><h2>Giá trị cũ</h2></div>
+            <div class="card-body">
+                <pre class="audit-json">@(Model.OldValues ?? "(không có)")</pre>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><h2>Giá trị mới</h2></div>
+            <div class="card-body">
+                <pre class="audit-json">@(Model.NewValues ?? "(không có)")</pre>
+            </div>
+        </div>
+    </div>
+</div>

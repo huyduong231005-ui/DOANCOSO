@@ -1,0 +1,63 @@
+@model List<t.Areas.Admin.Models.OccupancyRow>
+@{
+    ViewData["Title"] = "Báo cáo lấp đầy";
+    string Money(decimal v) => v >= 1_000_000 ? $"{v/1_000_000m:0.#}tr" : v.ToString("N0");
+    var totalUnits = Model.Sum(x => x.Total);
+    var totalOcc = Model.Sum(x => x.Occupied);
+    var totalRev = Model.Sum(x => x.MonthlyRevenue);
+    var rate = totalUnits == 0 ? 0 : Math.Round(totalOcc * 100.0 / totalUnits, 1);
+}
+
+<section class="page-header">
+    <div><h1>Lấp đầy theo toà</h1><p class="subtitle">Tổng quan tỉ lệ lấp đầy và doanh thu</p></div>
+    <div class="actions">
+        <a class="btn btn-ghost" asp-action="RevenueForecast">Dự báo doanh thu</a>
+        <a class="btn btn-ghost" asp-action="Arrears">Công nợ</a>
+    </div>
+</section>
+
+<section class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Tổng units</div><div class="kpi-value">@totalUnits</div></div>
+    <div class="kpi-card"><div class="kpi-label">Đang ở</div><div class="kpi-value">@totalOcc</div></div>
+    <div class="kpi-card"><div class="kpi-label">Tỉ lệ chung</div><div class="kpi-value">@rate%</div></div>
+    <div class="kpi-card"><div class="kpi-label">Doanh thu/tháng</div><div class="kpi-value">@Money(totalRev)</div></div>
+</section>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Toà</th><th class="num">Tổng</th><th class="num">Đang ở</th><th class="num">Trống</th><th class="num">Đặt giữ</th><th class="num">Bảo trì</th><th>Lấp đầy</th><th class="num">DT/tháng</th></tr></thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="8"><div class="empty-state"><span class="material-symbols-outlined">domain</span><h3>Chưa có toà</h3></div></td></tr>
+            }
+            else
+            {
+                foreach (var r in Model)
+                {
+                    var pct = r.Rate;
+                    var color = pct >= 90 ? "var(--admin-success)" : pct >= 60 ? "var(--admin-info)" : pct >= 30 ? "var(--admin-warning)" : "var(--admin-danger)";
+                    <tr>
+                        <td class="row-title">@r.BuildingName</td>
+                        <td class="num">@r.Total</td>
+                        <td class="num">@r.Occupied</td>
+                        <td class="num">@r.Available</td>
+                        <td class="num">@r.Reserved</td>
+                        <td class="num">@r.UnderMaintenance</td>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:.5rem;">
+                                <div style="flex:1;height:8px;background:var(--admin-soft);border-radius:4px;overflow:hidden;">
+                                    <div style="width:@pct%;height:100%;background:@color;"></div>
+                                </div>
+                                <span style="font-weight:600;min-width:42px;text-align:right;">@pct%</span>
+                            </div>
+                        </td>
+                        <td class="num">@Money(r.MonthlyRevenue)</td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

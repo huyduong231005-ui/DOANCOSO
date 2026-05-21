@@ -1,0 +1,71 @@
+@model t.Areas.Admin.Models.InspectionEditVm
+@using t.Models.Entities
+@{
+    var lease = (Lease)ViewBag.Lease;
+    ViewData["Title"] = $"Biên bản {Model.Type} · {lease.LeaseNumber}";
+}
+
+<section class="page-header">
+    <div>
+        <h1>Biên bản @(Model.Type == InspectionType.MoveIn ? "nhận nhà (Move-in)" : "trả nhà (Move-out)")</h1>
+        <p class="subtitle">@lease.LeaseNumber · @lease.Apartment?.Title</p>
+    </div>
+    <div class="actions"><a class="btn btn-ghost" asp-action="Details" asp-route-id="@lease.Id">Quay lại</a></div>
+</section>
+
+<form asp-action="EditInspection" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="LeaseId" />
+    <input type="hidden" asp-for="Type" />
+
+    <div class="card">
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-field span-4">
+                    <label asp-for="InspectedAt">Ngày kiểm tra</label>
+                    <input asp-for="InspectedAt" type="date" />
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="OverallCondition">Tình trạng tổng thể</label>
+                    <select asp-for="OverallCondition">
+                        @foreach (var c in Enum.GetValues<OverallCondition>()) { <option value="@((int)c)">@c.Vi()</option> }
+                    </select>
+                </div>
+                <div class="form-field span-4">
+                    <label class="hstack" style="margin-top:1.5rem;">
+                        <input asp-for="TenantSigned" type="checkbox" />
+                        <span>Khách thuê đã ký xác nhận</span>
+                    </label>
+                </div>
+
+                <div class="form-field span-12">
+                    <label asp-for="Summary">Mô tả tổng quan</label>
+                    <textarea asp-for="Summary" rows="3" placeholder="Tình trạng nội thất, thiết bị, vệ sinh..."></textarea>
+                </div>
+                <div class="form-field span-12">
+                    <label asp-for="DamageNotes">Ghi nhận hư hỏng (nếu có)</label>
+                    <textarea asp-for="DamageNotes" rows="3"></textarea>
+                </div>
+                <div class="form-field span-12">
+                    <label asp-for="PhotoUrls">Ảnh (URL, ngăn cách dấu phẩy)</label>
+                    <input asp-for="PhotoUrls" />
+                </div>
+
+                @if (Model.Type == InspectionType.MoveOut)
+                {
+                    <div class="form-field span-6">
+                        <label asp-for="DepositDeduction">Trừ tiền cọc (VND)</label>
+                        <input asp-for="DepositDeduction" type="number" step="100000" />
+                        <span class="hint">Cọc đang giữ: @lease.DepositHeld.ToString("N0") đ</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="hstack mt-3" style="justify-content:flex-end;">
+        <a class="btn btn-ghost" asp-action="Details" asp-route-id="@lease.Id">Huỷ</a>
+        <button type="submit" class="btn btn-primary">Lưu biên bản</button>
+    </div>
+</form>

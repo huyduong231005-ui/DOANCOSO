@@ -1,0 +1,174 @@
+@model t.Models.Entities.MaintenanceRequest
+@using t.Models.Entities
+@{
+    ViewData["Title"] = Model.RequestNumber;
+    var staff = (List<t.Areas.Admin.Models.HostOption>)ViewBag.Staff;
+    string Money(decimal v) => v.ToString("N0");
+    string StatusPill(MaintenanceStatus s) => s switch
+    {
+        MaintenanceStatus.Open => "pill pill-warning",
+        MaintenanceStatus.Acknowledged => "pill pill-info",
+        MaintenanceStatus.InProgress => "pill pill-accent",
+        MaintenanceStatus.Resolved => "pill pill-success",
+        MaintenanceStatus.Closed => "pill pill-neutral",
+        MaintenanceStatus.Rejected => "pill pill-danger",
+        _ => "pill"
+    };
+    string PrioPill(MaintenancePriority p) => p switch
+    {
+        MaintenancePriority.Urgent => "pill pill-danger",
+        MaintenancePriority.High => "pill pill-warning",
+        MaintenancePriority.Medium => "pill pill-info",
+        _ => "pill pill-neutral"
+    };
+}
+
+<section class="page-header">
+    <div>
+        <h1>@Model.RequestNumber</h1>
+        <p class="subtitle">@Model.Title · @Model.Apartment.Title @(Model.Apartment.Building != null ? "· " + Model.Apartment.Building.Name : "")</p>
+    </div>
+    <div class="actions">
+        <span class="@PrioPill(Model.Priority)">@Model.Priority.Vi()</span>
+        <span class="@StatusPill(Model.Status)">@Model.Status.Vi()</span>
+
+        @if (Model.Status == MaintenanceStatus.Open)
+        {
+            <form asp-action="Acknowledge" asp-route-id="@Model.Id" method="post" style="display:inline;">@Html.AntiForgeryToken()<button class="btn btn-outline"><span class="material-symbols-outlined">visibility</span>Tiếp nhận</button></form>
+        }
+        @if (Model.Status != MaintenanceStatus.Resolved && Model.Status != MaintenanceStatus.Closed && Model.Status != MaintenanceStatus.Rejected)
+        {
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('resolve-form').scrollIntoView({behavior:'smooth'})"><span class="material-symbols-outlined">task_alt</span>Hoàn tất</button>
+        }
+        @if (Model.Status == MaintenanceStatus.Resolved)
+        {
+            <form asp-action="Close" asp-route-id="@Model.Id" method="post" style="display:inline;">@Html.AntiForgeryToken()<button class="btn btn-ghost">Đóng yêu cầu</button></form>
+        }
+    </div>
+</section>
+
+<div style="display:grid;grid-template-columns:1.4fr 1fr;gap:1.2rem;">
+    <div class="vstack">
+        <div class="card">
+            <div class="card-header"><h2>Mô tả</h2></div>
+            <div class="card-body">
+                <p style="white-space:pre-wrap;">@Model.Description</p>
+                @if (!string.IsNullOrEmpty(Model.PhotoUrls))
+                {
+                    <div class="hstack mt-2" style="flex-wrap:wrap;">
+                        @foreach (var url in Model.PhotoUrls.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                        {
+                            <img src="@url" style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--admin-line);" />
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (Model.Status == MaintenanceStatus.Open || Model.Status == MaintenanceStatus.Acknowledged || Model.Status == MaintenanceStatus.InProgress)
+        {
+            <div class="card">
+                <div class="card-header"><h2>Phân công</h2></div>
+                <div class="card-body">
+                    <form asp-action="Assign" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="Id" value="@Model.Id" />
+                        <div class="form-grid">
+                            <div class="form-field span-8">
+                                <label>Phân cho</label>
+                                <select name="AssignedToId">
+                                    @foreach (var s in staff) { <option value="@s.Id" selected="@(s.Id == Model.AssignedToId)">@s.Label</option> }
+                                </select>
+                            </div>
+                            <div class="form-field span-12">
+                                <label>Ghi chú</label>
+                                <input name="Note" />
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2"><span class="material-symbols-outlined">person_add</span>Phân công</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="resolve-form" class="card">
+                <div class="card-header"><h2>Hoàn tất</h2></div>
+                <div class="card-body">
+                    <form asp-action="Resolve" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="Id" value="@Model.Id" />
+                        <div class="form-grid">
+                            <div class="form-field span-12">
+                                <label>Nội dung xử lý</label>
+                                <textarea name="ResolutionNote" rows="3" required></textarea>
+                            </div>
+                            <div class="form-field span-6">
+                                <label>Chi phí thực tế (VND)</label>
+                                <input type="number" name="ActualCost" value="@Model.EstimatedCost" step="10000" />
+                            </div>
+                            <div class="form-field span-6">
+                                <label class="hstack" style="margin-top:1.5rem;">
+                                    <input type="checkbox" name="ChargeToTenant" value="true" />
+                                    <span>Ghi chi phí vào hoá đơn khách thuê</span>
+                                </label>
+                                <label class="hstack">
+                                    <input type="checkbox" name="DeductFromDeposit" value="true" />
+                                    <span>Trừ vào tiền cọc (nếu có hợp đồng)</span>
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2"><span class="material-symbols-outlined">task_alt</span>Đánh dấu hoàn tất</button>
+                    </form>
+                </div>
+            </div>
+
+            <details>
+                <summary class="text-muted" style="cursor:pointer;padding:.5rem 0;">Từ chối yêu cầu</summary>
+                <form asp-action="Reject" asp-route-id="@Model.Id" method="post" class="card" onsubmit="return confirm('Từ chối yêu cầu này?');">
+                    @Html.AntiForgeryToken()
+                    <div class="card-body hstack">
+                        <input name="reason" placeholder="Lý do từ chối..." style="flex:1;padding:.6rem;border:1px solid var(--admin-line);border-radius:10px;" />
+                        <button type="submit" class="btn btn-danger">Từ chối</button>
+                    </div>
+                </form>
+            </details>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.ResolutionNote))
+        {
+            <div class="card">
+                <div class="card-header"><h2>Kết quả xử lý</h2></div>
+                <div class="card-body">
+                    <p style="white-space:pre-wrap;">@Model.ResolutionNote</p>
+                    @if (Model.ActualCost > 0)
+                    {
+                        <p class="text-muted">Chi phí: <strong>@Money(Model.ActualCost) đ</strong> @(Model.ChargeToTenant ? "· tính vào hoá đơn khách thuê" : "")</p>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h2>Thông tin</h2></div>
+        <div class="card-body">
+            <dl class="dl-pairs">
+                <dt>Loại</dt><dd>@Model.Category.Vi()</dd>
+                <dt>Mức độ</dt><dd><span class="@PrioPill(Model.Priority)">@Model.Priority.Vi()</span></dd>
+                <dt>Căn hộ</dt><dd><a asp-controller="Apartments" asp-action="Details" asp-route-id="@Model.ApartmentId">@Model.Apartment.Title</a></dd>
+                @if (Model.Lease != null)
+                {
+                    <dt>Hợp đồng</dt><dd><a asp-controller="Leases" asp-action="Details" asp-route-id="@Model.LeaseId">@Model.Lease.LeaseNumber</a></dd>
+                    <dt>Khách thuê</dt><dd>@Model.Lease.PrimaryTenant.FullName</dd>
+                }
+                <dt>Người báo</dt><dd>@(Model.Reporter?.FullName ?? "—")</dd>
+                <dt>Phụ trách</dt><dd>@(Model.AssignedTo?.FullName ?? "—")</dd>
+                <dt>Báo lúc</dt><dd>@Model.ReportedAt.ToString("HH:mm dd/MM/yyyy")</dd>
+                @if (Model.AcknowledgedAt.HasValue) { <dt>Tiếp nhận</dt><dd>@Model.AcknowledgedAt.Value.ToString("HH:mm dd/MM/yyyy")</dd> }
+                @if (Model.ResolvedAt.HasValue) { <dt>Hoàn tất</dt><dd>@Model.ResolvedAt.Value.ToString("HH:mm dd/MM/yyyy")</dd> }
+                @if (Model.ClosedAt.HasValue) { <dt>Đóng</dt><dd>@Model.ClosedAt.Value.ToString("HH:mm dd/MM/yyyy")</dd> }
+                <dt>Chi phí ước</dt><dd>@Money(Model.EstimatedCost) đ</dd>
+                @if (Model.ActualCost > 0) { <dt>Chi phí thực</dt><dd>@Money(Model.ActualCost) đ</dd> }
+            </dl>
+        </div>
+    </div>
+</div>

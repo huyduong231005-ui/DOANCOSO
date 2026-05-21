@@ -1,0 +1,127 @@
+@model t.Areas.Admin.Models.FinanceDashboardVm
+@using t.Models.Entities
+@{
+    ViewData["Title"] = "Tài chính";
+    string Money(decimal v) => v.ToString("N0");
+    var growth = Model.PrevMonthPaid == 0 ? 0 : (double)(Model.ThisMonthPaid - Model.PrevMonthPaid) * 100.0 / (double)Model.PrevMonthPaid;
+    var maxMonthly = Model.Months.Max(m => Math.Max(m.Billed, m.Paid));
+    if (maxMonthly == 0) maxMonthly = 1;
+}
+
+<section class="page-header">
+    <div><h1>Tài chính</h1><p class="subtitle">Tổng quan doanh thu và công nợ</p></div>
+    <div class="actions">
+        <a class="btn btn-ghost" asp-action="Arrears"><span class="material-symbols-outlined">trending_down</span>Công nợ chi tiết</a>
+        <a class="btn btn-ghost" asp-action="RevenueForecast"><span class="material-symbols-outlined">timeline</span>Dự báo</a>
+    </div>
+</section>
+
+<section class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-label">Đã thu tháng này</div>
+        <div class="kpi-value" style="color:var(--admin-success);">@Money(Model.ThisMonthPaid)</div>
+        <div class="kpi-meta">
+            @if (growth >= 0) { <span style="color:var(--admin-success);">▲ @growth.ToString("0.#")%</span> }
+            else { <span style="color:var(--admin-danger);">▼ @Math.Abs(growth).ToString("0.#")%</span> }
+            so với tháng trước
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Đã phát hành tháng này</div>
+        <div class="kpi-value">@Money(Model.ThisMonthBilled)</div>
+        <div class="kpi-meta">Tỉ lệ thu: @(Model.ThisMonthBilled == 0 ? "—" : ((double)Model.ThisMonthPaid * 100 / (double)Model.ThisMonthBilled).ToString("0.#") + "%")</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Tổng công nợ</div>
+        <div class="kpi-value" style="color:var(--admin-danger);">@Money(Model.Outstanding)</div>
+        <div class="kpi-meta">Quá hạn: <strong>@Money(Model.OverdueAmount)</strong></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Thanh toán chờ duyệt</div>
+        <div class="kpi-value" style="color:var(--admin-warning);">@Money(Model.PendingPaymentsAmount)</div>
+        <div class="kpi-meta">@Model.PendingPaymentsCount giao dịch · <a asp-controller="Invoices" asp-action="PendingPayments">duyệt ngay</a></div>
+    </div>
+</section>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:1.2rem;margin-top:1rem;">
+    <div class="card">
+        <div class="card-header"><h2>Doanh thu 6 tháng gần đây</h2></div>
+        <div class="card-body">
+            <div style="display:flex;align-items:flex-end;gap:1rem;height:260px;padding:1rem 0;">
+                @foreach (var m in Model.Months)
+                {
+                    var billedH = (double)m.Billed / (double)maxMonthly * 200;
+                    var paidH = (double)m.Paid / (double)maxMonthly * 200;
+                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:.3rem;">
+                        <div style="font-size:11px;color:var(--admin-success);">@Money(m.Paid)</div>
+                        <div style="display:flex;gap:4px;align-items:flex-end;height:200px;">
+                            <div title="Phát hành @Money(m.Billed)" style="width:18px;background:linear-gradient(to top, #94a3b8, #cbd5e1);height:@(billedH.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))px;border-radius:3px 3px 0 0;"></div>
+                            <div title="Đã thu @Money(m.Paid)" style="width:18px;background:linear-gradient(to top, #16a34a, #4ade80);height:@(paidH.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))px;border-radius:3px 3px 0 0;"></div>
+                        </div>
+                        <div style="font-size:12px;font-weight:600;">@m.Month.ToString("MM/yy")</div>
+                    </div>
+                }
+            </div>
+            <div class="hstack" style="justify-content:center;gap:1rem;font-size:12px;color:var(--admin-text-muted);">
+                <span><span style="display:inline-block;width:10px;height:10px;background:#94a3b8;border-radius:2px;margin-right:.3rem;"></span>Đã phát hành</span>
+                <span><span style="display:inline-block;width:10px;height:10px;background:#16a34a;border-radius:2px;margin-right:.3rem;"></span>Đã thu</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h2>Loại hoá đơn (tháng này)</h2></div>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>Loại</th><th class="num">SL</th><th class="num">Tổng</th><th class="num">Còn nợ</th></tr></thead>
+                <tbody>
+                @if (!Model.Kinds.Any())
+                {
+                    <tr><td colspan="4"><div class="empty-state" style="padding:1rem;"><h3 style="font-size:13px;">Chưa có hoá đơn</h3></div></td></tr>
+                }
+                else
+                {
+                    foreach (var k in Model.Kinds)
+                    {
+                        <tr>
+                            <td>@k.Kind.Vi()</td>
+                            <td class="num">@k.Count</td>
+                            <td class="num">@Money(k.Total)</td>
+                            <td class="num">@(k.Balance > 0 ? Html.Raw($"<strong style=\"color:var(--admin-danger);\">{Money(k.Balance)}</strong>") : Html.Raw("—"))</td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header"><h2>Top khách nợ</h2></div>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Khách thuê</th><th class="num">Số hoá đơn nợ</th><th class="num">Tổng nợ</th><th></th></tr></thead>
+            <tbody>
+            @if (!Model.TopDebtors.Any())
+            {
+                <tr><td colspan="4"><div class="empty-state"><span class="material-symbols-outlined">celebration</span><h3>Không có khách nợ</h3></div></td></tr>
+            }
+            else
+            {
+                foreach (var d in Model.TopDebtors)
+                {
+                    <tr>
+                        <td class="row-title">@d.TenantName</td>
+                        <td class="num">@d.InvoiceCount</td>
+                        <td class="num"><strong style="color:var(--admin-danger);">@Money(d.TotalBalance)</strong></td>
+                        <td class="actions-cell">
+                            <a class="btn btn-ghost btn-sm" asp-controller="Invoices" asp-action="Index" asp-route-q="@d.TenantName"><span class="material-symbols-outlined">visibility</span>Xem hoá đơn</a>
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

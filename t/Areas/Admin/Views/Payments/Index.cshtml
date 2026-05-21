@@ -1,0 +1,146 @@
+@model List<t.Areas.Admin.Models.PaymentInvoiceListVm>
+@using t.Models.Entities
+@{
+    ViewData["Title"] = "Thanh toán";
+    var pager = (t.Areas.Admin.Models.PageInfo)ViewBag.Pager;
+    var q = (string?)ViewBag.Q;
+    var status = (InvoiceStatus?)ViewBag.Status;
+    var month = (int?)ViewBag.Month;
+    var sumOutstanding = (decimal)(ViewBag.SumOutstanding ?? 0m);
+    var sumOverdue = (decimal)(ViewBag.SumOverdue ?? 0m);
+    var invoiceCount = (int)(ViewBag.InvoiceCount ?? 0);
+    var pendingCount = (int)(ViewBag.PendingPaymentsCount ?? 0);
+    string Money(decimal v) => v.ToString("N0");
+    string Pill(InvoiceStatus s) => s switch
+    {
+        InvoiceStatus.Issued => "pill pill-info",
+        InvoiceStatus.PartiallyPaid => "pill pill-accent",
+        InvoiceStatus.Overdue => "pill pill-danger",
+        _ => "pill pill-neutral"
+    };
+    // Only show statuses that can appear in the unpaid list.
+    var visibleStatuses = new[] { InvoiceStatus.Issued, InvoiceStatus.PartiallyPaid, InvoiceStatus.Overdue };
+    int DaysOverdue(DateTime due) => (int)Math.Floor((DateTime.UtcNow.Date - due.Date).TotalDays);
+}
+
+<section class="page-header">
+    <div>
+        <h1>Thanh toán</h1>
+        <p class="subtitle">@pager.TotalCount khoản cần thu</p>
+    </div>
+    <div class="actions">
+        <a class="btn btn-outline" asp-controller="Invoices" asp-action="PendingPayments">
+            <span class="material-symbols-outlined">pending_actions</span>Chờ duyệt
+            @if (pendingCount > 0) { <span class="pill pill-warning" style="margin-left:.4rem;">@pendingCount</span> }
+        </a>
+    </div>
+</section>
+
+<section class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-label">Tổng còn nợ</div>
+        <div class="kpi-value" style="font-size:1.3rem;color:var(--admin-danger);">@Money(sumOutstanding)</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Quá hạn</div>
+        <div class="kpi-value" style="font-size:1.3rem;color:var(--admin-danger);">@Money(sumOverdue)</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Số hoá đơn</div>
+        <div class="kpi-value" style="font-size:1.3rem;">@invoiceCount</div>
+    </div>
+</section>
+
+<form method="get" class="filter-bar">
+    <input type="search" name="q" value="@q" placeholder="Số hoá đơn, hợp đồng, tên khách..." />
+    <select name="status">
+        <option value="">— Trạng thái —</option>
+        @foreach (var s in visibleStatuses) { <option value="@((int)s)" selected="@(status == s)">@s.Vi()</option> }
+    </select>
+    <input type="number" name="month" value="@month" placeholder="Kỳ (YYYYMM)" min="200000" max="299912" />
+    <button type="submit" class="btn btn-primary">Lọc</button>
+    <a class="btn btn-ghost" asp-action="Index">Xoá lọc</a>
+</form>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Hoá đơn</th>
+                    <th>Khách / Căn</th>
+                    <th class="num">Tiền nhà</th>
+                    <th class="num">Tiện ích</th>
+                    <th class="num">Khác</th>
+                    <th class="num">Tổng</th>
+                    <th class="num">Đã trả</th>
+                    <th class="num">Còn lại</th>
+                    <th>Đến hạn</th>
+                    <th>Trạng thái</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="11">
+                        <div class="empty-state">
+                            <span class="material-symbols-outlined">payments</span>
+                            <h3>Không có khoản phải thu</h3>
+                            <p>Tất cả hoá đơn đã được thanh toán đầy đủ.</p>
+                        </div>
+                    </td>
+                </tr>
+            }
+            else
+            {
+                foreach (var r in Model)
+                {
+                    var dOver = DaysOverdue(r.DueDate);
+                    <tr>
+                        <td>
+                            <a class="row-title" asp-controller="Invoices" asp-action="Details" asp-route-id="@r.Id">@r.InvoiceNumber</a>
+                            <div class="row-meta">
+                                @r.Kind.Vi()
+                                @if (r.BillingMonth > 0) { <text> · Kỳ @(r.BillingMonth / 100)/@((r.BillingMonth % 100).ToString("00"))</text> }
+                                · @r.LeaseNumber
+                            </div>
+                        </td>
+                        <td>
+                            <div>@r.TenantName</div>
+                            <div class="row-meta">@r.UnitTitle</div>
+                        </td>
+                        <td class="num">@(r.RentAmount > 0 ? Money(r.RentAmount) : "—")</td>
+                        <td class="num">@(r.UtilityAmount > 0 ? Money(r.UtilityAmount) : "—")</td>
+                        <td class="num">@(r.OtherAmount > 0 ? Money(r.OtherAmount) : "—")</td>
+                        <td class="num">@Money(r.Total)</td>
+                        <td class="num">@Money(r.AmountPaid)</td>
+                        <td class="num"><strong>@Money(r.Balance)</strong></td>
+                        <td>
+                            @r.DueDate.ToString("dd/MM/yyyy")
+                            @if (dOver > 0)
+                            {
+                                <div class="row-meta" style="color:var(--admin-danger);">Trễ @dOver ngày</div>
+                            }
+                        </td>
+                        <td>
+                            <span class="@Pill(r.Status)">@r.Status.Vi()</span>
+                            @if (r.HasPendingPayment)
+                            {
+                                <div class="row-meta"><span class="pill pill-warning">Chờ duyệt</span></div>
+                            }
+                        </td>
+                        <td class="actions-cell">
+                            <a class="btn btn-ghost btn-sm" asp-controller="Invoices" asp-action="Details" asp-route-id="@r.Id" title="Chi tiết thanh toán">
+                                <span class="material-symbols-outlined">chevron_right</span>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+    @await Html.PartialAsync("_Pagination", pager)
+</div>

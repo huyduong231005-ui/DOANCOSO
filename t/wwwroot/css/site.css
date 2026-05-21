@@ -1,0 +1,68 @@
+﻿html {
+  font-size: 16px;
+}
+
+:root {
+  --form-font-family: "Segoe UI", "Noto Sans", Tahoma, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  color: #0d1c3d;
+  background: #f6f8fb;
+}
+
+form,
+form input,
+form select,
+form textarea,
+form button,
+form label {
+  font-family: var(--form-font-family);
+}
+
+a {
+  color: inherit;
+}
+
+.page-shell {
+  width: min(960px, calc(100% - 32px));
+  margin: 48px auto;
+  background: #fff;
+  border: 1px solid rgba(13, 28, 61, 0.08);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 16px 30px rgba(8, 20, 48, 0.06);
+}
+
+.page-shell h1 {
+  margin-top: 0;
+}
+
+.page-shell .back-link {
+  display: inline-block;
+  margin-top: 12px;
+  color: #12397a;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.page-shell .back-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 15px;
+  }
+
+  .page-shell {
+    margin: 24px auto;
+    padding: 18px;
+  }
+}

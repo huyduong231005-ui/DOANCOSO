@@ -1,0 +1,70 @@
+@model t.Areas.Admin.Models.UserEditVm
+@{
+    ViewData["Title"] = Model.FullName;
+}
+
+<section class="page-header">
+    <div><h1>@Model.FullName</h1><p class="subtitle">@Model.Email</p></div>
+    <div class="actions"><a class="btn btn-ghost" asp-action="Index">Quay lại</a></div>
+</section>
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
+
+    <div class="card">
+        <div class="card-header"><h2>Thông tin</h2></div>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-field span-6">
+                    <label asp-for="FullName">Họ và tên</label>
+                    <input asp-for="FullName" />
+                    <span class="err" asp-validation-for="FullName"></span>
+                </div>
+                <div class="form-field span-6">
+                    <label asp-for="Email">Email</label>
+                    <input asp-for="Email" />
+                    <span class="err" asp-validation-for="Email"></span>
+                </div>
+                <div class="form-field span-6">
+                    <label asp-for="Phone">Số điện thoại</label>
+                    <input asp-for="Phone" />
+                </div>
+                <div class="form-field span-6">
+                    <label asp-for="HostTitle">Chức danh chủ căn</label>
+                    <input asp-for="HostTitle" placeholder="ví dụ: Premium Host" />
+                </div>
+                <div class="form-field span-12">
+                    <label class="hstack">
+                        <input asp-for="IsHost" type="checkbox" />
+                        <span>Đánh dấu là Host (có thể đăng tin căn hộ)</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header"><h2>Vai trò</h2></div>
+        <div class="card-body">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:.5rem;">
+                @foreach (var role in Model.AllRoles)
+                {
+                    var checkedAttr = Model.SelectedRoles.Contains(role) ? "checked" : null;
+                    <label class="hstack" style="border:1px solid var(--admin-line);padding:.6rem .9rem;border-radius:10px;cursor:pointer;">
+                        <input type="checkbox" name="SelectedRoles" value="@role" checked="@checkedAttr" />
+                        <span><strong>@role</strong></span>
+                    </label>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="hstack mt-3" style="justify-content:flex-end;">
+        <a class="btn btn-ghost" asp-action="Index">Huỷ</a>
+        <button type="submit" class="btn btn-primary">Lưu</button>
+    </div>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

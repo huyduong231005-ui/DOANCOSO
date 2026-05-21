@@ -1,0 +1,228 @@
+@model t.Areas.Admin.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    string Money(decimal v) => v >= 1_000_000_000 ? $"{v/1_000_000_000m:0.##} tỷ"
+                              : v >= 1_000_000 ? $"{v/1_000_000m:0.#} tr"
+                              : v.ToString("N0");
+    string Pill(t.Models.Entities.LeaseStatus s) => s switch
+    {
+        t.Models.Entities.LeaseStatus.Active => "pill pill-success",
+        t.Models.Entities.LeaseStatus.Pending => "pill pill-warning",
+        t.Models.Entities.LeaseStatus.Renewing => "pill pill-info",
+        t.Models.Entities.LeaseStatus.Expired => "pill pill-neutral",
+        t.Models.Entities.LeaseStatus.Terminated => "pill pill-danger",
+        _ => "pill pill-neutral"
+    };
+    decimal maxRevenue = Model.RevenueByDay.Count == 0 ? 0 : Model.RevenueByDay.Max(r => r.Total);
+}
+
+<section class="page-header">
+    <div>
+        <h1>Bảng điều khiển</h1>
+        <p class="subtitle">Tổng quan vận hành toà nhà · cập nhật @DateTime.Now.ToString("HH:mm dd/MM/yyyy")</p>
+    </div>
+    <div class="actions">
+        <a class="btn btn-outline" asp-area="Admin" asp-controller="Leases" asp-action="Index">
+            <span class="material-symbols-outlined">description</span>Quản lý hợp đồng
+        </a>
+        <a class="btn btn-accent" asp-area="Admin" asp-controller="Leases" asp-action="Create">
+            <span class="material-symbols-outlined">add</span>Tạo hợp đồng
+        </a>
+    </div>
+</section>
+
+<section class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">domain</span></div>
+        <div class="kpi-label">Toà nhà</div>
+        <div class="kpi-value">@Model.BuildingsTotal</div>
+        <div class="kpi-meta">@Model.UnitsTotal căn hộ tổng</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">apartment</span></div>
+        <div class="kpi-label">Tỉ lệ lấp đầy</div>
+        <div class="kpi-value">@Model.OccupancyRate%</div>
+        <div class="kpi-meta">@Model.UnitsOccupied / @Model.UnitsTotal đang ở</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">description</span></div>
+        <div class="kpi-label">Hợp đồng đang hoạt động</div>
+        <div class="kpi-value">@Model.LeasesActive</div>
+        <div class="kpi-meta">@Model.LeasesExpiringSoon sắp hết hạn (30 ngày)</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">payments</span></div>
+        <div class="kpi-label">Doanh thu tháng này</div>
+        <div class="kpi-value">@Money(Model.RevenueThisMonth)</div>
+        <div class="kpi-meta">VNĐ · đã thu</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">money_off</span></div>
+        <div class="kpi-label">Công nợ</div>
+        <div class="kpi-value">@Money(Model.ArrearsTotal)</div>
+        <div class="kpi-meta">@Model.InvoicesUnpaid hoá đơn chưa thanh toán</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">group</span></div>
+        <div class="kpi-label">Người dùng</div>
+        <div class="kpi-value">@Model.UsersTotal</div>
+        <div class="kpi-meta">@Model.ReviewsPending review chờ duyệt</div>
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-header">
+        <h2>Doanh thu 14 ngày gần nhất</h2>
+        <span class="text-muted">Đơn vị: VNĐ</span>
+    </div>
+    <div class="card-body">
+        @if (maxRevenue == 0)
+        {
+            <div class="empty-state" style="padding:1.5rem;">
+                <span class="material-symbols-outlined">show_chart</span>
+                <h3>Chưa có doanh thu</h3>
+            </div>
+        }
+        else
+        {
+            <div style="position:relative;height:240px;">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        }
+    </div>
+</section>
+
+@section Scripts {
+    @if (maxRevenue > 0)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+        <script>
+            (function(){
+                var labels = [@Html.Raw(string.Join(",", Model.RevenueByDay.Select(d => $"\"{d.Day:dd/MM}\"")))];
+                var data   = [@Html.Raw(string.Join(",", Model.RevenueByDay.Select(d => d.Total.ToString(System.Globalization.CultureInfo.InvariantCulture))))];
+                var canvas = document.getElementById('revenueChart');
+                if (!canvas || !window.Chart) return;
+                var ctx = canvas.getContext('2d');
+                var grad = ctx.createLinearGradient(0, 0, 0, 240);
+                grad.addColorStop(0, 'rgba(0, 51, 102, 0.55)');
+                grad.addColorStop(1, 'rgba(0, 30, 64, 0.0)');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'VNĐ',
+                            data: data,
+                            backgroundColor: '#001e40',
+                            borderRadius: 6,
+                            barThickness: 'flex',
+                            maxBarThickness: 32
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { callbacks: { label: function(c){ return new Intl.NumberFormat('vi-VN').format(c.parsed.y) + ' đ'; } } }
+                        },
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: { ticks: { callback: function(v){ return v >= 1000000 ? (v/1000000).toFixed(1)+'tr' : v >= 1000 ? (v/1000).toFixed(0)+'k' : v; } }, grid: { color: 'rgba(15,23,42,0.06)' } }
+                        }
+                    }
+                });
+            })();
+        </script>
+    }
+}
+
+<section style="display:grid;grid-template-columns:1.4fr 1fr;gap:1.2rem;">
+    <div class="card">
+        <div class="card-header">
+            <h2>Hợp đồng gần đây</h2>
+            <a class="btn btn-ghost btn-sm" asp-area="Admin" asp-controller="Leases" asp-action="Index">Xem tất cả →</a>
+        </div>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>Mã</th><th>Khách thuê</th><th>Căn / Toà</th><th>Thời hạn</th><th class="num">Tiền/tháng</th><th>Trạng thái</th></tr></thead>
+                <tbody>
+                @if (!Model.RecentLeases.Any())
+                {
+                    <tr><td colspan="6"><div class="empty-state"><span class="material-symbols-outlined">description</span><h3>Chưa có hợp đồng</h3></div></td></tr>
+                }
+                else
+                {
+                    foreach (var l in Model.RecentLeases)
+                    {
+                        <tr>
+                            <td><a asp-area="Admin" asp-controller="Leases" asp-action="Details" asp-route-id="@l.Id" class="row-title">@l.LeaseNumber</a></td>
+                            <td>@l.TenantName</td>
+                            <td>@l.UnitTitle<div class="row-meta">@l.BuildingName</div></td>
+                            <td class="text-muted no-wrap">@l.StartDate.ToString("dd/MM/yy") – @l.EndDate.ToString("dd/MM/yy")</td>
+                            <td class="num">@Money(l.MonthlyRent)</td>
+                            <td><span class="@Pill(l.Status)">@l.Status.Vi()</span></td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Sắp hết hạn</h2>
+            <span class="text-muted">trong 30 ngày</span>
+        </div>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>Khách / Căn</th><th class="num">Còn lại</th></tr></thead>
+                <tbody>
+                @if (!Model.ExpiringLeases.Any())
+                {
+                    <tr><td colspan="2"><div class="empty-state"><span class="material-symbols-outlined">schedule</span><h3>Không có hợp đồng nào sắp hết hạn</h3></div></td></tr>
+                }
+                else
+                {
+                    foreach (var l in Model.ExpiringLeases)
+                    {
+                        <tr>
+                            <td><a asp-area="Admin" asp-controller="Leases" asp-action="Details" asp-route-id="@l.Id" class="row-title">@l.TenantName</a><div class="row-meta">@l.UnitTitle · @l.LeaseNumber</div></td>
+                            <td class="num"><span class="pill @(l.DaysLeft <= 7 ? "pill-danger" : l.DaysLeft <= 14 ? "pill-warning" : "pill-info")">@l.DaysLeft ngày</span></td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-header"><h2>Toà nhà — doanh thu/tháng</h2></div>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Toà</th><th class="num">Số căn</th><th class="num">Đang ở</th><th class="num">Tỉ lệ</th><th class="num">Doanh thu/tháng</th></tr></thead>
+            <tbody>
+            @if (!Model.TopBuildings.Any())
+            {
+                <tr><td colspan="5"><div class="empty-state"><span class="material-symbols-outlined">domain</span><h3>Chưa có toà nhà</h3></div></td></tr>
+            }
+            else
+            {
+                foreach (var b in Model.TopBuildings)
+                {
+                    var rate = b.Units == 0 ? 0 : Math.Round(b.Occupied * 100.0 / b.Units, 1);
+                    <tr>
+                        <td><a asp-area="Admin" asp-controller="Buildings" asp-action="Details" asp-route-id="@b.Id" class="row-title">@b.Name</a></td>
+                        <td class="num">@b.Units</td>
+                        <td class="num">@b.Occupied</td>
+                        <td class="num">@rate%</td>
+                        <td class="num">@Money(b.MonthlyRevenue)</td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</section>

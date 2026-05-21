@@ -1,0 +1,83 @@
+@model List<t.Areas.Tenant.Models.TenantInvoiceRow>
+@using t.Models.Entities
+@{
+    ViewData["Title"] = "Hoá đơn của tôi";
+    var pager = (t.Areas.Admin.Models.PageInfo)ViewBag.Pager;
+    var status = (InvoiceStatus?)ViewBag.Status;
+    var q = (string?)ViewBag.Q;
+    var sumDue = (decimal)(ViewBag.SumDue ?? 0m);
+    string Money(decimal v) => v.ToString("N0");
+    string Pill(InvoiceStatus s) => s switch
+    {
+        InvoiceStatus.Paid => "pill pill-success",
+        InvoiceStatus.Issued => "pill pill-info",
+        InvoiceStatus.PartiallyPaid => "pill pill-accent",
+        InvoiceStatus.Overdue => "pill pill-danger",
+        _ => "pill pill-neutral"
+    };
+    string DueText(DateTime dueDate, InvoiceStatus s)
+    {
+        if (s is InvoiceStatus.Paid or InvoiceStatus.Cancelled or InvoiceStatus.Refunded)
+            return dueDate.ToString("dd/MM/yyyy");
+        var days = (int)(dueDate.Date - t.Infrastructure.Time.VnTime.Today).TotalDays;
+        if (days < 0) return $"<span style=\"color:var(--admin-danger);font-weight:600;\">Trễ {Math.Abs(days)} ngày</span>";
+        if (days == 0) return "<span style=\"color:var(--admin-danger);font-weight:600;\">Hết hạn hôm nay</span>";
+        if (days <= 3) return $"<span style=\"color:var(--admin-warning);font-weight:600;\">Còn {days} ngày</span>";
+        return $"{dueDate:dd/MM/yyyy} ({days} ngày)";
+    }
+}
+
+<section class="page-header">
+    <div>
+        <h1>Hoá đơn của tôi</h1>
+        <p class="subtitle">@pager.TotalCount hoá đơn</p>
+    </div>
+</section>
+
+@if (sumDue > 0)
+{
+    <div class="alert alert-warning" style="margin-bottom:1rem;">
+        <span class="material-symbols-outlined">payments</span>
+        <div>Tổng còn phải thanh toán: <strong>@Money(sumDue) VNĐ</strong></div>
+    </div>
+}
+
+<form method="get" class="filter-bar">
+    <input type="search" name="q" value="@q" placeholder="Số hoá đơn, mã hợp đồng, căn hộ..." />
+    <select name="status">
+        <option value="">— Tất cả trạng thái —</option>
+        @foreach (var s in Enum.GetValues<InvoiceStatus>()) { <option value="@((int)s)" selected="@(status == s)">@s.Vi()</option> }
+    </select>
+    <button type="submit" class="btn btn-primary">Lọc</button>
+    <a class="btn btn-ghost" asp-action="Index">Xoá lọc</a>
+</form>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Số</th><th>Loại</th><th>Kỳ</th><th>Đến hạn</th><th class="num">Tổng</th><th class="num">Còn lại</th><th>Trạng thái</th></tr></thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="7"><div class="empty-state"><span class="material-symbols-outlined">receipt_long</span><h3>Chưa có hoá đơn</h3></div></td></tr>
+            }
+            else
+            {
+                foreach (var i in Model)
+                {
+                    <tr>
+                        <td><a class="row-title" asp-action="Details" asp-route-id="@i.Id">@i.InvoiceNumber</a></td>
+                        <td>@i.Kind.Vi()</td>
+                        <td>@(i.BillingMonth > 0 ? $"{i.BillingMonth/100}/{i.BillingMonth%100:00}" : "—")</td>
+                        <td>@Html.Raw(DueText(i.DueDate, i.Status))</td>
+                        <td class="num">@Money(i.Total)</td>
+                        <td class="num"><strong>@Money(i.Balance)</strong></td>
+                        <td><span class="@Pill(i.Status)">@i.Status.Vi()</span></td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+    @await Html.PartialAsync("/Areas/Admin/Views/Shared/_Pagination.cshtml", pager)
+</div>

@@ -1,0 +1,58 @@
+@model t.Areas.Tenant.Models.CreateMaintenanceVm
+@using t.Models.Entities
+@{
+    var lease = (Lease)ViewBag.Lease;
+    ViewData["Title"] = "Báo sự cố mới";
+}
+
+<section class="page-header">
+    <div><h1>Báo sự cố mới</h1><p class="subtitle">@lease.Apartment.Title</p></div>
+    <div class="actions"><a class="btn btn-ghost" asp-action="Index">Quay lại</a></div>
+</section>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-field span-12">
+                    <label asp-for="Title">Tiêu đề ngắn gọn</label>
+                    <input asp-for="Title" placeholder="Ví dụ: Bóng đèn phòng khách bị cháy" />
+                    <span class="err" asp-validation-for="Title"></span>
+                </div>
+                <div class="form-field span-12">
+                    <label asp-for="Description">Mô tả chi tiết</label>
+                    <textarea asp-for="Description" rows="5" placeholder="Mô tả triệu chứng, thời gian phát hiện, đã thử cách xử lý gì..."></textarea>
+                </div>
+                <div class="form-field span-6">
+                    <label asp-for="Category">Loại sự cố</label>
+                    <select asp-for="Category">
+                        @foreach (var c in Enum.GetValues<MaintenanceCategory>()) { <option value="@((int)c)">@c.Vi()</option> }
+                    </select>
+                </div>
+                <div class="form-field span-6">
+                    <label asp-for="Priority">Mức độ ưu tiên</label>
+                    <select asp-for="Priority">
+                        @foreach (var p in Enum.GetValues<MaintenancePriority>()) { <option value="@((int)p)">@p.Vi()</option> }
+                    </select>
+                </div>
+                <div class="form-field span-12">
+                    <label asp-for="PhotoUrls">Ảnh kèm theo (chụp hiện trạng nếu có)</label>
+                    <input type="file" multiple accept="image/*" data-upload="maintenance" data-target="#tenant-mt-photos" />
+                    <div data-upload-preview class="hstack mt-2" style="flex-wrap:wrap;"></div>
+                    <p class="hint" data-upload-status></p>
+                    <textarea id="tenant-mt-photos" asp-for="PhotoUrls" rows="2" style="display:none;"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hstack mt-3" style="justify-content:flex-end;">
+        <a class="btn btn-ghost" asp-action="Index">Huỷ</a>
+        <button type="submit" class="btn btn-accent"><span class="material-symbols-outlined">send</span>Gửi yêu cầu</button>
+    </div>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

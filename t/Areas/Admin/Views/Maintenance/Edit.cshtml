@@ -1,0 +1,86 @@
+@model t.Areas.Admin.Models.MaintenanceEditVm
+@using t.Models.Entities
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Tạo yêu cầu bảo trì" : Model.RequestNumber;
+}
+
+<section class="page-header">
+    <div><h1>@(Model.Id == 0 ? "Tạo yêu cầu" : Model.RequestNumber)</h1></div>
+    <div class="actions"><a class="btn btn-ghost" asp-action="Index">Quay lại</a></div>
+</section>
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-field span-4">
+                    <label asp-for="RequestNumber">Mã yêu cầu</label>
+                    <input asp-for="RequestNumber" />
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="ApartmentId">Căn hộ</label>
+                    <select asp-for="ApartmentId">
+                        <option value="0">— Chọn căn —</option>
+                        @foreach (var a in Model.Apartments)
+                        {
+                            <option value="@a.Id">@(a.UnitCode ?? "?") · @a.Title @(a.Building != null ? $"({a.Building.Name})" : "")</option>
+                        }
+                    </select>
+                    <span class="err" asp-validation-for="ApartmentId"></span>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="ReporterId">Người báo (nếu khác bạn)</label>
+                    <select asp-for="ReporterId">
+                        <option value="">— Tự bạn báo —</option>
+                        @foreach (var u in Model.Reporters) { <option value="@u.Id">@u.Label</option> }
+                    </select>
+                </div>
+
+                <div class="form-field span-12">
+                    <label asp-for="Title">Tiêu đề</label>
+                    <input asp-for="Title" placeholder="Vòi nước rò rỉ ở phòng tắm" />
+                    <span class="err" asp-validation-for="Title"></span>
+                </div>
+                <div class="form-field span-12">
+                    <label asp-for="Description">Mô tả chi tiết</label>
+                    <textarea asp-for="Description" rows="4"></textarea>
+                </div>
+
+                <div class="form-field span-4">
+                    <label asp-for="Category">Loại</label>
+                    <select asp-for="Category">
+                        @foreach (var c in Enum.GetValues<MaintenanceCategory>()) { <option value="@((int)c)">@c.Vi()</option> }
+                    </select>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="Priority">Mức độ ưu tiên</label>
+                    <select asp-for="Priority">
+                        @foreach (var p in Enum.GetValues<MaintenancePriority>()) { <option value="@((int)p)">@p.Vi()</option> }
+                    </select>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="EstimatedCost">Chi phí ước tính (VND)</label>
+                    <input asp-for="EstimatedCost" type="number" step="10000" />
+                </div>
+                <div class="form-field span-12">
+                    <label asp-for="PhotoUrls">Ảnh</label>
+                    <input type="file" multiple accept="image/*" data-upload="maintenance" data-target="#mt-photos" />
+                    <div data-upload-preview class="hstack mt-2" style="flex-wrap:wrap;"></div>
+                    <p class="hint" data-upload-status></p>
+                    <textarea id="mt-photos" asp-for="PhotoUrls" rows="2" placeholder="Hoặc dán URL trực tiếp (cách nhau dấu phẩy)"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hstack mt-3" style="justify-content:flex-end;">
+        <a class="btn btn-ghost" asp-action="Index">Huỷ</a>
+        <button type="submit" class="btn btn-primary">Lưu</button>
+    </div>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -1,0 +1,298 @@
+﻿@{
+    ViewData["Title"] = "Trang chủ";
+    ViewData["BodyClass"] = "luxe-landing";
+    ViewData["ActiveNav"] = "home";
+}
+
+<partial name="_LuxeTopbar" />
+
+<main class="lh-main">
+    <section class="hero">
+        <div class="hero-slideshow" aria-hidden="true">
+            <img class="hero-slide is-active" src="~/img/hero-1.jpg" alt="">
+            <img class="hero-slide" src="~/img/hero-2.jpg" alt="">
+            <img class="hero-slide" src="~/img/hero-3.jpg" alt="">
+            <img class="hero-slide" src="~/img/hero-4.jpg" alt="">
+        </div>
+        <div class="hero-overlay"></div>
+
+        <div class="shell hero-content intro-strong">
+            <span class="hero-eyebrow">Redefining Modern Living</span>
+            <h1>
+                KIẾN TẠO<br>
+                <span class="script">không gian</span>
+                MỚI
+            </h1>
+
+            <form class="search-panel" asp-controller="Home" asp-action="Rentals" method="get">
+                <div class="search-fields">
+                    <div class="search-field">
+                        <label>Khu vực</label>
+                        <select class="value" name="region">
+                            <option value="">Toàn quốc</option>
+                            @if (ViewBag.Regions != null)
+                            {
+                                foreach (var r in ViewBag.Regions)
+                                {
+                                    <option value="@r.Slug">@r.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="search-field">
+                        <label>Mức giá tối thiểu</label>
+                        <input class="value" type="number" name="minPrice" min="0" step="100000" placeholder="0" />
+                    </div>
+                    <div class="search-field">
+                        <label>Diện tích tối thiểu</label>
+                        <input class="value" type="number" name="minArea" min="0" step="1" placeholder="0" />
+                    </div>
+                    <div class="search-field">
+                        <label>Sắp xếp</label>
+                        <select class="value" name="sort">
+                            <option value="">Mới nhất</option>
+                            <option value="price_asc">Giá tăng dần</option>
+                            <option value="price_desc">Giá giảm dần</option>
+                            <option value="area_desc">Diện tích lớn nhất</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="search-button">
+                    <span class="material-symbols-outlined">search</span>
+                    Tìm ngay
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <section class="section featured-section">
+        <div class="shell">
+            <div class="section-head reveal-item fx-left">
+                <div>
+                    <span class="section-tag">Curated Selection</span>
+                    <h2 class="section-title one-line">Bộ sưu tập độc bản</h2>
+                </div>
+                <button class="ghost-button" type="button">
+                    Xem tất cả
+                    <span class="material-symbols-outlined">arrow_right_alt</span>
+                </button>
+            </div>
+
+            @{
+                var heroLandmark = ViewBag.HeroLandmark as t.Models.Entities.Apartment;
+                var heroOcean = ViewBag.HeroOceanPark as t.Models.Entities.Apartment;
+                var heroSun = ViewBag.HeroSunGroup as t.Models.Entities.Apartment;
+                string MoneyShort(decimal v) => v >= 1_000_000m ? $"{v / 1_000_000m:0.#}tr" : v.ToString("N0");
+                string CoverOf(t.Models.Entities.Apartment? a, string fallback) =>
+                    a?.Images?.FirstOrDefault(i => i.IsCover)?.Url
+                    ?? a?.Images?.OrderBy(i => i.SortOrder).FirstOrDefault()?.Url
+                    ?? fallback;
+                string ShortAddress(string addr) =>
+                    string.IsNullOrEmpty(addr) ? string.Empty
+                    : string.Join(", ", addr.Split(',').TakeLast(2).Select(s => s.Trim()));
+            }
+
+            <div class="featured-grid">
+                <a class="feature-card reveal-item fx-zoom" asp-controller="Home" asp-action="ApartmentDetail" asp-route-id="@(heroLandmark?.Id)" data-soft-nav="true" style="text-decoration:none;">
+                    <img src="@CoverOf(heroLandmark, "/img/hero-2.jpg")" alt="@(heroLandmark?.Title ?? "Landmark 81 Sky Villa")" />
+                    <div class="feature-gradient"></div>
+                    <div class="feature-text">
+                        <span class="card-pill">Signature Residence</span>
+                        <p class="location-line">@ShortAddress(heroLandmark?.Address ?? "Quận 1, TP. Hồ Chí Minh")</p>
+                        <h3>Landmark 81<br>Sky Villa</h3>
+                        <div class="feature-meta">
+                            <div>
+                                <span>Diện tích</span>
+                                <strong>@(heroLandmark?.Area.ToString("0") ?? "120")m²</strong>
+                            </div>
+                            <div>
+                                <span>Phòng ngủ</span>
+                                <strong>@((heroLandmark?.Bedrooms ?? 3).ToString("00"))</strong>
+                            </div>
+                            <div class="price-box">
+                                <strong>@MoneyShort(heroLandmark?.Price ?? 45_000_000m)</strong>
+                                <span>/tháng</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <div class="stack-cards reveal-item fx-right">
+                    <a class="mini-card" asp-controller="Home" asp-action="ApartmentDetail" asp-route-id="@(heroOcean?.Id)" data-soft-nav="true" style="text-decoration:none;color:inherit;">
+                        <div class="image-wrap">
+                            <img src="@CoverOf(heroOcean, "/img/ocean-park.jpg")" alt="@(heroOcean?.Title ?? "Vinhomes Ocean Park")" />
+                            <span class="favorite" aria-hidden="true">
+                                <span class="material-symbols-outlined">favorite</span>
+                            </span>
+                        </div>
+                        <div class="mini-body">
+                            <div class="title-row">
+                                <h4>Vinhomes Ocean Park</h4>
+                                <strong>@MoneyShort(heroOcean?.Price ?? 8_500_000m)</strong>
+                            </div>
+                            <p><span class="material-symbols-outlined">location_on</span> @ShortAddress(heroOcean?.Address ?? "Gia Lâm, Hà Nội")</p>
+                        </div>
+                    </a>
+
+                    <a class="mini-card" asp-controller="Home" asp-action="ApartmentDetail" asp-route-id="@(heroSun?.Id)" data-soft-nav="true" style="text-decoration:none;color:inherit;">
+                        <div class="image-wrap">
+                            <img src="@CoverOf(heroSun, "/img/hero-3.jpg")" alt="@(heroSun?.Title ?? "Sun Group Residence")" />
+                        </div>
+                        <div class="mini-body">
+                            <div class="title-row">
+                                <h4>Sun Group Residence</h4>
+                                <strong>@MoneyShort(heroSun?.Price ?? 12_000_000m)</strong>
+                            </div>
+                            <p><span class="material-symbols-outlined">location_on</span> @ShortAddress(heroSun?.Address ?? "Hải Châu, Đà Nẵng")</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section budget-section">
+        <div class="shell budget-grid">
+            <div class="blob-side reveal-item fx-left">
+                <div class="blob one">
+                    <img src="~/img/budget-1.jpg" alt="Không gian xanh" />
+                </div>
+                <div class="blob two">
+                    <img src="~/img/hero-4.jpg" alt="Nội thất hiện đại" />
+                </div>
+                <div class="budget-badge">Chỉ từ <span>2tr</span></div>
+            </div>
+
+            <div class="budget-copy reveal-item fx-right">
+                <span class="section-tag compact">Smart Living Choice</span>
+                <h2>NHÀ TRỌ <span>thế hệ mới</span></h2>
+                <p>
+                    Xóa bỏ định kiến về nhà trọ truyền thống. Luxe Haven mang đến cộng đồng văn minh,
+                    hiện đại với chi phí tối ưu.
+                </p>
+
+                <div class="feature-chip-grid">
+                    <div class="chip-card">
+                        <span class="material-symbols-outlined">verified</span>
+                        <strong>100% Chính chủ</strong>
+                    </div>
+                    <div class="chip-card">
+                        <span class="material-symbols-outlined">location_city</span>
+                        <strong>Gần trung tâm</strong>
+                    </div>
+                </div>
+
+                <button class="button-primary wide" type="button">Xem danh sách nhà trọ</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="section regions-section">
+        <div class="shell">
+            <div class="center-head reveal-item fx-pop">
+                <h2 class="section-title solid">KHU VỰC</h2>
+                <p>Tâm điểm của mọi sự kết nối</p>
+            </div>
+
+            <div class="regions-grid reveal-item fx-up">
+                <article class="region-card hanoi">
+                    <img src="~/img/region-hanoi.jpg" alt="Hà Nội thực tế" />
+                    <div class="shade"></div>
+                    <div class="caption">
+                        <h4>Hà Nội</h4>
+                    </div>
+                </article>
+
+                <article class="region-card hcm">
+                    <img src="~/img/region-hcm.jpg" alt="TP. Hồ Chí Minh thực tế" />
+                    <div class="shade"></div>
+                    <div class="caption">
+                        <h4>TP. Hồ Chí Minh</h4>
+                    </div>
+                </article>
+
+                <article class="region-card danang">
+                    <img src="~/img/region-danang.jpg" alt="Đà Nẵng thực tế" />
+                    <div class="shade"></div>
+                    <div class="caption">
+                        <h4>Đà Nẵng</h4>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="section services-section">
+        <div class="shell services-grid">
+            <article class="service-item reveal-item fx-flip" data-reveal-delay="0">
+                <div class="icon"><span class="material-symbols-outlined">verified_user</span></div>
+                <h3>Xác minh 3 lớp</h3>
+                <p>Mọi tin đăng được đội ngũ kiểm duyệt thực địa để đảm bảo tính xác thực 100%.</p>
+            </article>
+            <article class="service-item reveal-item fx-flip" data-reveal-delay="120">
+                <div class="icon"><span class="material-symbols-outlined">photo_camera</span></div>
+                <h3>Ảnh thực tế</h3>
+                <p>Nói không với ảnh minh họa. Hình ảnh được chụp bởi chính đội ngũ Luxe Haven.</p>
+            </article>
+            <article class="service-item reveal-item fx-flip" data-reveal-delay="240">
+                <div class="icon"><span class="material-symbols-outlined">support_agent</span></div>
+                <h3>Trợ lý cá nhân</h3>
+                <p>Đội ngũ chuyên viên tư vấn đồng hành cùng bạn từ khi tìm kiếm đến khi ký hợp đồng.</p>
+            </article>
+        </div>
+    </section>
+</main>
+
+<footer class="lh-footer">
+    <div class="shell footer-grid reveal-item fx-up">
+        <div class="footer-brand">
+            <h4>Luxe Haven</h4>
+            <p>Giải pháp bất động sản cho thuê hàng đầu Việt Nam, kiến tạo chuẩn mực sống mới.</p>
+            <div class="socials">
+                <a href="#" aria-label="Chia sẻ"><span class="material-symbols-outlined">share</span></a>
+                <a href="#" aria-label="Website"><span class="material-symbols-outlined">language</span></a>
+            </div>
+        </div>
+
+        <div class="footer-col">
+            <h6>Danh mục</h6>
+            <ul>
+                <li><a href="#">Về Luxe Haven</a></li>
+                <li><a href="#">Dự án nổi bật</a></li>
+                <li><a href="#">Tin tức thị trường</a></li>
+                <li><a href="#">Chính sách bảo mật</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-col">
+            <h6>Hợp tác</h6>
+            <ul>
+                <li><a href="#">Đăng tin cho thuê</a></li>
+                <li><a href="#">Gói dịch vụ VIP</a></li>
+                <li><a href="#">Liên hệ quảng cáo</a></li>
+                <li><a href="#">Đối tác chiến lược</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-col">
+            <h6>Kết nối</h6>
+            <ul class="contact-list">
+                <li><span class="material-symbols-outlined">mail</span> hello@luxehaven.vn</li>
+                <li class="phone"><span class="material-symbols-outlined">phone</span> 1900 6789</li>
+                <li><span class="material-symbols-outlined">location_on</span> Bitexco Financial Tower, Quận 1, TP. HCM</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="shell footer-bottom">© 2026 Luxe Haven. A Product of Editorial Sanctuary Group.</div>
+</footer>
+
+<nav class="mobile-dock" aria-label="Điều hướng di động">
+    <a class="active" href="#"><span class="material-symbols-outlined">home</span><small>Trang chủ</small></a>
+    <a href="#"><span class="material-symbols-outlined">explore</span><small>Khám phá</small></a>
+    <a href="#"><span class="material-symbols-outlined">favorite</span><small>Lưu tin</small></a>
+    <a href="#"><span class="material-symbols-outlined">account_circle</span><small>Của tôi</small></a>
+</nav>
+
+
+

@@ -1,0 +1,68 @@
+@model List<t.Areas.Admin.Models.UserListVm>
+@{
+    ViewData["Title"] = "Người dùng";
+    var pager = (t.Areas.Admin.Models.PageInfo)ViewBag.Pager;
+    var q = (string?)ViewBag.Q;
+    var role = (string?)ViewBag.Role;
+    var roles = (List<string>)ViewBag.AllRoles;
+}
+
+<section class="page-header">
+    <div><h1>Người dùng</h1><p class="subtitle">@pager.TotalCount tài khoản</p></div>
+</section>
+
+<form method="get" class="filter-bar">
+    <input type="search" name="q" value="@q" placeholder="Email, tên, SĐT..." />
+    <select name="role">
+        <option value="">— Vai trò —</option>
+        @foreach (var r in roles) { <option value="@r" selected="@(role == r)">@r</option> }
+    </select>
+    <button type="submit" class="btn btn-primary">Lọc</button>
+    <a class="btn btn-ghost" asp-action="Index">Xoá lọc</a>
+</form>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Tài khoản</th><th>Vai trò</th><th>SĐT</th><th class="num">Hợp đồng</th><th>Đăng nhập gần nhất</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="7"><div class="empty-state"><span class="material-symbols-outlined">group</span><h3>Không có người dùng</h3></div></td></tr>
+            }
+            else
+            {
+                foreach (var u in Model)
+                {
+                    <tr>
+                        <td><div class="row-title">@u.FullName @(u.IsHost ? Html.Raw("<span class=\"pill pill-info\" style=\"margin-left:.4rem;\">Chủ căn</span>") : null)</div><div class="row-meta">@u.Email</div></td>
+                        <td>
+                            @if (u.Roles.Any())
+                            {
+                                foreach (var r in u.Roles) { <span class="pill pill-neutral" style="margin-right:.25rem;">@r</span> }
+                            }
+                            else { <span class="text-muted">—</span> }
+                        </td>
+                        <td>@(u.Phone ?? "—")</td>
+                        <td class="num">@u.LeasesCount</td>
+                        <td class="text-muted">@(u.LastLoginAt?.ToString("dd/MM/yyyy") ?? "—")</td>
+                        <td>
+                            @if (u.LockedOut) { <span class="pill pill-danger">Đã khoá</span> } else { <span class="pill pill-success">Hoạt động</span> }
+                        </td>
+                        <td class="actions-cell">
+                            <a class="btn btn-ghost btn-sm" asp-action="Edit" asp-route-id="@u.Id" title="Sửa"><span class="material-symbols-outlined">edit</span></a>
+                            <form asp-action="ToggleLock" asp-route-id="@u.Id" method="post" style="display:inline;" onsubmit="return confirm('@(u.LockedOut ? "Mở khoá" : "Khoá") tài khoản này?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-ghost btn-sm" title="@(u.LockedOut ? "Mở khoá" : "Khoá")">
+                                    <span class="material-symbols-outlined">@(u.LockedOut ? "lock_open" : "lock")</span>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+    @await Html.PartialAsync("_Pagination", pager)
+</div>

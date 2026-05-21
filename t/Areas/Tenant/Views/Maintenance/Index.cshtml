@@ -1,0 +1,66 @@
+@model List<t.Areas.Tenant.Models.TenantMaintenanceRow>
+@using t.Models.Entities
+@{
+    ViewData["Title"] = "Báo sự cố";
+    var pager = (t.Areas.Admin.Models.PageInfo)ViewBag.Pager;
+    var status = (MaintenanceStatus?)ViewBag.Status;
+    string Pill(MaintenanceStatus s) => s switch
+    {
+        MaintenanceStatus.Open => "pill pill-warning",
+        MaintenanceStatus.Acknowledged => "pill pill-info",
+        MaintenanceStatus.InProgress => "pill pill-accent",
+        MaintenanceStatus.Resolved => "pill pill-success",
+        MaintenanceStatus.Closed => "pill pill-neutral",
+        MaintenanceStatus.Rejected => "pill pill-danger",
+        _ => "pill"
+    };
+    string PrioPill(MaintenancePriority p) => p switch
+    {
+        MaintenancePriority.Urgent => "pill pill-danger",
+        MaintenancePriority.High => "pill pill-warning",
+        MaintenancePriority.Medium => "pill pill-info",
+        _ => "pill pill-neutral"
+    };
+}
+
+<section class="page-header">
+    <div><h1>Báo sự cố</h1><p class="subtitle">@pager.TotalCount yêu cầu của tôi</p></div>
+    <div class="actions"><a class="btn btn-accent" asp-action="Create"><span class="material-symbols-outlined">add</span>Báo sự cố mới</a></div>
+</section>
+
+<form method="get" class="filter-bar">
+    <select name="status">
+        <option value="">— Tất cả —</option>
+        @foreach (var s in Enum.GetValues<MaintenanceStatus>()) { <option value="@((int)s)" selected="@(status == s)">@s.Vi()</option> }
+    </select>
+    <button type="submit" class="btn btn-primary">Lọc</button>
+    <a class="btn btn-ghost" asp-action="Index">Xoá lọc</a>
+</form>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Mã / Tiêu đề</th><th>Loại</th><th>Mức độ</th><th>Báo lúc</th><th>Trạng thái</th></tr></thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="5"><div class="empty-state"><span class="material-symbols-outlined">build</span><h3>Chưa có yêu cầu</h3><p>Nhấn "Báo sự cố mới" để gửi yêu cầu đầu tiên.</p></div></td></tr>
+            }
+            else
+            {
+                foreach (var m in Model)
+                {
+                    <tr>
+                        <td><a class="row-title" asp-action="Details" asp-route-id="@m.Id">@m.RequestNumber</a><div class="row-meta">@m.Title</div></td>
+                        <td>@m.Category.Vi()</td>
+                        <td><span class="@PrioPill(m.Priority)">@m.Priority.Vi()</span></td>
+                        <td class="text-muted no-wrap">@m.ReportedAt.ToString("HH:mm dd/MM")</td>
+                        <td><span class="@Pill(m.Status)">@m.Status.Vi()</span></td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+    @await Html.PartialAsync("/Areas/Admin/Views/Shared/_Pagination.cshtml", pager)
+</div>

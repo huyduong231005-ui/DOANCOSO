@@ -1,0 +1,196 @@
+﻿@model t.Models.ViewModels.ApartmentListPageViewModel
+@{
+    ViewData["BodyClass"] = "luxe-rentals";
+    ViewData["ActiveNav"] = "rentals";
+    var categories = ViewBag.Categories as IEnumerable<t.Models.Entities.Category> ?? Enumerable.Empty<t.Models.Entities.Category>();
+    var amenities = ViewBag.Amenities as IEnumerable<t.Models.Entities.Amenity> ?? Enumerable.Empty<t.Models.Entities.Amenity>();
+    var regions = ViewBag.Regions as IEnumerable<t.Models.Entities.Region> ?? Enumerable.Empty<t.Models.Entities.Region>();
+
+    var activeCategoryName = string.IsNullOrEmpty(Model.CategorySlug)
+        ? null
+        : categories.FirstOrDefault(c => c.Slug == Model.CategorySlug)?.Name;
+    var pageHeading = activeCategoryName ?? "Danh sách căn hộ cho thuê";
+    var pageEyebrow = Model.CategorySlug switch
+    {
+        "chung-cu-mini" => "Mini Apartments",
+        "nha-nguyen-can" => "Whole Houses",
+        "nha-tro" => "Boarding Rooms",
+        _ => "Rentals Discovery"
+    };
+    ViewData["Title"] = activeCategoryName ?? "Thuê căn hộ";
+}
+
+<partial name="_LuxeTopbar" />
+
+<main class="mx-auto w-full max-w-[1280px] px-4 pb-10 pt-24 sm:px-6 lg:px-8">
+    <section class="rentals-fx d-1 rounded-3xl border border-outline-variant/60 bg-white/85 px-5 py-5 shadow-sm sm:px-6">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+            <div>
+                <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">@pageEyebrow</p>
+                <h1 class="font-headline text-2xl font-semibold text-primary sm:text-3xl">@pageHeading</h1>
+            </div>
+            <div class="rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-white">
+                Tìm thấy @Model.TotalCount kết quả
+            </div>
+        </div>
+
+        <form asp-action="Rentals" method="get" class="mt-4 grid gap-3 lg:grid-cols-6">
+            @if (!string.IsNullOrEmpty(Model.CategorySlug))
+            {
+                <input type="hidden" name="category" value="@Model.CategorySlug" />
+            }
+            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant lg:col-span-1">
+                Khu vực
+                <select name="region" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background">
+                    <option value="">Tất cả</option>
+                    @foreach (var region in regions)
+                    {
+                        <option value="@region.Slug" selected="@(Model.RegionSlug == region.Slug)">@region.Name</option>
+                    }
+                </select>
+            </label>
+
+            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant lg:col-span-1">
+                Giá tối thiểu
+                <input name="minPrice" type="number" value="@Model.MinPrice" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background" />
+            </label>
+
+            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant lg:col-span-1">
+                Giá tối đa
+                <input name="maxPrice" type="number" value="@Model.MaxPrice" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background" />
+            </label>
+
+            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant lg:col-span-1">
+                Diện tích tối thiểu
+                <input name="minArea" type="number" value="@Model.MinArea" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background" />
+            </label>
+
+            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant lg:col-span-1">
+                Diện tích tối đa
+                <input name="maxArea" type="number" value="@Model.MaxArea" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background" />
+            </label>
+
+            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant lg:col-span-1">
+                Sắp xếp
+                <select name="sort" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background">
+                    <option value="" selected="@(string.IsNullOrEmpty(Model.SortBy))">Mới nhất</option>
+                    <option value="price_asc" selected="@(Model.SortBy == "price_asc")">Giá tăng dần</option>
+                    <option value="price_desc" selected="@(Model.SortBy == "price_desc")">Giá giảm dần</option>
+                    <option value="area_desc" selected="@(Model.SortBy == "area_desc")">Diện tích lớn nhất</option>
+                </select>
+            </label>
+
+            <div class="rounded-2xl border border-outline-variant/70 bg-surface-container-low px-4 py-3 lg:col-span-3">
+                <p class="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">Loại hình</p>
+                <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm text-on-background">
+                    @foreach (var category in categories)
+                    {
+                        var isChecked = Model.CategoryIds?.Contains(category.Id) == true;
+                        <label class="inline-flex items-center gap-2">
+                            <input type="checkbox" name="categoryIds" value="@category.Id" checked="@isChecked" class="h-4 w-4 rounded border-outline-variant text-primary" />
+                            @category.Name
+                        </label>
+                    }
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-outline-variant/70 bg-surface-container-low px-4 py-3 lg:col-span-3">
+                <p class="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">Tiện ích</p>
+                <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm text-on-background">
+                    @foreach (var amenity in amenities)
+                    {
+                        var isChecked = Model.AmenityIds?.Contains(amenity.Id) == true;
+                        <label class="inline-flex items-center gap-2">
+                            <input type="checkbox" name="amenityIds" value="@amenity.Id" checked="@isChecked" class="h-4 w-4 rounded border-outline-variant text-primary" />
+                            @amenity.Name
+                        </label>
+                    }
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 lg:col-span-6">
+                <a asp-action="Rentals" class="inline-flex h-11 items-center rounded-xl border border-outline-variant px-4 text-sm font-semibold text-on-background">Xóa bộ lọc</a>
+                <button type="submit" class="inline-flex h-11 items-center rounded-xl bg-primary px-5 text-sm font-semibold text-white">Áp dụng</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        @{
+            var favIds = (ViewBag.FavoriteIds as HashSet<int>) ?? new HashSet<int>();
+            var isAuthenticated = User?.Identity?.IsAuthenticated == true;
+            var returnUrl = Context.Request.Path + Context.Request.QueryString;
+        }
+        @for (var i = 0; i < Model.Apartments.Count; i++)
+        {
+            var apartment = Model.Apartments[i];
+            var imageUrl = string.IsNullOrWhiteSpace(apartment.CoverImageUrl) ? "/img/rent-1.jpg" : apartment.CoverImageUrl;
+            var fxClass = $"d-{(i % 8) + 1}";
+            var isFav = favIds.Contains(apartment.Id);
+
+            <article class="listing-card rentals-fx @fxClass overflow-hidden rounded-3xl border border-outline-variant/70 bg-white shadow-sm">
+                <a asp-action="ApartmentDetail" asp-route-id="@apartment.Id" class="block" data-soft-nav="true">
+                    <img src="@imageUrl" alt="@apartment.Title" class="h-52 w-full object-cover" />
+                </a>
+
+                <div class="space-y-3 px-4 py-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="text-[11px] font-semibold uppercase tracking-[0.1em] text-on-surface-variant">@apartment.CategoryName</p>
+                            <h2 class="line-clamp-2 font-headline text-lg font-semibold text-on-background">@apartment.Title</h2>
+                        </div>
+                        @if (isAuthenticated)
+                        {
+                            <form asp-controller="Favorites" asp-action="Toggle" method="post" class="inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="apartmentId" value="@apartment.Id" />
+                                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                <button type="submit" title="@(isFav ? "Bỏ yêu thích" : "Thêm vào yêu thích")"
+                                        class="inline-flex h-9 w-9 items-center justify-center rounded-full border @(isFav ? "border-primary bg-primary/10 text-primary" : "border-outline-variant text-on-surface-variant")">
+                                    <span class="material-symbols-outlined text-base" style="@(isFav ? "font-variation-settings:'FILL' 1;" : "")">favorite</span>
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a asp-controller="Home" asp-action="Login" asp-route-returnUrl="@returnUrl" title="Đăng nhập để lưu yêu thích"
+                               class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-outline-variant text-on-surface-variant">
+                                <span class="material-symbols-outlined text-base">favorite</span>
+                            </a>
+                        }
+                    </div>
+
+                    <p class="line-clamp-1 text-sm text-on-surface-variant">@apartment.Address</p>
+
+                    <div class="grid grid-cols-2 gap-2 rounded-2xl bg-surface-container-low px-3 py-2 text-xs text-on-surface-variant">
+                        <div>Diện tích: <strong class="text-on-background">@apartment.Area m2</strong></div>
+                        <div>Phòng ngủ: <strong class="text-on-background">@apartment.Bedrooms</strong></div>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-semibold text-primary">@apartment.Price.ToString("N0") VND/tháng</p>
+                        <a asp-action="ApartmentDetail" asp-route-id="@apartment.Id" data-soft-nav="true" class="inline-flex h-9 items-center rounded-lg border border-primary px-3 text-xs font-semibold text-primary">Xem chi tiết</a>
+                    </div>
+                </div>
+            </article>
+        }
+    </section>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-8 flex justify-center">
+            <ul class="flex flex-wrap items-center gap-2">
+                @for (var i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li>
+                        <a href="@Url.Action("Rentals", new { page = i, region = Model.RegionSlug, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice, minArea = Model.MinArea, maxArea = Model.MaxArea, sort = Model.SortBy, categoryIds = Model.CategoryIds, amenityIds = Model.AmenityIds, category = Model.CategorySlug })"
+                           class="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border px-3 text-sm font-semibold @(i == Model.Page ? "border-primary bg-primary text-white" : "border-outline-variant bg-white text-on-background")">
+                            @i
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+</main>
+

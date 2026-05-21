@@ -1,0 +1,73 @@
+@model List<t.Areas.Admin.Models.AuditListVm>
+@using t.Models.Entities
+@{
+    ViewData["Title"] = "Audit log";
+    var pager = (t.Areas.Admin.Models.PageInfo)ViewBag.Pager;
+    var entity = (string?)ViewBag.Entity;
+    var action = (AuditAction?)ViewBag.Action;
+    var user = (string?)ViewBag.User;
+    var from = (DateTime?)ViewBag.From;
+    var to = (DateTime?)ViewBag.To;
+    var entities = (List<string>)ViewBag.EntityNames;
+    string Pill(AuditAction a) => a switch
+    {
+        AuditAction.Create => "pill pill-success",
+        AuditAction.Update => "pill pill-info",
+        AuditAction.Delete or AuditAction.SoftDelete => "pill pill-danger",
+        AuditAction.Restore => "pill pill-warning",
+        AuditAction.Login => "pill pill-neutral",
+        AuditAction.Logout => "pill pill-neutral",
+        _ => "pill"
+    };
+}
+
+<section class="page-header">
+    <div><h1>Nhật ký kiểm tra</h1><p class="subtitle">@pager.TotalCount sự kiện</p></div>
+</section>
+
+<form method="get" class="filter-bar">
+    <select name="entity">
+        <option value="">— Đối tượng —</option>
+        @foreach (var e in entities) { <option value="@e" selected="@(entity == e)">@e</option> }
+    </select>
+    <select name="action">
+        <option value="">— Hành động —</option>
+        @foreach (var a in Enum.GetValues<AuditAction>()) { <option value="@((int)a)" selected="@(action == a)">@a.Vi()</option> }
+    </select>
+    <input type="text" name="user" value="@user" placeholder="Tên tài khoản chứa..." />
+    <input type="date" name="from" value="@(from?.ToString("yyyy-MM-dd"))" />
+    <input type="date" name="to" value="@(to?.ToString("yyyy-MM-dd"))" />
+    <button type="submit" class="btn btn-primary">Lọc</button>
+    <a class="btn btn-ghost" asp-action="Index">Xoá lọc</a>
+</form>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Lúc</th><th>Hành động</th><th>Đối tượng</th><th>Khoá</th><th>Người dùng</th><th>IP</th><th>Cột đổi</th><th></th></tr></thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="8"><div class="empty-state"><span class="material-symbols-outlined">history</span><h3>Không có log</h3></div></td></tr>
+            }
+            else
+            {
+                foreach (var l in Model)
+                {
+                    <tr>
+                        <td class="text-muted no-wrap">@l.Timestamp.ToString("HH:mm:ss dd/MM/yyyy")</td>
+                        <td><span class="@Pill(l.Action)">@l.Action.Vi()</span></td>
+                        <td class="row-title">@l.EntityName</td>
+                        <td>@(l.EntityKey ?? "—")</td>
+                        <td>@(l.UserName ?? "—")</td>
+                        <td class="text-muted">@(l.IpAddress ?? "—")</td>
+                        <td class="text-muted" style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@(l.ChangedColumns ?? "—")</td>
+                        <td class="actions-cell"><a class="btn btn-ghost btn-sm" asp-action="Details" asp-route-id="@l.Id"><span class="material-symbols-outlined">visibility</span></a></td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+    @await Html.PartialAsync("_Pagination", pager)
+</div>

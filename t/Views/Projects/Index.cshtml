@@ -1,0 +1,28 @@
+﻿@model t.Models.ViewModels.ProjectListPageViewModel
+@{
+    ViewData["Title"] = "Dự án";
+}
+
+<main class="container py-4">
+    <h1 class="mb-4">Danh sách dự án</h1>
+    <p class="mb-3">Tổng @Model.TotalCount dự án</p>
+
+    <div class="row g-3">
+        @foreach (var project in Model.Projects)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <img src="@project.ThumbnailUrl" class="card-img-top" style="height:220px;object-fit:cover;" alt="@project.Name" />
+                    <div class="card-body">
+                        <h5 class="card-title">@project.Name</h5>
+                        <p class="card-text mb-1">@project.RegionName</p>
+                        <p class="card-text mb-1">Từ @project.PriceFrom.ToString("N0") VND</p>
+                        <p class="card-text mb-2">@project.ShortDescription</p>
+                        <a asp-controller="Projects" asp-action="Detail" asp-route-slug="@project.Slug" class="btn btn-outline-primary btn-sm">Xem dự án</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</main>
+

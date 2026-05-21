@@ -1,0 +1,146 @@
+@model t.Areas.Admin.Models.LeaseEditVm
+@using t.Models.Entities
+@using Microsoft.EntityFrameworkCore
+@inject t.Data.AppDbContext DbCtx
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Tạo hợp đồng" : Model.LeaseNumber;
+    var isActivated = false;
+    if (Model.Id != 0)
+    {
+        isActivated = await DbCtx.Leases.AnyAsync(l => l.Id == Model.Id && l.ActivatedAt != null);
+    }
+}
+
+<section class="page-header">
+    <div><h1>@(Model.Id == 0 ? "Tạo hợp đồng mới" : Model.LeaseNumber)</h1></div>
+    <div class="actions"><a class="btn btn-ghost" asp-action="Index">Quay lại</a></div>
+</section>
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
+
+    <div class="card">
+        <div class="card-header"><h2>Thông tin hợp đồng</h2></div>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-field span-4">
+                    <label asp-for="LeaseNumber">Mã hợp đồng</label>
+                    <input asp-for="LeaseNumber" />
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="ApartmentId">Căn hộ</label>
+                    <select asp-for="ApartmentId">
+                        <option value="0">— Chọn căn —</option>
+                        @foreach (var a in Model.Apartments)
+                        {
+                            var label = $"{a.UnitCode ?? "?"} · {a.Title}" + (a.Building != null ? $" ({a.Building.Name})" : "");
+                            <option value="@a.Id">@label</option>
+                        }
+                    </select>
+                    <span class="err" asp-validation-for="ApartmentId"></span>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="PrimaryTenantId">Khách thuê chính</label>
+                    <select asp-for="PrimaryTenantId">
+                        <option value="">— Chọn khách —</option>
+                        @foreach (var t in Model.Tenants) { <option value="@t.Id">@t.Label</option> }
+                    </select>
+                </div>
+
+                <div class="form-field span-4">
+                    <label asp-for="StartDate">Ngày bắt đầu</label>
+                    <input asp-for="StartDate" type="date" />
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="EndDate">Ngày kết thúc</label>
+                    <input asp-for="EndDate" type="date" />
+                    <span class="err" asp-validation-for="EndDate"></span>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="Status">Trạng thái</label>
+                    @{
+                        LeaseStatus[] allowed = Model.Id == 0
+                            ? new[] { LeaseStatus.Pending, LeaseStatus.Active }
+                            : Model.Status switch
+                            {
+                                LeaseStatus.Pending => new[] { LeaseStatus.Pending, LeaseStatus.Active },
+                                LeaseStatus.Active => new[] { LeaseStatus.Active, LeaseStatus.Renewing, LeaseStatus.Expired },
+                                LeaseStatus.Renewing => new[] { LeaseStatus.Renewing, LeaseStatus.Active, LeaseStatus.Expired },
+                                LeaseStatus.Expired => new[] { LeaseStatus.Expired, LeaseStatus.Renewing },
+                                LeaseStatus.Terminated => new[] { LeaseStatus.Terminated },
+                                _ => new[] { Model.Status }
+                            };
+                    }
+                    <select asp-for="Status">
+                        @foreach (var s in allowed) { <option value="@((int)s)">@s.Vi()</option> }
+                    </select>
+                    <small class="text-muted">Kích hoạt/Chấm dứt/Gia hạn dùng nút riêng ở trang chi tiết để được ghi nhận đầy đủ.</small>
+                </div>
+
+                <div class="form-field span-4">
+                    <label asp-for="MonthlyRent">Tiền thuê / tháng (VND)</label>
+                    <input asp-for="MonthlyRent" type="number" step="100000" />
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="Deposit">Tiền cọc (VND)</label>
+                    @if (isActivated)
+                    {
+                        <input asp-for="Deposit" type="number" step="100000" readonly />
+                        <small class="text-muted">Đã kích hoạt — cọc bị khoá. Dùng "Ghi nhận thủ công" để điều chỉnh sổ cọc.</small>
+                    }
+                    else
+                    {
+                        <input asp-for="Deposit" type="number" step="100000" />
+                    }
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="BillingDay">Ngày xuất hoá đơn (1-28)</label>
+                    <input asp-for="BillingDay" type="number" min="1" max="28" />
+                </div>
+
+                <div class="form-field span-4">
+                    <label asp-for="LateFeePercent">% phí trễ</label>
+                    <input asp-for="LateFeePercent" type="number" min="0" max="100" />
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="LateFeeAfterDays">Ngày ân hạn</label>
+                    <input asp-for="LateFeeAfterDays" type="number" min="0" max="60" />
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="ContractUrl">URL hợp đồng (PDF)</label>
+                    <input asp-for="ContractUrl" />
+                </div>
+
+                <div class="form-field span-12">
+                    <label asp-for="Notes">Ghi chú</label>
+                    <textarea asp-for="Notes" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header"><h2>Người thuê đi cùng</h2></div>
+        <div class="card-body">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:.5rem;">
+                @foreach (var t in Model.Tenants.Where(x => x.Id != Model.PrimaryTenantId))
+                {
+                    var checkedAttr = Model.CoTenantIds.Contains(t.Id) ? "checked" : null;
+                    <label class="hstack" style="border:1px solid var(--admin-line);padding:.55rem .8rem;border-radius:10px;cursor:pointer;">
+                        <input type="checkbox" name="CoTenantIds" value="@t.Id" checked="@checkedAttr" />
+                        <span>@t.Label</span>
+                    </label>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="hstack mt-3" style="justify-content:flex-end;">
+        <a class="btn btn-ghost" asp-action="Index">Huỷ</a>
+        <button type="submit" class="btn btn-primary">Lưu</button>
+    </div>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -1,0 +1,138 @@
+@model t.Models.Entities.Apartment
+@using t.Models.Entities
+@{
+    ViewData["Title"] = Model.Title;
+    string Money(decimal v) => v >= 1_000_000 ? $"{v/1_000_000m:0.#}tr" : v.ToString("N0");
+    string Pill(ListingStatus s) => s switch
+    {
+        ListingStatus.Active => "pill pill-success",
+        ListingStatus.Draft => "pill pill-neutral",
+        ListingStatus.Expired => "pill pill-warning",
+        ListingStatus.Hidden => "pill pill-danger",
+        _ => "pill"
+    };
+}
+
+<section class="page-header">
+    <div>
+        <h1>@Model.Title</h1>
+        <p class="subtitle">#@Model.Id · @Model.Address</p>
+    </div>
+    <div class="actions">
+        <span class="@Pill(Model.Status)" style="margin-right:.5rem;">@Model.Status.Vi()</span>
+        <a class="btn btn-outline" asp-action="Edit" asp-route-id="@Model.Id"><span class="material-symbols-outlined">edit</span>Sửa</a>
+
+        <form asp-action="ChangeStatus" asp-route-id="@Model.Id" method="post" class="hstack">
+            @Html.AntiForgeryToken()
+            <select name="status" class="btn btn-outline" style="padding:.55rem .8rem;">
+                @foreach (var s in Enum.GetValues<ListingStatus>()) { <option value="@((int)s)" selected="@(s == Model.Status)">@s.Vi()</option> }
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Đổi trạng thái</button>
+        </form>
+    </div>
+</section>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:1.2rem;">
+    <div class="vstack">
+        <div class="card">
+            <div class="card-header"><h2>Mô tả</h2></div>
+            <div class="card-body">
+                <p>@Model.Description</p>
+                <p class="text-muted">@Model.DescriptionExtra</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h2>Hình ảnh (@Model.Images.Count)</h2></div>
+            <div class="card-body">
+                @if (!Model.Images.Any())
+                {
+                    <div class="empty-state"><span class="material-symbols-outlined">image</span><h3>Chưa có hình</h3></div>
+                }
+                else
+                {
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:.6rem;">
+                        @foreach (var img in Model.Images.OrderBy(i => i.SortOrder))
+                        {
+                            <div style="position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--admin-line);aspect-ratio:4/3;background:var(--admin-soft);">
+                                <img src="@img.Url" style="width:100%;height:100%;object-fit:cover;" alt="" />
+                                @if (img.IsCover)
+                                {
+                                    <span class="pill pill-accent" style="position:absolute;top:.4rem;left:.4rem;">Ảnh bìa</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h2>Đánh giá (@Model.Reviews.Count)</h2></div>
+            <div class="card-body">
+                @if (!Model.Reviews.Any())
+                {
+                    <p class="text-muted">Chưa có đánh giá.</p>
+                }
+                else
+                {
+                    foreach (var r in Model.Reviews.OrderByDescending(x => x.CreatedAt))
+                    {
+                        <div style="border-bottom:1px solid var(--admin-line);padding:.7rem 0;">
+                            <div class="hstack"><strong>@r.User.FullName</strong><span class="pill pill-warning">@r.Rating ★</span><span class="text-muted">@r.CreatedAt.ToString("dd/MM/yyyy")</span></div>
+                            <p style="margin:.3rem 0 0;">@r.Content</p>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="vstack">
+        <div class="card">
+            <div class="card-header"><h2>Thông tin</h2></div>
+            <div class="card-body">
+                <dl class="dl-pairs">
+                    <dt>Slug</dt><dd>@Model.Slug</dd>
+                    <dt>Giá</dt><dd>@Money(Model.Price) đ</dd>
+                    <dt>Diện tích</dt><dd>@Model.Area m²</dd>
+                    <dt>Phòng</dt><dd>@Model.Bedrooms PN · @Model.Bathrooms WC</dd>
+                    <dt>Khu vực</dt><dd>@Model.Region.Name</dd>
+                    <dt>Phân loại</dt><dd>@Model.Category.Name</dd>
+                    <dt>Dự án</dt><dd>@(Model.Project?.Name ?? "—")</dd>
+                    <dt>Chủ căn</dt><dd>@Model.Host.FullName</dd>
+                    <dt>Tạo lúc</dt><dd>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+                    <dt>Cập nhật</dt><dd>@(Model.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—")</dd>
+                    <dt>Xem</dt><dd>@Model.ViewCount</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h2>Tiện ích</h2></div>
+            <div class="card-body">
+                @if (!Model.ApartmentAmenities.Any())
+                {
+                    <p class="text-muted">Chưa có tiện ích.</p>
+                }
+                else
+                {
+                    <div class="hstack" style="flex-wrap:wrap;">
+                        @foreach (var aa in Model.ApartmentAmenities)
+                        {
+                            <span class="pill pill-info">
+                                <span class="material-symbols-outlined" style="font-size:14px;">@aa.Amenity.Icon</span>
+                                @aa.Amenity.Name
+                            </span>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Xoá căn hộ này?');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-danger" style="width:100%;"><span class="material-symbols-outlined">delete</span>Xoá căn hộ</button>
+        </form>
+    </div>
+</div>

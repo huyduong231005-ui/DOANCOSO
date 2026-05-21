@@ -1,0 +1,344 @@
+@model t.Models.Entities.Lease
+@using t.Models.Entities
+@{
+    ViewData["Title"] = Model.LeaseNumber;
+    string Money(decimal v) => v.ToString("N0");
+    string Pill(LeaseStatus s) => s switch
+    {
+        LeaseStatus.Active => "pill pill-success",
+        LeaseStatus.Pending => "pill pill-warning",
+        LeaseStatus.Renewing => "pill pill-info",
+        LeaseStatus.Expired => "pill pill-neutral",
+        LeaseStatus.Terminated => "pill pill-danger",
+        _ => "pill"
+    };
+    string InvPill(InvoiceStatus s) => s switch
+    {
+        InvoiceStatus.Paid => "pill pill-success",
+        InvoiceStatus.Issued => "pill pill-info",
+        InvoiceStatus.PartiallyPaid => "pill pill-accent",
+        InvoiceStatus.Overdue => "pill pill-danger",
+        _ => "pill pill-neutral"
+    };
+    var daysLeft = (int)(Model.EndDate.Date - t.Infrastructure.Time.VnTime.Today).TotalDays;
+    var unpaidInvoices = Model.Invoices.Count(i => i.Status is InvoiceStatus.Issued or InvoiceStatus.PartiallyPaid or InvoiceStatus.Overdue);
+    string DaysLeftText() => Model.Status switch
+    {
+        LeaseStatus.Expired => "Đã hết hạn",
+        LeaseStatus.Terminated => "Đã chấm dứt",
+        _ when daysLeft < 0 => $"Quá hạn {Math.Abs(daysLeft)} ngày",
+        _ when daysLeft == 0 => "Hết hạn hôm nay",
+        _ => $"{daysLeft} ngày"
+    };
+}
+
+<section class="page-header">
+    <div>
+        <h1>@Model.LeaseNumber</h1>
+        <p class="subtitle">@Model.Apartment.Title @(Model.Apartment.Building != null ? "· " + Model.Apartment.Building.Name : "")</p>
+    </div>
+    <div class="actions">
+        <span class="@Pill(Model.Status)">@Model.Status.Vi()</span>
+        <a class="btn btn-outline" asp-action="ContractPdf" asp-route-id="@Model.Id" target="_blank"><span class="material-symbols-outlined">picture_as_pdf</span>HĐ PDF</a>
+        <a class="btn btn-outline" asp-action="Edit" asp-route-id="@Model.Id"><span class="material-symbols-outlined">edit</span>Sửa</a>
+        @if (Model.Status == LeaseStatus.Pending)
+        {
+            <form asp-action="Activate" asp-route-id="@Model.Id" method="post" style="display:inline;">@Html.AntiForgeryToken()<button class="btn btn-primary"><span class="material-symbols-outlined">check</span>Kích hoạt</button></form>
+        }
+        @if (Model.Status == LeaseStatus.Active)
+        {
+            <form asp-action="GenerateInvoice" asp-route-id="@Model.Id" method="post" style="display:inline;">@Html.AntiForgeryToken()<button class="btn btn-accent"><span class="material-symbols-outlined">receipt_long</span>Tạo hoá đơn tháng</button></form>
+        }
+    </div>
+</section>
+
+<section class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Tiền thuê</div><div class="kpi-value">@Money(Model.MonthlyRent)</div><div class="kpi-meta">VNĐ / tháng</div></div>
+    <div class="kpi-card"><div class="kpi-label">Cọc</div><div class="kpi-value">@Money(Model.Deposit)</div><div class="kpi-meta">Đang giữ: @Money(Model.DepositHeld)</div></div>
+    <div class="kpi-card"><div class="kpi-label">Còn lại</div><div class="kpi-value" style="font-size:1.3rem;">@DaysLeftText()</div><div class="kpi-meta">@Model.EndDate.ToString("dd/MM/yyyy")</div></div>
+    <div class="kpi-card"><div class="kpi-label">Hoá đơn chưa trả</div><div class="kpi-value">@Model.Invoices.Count(i => i.Status != InvoiceStatus.Paid && i.Status != InvoiceStatus.Cancelled)</div></div>
+</section>
+
+<div style="display:grid;grid-template-columns:1.4fr 1fr;gap:1.2rem;">
+    <div class="vstack">
+        <div class="card">
+            <div class="card-header"><h2>Hoá đơn</h2></div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>Số</th><th>Loại</th><th>Kỳ</th><th>Đến hạn</th><th class="num">Tổng</th><th class="num">Đã trả</th><th>Trạng thái</th></tr></thead>
+                    <tbody>
+                    @if (!Model.Invoices.Any())
+                    {
+                        <tr><td colspan="7"><div class="empty-state"><span class="material-symbols-outlined">receipt_long</span><h3>Chưa có hoá đơn</h3></div></td></tr>
+                    }
+                    else
+                    {
+                        foreach (var i in Model.Invoices.OrderByDescending(x => x.IssueDate))
+                        {
+                            <tr>
+                                <td><a class="row-title" asp-controller="Invoices" asp-action="Details" asp-route-id="@i.Id">@i.InvoiceNumber</a></td>
+                                <td>@i.Kind.Vi()</td>
+                                <td>@(i.BillingMonth > 0 ? $"{i.BillingMonth/100}/{i.BillingMonth%100:00}" : "—")</td>
+                                <td>@i.DueDate.ToString("dd/MM/yyyy")</td>
+                                <td class="num">@Money(i.Total)</td>
+                                <td class="num">@Money(i.AmountPaid)</td>
+                                <td><span class="@InvPill(i.Status)">@i.Status.Vi()</span></td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Biên bản nhận / trả nhà</h2>
+                @if (Model.Status is LeaseStatus.Pending or LeaseStatus.Active)
+                {
+                    var hasMoveIn = Model.Inspections.Any(i => i.Type == InspectionType.MoveIn);
+                    var hasMoveOut = Model.Inspections.Any(i => i.Type == InspectionType.MoveOut);
+                    <div class="hstack">
+                        @if (!hasMoveIn) { <a class="btn btn-outline btn-sm" asp-action="CreateInspection" asp-route-id="@Model.Id" asp-route-type="0"><span class="material-symbols-outlined">login</span>Move-in</a> }
+                        @if (!hasMoveOut && Model.Status == LeaseStatus.Active) { <a class="btn btn-outline btn-sm" asp-action="CreateInspection" asp-route-id="@Model.Id" asp-route-type="1"><span class="material-symbols-outlined">logout</span>Move-out</a> }
+                    </div>
+                }
+            </div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>Loại</th><th>Ngày</th><th>Tình trạng</th><th>Tóm tắt</th><th class="num">Trừ cọc</th><th>Khách ký</th></tr></thead>
+                    <tbody>
+                    @if (!Model.Inspections.Any())
+                    {
+                        <tr><td colspan="6"><div class="empty-state"><span class="material-symbols-outlined">fact_check</span><h3>Chưa có biên bản</h3></div></td></tr>
+                    }
+                    else
+                    {
+                        foreach (var i in Model.Inspections.OrderBy(x => x.InspectedAt))
+                        {
+                            var pillCls = i.OverallCondition switch
+                            {
+                                OverallCondition.Excellent => "pill pill-success",
+                                OverallCondition.Good => "pill pill-info",
+                                OverallCondition.Fair => "pill pill-warning",
+                                OverallCondition.Poor => "pill pill-danger",
+                                _ => "pill"
+                            };
+                            <tr>
+                                <td><span class="pill @(i.Type == InspectionType.MoveIn ? "pill-info" : "pill-accent")">@i.Type.Vi()</span></td>
+                                <td>@i.InspectedAt.ToString("dd/MM/yyyy")</td>
+                                <td><span class="@pillCls">@i.OverallCondition.Vi()</span></td>
+                                <td style="max-width:280px;">@(i.Summary ?? i.DamageNotes ?? "—")</td>
+                                <td class="num">@(i.DepositDeduction > 0 ? Money(i.DepositDeduction) : "—")</td>
+                                <td>@(i.TenantSigned ? Html.Raw("<span class=\"pill pill-success\">Đã ký</span>") : Html.Raw("<span class=\"pill pill-neutral\">Chưa</span>"))</td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Yêu cầu bảo trì</h2>
+                <a class="btn btn-ghost btn-sm" asp-controller="Maintenance" asp-action="Create" asp-route-apartmentId="@Model.ApartmentId">
+                    <span class="material-symbols-outlined">add</span>Thêm
+                </a>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>Mã</th><th>Tiêu đề</th><th>Mức độ</th><th>Báo lúc</th><th>Trạng thái</th></tr></thead>
+                    <tbody>
+                    @if (!Model.MaintenanceRequests.Any())
+                    {
+                        <tr><td colspan="5"><div class="empty-state"><span class="material-symbols-outlined">build</span><h3>Chưa có yêu cầu</h3></div></td></tr>
+                    }
+                    else
+                    {
+                        foreach (var m in Model.MaintenanceRequests.OrderByDescending(x => x.ReportedAt))
+                        {
+                            <tr>
+                                <td><a class="row-title" asp-controller="Maintenance" asp-action="Details" asp-route-id="@m.Id">@m.RequestNumber</a></td>
+                                <td>@m.Title</td>
+                                <td>@m.Priority.Vi()</td>
+                                <td class="text-muted">@m.ReportedAt.ToString("dd/MM/yy")</td>
+                                <td>@m.Status.Vi()</td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h2>Đồng hồ điện / nước</h2></div>
+            @{
+                // Billing months that already have meter readings.
+                var readingMonths = Model.UtilityReadings.Select(r => r.BillingMonth).ToHashSet();
+                // Billing months where an invoice has utility-looking items (Điện / Nước) but no reading recorded.
+                var utilityKeywords = new[] { "Điện", "Nước" };
+                var missingMonths = Model.Invoices
+                    .Where(i => i.Items.Any(it => utilityKeywords.Any(k => it.Description.Contains(k, StringComparison.OrdinalIgnoreCase))))
+                    .Select(i => i.BillingMonth)
+                    .Where(m => !readingMonths.Contains(m))
+                    .Distinct()
+                    .OrderByDescending(m => m)
+                    .ToList();
+            }
+            @if (missingMonths.Any())
+            {
+                <div style="margin:0 1rem 1rem 1rem;padding:.7rem .9rem;background:var(--admin-warning-bg,#fff8e1);border-left:3px solid var(--admin-warning,#f5a623);border-radius:6px;">
+                    <strong>Cảnh báo:</strong> Hoá đơn đã tính tiền điện/nước cho các kỳ
+                    @string.Join(", ", missingMonths.Select(m => $"{m / 100}/{(m % 100):00}"))
+                    nhưng chưa có chỉ số đồng hồ nào được nhập. Hãy nhập chỉ số để đối chiếu.
+                </div>
+            }
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>Loại</th><th>Kỳ</th><th class="num">Cũ</th><th class="num">Mới</th><th class="num">Tiêu thụ</th><th class="num">Thành tiền</th><th>Trạng thái</th></tr></thead>
+                    <tbody>
+                    @if (!Model.UtilityReadings.Any())
+                    {
+                        <tr><td colspan="7"><div class="empty-state"><span class="material-symbols-outlined">bolt</span><h3>Chưa nhập chỉ số</h3></div></td></tr>
+                    }
+                    else
+                    {
+                        foreach (var r in Model.UtilityReadings.OrderByDescending(x => x.BillingMonth))
+                        {
+                            <tr>
+                                <td><span class="material-symbols-outlined" style="font-size:14px;">@(r.UtilityType.Icon ?? "bolt")</span> @r.UtilityType.Name</td>
+                                <td>@(r.BillingMonth/100)/@((r.BillingMonth%100).ToString("00"))</td>
+                                <td class="num">@r.PreviousReading</td>
+                                <td class="num">@r.CurrentReading</td>
+                                <td class="num">@r.Consumption</td>
+                                <td class="num">@Money(r.Amount)</td>
+                                <td>@(r.Billed ? Html.Raw("<span class=\"pill pill-success\">Đã tính</span>") : Html.Raw("<span class=\"pill pill-warning\">Chưa</span>"))</td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="vstack">
+        <div class="card">
+            <div class="card-header"><h2>Thông tin</h2></div>
+            <div class="card-body">
+                <dl class="dl-pairs">
+                    <dt>Khách chính</dt><dd>@Model.PrimaryTenant.FullName<div class="row-meta">@Model.PrimaryTenant.Email</div></dd>
+                    <dt>Căn hộ</dt><dd><a asp-controller="Apartments" asp-action="Details" asp-route-id="@Model.ApartmentId">@Model.Apartment.Title</a></dd>
+                    <dt>Toà / Tầng</dt><dd>@(Model.Apartment.Building?.Name ?? "—") · @(Model.Apartment.Floor?.Label ?? "—")</dd>
+                    <dt>Bắt đầu</dt><dd>@Model.StartDate.ToString("dd/MM/yyyy")</dd>
+                    <dt>Kết thúc</dt><dd>@Model.EndDate.ToString("dd/MM/yyyy")</dd>
+                    <dt>Ngày xuất HD</dt><dd>Ngày @Model.BillingDay hằng tháng</dd>
+                    <dt>Phí trễ</dt><dd>@Model.LateFeePercent% sau @Model.LateFeeAfterDays ngày</dd>
+                    @if (!string.IsNullOrEmpty(Model.ContractUrl)) { <dt>Hợp đồng</dt><dd><a href="@Model.ContractUrl" target="_blank">Xem PDF</a></dd> }
+                    @if (!string.IsNullOrEmpty(Model.Notes)) { <dt>Ghi chú</dt><dd>@Model.Notes</dd> }
+                </dl>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h2>Sổ cọc</h2></div>
+            <div class="card-body">
+                <dl class="dl-pairs">
+                    <dt>Tổng cọc</dt><dd>@Money(Model.Deposit)</dd>
+                    <dt>Đang giữ</dt><dd><strong>@Money(Model.DepositHeld)</strong></dd>
+                    <dt>Đã hoàn</dt><dd>@Money(Model.DepositRefunded)</dd>
+                </dl>
+                @if (Model.DepositTransactions.Any())
+                {
+                    <div style="border-top:1px solid var(--admin-line);margin-top:.7rem;padding-top:.7rem;">
+                        @foreach (var tx in Model.DepositTransactions.OrderByDescending(x => x.RecordedAt).Take(10))
+                        {
+                            var sign = tx.Type == DepositTransactionType.Hold || tx.Type == DepositTransactionType.Adjustment ? "+" : "−";
+                            var color = tx.Type == DepositTransactionType.Hold ? "var(--admin-success)" : tx.Type == DepositTransactionType.Refund ? "var(--admin-info)" : "var(--admin-danger)";
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:.4rem 0;font-size:13px;border-bottom:1px solid var(--admin-line);">
+                                <div>
+                                    <div style="font-weight:600;color:@color;">@sign @Money(tx.Amount) <span class="text-muted" style="font-weight:400;">· @tx.Type</span></div>
+                                    <div class="text-muted">@tx.Reason</div>
+                                </div>
+                                <div class="text-muted no-wrap" style="font-size:11px;">@tx.RecordedAt.ToString("dd/MM HH:mm")</div>
+                            </div>
+                        }
+                    </div>
+                }
+                <details style="margin-top:.7rem;">
+                    <summary class="text-muted" style="cursor:pointer;">Ghi nhận thủ công</summary>
+                    <form asp-action="RecordDepositTransaction" asp-route-id="@Model.Id" method="post" class="mt-2 vstack">
+                        @Html.AntiForgeryToken()
+                        <select name="type" style="padding:.5rem;border:1px solid var(--admin-line);border-radius:8px;">
+                            @foreach (var t in Enum.GetValues<DepositTransactionType>()) { <option value="@((int)t)">@t.Vi()</option> }
+                        </select>
+                        <input type="number" name="amount" placeholder="Số tiền" step="100000" style="padding:.5rem;border:1px solid var(--admin-line);border-radius:8px;" />
+                        <input type="text" name="reason" placeholder="Lý do" style="padding:.5rem;border:1px solid var(--admin-line);border-radius:8px;" />
+                        <button type="submit" class="btn btn-outline btn-sm">Ghi sổ</button>
+                    </form>
+                </details>
+            </div>
+        </div>
+
+        @if (Model.AdditionalTenants.Any())
+        {
+            <div class="card">
+                <div class="card-header"><h2>Người thuê đi cùng</h2></div>
+                <div class="card-body vstack">
+                    @foreach (var t in Model.AdditionalTenants)
+                    {
+                        <div>@t.Tenant.FullName<div class="row-meta">@t.Tenant.Email · @(t.Relationship ?? "—")</div></div>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (Model.Status is LeaseStatus.Active or LeaseStatus.Renewing or LeaseStatus.Expired)
+        {
+            <div class="card">
+                <div class="card-header"><h2>Gia hạn</h2></div>
+                <div class="card-body">
+                    <form asp-action="Renew" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="form-field"><label>Ngày kết thúc mới</label><input type="date" name="newEndDate" value="@(Model.EndDate.AddYears(1).ToString("yyyy-MM-dd"))" /></div>
+                        <div class="form-field"><label>Tiền thuê mới (để trống = giữ nguyên)</label><input type="number" name="newMonthlyRent" placeholder="@Model.MonthlyRent" /></div>
+                        <button type="submit" class="btn btn-primary mt-2" style="width:100%;"><span class="material-symbols-outlined">autorenew</span>Gia hạn</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h2>Chấm dứt sớm</h2></div>
+                <div class="card-body">
+                    <form asp-action="Terminate" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Chấm dứt hợp đồng này?');">
+                        @Html.AntiForgeryToken()
+                        <div class="form-field"><label>Ngày chấm dứt</label><input type="date" name="terminatedAt" value="@t.Infrastructure.Time.VnTime.Today.ToString("yyyy-MM-dd")" /></div>
+                        <div class="form-field"><label>Lý do</label><textarea name="reason" rows="2"></textarea></div>
+                        <div class="form-field"><label>Hoàn cọc (max @Money(Model.DepositHeld))</label><input type="number" name="refundAmount" value="0" step="100000" min="0" max="@Model.DepositHeld" /></div>
+                        @if (unpaidInvoices > 0)
+                        {
+                            var unpaidSum = Model.Invoices
+                                .Where(i => i.Status is InvoiceStatus.Issued or InvoiceStatus.PartiallyPaid or InvoiceStatus.Overdue)
+                                .Sum(i => i.Balance);
+                            <div class="alert alert-warning" style="font-size:13px;">
+                                <span class="material-symbols-outlined">warning</span>
+                                Còn <strong>@unpaidInvoices</strong> hoá đơn chưa thanh toán (<strong>@Money(unpaidSum) đ</strong>).
+                            </div>
+                            <label class="hstack" style="font-size:13px;">
+                                <input type="checkbox" name="applyDepositToUnpaid" value="true" checked />
+                                <span>Cấn cọc vào hoá đơn nợ (ưu tiên hoá đơn cũ nhất)</span>
+                            </label>
+                            <label class="hstack" style="font-size:13px;">
+                                <input type="checkbox" name="forceWithUnpaid" value="true" />
+                                <span>Hoặc chấm dứt dù còn nợ (không cấn cọc)</span>
+                            </label>
+                        }
+                        <button type="submit" class="btn btn-danger mt-2" style="width:100%;"><span class="material-symbols-outlined">cancel</span>Chấm dứt</button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>

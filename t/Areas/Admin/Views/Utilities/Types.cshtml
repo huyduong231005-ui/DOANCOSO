@@ -1,0 +1,47 @@
+@model List<t.Models.Entities.UtilityType>
+@using t.Models.Entities
+@{
+    ViewData["Title"] = "Loại tiện ích";
+}
+
+<section class="page-header">
+    <div><h1>Loại tiện ích</h1><p class="subtitle">@Model.Count loại</p></div>
+    <div class="actions">
+        <a class="btn btn-outline" asp-action="Index">Quay lại</a>
+        <a class="btn btn-primary" asp-action="CreateType"><span class="material-symbols-outlined">add</span>Thêm loại</a>
+    </div>
+</section>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Mã</th><th>Tên</th><th>Đơn vị</th><th>Cách tính</th><th class="num">Đơn giá mặc định</th><th></th></tr></thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="6"><div class="empty-state"><span class="material-symbols-outlined">tune</span><h3>Chưa có loại</h3></div></td></tr>
+            }
+            else
+            {
+                foreach (var t in Model)
+                {
+                    <tr>
+                        <td><span class="material-symbols-outlined" style="font-size:18px;vertical-align:-3px;">@(t.Icon ?? "bolt")</span> <strong>@t.Code</strong></td>
+                        <td>@t.Name</td>
+                        <td>@t.Unit</td>
+                        <td>@t.BillingMode.Vi()</td>
+                        <td class="num">@t.DefaultRate.ToString("N0")</td>
+                        <td class="actions-cell">
+                            <a class="btn btn-ghost btn-sm" asp-action="EditType" asp-route-id="@t.Id"><span class="material-symbols-outlined">edit</span></a>
+                            <form asp-action="DeleteType" asp-route-id="@t.Id" method="post" style="display:inline;" onsubmit="return confirm('Xoá loại này?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-ghost btn-sm"><span class="material-symbols-outlined">delete</span></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,67 @@
+﻿@{
+    var activeNav = (ViewData["ActiveNav"] as string ?? string.Empty).ToLowerInvariant();
+    var activeCategorySlug = ViewData["ActiveCategorySlug"] as string;
+    var isHome = activeNav == "home";
+    var isRentalsAll = activeNav == "rentals" && string.IsNullOrEmpty(activeCategorySlug);
+    var isMini = activeCategorySlug == "chung-cu-mini";
+    var isWholeHouse = activeCategorySlug == "nha-nguyen-can";
+    var isRoom = activeCategorySlug == "nha-tro";
+    var isAuthenticated = User?.Identity?.IsAuthenticated == true;
+    var displayName = User?.Identity?.Name;
+    var isAdminOrManager = User?.IsInRole("Admin") == true || User?.IsInRole("Manager") == true;
+    var isTenant = User?.IsInRole("Tenant") == true;
+}
+
+<header class="topbar">
+    <div class="topbar-shell topbar-inner">
+        <a class="brand" asp-controller="Home" asp-action="Index" data-soft-nav="true">
+            <span class="brand-mark">L</span>
+            <span class="brand-name">Luxe Haven</span>
+        </a>
+
+        <nav class="menu" aria-label="Điều hướng chính">
+            <a class="@(isHome ? "active" : string.Empty)" asp-controller="Home" asp-action="Index" data-soft-nav="true">Trang chủ</a>
+            <a class="@(isRentalsAll ? "active" : string.Empty)" asp-controller="Home" asp-action="Rentals" data-soft-nav="true">Thuê căn hộ</a>
+            <a class="@(isMini ? "active" : string.Empty)" asp-controller="Home" asp-action="Rentals" asp-route-category="chung-cu-mini" data-soft-nav="true">Chung cư mini</a>
+            <a class="@(isWholeHouse ? "active" : string.Empty)" asp-controller="Home" asp-action="Rentals" asp-route-category="nha-nguyen-can" data-soft-nav="true">Nhà nguyên căn</a>
+            <a class="@(isRoom ? "active" : string.Empty)" asp-controller="Home" asp-action="Rentals" asp-route-category="nha-tro" data-soft-nav="true">Nhà trọ</a>
+        </nav>
+
+        <div class="nav-cta">
+            @if (isAuthenticated)
+            {
+                @if (!string.IsNullOrWhiteSpace(displayName))
+                {
+                    <span class="login-link">Xin chào, @displayName</span>
+                }
+
+                @if (isAdminOrManager)
+                {
+                    <a class="login-link" href="/admin" title="Quay về giao diện quản trị">
+                        <span class="material-symbols-outlined" style="font-size:16px;vertical-align:-3px;">dashboard</span>
+                        Quản trị
+                    </a>
+                }
+                @if (isTenant)
+                {
+                    <a class="login-link" href="/tenant" title="Trang khách thuê">
+                        <span class="material-symbols-outlined" style="font-size:16px;vertical-align:-3px;">person</span>
+                        Khách thuê
+                    </a>
+                }
+                <a class="login-link" asp-controller="MyListings" asp-action="Index" data-soft-nav="true">Tin của tôi</a>
+
+                <form asp-controller="Home" asp-action="Logout" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="login-link" style="background:none;border:none;padding:0;cursor:pointer;">Đăng xuất</button>
+                </form>
+            }
+            else
+            {
+                <a class="login-link" asp-controller="Home" asp-action="Login" data-soft-nav="true">Đăng nhập</a>
+            }
+
+            <a class="button-primary topbar-button no-underline" asp-controller="Home" asp-action="PostListing" data-soft-nav="true">Đăng tin</a>
+        </div>
+    </div>
+</header>

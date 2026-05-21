@@ -1,0 +1,50 @@
+@model t.Areas.Admin.Models.RoleMatrixVm
+@{
+    ViewData["Title"] = "Vai trò & quyền";
+}
+
+<section class="page-header">
+    <div><h1>Vai trò &amp; quyền</h1><p class="subtitle">Ma trận phân quyền theo module</p></div>
+    <div class="actions"><button form="role-matrix-form" type="submit" class="btn btn-primary"><span class="material-symbols-outlined">save</span>Lưu</button></div>
+</section>
+
+<form id="role-matrix-form" asp-action="Save" method="post">
+    @Html.AntiForgeryToken()
+    <div class="card">
+        <div class="table-wrap">
+            <table class="matrix">
+                <thead>
+                    <tr>
+                        <th class="left">Quyền</th>
+                        @foreach (var role in Model.Roles) { <th>@role</th> }
+                    </tr>
+                </thead>
+                <tbody>
+                @{
+                    var rolesByName = await ViewContext.HttpContext.RequestServices.GetRequiredService<Microsoft.AspNetCore.Identity.RoleManager<Microsoft.AspNetCore.Identity.IdentityRole>>()
+                                        .Roles.ToListAsync();
+                    string RoleId(string name) => rolesByName.FirstOrDefault(r => r.Name == name)?.Id ?? string.Empty;
+                }
+                @foreach (var grp in Model.ByModule)
+                {
+                    <tr class="module-row"><td colspan="@(Model.Roles.Count + 1)" class="left">@grp.Key</td></tr>
+                    foreach (var row in grp.Value)
+                    {
+                        <tr>
+                            <td class="left">
+                                <div class="row-title">@row.DisplayName</div>
+                                <div class="row-meta"><code>@row.Code</code></div>
+                            </td>
+                            @foreach (var role in Model.Roles)
+                            {
+                                var assigned = row.Assignments.TryGetValue(role, out var a) && a;
+                                <td><input type="checkbox" name="perm_@(RoleId(role))_@(row.Id)" @(assigned ? "checked" : "") /></td>
+                            }
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</form>

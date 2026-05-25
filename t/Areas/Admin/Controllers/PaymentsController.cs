@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using t.Areas.Admin.Models;
 using t.Data;
 using t.Infrastructure.Billing;
+using t.Infrastructure.Localization;
 using t.Models.Entities;
 
 namespace t.Areas.Admin.Controllers;
@@ -15,7 +16,7 @@ public class PaymentsController : AdminBaseController
     public async Task<IActionResult> Index(string? q, InvoiceStatus? status, int? month, int page = 1)
     {
         SetActiveNav("payments");
-        SetBreadcrumb(("Thanh toán", null));
+        SetBreadcrumb(("Công nợ phải thu", null));
 
         const int pageSize = 20;
 
@@ -105,6 +106,33 @@ public class PaymentsController : AdminBaseController
             Url = pp => Url.Action(nameof(Index), new { q, status, month, page = pp }) ?? "#"
         };
         return View(rows);
+    }
+
+    public async Task<IActionResult> Suggest(string? q, int limit = 8)
+    {
+        if (string.IsNullOrWhiteSpace(q)) return Json(Array.Empty<object>());
+        q = q.Trim();
+        var raw = await Db.Invoices
+            .Include(i => i.Lease).ThenInclude(l => l.PrimaryTenant)
+            .Where(i => i.Balance > 0
+                     && i.Status != InvoiceStatus.Draft
+                     && i.Status != InvoiceStatus.Cancelled
+                     && i.Status != InvoiceStatus.Refunded
+                     && i.Status != InvoiceStatus.Paid)
+            .Where(i => i.InvoiceNumber.Contains(q) ||
+                        i.Lease.LeaseNumber.Contains(q) ||
+                        i.Lease.PrimaryTenant.FullName.Contains(q))
+            .OrderBy(i => i.DueDate)
+            .Take(limit)
+            .Select(i => new { i.Id, i.InvoiceNumber, TenantName = i.Lease.PrimaryTenant.FullName, i.Balance, i.DueDate, i.Status })
+            .ToListAsync();
+        return Json(raw.Select(i => new
+        {
+            title = i.InvoiceNumber + " · " + i.TenantName,
+            subtitle = "Còn " + i.Balance.ToString("N0") + " · Hạn " + i.DueDate.ToString("dd/MM/yyyy") + " · " + i.Status.Vi(),
+            url = Url.Action("Details", "Invoices", new { id = i.Id }) ?? "#",
+            icon = "payments"
+        }));
     }
 
     [HttpPost, ValidateAntiForgeryToken]

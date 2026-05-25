@@ -25,7 +25,7 @@
     <div class="actions">
         @if ((int)ViewBag.CancelledCount > 0)
         {
-            <form asp-action="PurgeCancelled" method="post" class="d-inline" onsubmit="return confirm('Xoá toàn bộ @ViewBag.CancelledCount lịch hẹn đã huỷ?');">
+            <form asp-action="PurgeCancelled" method="post" class="d-inline" data-confirm="Xoá toàn bộ @ViewBag.CancelledCount lịch hẹn đã huỷ?" data-confirm-title="Xoá lịch đã huỷ" data-confirm-ok="Xoá tất cả">
                 @Html.AntiForgeryToken()
                 <button type="submit" class="btn btn-outline">
                     <span class="material-symbols-outlined">delete_sweep</span>
@@ -60,7 +60,8 @@
 </section>
 
 <form method="get" class="filter-bar">
-    <input type="search" name="q" value="@q" placeholder="Tên / SĐT / email / tin đăng..." />
+    <input type="search" name="q" value="@q" placeholder="Tên / SĐT / email / tin đăng..."
+       data-suggest-url="@Url.Action("Suggest")" data-suggest-icon="event" />
     <select name="status">
         <option value="">— Trạng thái —</option>
         @foreach (var v in Enum.GetValues<ViewingStatus>())
@@ -95,13 +96,13 @@
                 {
                     foreach (var v in Model)
                     {
-                        <tr>
+                        <tr data-href="@Url.Action("Details", "Apartments", new { id = v.ApartmentId })" title="Bấm để xem căn hộ">
                             <td class="no-wrap">
                                 <strong>@v.ScheduledDate.ToString("dd/MM/yyyy")</strong>
                                 <div class="row-meta">@v.SlotHour.ToString("00"):00 - @((v.SlotHour + 1).ToString("00")):00</div>
                             </td>
                             <td>
-                                <a class="row-title" asp-area="Admin" asp-controller="Apartments" asp-action="Details" asp-route-id="@v.ApartmentId">@v.Apartment.Title</a>
+                                <span class="row-title">@v.Apartment.Title</span>
                             </td>
                             <td>
                                 @v.ContactName
@@ -130,14 +131,14 @@
                                 }
                                 @if (v.Status is ViewingStatus.Pending or ViewingStatus.Confirmed)
                                 {
-                                    <form asp-action="Cancel" asp-route-id="@v.Id" method="post" class="d-inline" onsubmit="return confirm('Huỷ lịch hẹn này?')">
+                                    <form asp-action="Cancel" asp-route-id="@v.Id" method="post" class="d-inline" data-confirm="Huỷ lịch hẹn này?" data-confirm-title="Huỷ lịch hẹn" data-confirm-ok="Huỷ">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="btn btn-danger btn-sm" title="Huỷ"><span class="material-symbols-outlined">close</span></button>
                                     </form>
                                 }
                                 @if (v.Status is ViewingStatus.Cancelled or ViewingStatus.Completed or ViewingStatus.NoShow)
                                 {
-                                    <form asp-action="Delete" asp-route-id="@v.Id" method="post" class="d-inline" onsubmit="return confirm('Xoá vĩnh viễn lịch hẹn này?')">
+                                    <form asp-action="Delete" asp-route-id="@v.Id" method="post" class="d-inline" data-confirm="Xoá vĩnh viễn lịch hẹn này? Hành động này không thể hoàn tác." data-confirm-title="Xoá lịch hẹn" data-confirm-ok="Xoá">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="btn btn-ghost btn-sm" title="Xoá"><span class="material-symbols-outlined">delete</span></button>
                                     </form>

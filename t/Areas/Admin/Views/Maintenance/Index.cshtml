@@ -74,7 +74,8 @@
 </section>
 
 <form method="get" class="filter-bar">
-    <input type="search" name="q" value="@q" placeholder="Mã, tiêu đề, mô tả..." />
+    <input type="search" name="q" value="@q" placeholder="Mã, tiêu đề, mô tả..."
+       data-suggest-url="@Url.Action("Suggest")" data-suggest-icon="build" />
     <select name="status">
         <option value="">— Trạng thái —</option>
         @foreach (var s in Enum.GetValues<MaintenanceStatus>()) { <option value="@((int)s)" selected="@(status == s)">@s.Vi()</option> }
@@ -108,8 +109,8 @@
             {
                 foreach (var r in Model)
                 {
-                    <tr>
-                        <td><a class="row-title" asp-action="Details" asp-route-id="@r.Id">@r.RequestNumber</a><div class="row-meta">@r.Title</div></td>
+                    <tr data-href="@Url.Action("Details", new { id = r.Id })" title="Bấm để xem chi tiết">
+                        <td><span class="row-title">@r.RequestNumber</span><div class="row-meta">@r.Title</div></td>
                         <td><span class="material-symbols-outlined" style="font-size:14px;">@CatIcon(r.Category)</span> @r.Category.Vi()</td>
                         <td><span class="@PrioPill(r.Priority)">@r.Priority.Vi()</span></td>
                         <td>@(r.UnitCode ?? "—") · @r.UnitTitle<div class="row-meta">@(r.BuildingName ?? "—")</div></td>

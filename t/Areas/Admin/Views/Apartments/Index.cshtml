@@ -34,7 +34,8 @@
 </section>
 
 <form method="get" class="filter-bar">
-    <input type="search" name="q" value="@q" placeholder="Tìm theo tên, slug, địa chỉ..." />
+    <input type="search" name="q" value="@q" placeholder="Tìm theo tên, slug, địa chỉ..."
+       data-suggest-url="@Url.Action("Suggest")" data-suggest-icon="apartment" />
     <select name="status">
         <option value="">— Trạng thái —</option>
         @foreach (var s in Enum.GetValues<ListingStatus>())
@@ -83,7 +84,7 @@
             {
                 foreach (var a in Model)
                 {
-                    <tr>
+                    <tr data-href="@Url.Action("Details", new { id = a.Id })" title="Bấm để xem chi tiết">
                         <td>
                             <div class="hstack">
                                 <img class="thumb" src="@(string.IsNullOrEmpty(a.CoverUrl) ? "/img/region-hcm.jpg" : a.CoverUrl)" alt="" onerror="this.style.visibility='hidden'" />
@@ -112,7 +113,6 @@
                         </td>
                         <td><span class="@OccPill(a.Occupancy)">@a.Occupancy.Vi()</span></td>
                         <td class="actions-cell">
-                            <a class="btn btn-ghost btn-sm" asp-action="Details" asp-route-id="@a.Id" title="Chi tiết"><span class="material-symbols-outlined">visibility</span></a>
                             <a class="btn btn-ghost btn-sm" asp-action="Edit" asp-route-id="@a.Id" title="Sửa"><span class="material-symbols-outlined">edit</span></a>
                             <form asp-action="ToggleFeature" asp-route-id="@a.Id" method="post" style="display:inline;">
                                 @Html.AntiForgeryToken()
@@ -120,7 +120,7 @@
                                     <span class="material-symbols-outlined">@(a.IsFeatured ? "star" : "star_outline")</span>
                                 </button>
                             </form>
-                            <form asp-action="Delete" asp-route-id="@a.Id" method="post" style="display:inline;" onsubmit="return confirm('Xoá căn hộ này?');">
+                            <form asp-action="Delete" asp-route-id="@a.Id" method="post" style="display:inline;" data-confirm="Xoá căn hộ này? Hành động này không thể hoàn tác." data-confirm-title="Xoá căn hộ" data-confirm-ok="Xoá">
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-ghost btn-sm" title="Xoá"><span class="material-symbols-outlined">delete</span></button>
                             </form>

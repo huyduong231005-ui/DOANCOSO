@@ -12,7 +12,8 @@
 </section>
 
 <form method="get" class="filter-bar">
-    <input type="search" name="q" value="@q" placeholder="Email, tên, SĐT..." />
+    <input type="search" name="q" value="@q" placeholder="Email, tên, SĐT..."
+       data-suggest-url="@Url.Action("Suggest")" data-suggest-icon="person" />
     <select name="role">
         <option value="">— Vai trò —</option>
         @foreach (var r in roles) { <option value="@r" selected="@(role == r)">@r</option> }
@@ -34,7 +35,7 @@
             {
                 foreach (var u in Model)
                 {
-                    <tr>
+                    <tr data-href="@Url.Action("Edit", new { id = u.Id })" title="Bấm để sửa">
                         <td><div class="row-title">@u.FullName @(u.IsHost ? Html.Raw("<span class=\"pill pill-info\" style=\"margin-left:.4rem;\">Chủ căn</span>") : null)</div><div class="row-meta">@u.Email</div></td>
                         <td>
                             @if (u.Roles.Any())
@@ -51,7 +52,7 @@
                         </td>
                         <td class="actions-cell">
                             <a class="btn btn-ghost btn-sm" asp-action="Edit" asp-route-id="@u.Id" title="Sửa"><span class="material-symbols-outlined">edit</span></a>
-                            <form asp-action="ToggleLock" asp-route-id="@u.Id" method="post" style="display:inline;" onsubmit="return confirm('@(u.LockedOut ? "Mở khoá" : "Khoá") tài khoản này?');">
+                            <form asp-action="ToggleLock" asp-route-id="@u.Id" method="post" style="display:inline;" data-confirm="@(u.LockedOut ? "Mở khoá" : "Khoá") tài khoản này?" data-confirm-title="@(u.LockedOut ? "Mở khoá tài khoản" : "Khoá tài khoản")" data-confirm-ok="@(u.LockedOut ? "Mở khoá" : "Khoá")">
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-ghost btn-sm" title="@(u.LockedOut ? "Mở khoá" : "Khoá")">
                                     <span class="material-symbols-outlined">@(u.LockedOut ? "lock_open" : "lock")</span>

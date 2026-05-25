@@ -33,7 +33,7 @@
                         <td class="num">@t.DefaultRate.ToString("N0")</td>
                         <td class="actions-cell">
                             <a class="btn btn-ghost btn-sm" asp-action="EditType" asp-route-id="@t.Id"><span class="material-symbols-outlined">edit</span></a>
-                            <form asp-action="DeleteType" asp-route-id="@t.Id" method="post" style="display:inline;" onsubmit="return confirm('Xoá loại này?');">
+                            <form asp-action="DeleteType" asp-route-id="@t.Id" method="post" style="display:inline;" data-confirm="Xoá loại tiện ích này?" data-confirm-title="Xoá loại" data-confirm-ok="Xoá">
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-ghost btn-sm"><span class="material-symbols-outlined">delete</span></button>
                             </form>

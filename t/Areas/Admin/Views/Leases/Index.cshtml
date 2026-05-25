@@ -25,7 +25,8 @@
 </section>
 
 <form method="get" class="filter-bar">
-    <input type="search" name="q" value="@q" placeholder="Mã hợp đồng, tên/email khách, căn hộ..." />
+    <input type="search" name="q" value="@q" placeholder="Mã hợp đồng, tên/email khách, căn hộ..."
+       data-suggest-url="@Url.Action("Suggest")" data-suggest-icon="description" />
     <select name="status">
         <option value="">— Trạng thái —</option>
         @foreach (var s in Enum.GetValues<LeaseStatus>()) { <option value="@((int)s)" selected="@(status == s)">@s.Vi()</option> }
@@ -51,8 +52,8 @@
             {
                 foreach (var l in Model)
                 {
-                    <tr>
-                        <td><a class="row-title" asp-action="Details" asp-route-id="@l.Id">@l.LeaseNumber</a></td>
+                    <tr data-href="@Url.Action("Details", new { id = l.Id })" title="Bấm để xem chi tiết">
+                        <td><span class="row-title">@l.LeaseNumber</span></td>
                         <td><div>@l.TenantName</div><div class="row-meta">@l.TenantEmail</div></td>
                         <td><div>@l.UnitTitle</div><div class="row-meta">@(l.BuildingName ?? "—")</div></td>
                         <td class="text-muted no-wrap">@l.StartDate.ToString("dd/MM/yy") – @l.EndDate.ToString("dd/MM/yy")</td>
@@ -60,8 +61,7 @@
                         <td class="num">@Money(l.Deposit)</td>
                         <td><span class="@Pill(l.Status)">@l.Status.Vi()</span></td>
                         <td class="actions-cell">
-                            <a class="btn btn-ghost btn-sm" asp-action="Details" asp-route-id="@l.Id"><span class="material-symbols-outlined">visibility</span></a>
-                            <a class="btn btn-ghost btn-sm" asp-action="Edit" asp-route-id="@l.Id"><span class="material-symbols-outlined">edit</span></a>
+                            <a class="btn btn-ghost btn-sm" asp-action="Edit" asp-route-id="@l.Id" title="Sửa"><span class="material-symbols-outlined">edit</span></a>
                         </td>
                     </tr>
                 }

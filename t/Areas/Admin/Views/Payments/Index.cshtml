@@ -25,10 +25,13 @@
 
 <section class="page-header">
     <div>
-        <h1>Thanh toán</h1>
-        <p class="subtitle">@pager.TotalCount khoản cần thu</p>
+        <h1>Công nợ phải thu</h1>
+        <p class="subtitle">Chỉ hiển thị hoá đơn <strong>còn nợ</strong> (đã phát hành, chưa trả đủ) · @pager.TotalCount khoản cần thu</p>
     </div>
     <div class="actions">
+        <a class="btn btn-outline" asp-controller="Invoices" asp-action="Index" title="Xem tất cả hoá đơn (mọi trạng thái)">
+            <span class="material-symbols-outlined">receipt_long</span>Tất cả hoá đơn
+        </a>
         <a class="btn btn-outline" asp-controller="Invoices" asp-action="PendingPayments">
             <span class="material-symbols-outlined">pending_actions</span>Chờ duyệt
             @if (pendingCount > 0) { <span class="pill pill-warning" style="margin-left:.4rem;">@pendingCount</span> }
@@ -52,7 +55,8 @@
 </section>
 
 <form method="get" class="filter-bar">
-    <input type="search" name="q" value="@q" placeholder="Số hoá đơn, hợp đồng, tên khách..." />
+    <input type="search" name="q" value="@q" placeholder="Số hoá đơn, hợp đồng, tên khách..."
+       data-suggest-url="@Url.Action("Suggest")" data-suggest-icon="payments" />
     <select name="status">
         <option value="">— Trạng thái —</option>
         @foreach (var s in visibleStatuses) { <option value="@((int)s)" selected="@(status == s)">@s.Vi()</option> }
@@ -77,14 +81,13 @@
                     <th class="num">Còn lại</th>
                     <th>Đến hạn</th>
                     <th>Trạng thái</th>
-                    <th></th>
                 </tr>
             </thead>
             <tbody>
             @if (!Model.Any())
             {
                 <tr>
-                    <td colspan="11">
+                    <td colspan="10">
                         <div class="empty-state">
                             <span class="material-symbols-outlined">payments</span>
                             <h3>Không có khoản phải thu</h3>
@@ -98,9 +101,9 @@
                 foreach (var r in Model)
                 {
                     var dOver = DaysOverdue(r.DueDate);
-                    <tr>
+                    <tr data-href="@Url.Action("Details", "Invoices", new { id = r.Id })" title="Bấm để xem chi tiết hoá đơn">
                         <td>
-                            <a class="row-title" asp-controller="Invoices" asp-action="Details" asp-route-id="@r.Id">@r.InvoiceNumber</a>
+                            <span class="row-title">@r.InvoiceNumber</span>
                             <div class="row-meta">
                                 @r.Kind.Vi()
                                 @if (r.BillingMonth > 0) { <text> · Kỳ @(r.BillingMonth / 100)/@((r.BillingMonth % 100).ToString("00"))</text> }
@@ -130,11 +133,6 @@
                             {
                                 <div class="row-meta"><span class="pill pill-warning">Chờ duyệt</span></div>
                             }
-                        </td>
-                        <td class="actions-cell">
-                            <a class="btn btn-ghost btn-sm" asp-controller="Invoices" asp-action="Details" asp-route-id="@r.Id" title="Chi tiết thanh toán">
-                                <span class="material-symbols-outlined">chevron_right</span>
-                            </a>
                         </td>
                     </tr>
                 }

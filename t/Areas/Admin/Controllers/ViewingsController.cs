@@ -66,6 +66,30 @@ public class ViewingsController : AdminBaseController
         return View(items);
     }
 
+    public async Task<IActionResult> Suggest(string? q, int limit = 8)
+    {
+        if (string.IsNullOrWhiteSpace(q)) return Json(Array.Empty<object>());
+        q = q.Trim();
+        var rows = await Db.ViewingAppointments
+            .AsNoTracking()
+            .Include(v => v.Apartment)
+            .Where(v => v.ContactName.Contains(q) ||
+                        v.ContactPhone.Contains(q) ||
+                        (v.ContactEmail != null && v.ContactEmail.Contains(q)) ||
+                        v.Apartment.Title.Contains(q))
+            .OrderByDescending(v => v.ScheduledDate)
+            .Take(limit)
+            .Select(v => new
+            {
+                title = v.ContactName + " · " + v.ContactPhone,
+                subtitle = v.Apartment.Title + " — " + v.ScheduledDate.ToString("dd/MM/yyyy") + " " + v.SlotHour + "h",
+                url = Url.Action("Details", "Apartments", new { id = v.ApartmentId }) ?? "#",
+                icon = "event"
+            })
+            .ToListAsync();
+        return Json(rows);
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Confirm(int id)

@@ -90,6 +90,28 @@ public class InvoicesController : AdminBaseController
         return View(rows);
     }
 
+    public async Task<IActionResult> Suggest(string? q, int limit = 8)
+    {
+        if (string.IsNullOrWhiteSpace(q)) return Json(Array.Empty<object>());
+        q = q.Trim();
+        var raw = await Db.Invoices
+            .Include(i => i.Lease).ThenInclude(l => l.PrimaryTenant)
+            .Where(i => i.InvoiceNumber.Contains(q) ||
+                        i.Lease.LeaseNumber.Contains(q) ||
+                        i.Lease.PrimaryTenant.FullName.Contains(q))
+            .OrderByDescending(i => i.IssueDate)
+            .Take(limit)
+            .Select(i => new { i.Id, i.InvoiceNumber, TenantName = i.Lease.PrimaryTenant.FullName, i.Total, i.Balance, i.Status })
+            .ToListAsync();
+        return Json(raw.Select(i => new
+        {
+            title = i.InvoiceNumber + " · " + i.TenantName,
+            subtitle = "Tổng " + i.Total.ToString("N0") + " · Còn " + i.Balance.ToString("N0") + " · " + i.Status.Vi(),
+            url = Url.Action(nameof(Details), new { id = i.Id }) ?? "#",
+            icon = "receipt_long"
+        }));
+    }
+
     public async Task<IActionResult> Details(int id)
     {
         SetActiveNav("invoices");

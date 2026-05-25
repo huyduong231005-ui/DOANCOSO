@@ -59,6 +59,25 @@ public class UsersController : AdminBaseController
         return View(rows);
     }
 
+    public async Task<IActionResult> Suggest(string? q, int limit = 8)
+    {
+        if (string.IsNullOrWhiteSpace(q)) return Json(Array.Empty<object>());
+        q = q.Trim();
+        var rows = await _userManager.Users
+            .Where(u => u.Email!.Contains(q) || u.FullName.Contains(q) || u.PhoneNumber!.Contains(q))
+            .OrderByDescending(u => u.CreatedAt)
+            .Take(limit)
+            .Select(u => new
+            {
+                title = u.FullName,
+                subtitle = u.Email + (u.PhoneNumber != null ? " · " + u.PhoneNumber : ""),
+                url = Url.Action(nameof(Edit), new { id = u.Id }) ?? "#",
+                icon = "person"
+            })
+            .ToListAsync();
+        return Json(rows);
+    }
+
     public async Task<IActionResult> Edit(string id)
     {
         SetActiveNav("users");

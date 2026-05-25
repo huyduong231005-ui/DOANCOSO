@@ -53,6 +53,26 @@ public class BuildingsController : AdminBaseController
         return View(rows);
     }
 
+    public async Task<IActionResult> Suggest(string? q, int limit = 8)
+    {
+        if (string.IsNullOrWhiteSpace(q)) return Json(Array.Empty<object>());
+        q = q.Trim();
+        var rows = await Db.Buildings
+            .Include(b => b.Region)
+            .Where(b => b.Name.Contains(q) || b.Code.Contains(q) || b.Slug.Contains(q))
+            .OrderBy(b => b.Name)
+            .Take(limit)
+            .Select(b => new
+            {
+                title = b.Code + " · " + b.Name,
+                subtitle = b.Region.Name,
+                url = Url.Action(nameof(Details), new { id = b.Id }) ?? "#",
+                icon = "domain"
+            })
+            .ToListAsync();
+        return Json(rows);
+    }
+
     public async Task<IActionResult> Details(int id)
     {
         SetActiveNav("buildings");

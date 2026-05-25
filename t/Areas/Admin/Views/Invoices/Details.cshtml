@@ -40,7 +40,7 @@
         }
         @if (Model.Status is InvoiceStatus.Issued or InvoiceStatus.PartiallyPaid or InvoiceStatus.Overdue or InvoiceStatus.Draft)
         {
-            <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" style="display:inline;" onsubmit="return confirm('Huỷ hoá đơn này?');">@Html.AntiForgeryToken()<button class="btn btn-danger"><span class="material-symbols-outlined">cancel</span>Huỷ</button></form>
+            <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" style="display:inline;" data-confirm="Huỷ hoá đơn này?" data-confirm-title="Huỷ hoá đơn" data-confirm-ok="Huỷ">@Html.AntiForgeryToken()<button class="btn btn-danger"><span class="material-symbols-outlined">cancel</span>Huỷ</button></form>
         }
     </div>
 </section>
@@ -107,7 +107,7 @@
                                     else if (p.Status == PaymentStatus.Succeeded && p.RefundedAmount < p.Amount)
                                     {
                                         <form asp-controller="Payments" asp-action="Refund" method="post" style="display:inline;"
-                                              onsubmit="return confirm('Hoàn toàn bộ số tiền của thanh toán này?');">
+                                              data-confirm="Hoàn toàn bộ số tiền của thanh toán này?" data-confirm-title="Hoàn tiền" data-confirm-ok="Hoàn">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@p.Id" />
                                             <button class="btn btn-ghost btn-sm" title="Hoàn tiền"><span class="material-symbols-outlined">undo</span></button>

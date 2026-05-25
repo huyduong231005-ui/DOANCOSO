@@ -25,8 +25,14 @@
 }
 
 <section class="page-header">
-    <div><h1>Hoá đơn</h1><p class="subtitle">@pager.TotalCount hoá đơn</p></div>
+    <div>
+        <h1>Hoá đơn</h1>
+        <p class="subtitle">Danh sách <strong>toàn bộ</strong> hoá đơn (mọi trạng thái) · @pager.TotalCount hoá đơn</p>
+    </div>
     <div class="actions">
+        <a class="btn btn-outline" asp-controller="Payments" asp-action="Index" title="Chỉ xem các hoá đơn còn nợ">
+            <span class="material-symbols-outlined">payments</span>Công nợ phải thu
+        </a>
         <a class="btn btn-outline" asp-action="PendingPayments">
             <span class="material-symbols-outlined">pending_actions</span>Chờ duyệt
             @if (pendingCount > 0) { <span class="pill pill-warning" style="margin-left:.4rem;">@pendingCount</span> }
@@ -42,7 +48,8 @@
 </section>
 
 <form method="get" class="filter-bar">
-    <input type="search" name="q" value="@q" placeholder="Số hoá đơn, hợp đồng, tên khách..." />
+    <input type="search" name="q" value="@q" placeholder="Số hoá đơn, hợp đồng, tên khách..."
+       data-suggest-url="@Url.Action("Suggest")" data-suggest-icon="receipt_long" />
     <select name="status">
         <option value="">— Trạng thái —</option>
         @foreach (var s in Enum.GetValues<InvoiceStatus>()) { <option value="@((int)s)" selected="@(status == s)">@s.Vi()</option> }
@@ -56,12 +63,13 @@
     <a class="btn btn-ghost" asp-action="Index">Xoá lọc</a>
 </form>
 
-<form asp-action="BulkMarkOverdue" method="post" id="bulkForm">
+<form asp-action="BulkMarkOverdue" method="post" id="bulkForm"
+      data-confirm="Đánh dấu các hoá đơn đã chọn là Quá hạn?" data-confirm-title="Đánh dấu Quá hạn" data-confirm-ok="Đánh dấu" data-confirm-tone="info">
     @Html.AntiForgeryToken()
     <div class="card">
         <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
             <div class="hstack">
-                <button type="submit" class="btn btn-outline btn-sm" onclick="return confirm('Đánh dấu các hoá đơn đã chọn là Quá hạn?');" disabled id="bulkBtn">
+                <button type="submit" class="btn btn-outline btn-sm" disabled id="bulkBtn">
                     <span class="material-symbols-outlined">flag</span>Đánh dấu Quá hạn (đã chọn)
                 </button>
             </div>
@@ -87,8 +95,8 @@
                     foreach (var i in Model)
                     {
                         var canBulk = i.Status is InvoiceStatus.Issued or InvoiceStatus.PartiallyPaid;
-                        <tr>
-                            <td>@(canBulk ? Html.Raw($"<input type=\"checkbox\" name=\"ids\" value=\"{i.Id}\" class=\"chkRow\" />") : Html.Raw(""))</td>
+                        <tr data-href="@Url.Action("Details", new { id = i.Id })" title="Bấm để xem chi tiết">
+                            <td class="no-row-click">@(canBulk ? Html.Raw($"<input type=\"checkbox\" name=\"ids\" value=\"{i.Id}\" class=\"chkRow\" />") : Html.Raw(""))</td>
                             <td><a class="row-title" asp-action="Details" asp-route-id="@i.Id">@i.InvoiceNumber</a><div class="row-meta">@i.Kind.Vi() · @(i.BillingMonth > 0 ? $"{i.BillingMonth/100}/{i.BillingMonth%100:00}" : "")</div></td>
                             <td>@i.LeaseNumber</td>
                             <td><div>@i.TenantName</div><div class="row-meta">@i.UnitTitle</div></td>

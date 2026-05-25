@@ -86,6 +86,30 @@ public class LeasesController : AdminBaseController
         return View(rows);
     }
 
+    public async Task<IActionResult> Suggest(string? q, int limit = 8)
+    {
+        if (string.IsNullOrWhiteSpace(q)) return Json(Array.Empty<object>());
+        q = q.Trim();
+        var raw = await Db.Leases
+            .Include(l => l.PrimaryTenant)
+            .Include(l => l.Apartment)
+            .Where(l => l.LeaseNumber.Contains(q) ||
+                        l.PrimaryTenant.FullName.Contains(q) ||
+                        l.PrimaryTenant.Email!.Contains(q) ||
+                        l.Apartment.Title.Contains(q))
+            .OrderByDescending(l => l.CreatedAt)
+            .Take(limit)
+            .Select(l => new { l.Id, l.LeaseNumber, TenantName = l.PrimaryTenant.FullName, UnitTitle = l.Apartment.Title, l.Status })
+            .ToListAsync();
+        return Json(raw.Select(l => new
+        {
+            title = l.LeaseNumber + " · " + l.TenantName,
+            subtitle = l.UnitTitle + " · " + l.Status.Vi(),
+            url = Url.Action(nameof(Details), new { id = l.Id }) ?? "#",
+            icon = "description"
+        }));
+    }
+
     public async Task<IActionResult> Details(int id)
     {
         SetActiveNav("leases");

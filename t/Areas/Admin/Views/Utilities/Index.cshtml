@@ -53,7 +53,7 @@
                             <a class="btn btn-ghost btn-sm" asp-action="EditReading" asp-route-id="@r.Id"><span class="material-symbols-outlined">edit</span></a>
                             @if (!r.Billed)
                             {
-                                <form asp-action="DeleteReading" asp-route-id="@r.Id" method="post" style="display:inline;" onsubmit="return confirm('Xoá chỉ số này?');">
+                                <form asp-action="DeleteReading" asp-route-id="@r.Id" method="post" style="display:inline;" data-confirm="Xoá chỉ số này?" data-confirm-title="Xoá chỉ số" data-confirm-ok="Xoá">
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-ghost btn-sm"><span class="material-symbols-outlined">delete</span></button>
                                 </form>

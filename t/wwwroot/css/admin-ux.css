@@ -1,0 +1,161 @@
+/* ── Top progress bar ──────────────────────────────────────────── */
+.ux-progress {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: linear-gradient(90deg, #dc2626, #f59e0b);
+    width: 0%; z-index: 9999; opacity: 0;
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+    pointer-events: none;
+}
+
+/* ── Spinner on submit buttons ─────────────────────────────────── */
+.ux-spin {
+    display: inline-block;
+    animation: ux-spin 1s linear infinite;
+    vertical-align: middle;
+}
+@keyframes ux-spin { to { transform: rotate(360deg); } }
+
+button[disabled] .ux-spin { color: inherit; }
+
+/* ── Modal confirm dialog ──────────────────────────────────────── */
+.ux-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0, 30, 64, 0.55);
+    backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity .2s ease;
+    padding: 1rem;
+}
+.ux-modal-overlay.ux-modal-show { opacity: 1; }
+
+.ux-modal {
+    background: #fff;
+    border-radius: 16px;
+    padding: 2rem 1.75rem 1.5rem;
+    max-width: 440px;
+    width: 100%;
+    text-align: center;
+    transform: scale(0.92) translateY(8px);
+    transition: transform .22s cubic-bezier(.2, .8, .2, 1);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+}
+.ux-modal-overlay.ux-modal-show .ux-modal { transform: scale(1) translateY(0); }
+
+.ux-modal-icon {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    margin-bottom: 1rem;
+}
+.ux-modal-icon.danger { background: #fee2e2; color: #dc2626; }
+.ux-modal-icon.info   { background: #dbeafe; color: #2563eb; }
+.ux-modal-icon .material-symbols-outlined { font-size: 36px; }
+
+.ux-modal-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 .5rem;
+    color: #111827;
+}
+.ux-modal-msg {
+    color: #6b7280;
+    margin: 0 0 1.5rem;
+    line-height: 1.55;
+    font-size: .95rem;
+}
+.ux-modal-actions {
+    display: flex;
+    gap: .75rem;
+    justify-content: center;
+}
+.ux-modal-actions .btn { min-width: 100px; }
+
+/* ── Autocomplete suggest dropdown ─────────────────────────────── */
+.ux-suggest-wrap {
+    position: relative;
+    display: inline-block;
+    flex: 1;
+    min-width: 240px;
+}
+.ux-suggest-wrap > input { width: 100%; }
+.ux-suggest-dd {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0; right: 0;
+    background: #fff;
+    border: 1px solid var(--admin-line, #e5e7eb);
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0, 30, 64, 0.18);
+    z-index: 200;
+    max-height: 380px;
+    overflow-y: auto;
+    display: none;
+}
+.ux-suggest-dd.open { display: block; }
+
+.ux-suggest-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .65rem .85rem;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background .12s ease;
+}
+.ux-suggest-item:last-child { border-bottom: none; }
+.ux-suggest-item:hover,
+.ux-suggest-item.active { background: #fef2f2; }
+
+.ux-suggest-icon {
+    color: #6b7280;
+    font-size: 22px !important;
+    flex-shrink: 0;
+}
+.ux-suggest-item:hover .ux-suggest-icon,
+.ux-suggest-item.active .ux-suggest-icon { color: #dc2626; }
+
+.ux-suggest-thumb {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #f3f4f6;
+}
+.ux-suggest-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+}
+.ux-suggest-title {
+    font-weight: 600;
+    color: #111827;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ux-suggest-sub {
+    color: #6b7280;
+    font-size: 12.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ux-suggest-empty {
+    padding: 1rem;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 14px;
+    font-style: italic;
+}
+
+/* ── Clickable rows ────────────────────────────────────────────── */
+tr[data-href] { cursor: pointer; transition: background .14s ease; }
+tr[data-href]:hover { background: #fef2f2; }
+tr[data-href]:hover .row-title { color: #dc2626; }

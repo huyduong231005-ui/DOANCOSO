@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using t.Areas.Admin.Models;
 using t.Data;
+using t.Infrastructure.Localization;
 using t.Models.Entities;
 
 namespace t.Areas.Admin.Controllers;
@@ -42,6 +43,27 @@ public class ProjectsController : AdminBaseController
             Url = pp => Url.Action(nameof(Index), new { q, status, page = pp }) ?? "#"
         };
         return View(rows);
+    }
+
+    public async Task<IActionResult> Suggest(string? q, int limit = 8)
+    {
+        if (string.IsNullOrWhiteSpace(q)) return Json(Array.Empty<object>());
+        q = q.Trim();
+        var raw = await Db.Projects
+            .Include(p => p.Region)
+            .Where(p => p.Name.Contains(q) || p.Slug.Contains(q))
+            .OrderByDescending(p => p.CreatedAt)
+            .Take(limit)
+            .Select(p => new { p.Id, p.Name, p.ThumbnailUrl, RegionName = p.Region.Name, p.Status })
+            .ToListAsync();
+        return Json(raw.Select(p => new
+        {
+            title = p.Name,
+            subtitle = p.RegionName + " · " + p.Status.Vi(),
+            url = Url.Action(nameof(Edit), new { id = p.Id }) ?? "#",
+            thumb = p.ThumbnailUrl,
+            icon = "location_city"
+        }));
     }
 
     public async Task<IActionResult> Create()

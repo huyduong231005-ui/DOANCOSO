@@ -90,6 +90,29 @@ public class ApartmentsController : AdminBaseController
         return View(rows);
     }
 
+    public async Task<IActionResult> Suggest(string? q, int limit = 8)
+    {
+        if (string.IsNullOrWhiteSpace(q)) return Json(Array.Empty<object>());
+        q = q.Trim();
+        var rows = await Db.Apartments
+            .Include(a => a.Images)
+            .Include(a => a.Building)
+            .Where(a => a.Title.Contains(q) || a.Address.Contains(q) || a.Slug.Contains(q) || (a.UnitCode != null && a.UnitCode.Contains(q)))
+            .OrderByDescending(a => a.CreatedAt)
+            .Take(limit)
+            .Select(a => new
+            {
+                title = (a.UnitCode != null ? a.UnitCode + " · " : "") + a.Title,
+                subtitle = (a.Building != null ? a.Building.Name + " · " : "") + a.Address,
+                url = Url.Action(nameof(Details), new { id = a.Id }) ?? "#",
+                thumb = a.Images.Where(i => i.IsCover).Select(i => i.Url).FirstOrDefault()
+                        ?? a.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).FirstOrDefault(),
+                icon = "apartment"
+            })
+            .ToListAsync();
+        return Json(rows);
+    }
+
     public async Task<IActionResult> Details(int id)
     {
         SetActiveNav("apartments");

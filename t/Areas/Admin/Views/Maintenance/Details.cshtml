@@ -123,7 +123,7 @@
 
             <details>
                 <summary class="text-muted" style="cursor:pointer;padding:.5rem 0;">Từ chối yêu cầu</summary>
-                <form asp-action="Reject" asp-route-id="@Model.Id" method="post" class="card" onsubmit="return confirm('Từ chối yêu cầu này?');">
+                <form asp-action="Reject" asp-route-id="@Model.Id" method="post" class="card" data-confirm="Từ chối yêu cầu bảo trì này?" data-confirm-title="Từ chối yêu cầu" data-confirm-ok="Từ chối">
                     @Html.AntiForgeryToken()
                     <div class="card-body hstack">
                         <input name="reason" placeholder="Lý do từ chối..." style="flex:1;padding:.6rem;border:1px solid var(--admin-line);border-radius:10px;" />

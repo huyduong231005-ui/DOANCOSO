@@ -43,6 +43,27 @@ public class ReviewsController : AdminBaseController
         return View(rows);
     }
 
+    public async Task<IActionResult> Suggest(string? q, int limit = 8)
+    {
+        if (string.IsNullOrWhiteSpace(q)) return Json(Array.Empty<object>());
+        q = q.Trim();
+        var rows = await Db.Reviews
+            .Include(r => r.Apartment)
+            .Include(r => r.User)
+            .Where(r => r.Content.Contains(q) || r.Apartment.Title.Contains(q) || r.User.FullName.Contains(q))
+            .OrderByDescending(r => r.CreatedAt)
+            .Take(limit)
+            .Select(r => new
+            {
+                title = r.User.FullName + " · " + r.Rating + "★",
+                subtitle = r.Apartment.Title + " — " + (r.Content.Length > 60 ? r.Content.Substring(0, 60) + "..." : r.Content),
+                url = Url.Action("Details", "Apartments", new { id = r.ApartmentId }) ?? "#",
+                icon = "reviews"
+            })
+            .ToListAsync();
+        return Json(rows);
+    }
+
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Approve(int id)
     {

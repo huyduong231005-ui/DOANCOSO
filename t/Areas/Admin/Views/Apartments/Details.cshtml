@@ -130,7 +130,7 @@
             </div>
         </div>
 
-        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Xoá căn hộ này?');">
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" data-confirm="Xoá căn hộ này? Hành động này không thể hoàn tác." data-confirm-title="Xoá căn hộ" data-confirm-ok="Xoá">
             @Html.AntiForgeryToken()
             <button type="submit" class="btn btn-danger" style="width:100%;"><span class="material-symbols-outlined">delete</span>Xoá căn hộ</button>
         </form>

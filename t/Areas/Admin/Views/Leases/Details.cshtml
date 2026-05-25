@@ -312,7 +312,7 @@
             <div class="card">
                 <div class="card-header"><h2>Chấm dứt sớm</h2></div>
                 <div class="card-body">
-                    <form asp-action="Terminate" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Chấm dứt hợp đồng này?');">
+                    <form asp-action="Terminate" asp-route-id="@Model.Id" method="post" data-confirm="Chấm dứt hợp đồng này? Vui lòng kiểm tra ngày chấm dứt và số tiền hoàn cọc." data-confirm-title="Chấm dứt hợp đồng" data-confirm-ok="Chấm dứt">
                         @Html.AntiForgeryToken()
                         <div class="form-field"><label>Ngày chấm dứt</label><input type="date" name="terminatedAt" value="@t.Infrastructure.Time.VnTime.Today.ToString("yyyy-MM-dd")" /></div>
                         <div class="form-field"><label>Lý do</label><textarea name="reason" rows="2"></textarea></div>

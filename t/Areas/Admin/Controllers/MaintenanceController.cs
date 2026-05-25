@@ -82,6 +82,26 @@ public class MaintenanceController : AdminBaseController
         return View(rows);
     }
 
+    public async Task<IActionResult> Suggest(string? q, int limit = 8)
+    {
+        if (string.IsNullOrWhiteSpace(q)) return Json(Array.Empty<object>());
+        q = q.Trim();
+        var raw = await Db.MaintenanceRequests
+            .Include(r => r.Apartment)
+            .Where(r => r.RequestNumber.Contains(q) || r.Title.Contains(q) || r.Description.Contains(q) || r.Apartment.Title.Contains(q))
+            .OrderByDescending(r => r.ReportedAt)
+            .Take(limit)
+            .Select(r => new { r.Id, r.RequestNumber, r.Title, UnitTitle = r.Apartment.Title, r.Priority, r.Status })
+            .ToListAsync();
+        return Json(raw.Select(r => new
+        {
+            title = r.RequestNumber + " · " + r.Title,
+            subtitle = r.UnitTitle + " · " + r.Priority.Vi() + " · " + r.Status.Vi(),
+            url = Url.Action(nameof(Details), new { id = r.Id }) ?? "#",
+            icon = "build"
+        }));
+    }
+
     public async Task<IActionResult> Details(int id)
     {
         SetActiveNav("maintenance");

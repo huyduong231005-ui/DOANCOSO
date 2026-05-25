@@ -26,7 +26,8 @@
 </section>
 
 <form method="get" class="filter-bar">
-    <input type="search" name="q" value="@q" placeholder="Tìm theo tên hoặc slug..." />
+    <input type="search" name="q" value="@q" placeholder="Tìm theo tên hoặc slug..."
+       data-suggest-url="@Url.Action("Suggest")" data-suggest-icon="location_city" />
     <select name="status">
         <option value="">— Trạng thái —</option>
         @foreach (var s in Enum.GetValues<ProjectStatus>()) { <option value="@((int)s)" selected="@(status == s)">@s.Vi()</option> }
@@ -48,7 +49,7 @@
             {
                 foreach (var p in Model)
                 {
-                    <tr>
+                    <tr data-href="@Url.Action("Edit", new { id = p.Id })" title="Bấm để sửa">
                         <td><div class="row-title">@p.Name</div><div class="row-meta">@p.Slug</div></td>
                         <td>@p.RegionName</td>
                         <td class="num">@Money(p.PriceFrom)</td>
@@ -56,7 +57,7 @@
                         <td><span class="@Pill(p.Status)">@p.Status.Vi()</span></td>
                         <td class="actions-cell">
                             <a class="btn btn-ghost btn-sm" asp-action="Edit" asp-route-id="@p.Id"><span class="material-symbols-outlined">edit</span></a>
-                            <form asp-action="Delete" asp-route-id="@p.Id" method="post" style="display:inline;" onsubmit="return confirm('Xoá dự án này?');">
+                            <form asp-action="Delete" asp-route-id="@p.Id" method="post" style="display:inline;" data-confirm="Xoá dự án này?" data-confirm-title="Xoá dự án" data-confirm-ok="Xoá">
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-ghost btn-sm"><span class="material-symbols-outlined">delete</span></button>
                             </form>

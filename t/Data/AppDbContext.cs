@@ -204,7 +204,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.HasIndex(a => a.IsFeatured);
             e.HasIndex(a => new { a.BuildingId, a.UnitCode })
              .IsUnique()
-             .HasFilter("[ToaNhaId] IS NOT NULL AND [MaCanHo] IS NOT NULL");
+             .HasFilter("\"ToaNhaId\" IS NOT NULL AND \"MaCanHo\" IS NOT NULL");
 
             e.HasOne(a => a.Host)
              .WithMany(u => u.Apartments)

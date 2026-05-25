@@ -44,10 +44,12 @@ public static class SeedData
         var (projLandmark, projThuDuc, projQuan7) = SeedProjects(ctx, hcm.Id);
         await ctx.SaveChangesAsync();
 
-        var (host, renter, renter2) = await SeedUsersAsync(userMgr);
+        var (host, renter, renter2, renter3, renter4) = await SeedUsersAsync(userMgr);
         await userMgr.AddToRoleAsync(host, RoleHost);
         await userMgr.AddToRoleAsync(renter, RoleTenant);
         await userMgr.AddToRoleAsync(renter2, RoleTenant);
+        await userMgr.AddToRoleAsync(renter3, RoleTenant);
+        await userMgr.AddToRoleAsync(renter4, RoleTenant);
 
         var (b1, b2) = SeedBuildings(ctx, hcm.Id, projLandmark.Id, projThuDuc.Id, host.Id);
         await ctx.SaveChangesAsync();
@@ -69,7 +71,7 @@ public static class SeedData
         var utilTypes = SeedUtilityTypes(ctx);
         await ctx.SaveChangesAsync();
 
-        SeedSampleLeaseFlow(ctx, renter.Id, apt1, utilTypes);
+        SeedRichLeaseFlow(ctx, renter, renter2, renter3, renter4, apt1, apt2, apt3, apt4, utilTypes);
         await ctx.SaveChangesAsync();
     }
 
@@ -231,7 +233,7 @@ public static class SeedData
         return result.Succeeded ? admin : null;
     }
 
-    private static async Task<(AppUser host, AppUser renter, AppUser renter2)> SeedUsersAsync(UserManager<AppUser> userMgr)
+    private static async Task<(AppUser host, AppUser renter, AppUser renter2, AppUser renter3, AppUser renter4)> SeedUsersAsync(UserManager<AppUser> userMgr)
     {
         var host = new AppUser
         {
@@ -257,7 +259,24 @@ public static class SeedData
             AvatarUrl = "/img/detail/user2.jpg", EmailConfirmed = true
         };
         await userMgr.CreateAsync(renter2, "Renter@123");
-        return (host, renter, renter2);
+
+        var renter3 = new AppUser
+        {
+            UserName = "renter3@luxehaven.vn", Email = "renter3@luxehaven.vn",
+            FullName = "Trần Văn Hùng", Phone = "093 456 7890",
+            AvatarUrl = "/img/detail/user1.jpg", EmailConfirmed = true
+        };
+        await userMgr.CreateAsync(renter3, "Renter@123");
+
+        var renter4 = new AppUser
+        {
+            UserName = "renter4@luxehaven.vn", Email = "renter4@luxehaven.vn",
+            FullName = "Phạm Thị Mai", Phone = "094 567 8901",
+            AvatarUrl = "/img/detail/user2.jpg", EmailConfirmed = true
+        };
+        await userMgr.CreateAsync(renter4, "Renter@123");
+
+        return (host, renter, renter2, renter3, renter4);
     }
 
     private static (Building b1, Building b2) SeedBuildings(AppDbContext ctx, int regionId, int landmarkProjectId, int thuDucProjectId, string managerId)
@@ -507,73 +526,200 @@ public static class SeedData
         ctx.MaintenanceRequests.Add(mr);
     }
 
-    private static void SeedSampleLeaseFlow(AppDbContext ctx, string tenantId, Apartment apt, Dictionary<string, UtilityType> utilTypes)
+    // ──────────────────────────────────────────────────────────────────────
+    // Demo finance flow: 4 leases × 3–6 months of invoices, mixed statuses
+    // (Paid, PartiallyPaid, Overdue, Issued). Tổng AmountPaid ≈ 100 tr VND.
+    // ──────────────────────────────────────────────────────────────────────
+    private static void SeedRichLeaseFlow(
+        AppDbContext ctx,
+        AppUser renter1, AppUser renter2, AppUser renter3, AppUser renter4,
+        Apartment apt1, Apartment apt2, Apartment apt3, Apartment apt4,
+        Dictionary<string, UtilityType> utilTypes)
     {
-        var now = DateTime.UtcNow.Date;
-        var startDate = new DateTime(now.Year, now.Month, 1).AddMonths(-1);
-        var endDate = startDate.AddYears(1);
+        var today = DateTime.UtcNow.Date;
+        int seqInvoice = 0;
+        int seqPayment = 0;
+        int leaseCounter = 0;
 
-        var lease = new Lease
+        // ── Lease 1: cao cấp, lịch sử 6 tháng, 5 paid + 1 issued (hiện tại) ──
+        BuildLease(renter1, apt1, monthsAgo: 5, plan: new[]
         {
-            LeaseNumber = $"LEASE-{startDate:yyyyMM}-0001",
-            ApartmentId = apt.Id,
-            PrimaryTenantId = tenantId,
-            StartDate = startDate, EndDate = endDate,
-            MonthlyRent = apt.Price,
-            Deposit = apt.DefaultDeposit ?? apt.Price * 2,
-            DepositHeld = apt.DefaultDeposit ?? apt.Price * 2,
-            BillingDay = 1,
-            LateFeePercent = 5, LateFeeAfterDays = 7,
-            Status = LeaseStatus.Active,
-            ActivatedAt = startDate,
-            Notes = "Hợp đồng mẫu được seed cho demo."
-        };
-        ctx.Leases.Add(lease);
+            (offset: -5, state: PayState.Paid),
+            (offset: -4, state: PayState.Paid),
+            (offset: -3, state: PayState.Paid),
+            (offset: -2, state: PayState.Paid),
+            (offset: -1, state: PayState.Paid),
+            (offset:  0, state: PayState.Issued),
+        }, elecKwh: 220m, waterM3: 8m);
 
-        var billingMonth = now.Year * 100 + now.Month;
-        var dueDate = new DateTime(now.Year, now.Month, Math.Min(lease.BillingDay + 7, 28));
+        // ── Lease 2: phòng trọ, 5 tháng — 3 paid + 1 partial + 1 issued ──
+        BuildLease(renter2, apt2, monthsAgo: 4, plan: new[]
+        {
+            (offset: -4, state: PayState.Paid),
+            (offset: -3, state: PayState.Paid),
+            (offset: -2, state: PayState.Paid),
+            (offset: -1, state: PayState.PartiallyPaid),
+            (offset:  0, state: PayState.Issued),
+        }, elecKwh: 95m, waterM3: 5m);
 
-        var elec = new UtilityReading
+        // ── Lease 3: penthouse, 3 tháng — 1 paid + 1 overdue + 1 issued ──
+        BuildLease(renter3, apt3, monthsAgo: 2, plan: new[]
         {
-            Lease = lease, UtilityTypeId = utilTypes["electricity"].Id,
-            BillingMonth = billingMonth,
-            PreviousReading = 1200m, CurrentReading = 1325m,
-            Consumption = 125m, Rate = 3500m, Amount = 437500m,
-            ReadAt = now, Billed = true
-        };
-        var water = new UtilityReading
-        {
-            Lease = lease, UtilityTypeId = utilTypes["water"].Id,
-            BillingMonth = billingMonth,
-            PreviousReading = 45m, CurrentReading = 52m,
-            Consumption = 7m, Rate = 25000m, Amount = 175000m,
-            ReadAt = now, Billed = true
-        };
-        ctx.UtilityReadings.AddRange(elec, water);
+            (offset: -2, state: PayState.Paid),
+            (offset: -1, state: PayState.Overdue),
+            (offset:  0, state: PayState.Issued),
+        }, elecKwh: 350m, waterM3: 12m);
 
-        var subTotal = lease.MonthlyRent + elec.Amount + water.Amount + 200000m + 500000m;
-        var invoice = new Invoice
+        // ── Lease 4: mini, 4 tháng — 2 paid + 1 overdue + 1 issued ──
+        BuildLease(renter4, apt4, monthsAgo: 3, plan: new[]
         {
-            InvoiceNumber = $"INV-{billingMonth}-0001",
-            Lease = lease,
-            Kind = InvoiceKind.MonthlyRent, BillingMonth = billingMonth, IsRecurring = true,
-            IssueDate = now, DueDate = dueDate,
-            SubTotal = subTotal,
-            Total = subTotal,
-            Balance = subTotal,
-            Status = InvoiceStatus.Issued,
-            Currency = "VND",
-            Items =
+            (offset: -3, state: PayState.Paid),
+            (offset: -2, state: PayState.Paid),
+            (offset: -1, state: PayState.Overdue),
+            (offset:  0, state: PayState.Issued),
+        }, elecKwh: 110m, waterM3: 5m);
+
+        // Sample maintenance/inspection chỉ cho lease 1 (apt1)
+        var firstLease = ctx.Leases.Local.OrderBy(l => l.LeaseNumber).First();
+        SeedSampleMaintenanceAndInspection(ctx, firstLease, apt1, renter1.Id);
+
+        // ────────────────────────────────────────────────────────
+        void BuildLease(AppUser tenant, Apartment apt, int monthsAgo,
+                        (int offset, PayState state)[] plan, decimal elecKwh, decimal waterM3)
+        {
+            leaseCounter++;
+            var startDate = new DateTime(today.Year, today.Month, 1).AddMonths(-monthsAgo);
+            var endDate = startDate.AddYears(1);
+
+            var lease = new Lease
             {
-                new InvoiceItem { Description = $"Tiền thuê căn {apt.UnitCode ?? apt.Title} - {now:MM/yyyy}", Quantity = 1m, UnitPrice = lease.MonthlyRent, LineTotal = lease.MonthlyRent, SortOrder = 0 },
-                new InvoiceItem { Description = "Điện (kWh)", Quantity = elec.Consumption, UnitPrice = elec.Rate, LineTotal = elec.Amount, SortOrder = 1 },
-                new InvoiceItem { Description = "Nước (m³)", Quantity = water.Consumption, UnitPrice = water.Rate, LineTotal = water.Amount, SortOrder = 2 },
-                new InvoiceItem { Description = "Internet", Quantity = 1m, UnitPrice = 200000m, LineTotal = 200000m, SortOrder = 3 },
-                new InvoiceItem { Description = "Phí dịch vụ", Quantity = 1m, UnitPrice = 500000m, LineTotal = 500000m, SortOrder = 4 }
-            }
-        };
-        ctx.Invoices.Add(invoice);
+                LeaseNumber = $"LEASE-{startDate:yyyyMM}-{leaseCounter:D4}",
+                ApartmentId = apt.Id,
+                PrimaryTenantId = tenant.Id,
+                StartDate = startDate, EndDate = endDate,
+                MonthlyRent = apt.Price,
+                Deposit = apt.DefaultDeposit ?? apt.Price * 2,
+                DepositHeld = apt.DefaultDeposit ?? apt.Price * 2,
+                BillingDay = 1,
+                LateFeePercent = 5, LateFeeAfterDays = 7,
+                Status = LeaseStatus.Active,
+                ActivatedAt = startDate,
+                Notes = $"Hợp đồng mẫu — {tenant.FullName} thuê {apt.UnitCode}."
+            };
+            ctx.Leases.Add(lease);
 
-        SeedSampleMaintenanceAndInspection(ctx, lease, apt, tenantId);
+            decimal prevElec = 1200m;
+            decimal prevWater = 45m;
+
+            foreach (var (offset, state) in plan)
+            {
+                var monthDate = new DateTime(today.Year, today.Month, 1).AddMonths(offset);
+                var billingMonth = monthDate.Year * 100 + monthDate.Month;
+                var issueDate = monthDate;
+                // Đặt DueDate xa trong tương lai cho Issued/PartiallyPaid để background service
+                // không tự đổi trạng thái sang Overdue.
+                var dueDate = state switch
+                {
+                    PayState.Issued => today.AddDays(30),
+                    PayState.PartiallyPaid => today.AddDays(15),
+                    _ => monthDate.AddDays(7)
+                };
+
+                var elecAmount = elecKwh * 3500m;
+                var waterAmount = waterM3 * 25000m;
+                var elec = new UtilityReading
+                {
+                    Lease = lease, UtilityTypeId = utilTypes["electricity"].Id,
+                    BillingMonth = billingMonth,
+                    PreviousReading = prevElec, CurrentReading = prevElec + elecKwh,
+                    Consumption = elecKwh, Rate = 3500m, Amount = elecAmount,
+                    ReadAt = monthDate, Billed = true
+                };
+                var water = new UtilityReading
+                {
+                    Lease = lease, UtilityTypeId = utilTypes["water"].Id,
+                    BillingMonth = billingMonth,
+                    PreviousReading = prevWater, CurrentReading = prevWater + waterM3,
+                    Consumption = waterM3, Rate = 25000m, Amount = waterAmount,
+                    ReadAt = monthDate, Billed = true
+                };
+                ctx.UtilityReadings.AddRange(elec, water);
+                prevElec += elecKwh;
+                prevWater += waterM3;
+
+                var subTotal = lease.MonthlyRent + elecAmount + waterAmount + 200000m + 500000m;
+                seqInvoice++;
+                var invoice = new Invoice
+                {
+                    InvoiceNumber = $"INV-{billingMonth}-{seqInvoice:D4}",
+                    Lease = lease,
+                    Kind = InvoiceKind.MonthlyRent, BillingMonth = billingMonth, IsRecurring = true,
+                    IssueDate = issueDate, DueDate = dueDate,
+                    SubTotal = subTotal,
+                    Total = subTotal,
+                    Currency = "VND",
+                    Items =
+                    {
+                        new InvoiceItem { Description = $"Tiền thuê căn {apt.UnitCode ?? apt.Title} - {monthDate:MM/yyyy}", Quantity = 1m, UnitPrice = lease.MonthlyRent, LineTotal = lease.MonthlyRent, SortOrder = 0 },
+                        new InvoiceItem { Description = "Điện (kWh)", Quantity = elecKwh, UnitPrice = 3500m, LineTotal = elecAmount, SortOrder = 1 },
+                        new InvoiceItem { Description = "Nước (m³)", Quantity = waterM3, UnitPrice = 25000m, LineTotal = waterAmount, SortOrder = 2 },
+                        new InvoiceItem { Description = "Internet", Quantity = 1m, UnitPrice = 200000m, LineTotal = 200000m, SortOrder = 3 },
+                        new InvoiceItem { Description = "Phí dịch vụ", Quantity = 1m, UnitPrice = 500000m, LineTotal = 500000m, SortOrder = 4 }
+                    }
+                };
+
+                switch (state)
+                {
+                    case PayState.Paid:
+                        invoice.AmountPaid = subTotal;
+                        invoice.Balance = 0;
+                        invoice.Status = InvoiceStatus.Paid;
+                        seqPayment++;
+                        invoice.Payments.Add(new Payment
+                        {
+                            PaymentNumber = $"PAY-{monthDate:yyyyMM}-{seqPayment:D4}",
+                            Amount = subTotal,
+                            Method = PaymentMethod.BankTransfer,
+                            Status = PaymentStatus.Succeeded,
+                            PaidAt = dueDate.AddDays(-2),
+                            Currency = "VND",
+                            Note = "Khách chuyển khoản đúng hạn"
+                        });
+                        break;
+                    case PayState.PartiallyPaid:
+                        var partial = Math.Round(subTotal * 0.4m, 0);
+                        invoice.AmountPaid = partial;
+                        invoice.Balance = subTotal - partial;
+                        invoice.Status = InvoiceStatus.PartiallyPaid;
+                        seqPayment++;
+                        invoice.Payments.Add(new Payment
+                        {
+                            PaymentNumber = $"PAY-{monthDate:yyyyMM}-{seqPayment:D4}",
+                            Amount = partial,
+                            Method = PaymentMethod.Cash,
+                            Status = PaymentStatus.Succeeded,
+                            PaidAt = dueDate.AddDays(1),
+                            Currency = "VND",
+                            Note = "Khách trả trước một phần, hẹn trả nốt"
+                        });
+                        break;
+                    case PayState.Overdue:
+                        invoice.AmountPaid = 0;
+                        invoice.Balance = subTotal;
+                        invoice.Status = InvoiceStatus.Overdue;
+                        break;
+                    case PayState.Issued:
+                    default:
+                        invoice.AmountPaid = 0;
+                        invoice.Balance = subTotal;
+                        invoice.Status = InvoiceStatus.Issued;
+                        break;
+                }
+
+                ctx.Invoices.Add(invoice);
+            }
+        }
     }
+
+    private enum PayState { Issued, PartiallyPaid, Paid, Overdue }
 }

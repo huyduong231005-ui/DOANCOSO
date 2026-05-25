@@ -64,3 +64,9 @@ secrets.json
 t/wwwroot/dev-emails/
 t/wwwroot/uploads/test/
 t/wwwroot/img/.backup-hero/
+
+## Migration backup khi chuyển DB (chỉ giữ local, không commit)
+Migrations.sqlserver.bak/
+
+## Local dev scripts (verify Neon, ad-hoc test...)
+verify_neon.csx

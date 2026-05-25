@@ -14,6 +14,12 @@
         _ => "pill pill-neutral"
     };
     decimal maxRevenue = Model.RevenueByDay.Count == 0 ? 0 : Model.RevenueByDay.Max(r => r.Total);
+    decimal maxMonth = Model.RevenueByMonth.Count == 0 ? 0 : Model.RevenueByMonth.Max(r => r.Total);
+    decimal sumBreakdown = Model.BreakdownRent + Model.BreakdownUtilities + Model.BreakdownServices;
+    string MoMColor = Model.MoMGrowthPct > 0 ? "var(--admin-success)" :
+                      Model.MoMGrowthPct < 0 ? "var(--admin-danger)" : "var(--admin-text-muted)";
+    string MoMArrow = Model.MoMGrowthPct > 0 ? "trending_up" :
+                      Model.MoMGrowthPct < 0 ? "trending_down" : "trending_flat";
 }
 
 <section class="page-header">
@@ -54,7 +60,10 @@
         <div class="kpi-icon"><span class="material-symbols-outlined">payments</span></div>
         <div class="kpi-label">Doanh thu tháng này</div>
         <div class="kpi-value">@Money(Model.RevenueThisMonth)</div>
-        <div class="kpi-meta">VNĐ · đã thu</div>
+        <div class="kpi-meta" style="color:@MoMColor;">
+            <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">@MoMArrow</span>
+            @(Model.MoMGrowthPct > 0 ? "+" : "")@Model.MoMGrowthPct% so với tháng trước
+        </div>
     </div>
     <div class="kpi-card">
         <div class="kpi-icon"><span class="material-symbols-outlined">money_off</span></div>
@@ -70,67 +79,157 @@
     </div>
 </section>
 
-<section class="card">
-    <div class="card-header">
-        <h2>Doanh thu 14 ngày gần nhất</h2>
-        <span class="text-muted">Đơn vị: VNĐ</span>
+<section class="kpi-grid" style="margin-top:1rem;">
+    <div class="kpi-card" style="border-left:4px solid var(--admin-success);">
+        <div class="kpi-icon" style="color:var(--admin-success);"><span class="material-symbols-outlined">savings</span></div>
+        <div class="kpi-label">Tổng doanh thu cộng dồn</div>
+        <div class="kpi-value">@Money(Model.RevenueAllTime)</div>
+        <div class="kpi-meta">VNĐ · toàn thời gian</div>
     </div>
-    <div class="card-body">
-        @if (maxRevenue == 0)
-        {
-            <div class="empty-state" style="padding:1.5rem;">
-                <span class="material-symbols-outlined">show_chart</span>
-                <h3>Chưa có doanh thu</h3>
-            </div>
-        }
-        else
-        {
-            <div style="position:relative;height:240px;">
-                <canvas id="revenueChart"></canvas>
-            </div>
-        }
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">date_range</span></div>
+        <div class="kpi-label">Doanh thu 30 ngày gần nhất</div>
+        <div class="kpi-value">@Money(Model.RevenueLast30Days)</div>
+        <div class="kpi-meta">Cuốn chiếu mỗi ngày</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">analytics</span></div>
+        <div class="kpi-label">Trung bình / tháng</div>
+        <div class="kpi-value">@Money(Model.RevenueAvgPerMonth)</div>
+        <div class="kpi-meta">12 tháng gần nhất</div>
+    </div>
+    <div class="kpi-card" style="border-left:4px solid var(--admin-accent);">
+        <div class="kpi-icon" style="color:var(--admin-accent);"><span class="material-symbols-outlined">insights</span></div>
+        <div class="kpi-label">Dự kiến tháng tới</div>
+        <div class="kpi-value">@Money(Model.RevenueForecastNext)</div>
+        <div class="kpi-meta">Tổng tiền thuê hợp đồng đang hoạt động</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><span class="material-symbols-outlined">verified</span></div>
+        <div class="kpi-label">Tỉ lệ thu thành công</div>
+        <div class="kpi-value">@Model.CollectionRate%</div>
+        <div class="kpi-meta">Đã thu / Tổng hoá đơn đã phát hành</div>
+    </div>
+</section>
+
+<section style="display:grid;grid-template-columns:2fr 1fr;gap:1.2rem;">
+    <div class="card">
+        <div class="card-header">
+            <h2>Doanh thu 12 tháng gần nhất</h2>
+            <span class="text-muted">Đơn vị: VNĐ · phân tích xu hướng</span>
+        </div>
+        <div class="card-body">
+            @if (maxMonth == 0)
+            {
+                <div class="empty-state" style="padding:1.5rem;">
+                    <span class="material-symbols-outlined">show_chart</span>
+                    <h3>Chưa có doanh thu</h3>
+                </div>
+            }
+            else
+            {
+                <div style="position:relative;height:280px;">
+                    <canvas id="revenueMonthChart"></canvas>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Cơ cấu doanh thu</h2>
+            <span class="text-muted">Cộng dồn</span>
+        </div>
+        <div class="card-body">
+            @if (sumBreakdown == 0)
+            {
+                <div class="empty-state" style="padding:1.5rem;">
+                    <span class="material-symbols-outlined">donut_large</span>
+                    <h3>Chưa có dữ liệu</h3>
+                </div>
+            }
+            else
+            {
+                <div style="position:relative;height:200px;">
+                    <canvas id="breakdownChart"></canvas>
+                </div>
+                <div style="margin-top:1rem;display:flex;flex-direction:column;gap:.4rem;font-size:13px;">
+                    <div style="display:flex;justify-content:space-between;"><span><span style="display:inline-block;width:10px;height:10px;background:#dc2626;border-radius:2px;margin-right:6px;"></span>Tiền thuê</span><strong>@Money(Model.BreakdownRent) (@((Model.BreakdownRent * 100 / sumBreakdown).ToString("0.0"))%)</strong></div>
+                    <div style="display:flex;justify-content:space-between;"><span><span style="display:inline-block;width:10px;height:10px;background:#f59e0b;border-radius:2px;margin-right:6px;"></span>Điện / Nước</span><strong>@Money(Model.BreakdownUtilities) (@((Model.BreakdownUtilities * 100 / sumBreakdown).ToString("0.0"))%)</strong></div>
+                    <div style="display:flex;justify-content:space-between;"><span><span style="display:inline-block;width:10px;height:10px;background:#2563eb;border-radius:2px;margin-right:6px;"></span>Dịch vụ khác</span><strong>@Money(Model.BreakdownServices) (@((Model.BreakdownServices * 100 / sumBreakdown).ToString("0.0"))%)</strong></div>
+                </div>
+            }
+        </div>
     </div>
 </section>
 
 @section Scripts {
-    @if (maxRevenue > 0)
+    @if (maxMonth > 0 || sumBreakdown > 0)
     {
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
         <script>
             (function(){
-                var labels = [@Html.Raw(string.Join(",", Model.RevenueByDay.Select(d => $"\"{d.Day:dd/MM}\"")))];
-                var data   = [@Html.Raw(string.Join(",", Model.RevenueByDay.Select(d => d.Total.ToString(System.Globalization.CultureInfo.InvariantCulture))))];
-                var canvas = document.getElementById('revenueChart');
-                if (!canvas || !window.Chart) return;
-                var ctx = canvas.getContext('2d');
-                var grad = ctx.createLinearGradient(0, 0, 0, 240);
-                grad.addColorStop(0, 'rgba(0, 51, 102, 0.55)');
-                grad.addColorStop(1, 'rgba(0, 30, 64, 0.0)');
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'VNĐ',
-                            data: data,
-                            backgroundColor: '#001e40',
-                            borderRadius: 6,
-                            barThickness: 'flex',
-                            maxBarThickness: 32
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: { callbacks: { label: function(c){ return new Intl.NumberFormat('vi-VN').format(c.parsed.y) + ' đ'; } } }
+                if (!window.Chart) return;
+                var fmtVN = function(v){ return v >= 1000000 ? (v/1000000).toFixed(1)+'tr' : v >= 1000 ? (v/1000).toFixed(0)+'k' : v; };
+                var fmtVNFull = function(v){ return new Intl.NumberFormat('vi-VN').format(v) + ' đ'; };
+
+                // ── Bar chart: 12 tháng ──
+                var monthCanvas = document.getElementById('revenueMonthChart');
+                if (monthCanvas) {
+                    var labels = [@Html.Raw(string.Join(",", Model.RevenueByMonth.Select(m => $"\"{m.Label}\"")))];
+                    var data   = [@Html.Raw(string.Join(",", Model.RevenueByMonth.Select(m => m.Total.ToString(System.Globalization.CultureInfo.InvariantCulture))))];
+                    var avg    = @Model.RevenueAvgPerMonth.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    // Tô màu đỏ cho tháng vượt TB, xám cho tháng dưới TB
+                    var colors = data.map(function(v){ return v > avg ? '#dc2626' : v > 0 ? '#94a3b8' : '#e5e7eb'; });
+                    new Chart(monthCanvas.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                { label: 'Doanh thu', data: data, backgroundColor: colors, borderRadius: 6, barThickness: 'flex', maxBarThickness: 36, order: 2 },
+                                { label: 'Trung bình', data: data.map(function(){ return avg; }), type: 'line', borderColor: '#f59e0b', borderDash: [6,4], borderWidth: 2, pointRadius: 0, fill: false, order: 1 }
+                            ]
                         },
-                        scales: {
-                            x: { grid: { display: false } },
-                            y: { ticks: { callback: function(v){ return v >= 1000000 ? (v/1000000).toFixed(1)+'tr' : v >= 1000 ? (v/1000).toFixed(0)+'k' : v; } }, grid: { color: 'rgba(15,23,42,0.06)' } }
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: true, position: 'bottom' },
+                                tooltip: { callbacks: { label: function(c){ return c.dataset.label + ': ' + fmtVNFull(c.parsed.y); } } }
+                            },
+                            scales: {
+                                x: { grid: { display: false } },
+                                y: { ticks: { callback: fmtVN }, grid: { color: 'rgba(15,23,42,0.06)' } }
+                            }
                         }
-                    }
-                });
+                    });
+                }
+
+                // ── Doughnut chart: cơ cấu doanh thu ──
+                var brkCanvas = document.getElementById('breakdownChart');
+                if (brkCanvas) {
+                    var rent = @Model.BreakdownRent.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    var util = @Model.BreakdownUtilities.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    var svc  = @Model.BreakdownServices.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    new Chart(brkCanvas.getContext('2d'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Tiền thuê', 'Điện / Nước', 'Dịch vụ khác'],
+                            datasets: [{
+                                data: [rent, util, svc],
+                                backgroundColor: ['#dc2626', '#f59e0b', '#2563eb'],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            cutout: '60%',
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { callbacks: { label: function(c){ return c.label + ': ' + fmtVNFull(c.parsed); } } }
+                            }
+                        }
+                    });
+                }
             })();
         </script>
     }
@@ -195,6 +294,39 @@
                 </tbody>
             </table>
         </div>
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-header">
+        <h2>Top 5 căn hộ — Doanh thu cao nhất</h2>
+        <span class="text-muted">Cộng dồn từ trước đến giờ</span>
+    </div>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>#</th><th>Căn hộ</th><th>Toà nhà</th><th class="num">Số hoá đơn đã thu</th><th class="num">Tổng đã thu</th></tr></thead>
+            <tbody>
+            @if (!Model.TopApartments.Any())
+            {
+                <tr><td colspan="5"><div class="empty-state"><span class="material-symbols-outlined">apartment</span><h3>Chưa có dữ liệu thu</h3></div></td></tr>
+            }
+            else
+            {
+                int rank = 0;
+                foreach (var a in Model.TopApartments)
+                {
+                    rank++;
+                    <tr data-href="@Url.Action("Details", "Apartments", new { id = a.Id })" title="Bấm để xem chi tiết">
+                        <td><span class="pill @(rank == 1 ? "pill-accent" : "pill-neutral")">#@rank</span></td>
+                        <td><span class="row-title">@(a.UnitCode ?? "—") · @a.Title</span></td>
+                        <td>@(a.BuildingName ?? "—")</td>
+                        <td class="num">@a.InvoiceCount</td>
+                        <td class="num"><strong>@Money(a.TotalCollected)</strong></td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
     </div>
 </section>
 

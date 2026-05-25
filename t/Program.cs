@@ -17,7 +17,26 @@ using t.Infrastructure.Security;
 using t.Infrastructure.Storage;
 using t.Models.Entities;
 
+// PostgreSQL: cho phép DateTime.Kind=Unspecified hoặc Local map vào "timestamp with time zone"
+// như hành vi EF Core 5/Npgsql 5 cũ. Tránh phải sửa hàng loạt DateTime → UTC trong code.
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Render (và đa số cloud) gán PORT qua biến môi trường. App phải bind vào port đó.
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
+// Khi chạy sau reverse proxy (Render/Railway/Cloudflare), tin các header X-Forwarded-*
+// để biết request gốc là HTTPS, IP thật của khách...
+builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>(o =>
+{
+    o.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
+                       | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
+    o.KnownIPNetworks.Clear();
+    o.KnownProxies.Clear();
+});
 
 // On Windows, the host adds an EventLog logger provider by default. It throws
 // ObjectDisposedException during shutdown if any logger writes after the provider
@@ -27,7 +46,7 @@ builder.Logging.AddFilter("Microsoft.Extensions.Logging.EventLog.EventLogLoggerP
 
 // ── Database ──
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ── Identity ──
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
@@ -95,13 +114,18 @@ var app = builder.Build();
 // ── Seed Data ──
 await SeedData.InitializeAsync(app.Services);
 
+// Đặt ForwardedHeaders TRƯỚC mọi middleware khác để các bước sau biết là HTTPS thật
+app.UseForwardedHeaders();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Trong container Render, SSL đã được terminate ở edge nên tắt redirect (tránh vòng lặp).
+if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PORT")))
+    app.UseHttpsRedirection();
 app.UseRouting();
 
 app.UseAuthentication();

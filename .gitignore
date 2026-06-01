@@ -63,7 +63,9 @@ secrets.json
 ## Luxe Haven dev artifacts (do not commit)
 t/wwwroot/dev-emails/
 t/wwwroot/uploads/test/
+t/wwwroot/uploads/listings/
 t/wwwroot/img/.backup-hero/
+output/
 
 ## Migration backup khi chuyển DB (chỉ giữ local, không commit)
 Migrations.sqlserver.bak/

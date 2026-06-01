@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
   const state = {
     slideshowTimer: null,
     showNextSlide: null,
@@ -6,6 +6,7 @@
     softNavBound: false,
     visibilityBound: false,
     navigating: false,
+    scrollTopHandler: null,
   };
 
   const stopSlideshow = () => {
@@ -114,12 +115,135 @@
     });
   };
 
+  const initCard3DTilt = () => {
+    const cards = document.querySelectorAll(".listing-card, .region-card, .feature-card, .mini-card");
+    cards.forEach((card) => {
+      if (!(card instanceof HTMLElement) || card.dataset.tiltBound === "true") {
+        return;
+      }
+      card.dataset.tiltBound = "true";
+
+      let translateY = -8;
+      if (card.classList.contains("listing-card")) {
+        translateY = -14;
+      } else if (card.classList.contains("region-card")) {
+        translateY = -6;
+      } else if (card.classList.contains("mini-card")) {
+        translateY = -6;
+      } else if (card.classList.contains("feature-card")) {
+        translateY = -6;
+      }
+
+      card.addEventListener("mousemove", (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        // Max rotation angles (degrees)
+        const maxRotateX = 8;
+        const maxRotateY = 8;
+
+        const rotateX = (((y - centerY) / centerY) * -maxRotateX).toFixed(2);
+        const rotateY = (((x - centerX) / centerX) * maxRotateY).toFixed(2);
+
+        // Remove transition during mousemove to prevent lagging
+        card.style.transition = "transform 0.08s ease-out, box-shadow 0.15s ease-out";
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(${translateY}px) scale(1.02)`;
+      });
+
+      card.addEventListener("mouseleave", () => {
+        // Restore stylesheet transition so it snaps back smoothly
+        card.style.transition = "";
+        card.style.transform = "";
+      });
+    });
+  };
+
+  const initMagneticScrollTop = () => {
+    let btn = document.getElementById("back-to-top");
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.id = "back-to-top";
+      btn.type = "button";
+      btn.setAttribute("aria-label", "Cuộn lên đầu trang");
+      btn.innerHTML = `
+        <svg class="progress-ring" width="46" height="46">
+          <circle class="progress-ring__circle-bg" stroke="#f1f5f9" stroke-width="3" fill="transparent" r="20" cx="23" cy="23"/>
+          <circle class="progress-ring__circle" stroke="#fe6e60" stroke-width="3" fill="transparent" r="20" cx="23" cy="23"/>
+        </svg>
+        <span class="material-symbols-outlined icon">arrow_upward</span>
+      `;
+      document.body.appendChild(btn);
+    }
+
+    const circle = btn.querySelector(".progress-ring__circle");
+    if (!circle) return;
+    const radius = 20; // Circle radius
+    const circumference = radius * 2 * Math.PI;
+
+    circle.style.strokeDasharray = `${circumference} ${circumference}`;
+    circle.style.strokeDashoffset = `${circumference}`;
+
+    const setProgress = (percent) => {
+      const offset = circumference - (percent / 100) * circumference;
+      circle.style.strokeDashoffset = offset;
+    };
+
+    // 1. Progress scroll listener
+    const handleScroll = () => {
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercent = docHeight > 0 ? (window.scrollY / docHeight) * 100 : 0;
+      setProgress(scrollPercent || 0);
+
+      if (window.scrollY > 300) {
+        btn.classList.add("is-visible");
+      } else {
+        btn.classList.remove("is-visible");
+      }
+    };
+
+    if (state.scrollTopHandler !== null) {
+      window.removeEventListener("scroll", state.scrollTopHandler);
+    }
+    state.scrollTopHandler = handleScroll;
+    window.addEventListener("scroll", state.scrollTopHandler);
+    handleScroll();
+
+    // 2. Click listener
+    btn.onclick = () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    // 3. Magnetic effect
+    btn.onmousemove = (e) => {
+      const rect = btn.getBoundingClientRect();
+      const mouseX = e.clientX - (rect.left + rect.width / 2);
+      const mouseY = e.clientY - (rect.top + rect.height / 2);
+
+      const maxMove = 10;
+      const moveX = (mouseX / (rect.width / 2)) * maxMove;
+      const moveY = (mouseY / (rect.height / 2)) * maxMove;
+
+      btn.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.06)`;
+      btn.style.transition = "transform 0.05s ease-out";
+    };
+
+    btn.onmouseleave = () => {
+      btn.style.transform = "";
+      btn.style.transition = "transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease, visibility 0.3s ease";
+    };
+  };
+
   const initPageEffects = () => {
     initHeroSlideshow();
     initReveal();
     initApartmentDetail();
     initAuthForms();
     initFormValidation();
+    initCard3DTilt();
+    initMagneticScrollTop();
   };
 
   const initApartmentDetail = () => {
@@ -311,6 +435,36 @@
     });
   };
 
+  const getProgressBar = () => {
+    let bar = document.getElementById("top-progress-bar");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "top-progress-bar";
+      document.body.appendChild(bar);
+    }
+    return bar;
+  };
+
+  const startProgressBar = () => {
+    const bar = getProgressBar();
+    bar.style.transition = "none";
+    bar.style.width = "0%";
+    bar.style.opacity = "1";
+    // Force reflow to register styles
+    void bar.offsetWidth;
+    bar.style.transition = "width 0.8s cubic-bezier(0.1, 0.8, 0.1, 1), opacity 0.2s ease-in-out";
+    bar.style.width = "80%";
+  };
+
+  const finishProgressBar = () => {
+    const bar = getProgressBar();
+    bar.style.transition = "width 0.3s ease-out, opacity 0.2s ease-in-out";
+    bar.style.width = "100%";
+    setTimeout(() => {
+      bar.style.opacity = "0";
+    }, 250);
+  };
+
   const softNavigate = async (url, pushState) => {
     if (state.navigating) {
       return;
@@ -324,6 +478,7 @@
 
     state.navigating = true;
     document.documentElement.classList.add("soft-nav-loading");
+    startProgressBar();
 
     try {
       const response = await fetch(url, {
@@ -367,6 +522,7 @@
     } finally {
       state.navigating = false;
       document.documentElement.classList.remove("soft-nav-loading");
+      finishProgressBar();
     }
   };
 

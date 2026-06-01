@@ -46,6 +46,8 @@ public class HomeController : Controller
             .Include(a => a.Images)
             .Include(a => a.Region)
             .Where(a => a.Status == ListingStatus.Active && a.IsFeatured)
+            .OrderByDescending(a => a.CreatedAt)
+            .ThenByDescending(a => a.Id)
             .Take(4)
             .ToListAsync();
 
@@ -114,6 +116,7 @@ public class HomeController : Controller
     {
         var apartment = await _db.Apartments
             .AsNoTracking()
+            .AsSplitQuery()
             .Include(a => a.Images.OrderBy(i => i.SortOrder))
             .Include(a => a.Region)
             .Include(a => a.Category)
@@ -130,6 +133,8 @@ public class HomeController : Controller
             .Include(a => a.Images)
             .Include(a => a.Category)
             .Where(a => a.Id != id && a.Status == ListingStatus.Active && a.RegionId == apartment.RegionId)
+            .OrderByDescending(a => a.CreatedAt)
+            .ThenByDescending(a => a.Id)
             .Take(3)
             .Select(a => new SimilarApartmentViewModel
             {

@@ -31,7 +31,7 @@ public sealed class FavoritesPostgresRaceTests : IAsyncLifetime
             .UseNpgsql(connectionString)
             .Options;
 
-        var apartmentId = await SeedAsync(baseOptions);
+        var (apartmentId, userId) = await SeedAsync(baseOptions);
         var barrier = new ConcurrentFavoriteInsertBarrier();
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseNpgsql(connectionString)
@@ -42,7 +42,7 @@ public sealed class FavoritesPostgresRaceTests : IAsyncLifetime
         await using var secondDb = new AppDbContext(options);
         var first = new SetFavoriteCommandHandler(firstDb);
         var second = new SetFavoriteCommandHandler(secondDb);
-        var command = new SetFavoriteCommand("race-user", apartmentId, ShouldBeFavorite: true);
+        var command = new SetFavoriteCommand(userId, apartmentId, ShouldBeFavorite: true);
 
         var results = await Task.WhenAll(
             first.HandleAsync(command),
@@ -59,38 +59,41 @@ public sealed class FavoritesPostgresRaceTests : IAsyncLifetime
         Assert.False(row.IsDeleted);
     }
 
-    private static async Task<int> SeedAsync(DbContextOptions<AppDbContext> options)
+    private static async Task<(int ApartmentId, string UserId)> SeedAsync(DbContextOptions<AppDbContext> options)
     {
         await using var db = new AppDbContext(options);
         await db.Database.EnsureCreatedAsync();
 
+        var suffix = Guid.NewGuid().ToString("N");
+        var hostId = $"race-host-{suffix}";
+        var userId = $"race-user-{suffix}";
         var host = new AppUser
         {
-            Id = "race-host",
-            UserName = "race-host@example.com",
-            NormalizedUserName = "RACE-HOST@EXAMPLE.COM",
-            Email = "race-host@example.com",
-            NormalizedEmail = "RACE-HOST@EXAMPLE.COM",
+            Id = hostId,
+            UserName = $"race-host-{suffix}@example.com",
+            NormalizedUserName = $"RACE-HOST-{suffix}@EXAMPLE.COM",
+            Email = $"race-host-{suffix}@example.com",
+            NormalizedEmail = $"RACE-HOST-{suffix}@EXAMPLE.COM",
             FullName = "Race Host"
         };
         var user = new AppUser
         {
-            Id = "race-user",
-            UserName = "race-user@example.com",
-            NormalizedUserName = "RACE-USER@EXAMPLE.COM",
-            Email = "race-user@example.com",
-            NormalizedEmail = "RACE-USER@EXAMPLE.COM",
+            Id = userId,
+            UserName = $"race-user-{suffix}@example.com",
+            NormalizedUserName = $"RACE-USER-{suffix}@EXAMPLE.COM",
+            Email = $"race-user-{suffix}@example.com",
+            NormalizedEmail = $"RACE-USER-{suffix}@EXAMPLE.COM",
             FullName = "Race User"
         };
-        var region = new Region { Name = "Race Region", Slug = "race-region" };
-        var category = new Category { Name = "Race Category", Slug = "race-category" };
+        var region = new Region { Name = "Race Region", Slug = $"race-region-{suffix}" };
+        var category = new Category { Name = "Race Category", Slug = $"race-category-{suffix}" };
         db.AddRange(host, user, region, category);
         await db.SaveChangesAsync();
 
         var apartment = new Apartment
         {
             Title = "Race Apartment",
-            Slug = "race-apartment",
+            Slug = $"race-apartment-{suffix}",
             Address = "Race Address",
             HostId = host.Id,
             RegionId = region.Id,
@@ -100,7 +103,7 @@ public sealed class FavoritesPostgresRaceTests : IAsyncLifetime
         db.Apartments.Add(apartment);
         await db.SaveChangesAsync();
 
-        return apartment.Id;
+        return (apartment.Id, userId);
     }
 
     private sealed class ConcurrentFavoriteInsertBarrier : SaveChangesInterceptor

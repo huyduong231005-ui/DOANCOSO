@@ -6,7 +6,7 @@
 <main class="container py-4">
     <h1 class="mb-2">@Model.Name</h1>
     <p class="mb-1">@Model.RegionName - @Model.Address</p>
-    <p class="mb-3">Giá từ: @Model.PriceFrom.ToString("N0") VND/thang</p>
+    <p class="mb-3">Giá từ: @Model.PriceFrom.ToString("N0") VND/tháng</p>
 
     <div class="row g-3 mb-4">
         @foreach (var image in Model.GalleryUrls)
@@ -29,7 +29,7 @@
                     <div class="card-body">
                         <h5 class="card-title">@apartment.Title</h5>
                         <p class="card-text">@apartment.Address</p>
-                        <p class="card-text">@apartment.Price.ToString("N0") VND/thang</p>
+                        <p class="card-text">@apartment.Price.ToString("N0") VND/tháng</p>
                         <a asp-controller="Home" asp-action="ApartmentDetail" asp-route-id="@apartment.Id" class="btn btn-outline-primary btn-sm">Xem chi tiết</a>
                     </div>
                 </div>

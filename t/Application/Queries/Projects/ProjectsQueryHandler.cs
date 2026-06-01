@@ -61,6 +61,7 @@ public sealed class ProjectsQueryHandler
     {
         return await _db.Projects
             .AsNoTracking()
+            .AsSplitQuery()
             .Include(p => p.Region)
             .Include(p => p.Images)
             .Include(p => p.Apartments).ThenInclude(a => a.Images)
@@ -94,10 +95,10 @@ public sealed class ProjectsQueryHandler
                         Area = a.Area,
                         Bedrooms = a.Bedrooms,
                         CategoryName = a.Category.Name,
-                        CoverImageUrl = a.Images.Where(i => i.IsCover).Select(i => i.Url).FirstOrDefault()
+                        CoverImageUrl = a.Images.Where(i => i.IsCover).OrderBy(i => i.SortOrder).Select(i => i.Url).FirstOrDefault()
                                         ?? a.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).FirstOrDefault(),
-                        AmenityIcons = a.ApartmentAmenities.Select(aa => aa.Amenity.Icon).Take(3).ToList(),
-                        AmenityNames = a.ApartmentAmenities.Select(aa => aa.Amenity.Name).Take(3).ToList()
+                        AmenityIcons = a.ApartmentAmenities.OrderBy(aa => aa.AmenityId).Select(aa => aa.Amenity.Icon).Take(3).ToList(),
+                        AmenityNames = a.ApartmentAmenities.OrderBy(aa => aa.AmenityId).Select(aa => aa.Amenity.Name).Take(3).ToList()
                     })
                     .ToList()
             })

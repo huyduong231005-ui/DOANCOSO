@@ -817,6 +817,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
 
         // Soft delete global query filter
         ApplySoftDeleteFilter(b);
+        ApplyRelationshipSoftDeleteFilters(b);
 
         // Audit columns max length
         ApplyAuditColumnConstraints(b);
@@ -849,6 +850,16 @@ public class AppDbContext : IdentityDbContext<AppUser>
                 b.Entity(et.ClrType).HasQueryFilter(lambda);
             }
         }
+    }
+
+    private static void ApplyRelationshipSoftDeleteFilters(ModelBuilder b)
+    {
+        b.Entity<ApartmentAmenity>()
+            .HasQueryFilter(x => !x.Apartment.IsDeleted && !x.Amenity.IsDeleted);
+        b.Entity<LeaseTenant>()
+            .HasQueryFilter(x => !x.Lease.IsDeleted && !x.Tenant.IsDeleted);
+        b.Entity<RolePermission>()
+            .HasQueryFilter(x => !x.Permission.IsDeleted);
     }
 
     private static void ApplyAuditColumnConstraints(ModelBuilder b)

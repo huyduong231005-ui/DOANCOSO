@@ -276,20 +276,21 @@ if ($newIds.Count -ge 1) {
     }
 }
 
-# Toggle favorite 2 căn
+# Add 2 favorites
 if ($newIds.Count -ge 3) {
     foreach ($idx in 1, 2) {
         $target = $newIds[$idx]
         $detailPage = Get-Page -Session $renterSession -Path ("/Home/ApartmentDetail/" + $target.Id)
         $tok = Get-AntiforgeryToken -Html $detailPage.Body
-        $fav = Post-Form -Session $renterSession -Path "/Favorites/Toggle" -Token $tok -Fields @{
+        $fav = Post-Form -Session $renterSession -Path "/Favorites/Set" -Token $tok -Fields @{
             apartmentId = $target.Id
+            shouldBeFavorite = $true
             returnUrl = "/"
         }
         if ($fav.Status -ge 200 -and $fav.Status -lt 400) {
-            Log-Result ("POST Favorites/Toggle CanHo " + $target.Id) "PASS"
+            Log-Result ("POST Favorites/Set CanHo " + $target.Id) "PASS"
         } else {
-            Log-Result ("POST Favorites/Toggle CanHo " + $target.Id) "FAIL" ("Status=" + $fav.Status)
+            Log-Result ("POST Favorites/Set CanHo " + $target.Id) "FAIL" ("Status=" + $fav.Status)
         }
     }
 }

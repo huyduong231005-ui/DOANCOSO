@@ -35,6 +35,7 @@ public sealed class RentalsQueryHandler
 
         var query = _db.Apartments
             .AsNoTracking()
+            .AsSplitQuery()
             .Include(a => a.Images)
             .Include(a => a.Category)
             .Include(a => a.Region)
@@ -77,12 +78,12 @@ public sealed class RentalsQueryHandler
                 Price = a.Price,
                 Area = a.Area,
                 Bedrooms = a.Bedrooms,
-                CoverImageUrl = a.Images.Where(i => i.IsCover).Select(i => i.Url).FirstOrDefault()
+                CoverImageUrl = a.Images.Where(i => i.IsCover).OrderBy(i => i.SortOrder).Select(i => i.Url).FirstOrDefault()
                                 ?? a.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).FirstOrDefault(),
                 Badge = a.IsFeatured ? "Nổi bật" : (a.Category.Slug == "nha-tro" || a.Category.Slug == "chung-cu-mini" ? "Giá tốt" : null),
                 CategoryName = a.Category.Name,
-                AmenityIcons = a.ApartmentAmenities.Select(aa => aa.Amenity.Icon).Take(3).ToList(),
-                AmenityNames = a.ApartmentAmenities.Select(aa => aa.Amenity.Name).Take(3).ToList()
+                AmenityIcons = a.ApartmentAmenities.OrderBy(aa => aa.AmenityId).Select(aa => aa.Amenity.Icon).Take(3).ToList(),
+                AmenityNames = a.ApartmentAmenities.OrderBy(aa => aa.AmenityId).Select(aa => aa.Amenity.Name).Take(3).ToList()
             })
             .ToListAsync(cancellationToken);
 

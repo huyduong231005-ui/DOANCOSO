@@ -150,9 +150,10 @@
                 }
                 @if (isAuth)
                 {
-                    <form asp-controller="Favorites" asp-action="Toggle" method="post" style="margin-top:.5rem;">
+                    <form asp-controller="Favorites" asp-action="Set" method="post" style="margin-top:.5rem;" data-favorite-form>
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="apartmentId" value="@apartment.Id" />
+                        <input type="hidden" name="shouldBeFavorite" value="@(!isFav)" />
                         <input type="hidden" name="returnUrl" value="@returnUrl" />
                         <button type="submit" class="btn @(isFav ? "btn-primary" : "btn-outline")" style="display:inline-flex;align-items:center;gap:.4rem;">
                             <span class="material-symbols-outlined" style="@(isFav ? "font-variation-settings:'FILL' 1;" : "")">favorite</span>

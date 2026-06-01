@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.WebEncoders;
 using t.Application.Commands.Auth;
+using t.Application.Commands.Favorites;
 using t.Application.Commands.Listings;
 using t.Application.Queries.Auth;
 using t.Application.Queries.Projects;
@@ -94,6 +95,7 @@ builder.Services.AddControllersWithViews(options =>
 });
 builder.Services.AddScoped<CreateListingCommandHandler>();
 builder.Services.AddScoped<AuthCommandHandler>();
+builder.Services.AddScoped<SetFavoriteCommandHandler>();
 builder.Services.AddScoped<AuthQueryHandler>();
 builder.Services.AddScoped<ProjectsQueryHandler>();
 builder.Services.AddScoped<RentalsQueryHandler>();

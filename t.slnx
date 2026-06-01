@@ -1,2 +1,5 @@
 <Solution>
+  <Project Path="t.PostgresTests/t.PostgresTests.csproj" />
+  <Project Path="t.Tests/t.Tests.csproj" />
+  <Project Path="t/t.csproj" />
 </Solution>

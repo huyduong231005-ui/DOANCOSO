@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using t.Application.Commands.Favorites;
 using t.Data;
 using t.Models.Entities;
 
@@ -12,15 +13,21 @@ public class FavoritesController : Controller
 {
     private readonly AppDbContext _db;
     private readonly UserManager<AppUser> _userManager;
+    private readonly SetFavoriteCommandHandler _setFavoriteCommandHandler;
 
-    public FavoritesController(AppDbContext db, UserManager<AppUser> userManager)
+    public FavoritesController(
+        AppDbContext db,
+        UserManager<AppUser> userManager,
+        SetFavoriteCommandHandler setFavoriteCommandHandler)
     {
         _db = db;
         _userManager = userManager;
+        _setFavoriteCommandHandler = setFavoriteCommandHandler;
     }
 
     public async Task<IActionResult> Index()
     {
+        ViewData["ActiveNav"] = "favorites";
         var uid = _userManager.GetUserId(User);
         var items = await _db.Favorites
             .AsNoTracking()
@@ -34,33 +41,25 @@ public class FavoritesController : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Toggle(int apartmentId, string? returnUrl)
+    public async Task<IActionResult> Set(
+        int apartmentId,
+        bool shouldBeFavorite,
+        string? returnUrl,
+        CancellationToken cancellationToken)
     {
         var uid = _userManager.GetUserId(User);
         if (uid == null) return Challenge();
 
-        var apartmentExists = await _db.Apartments.AnyAsync(a => a.Id == apartmentId);
-        if (!apartmentExists) return NotFound();
-
-        var existing = await _db.Favorites.FirstOrDefaultAsync(f => f.UserId == uid && f.ApartmentId == apartmentId);
-        bool nowFavorite;
-        if (existing != null)
-        {
-            _db.Favorites.Remove(existing);
-            nowFavorite = false;
-        }
-        else
-        {
-            _db.Favorites.Add(new Favorite { UserId = uid, ApartmentId = apartmentId });
-            nowFavorite = true;
-        }
-        await _db.SaveChangesAsync();
+        var result = await _setFavoriteCommandHandler.HandleAsync(
+            new SetFavoriteCommand(uid, apartmentId, shouldBeFavorite),
+            cancellationToken);
+        if (result.Status == SetFavoriteStatus.ApartmentNotFound) return NotFound();
 
         // AJAX caller: return JSON. Otherwise redirect back.
         if (Request.Headers["X-Requested-With"] == "fetch")
-            return Json(new { ok = true, favorite = nowFavorite });
+            return Json(new { ok = true, favorite = result.IsFavorite });
 
-        TempData["Success"] = nowFavorite ? "Đã thêm vào yêu thích." : "Đã bỏ khỏi yêu thích.";
+        TempData["Success"] = result.IsFavorite ? "Đã thêm vào yêu thích." : "Đã bỏ khỏi yêu thích.";
         if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             return Redirect(returnUrl);
         return RedirectToAction(nameof(Index));

@@ -50,6 +50,7 @@
                     </a>
                 }
                 <a class="login-link" asp-controller="MyListings" asp-action="Index" data-soft-nav="true">Tin của tôi</a>
+                <a class="login-link @(activeNav == "favorites" ? "active" : string.Empty)" asp-controller="Favorites" asp-action="Index" data-soft-nav="true">Yêu thích</a>
 
                 <form asp-controller="Home" asp-action="Logout" method="post" class="d-inline">
                     @Html.AntiForgeryToken()

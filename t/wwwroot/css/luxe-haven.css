@@ -152,6 +152,10 @@ body.luxe-landing .material-symbols-outlined {
   color: var(--primary);
 }
 
+.login-link.active {
+  color: var(--primary);
+}
+
 .button-primary {
   border: none;
   border-radius: 999px;

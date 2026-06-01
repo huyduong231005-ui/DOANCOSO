@@ -141,9 +141,10 @@
                         </div>
                         @if (isAuthenticated)
                         {
-                            <form asp-controller="Favorites" asp-action="Toggle" method="post" class="inline">
+                            <form asp-controller="Favorites" asp-action="Set" method="post" class="inline" data-favorite-form>
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="apartmentId" value="@apartment.Id" />
+                                <input type="hidden" name="shouldBeFavorite" value="@(!isFav)" />
                                 <input type="hidden" name="returnUrl" value="@returnUrl" />
                                 <button type="submit" title="@(isFav ? "Bỏ yêu thích" : "Thêm vào yêu thích")"
                                         class="inline-flex h-9 w-9 items-center justify-center rounded-full border @(isFav ? "border-primary bg-primary/10 text-primary" : "border-outline-variant text-on-surface-variant")">

@@ -1,5 +1,6 @@
 @model t.Areas.Admin.Models.ApartmentEditVm
 @using t.Models.Entities
+@using t.Infrastructure.Localization
 @{
     ViewData["Title"] = Model.Id == 0 ? "Thêm căn hộ" : $"Sửa căn hộ #{Model.Id}";
 }
@@ -198,6 +199,20 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header"><h2>Điều kiện thuê</h2></div>
+        <div class="card-body"><div class="form-grid">
+            <div class="form-field span-3"><label asp-for="FurnishingLevel">Nội thất</label><select asp-for="FurnishingLevel">@foreach (var item in Enum.GetValues<FurnishingLevel>()) { <option value="@((int)item)">@item.Vi()</option> }</select></div>
+            <div class="form-field span-3"><label asp-for="ParkingType">Chỗ đậu xe</label><select asp-for="ParkingType">@foreach (var item in Enum.GetValues<ParkingType>()) { <option value="@((int)item)">@item.Vi()</option> }</select></div>
+            <div class="form-field span-3"><label asp-for="AllowsPets">Thú cưng</label><select asp-for="AllowsPets"><option value="false">Không cho phép</option><option value="true">Cho phép</option></select></div>
+            <div class="form-field span-3"><label asp-for="AvailableFrom">Ngày có thể vào ở</label><input asp-for="AvailableFrom" type="date" /></div>
+            <div class="form-field span-3"><label asp-for="MinLeaseMonths">Thuê tối thiểu (tháng)</label><input asp-for="MinLeaseMonths" type="number" min="1" max="120" /></div>
+            <div class="form-field span-3"><label asp-for="MaxLeaseMonths">Thuê tối đa (tháng)</label><input asp-for="MaxLeaseMonths" type="number" min="1" max="120" /></div>
+            <div class="form-field span-3"><label asp-for="FloorNumber">Tầng</label><input asp-for="FloorNumber" type="number" min="0" max="500" /></div>
+            <div class="form-field span-3"><label asp-for="HouseDirection">Hướng nhà</label><select asp-for="HouseDirection"><option value="">Chưa xác định</option>@foreach (var item in Enum.GetValues<HouseDirection>()) { <option value="@((int)item)">@item.Vi()</option> }</select></div>
+        </div></div>
     </div>
 
     <div class="hstack mt-3" style="justify-content:flex-end;">

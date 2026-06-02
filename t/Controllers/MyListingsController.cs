@@ -87,6 +87,14 @@ public class MyListingsController : Controller
             Area = apartment.Area,
             Bedrooms = apartment.Bedrooms,
             Bathrooms = apartment.Bathrooms,
+            FurnishingLevel = apartment.FurnishingLevel,
+            AllowsPets = apartment.AllowsPets,
+            ParkingType = apartment.ParkingType,
+            AvailableFrom = apartment.AvailableFrom,
+            MinLeaseMonths = apartment.MinLeaseMonths,
+            MaxLeaseMonths = apartment.MaxLeaseMonths,
+            HouseDirection = apartment.HouseDirection,
+            FloorNumber = apartment.FloorNumber,
             Status = apartment.Status,
             CategoryName = apartment.Category.Name,
             CoverImageUrl = apartment.Images.FirstOrDefault(i => i.IsCover)?.Url
@@ -102,6 +110,17 @@ public class MyListingsController : Controller
     {
         var userId = _userManager.GetUserId(User);
         if (userId is null) return Challenge();
+
+        if (!Enum.IsDefined(model.FurnishingLevel))
+            ModelState.AddModelError(nameof(model.FurnishingLevel), "Tình trạng nội thất không hợp lệ.");
+        if (!Enum.IsDefined(model.ParkingType))
+            ModelState.AddModelError(nameof(model.ParkingType), "Loại chỗ đậu xe không hợp lệ.");
+        if (model.HouseDirection.HasValue && !Enum.IsDefined(model.HouseDirection.Value))
+            ModelState.AddModelError(nameof(model.HouseDirection), "Hướng nhà không hợp lệ.");
+        if (model.AvailableFrom == default)
+            ModelState.AddModelError(nameof(model.AvailableFrom), "Ngày có thể vào ở không hợp lệ.");
+        if (model.MaxLeaseMonths < model.MinLeaseMonths)
+            ModelState.AddModelError(nameof(model.MaxLeaseMonths), "Thời hạn thuê tối đa không hợp lệ.");
 
         if (!ModelState.IsValid)
         {
@@ -132,6 +151,14 @@ public class MyListingsController : Controller
         apartment.Area = model.Area;
         apartment.Bedrooms = model.Bedrooms;
         apartment.Bathrooms = model.Bathrooms;
+        apartment.FurnishingLevel = model.FurnishingLevel;
+        apartment.AllowsPets = model.AllowsPets;
+        apartment.ParkingType = model.ParkingType;
+        apartment.AvailableFrom = model.AvailableFrom;
+        apartment.MinLeaseMonths = model.MinLeaseMonths;
+        apartment.MaxLeaseMonths = model.MaxLeaseMonths;
+        apartment.HouseDirection = model.HouseDirection;
+        apartment.FloorNumber = model.FloorNumber;
         apartment.Status = model.Status;
         apartment.UpdatedAt = DateTime.UtcNow;
         apartment.UpdatedBy = userId;

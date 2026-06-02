@@ -2,6 +2,7 @@
 @using t.Models.Entities
 @using System.Globalization
 @using t.Infrastructure.Geo
+@using t.Infrastructure.Localization
 @{
     ViewData["Title"] = "Chi tiết căn hộ";
     ViewData["BodyClass"] = "luxe-apartment-detail";
@@ -194,6 +195,28 @@
                         <p>@apartment.DescriptionTwo</p>
                     }
                 </section>
+
+                @if (entity != null)
+                {
+                    <section class="ap-section reveal-item fx-up" data-reveal-delay="20">
+                        <h2>Điều kiện thuê</h2>
+                        <div class="ap-amenities">
+                            <div class="ap-amenity"><span class="material-symbols-outlined">chair</span><span>@entity.FurnishingLevel.Vi()</span></div>
+                            <div class="ap-amenity"><span class="material-symbols-outlined">pets</span><span>@(entity.AllowsPets ? "Cho phép thú cưng" : "Không cho phép thú cưng")</span></div>
+                            <div class="ap-amenity"><span class="material-symbols-outlined">garage</span><span>@entity.ParkingType.Vi()</span></div>
+                            <div class="ap-amenity"><span class="material-symbols-outlined">event</span><span>Vào ở từ @entity.AvailableFrom.ToString("dd/MM/yyyy")</span></div>
+                            <div class="ap-amenity"><span class="material-symbols-outlined">calendar_month</span><span>Thuê @entity.MinLeaseMonths-@entity.MaxLeaseMonths tháng</span></div>
+                            @if (entity.FloorNumber.HasValue)
+                            {
+                                <div class="ap-amenity"><span class="material-symbols-outlined">stairs</span><span>Tầng @entity.FloorNumber</span></div>
+                            }
+                            @if (entity.HouseDirection.HasValue)
+                            {
+                                <div class="ap-amenity"><span class="material-symbols-outlined">explore</span><span>Hướng @entity.HouseDirection.Value.Vi()</span></div>
+                            }
+                        </div>
+                    </section>
+                }
 
                 <section class="ap-section reveal-item fx-up" data-reveal-delay="40">
                     <h2>Tiện ích căn hộ</h2>

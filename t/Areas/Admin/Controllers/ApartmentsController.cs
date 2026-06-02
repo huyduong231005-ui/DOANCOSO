@@ -160,6 +160,10 @@ public class ApartmentsController : AdminBaseController
             Price = apt.Price, DefaultDeposit = apt.DefaultDeposit, FeeNote = apt.FeeNote,
             Area = apt.Area, Bedrooms = apt.Bedrooms, Bathrooms = apt.Bathrooms,
             Address = apt.Address, Latitude = apt.Latitude, Longitude = apt.Longitude,
+            FurnishingLevel = apt.FurnishingLevel, AllowsPets = apt.AllowsPets,
+            ParkingType = apt.ParkingType, AvailableFrom = apt.AvailableFrom,
+            MinLeaseMonths = apt.MinLeaseMonths, MaxLeaseMonths = apt.MaxLeaseMonths,
+            HouseDirection = apt.HouseDirection, FloorNumber = apt.FloorNumber,
             Status = apt.Status, Occupancy = apt.Occupancy, IsFeatured = apt.IsFeatured,
             HostId = apt.HostId, RegionId = apt.RegionId, CategoryId = apt.CategoryId,
             ProjectId = apt.ProjectId, BuildingId = apt.BuildingId, FloorId = apt.FloorId,
@@ -172,6 +176,17 @@ public class ApartmentsController : AdminBaseController
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(ApartmentEditVm input)
     {
+        if (!Enum.IsDefined(input.FurnishingLevel))
+            ModelState.AddModelError(nameof(input.FurnishingLevel), "Tình trạng nội thất không hợp lệ.");
+        if (!Enum.IsDefined(input.ParkingType))
+            ModelState.AddModelError(nameof(input.ParkingType), "Loại chỗ đậu xe không hợp lệ.");
+        if (input.HouseDirection.HasValue && !Enum.IsDefined(input.HouseDirection.Value))
+            ModelState.AddModelError(nameof(input.HouseDirection), "Hướng nhà không hợp lệ.");
+        if (input.AvailableFrom == default)
+            ModelState.AddModelError(nameof(input.AvailableFrom), "Ngày có thể vào ở không hợp lệ.");
+        if (input.MaxLeaseMonths < input.MinLeaseMonths)
+            ModelState.AddModelError(nameof(input.MaxLeaseMonths), "Thời hạn thuê tối đa không hợp lệ.");
+
         if (!ModelState.IsValid)
         {
             await PopulateLookupsAsync(input);
@@ -215,6 +230,14 @@ public class ApartmentsController : AdminBaseController
         apt.Address = input.Address;
         apt.Latitude = input.Latitude;
         apt.Longitude = input.Longitude;
+        apt.FurnishingLevel = input.FurnishingLevel;
+        apt.AllowsPets = input.AllowsPets;
+        apt.ParkingType = input.ParkingType;
+        apt.AvailableFrom = input.AvailableFrom;
+        apt.MinLeaseMonths = input.MinLeaseMonths;
+        apt.MaxLeaseMonths = input.MaxLeaseMonths;
+        apt.HouseDirection = input.HouseDirection;
+        apt.FloorNumber = input.FloorNumber;
         apt.Status = input.Status;
         apt.Occupancy = input.Occupancy;
         apt.IsFeatured = input.IsFeatured;

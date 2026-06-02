@@ -63,6 +63,15 @@ public class EditListingViewModel
     [Range(0, 20)]
     public int Bathrooms { get; set; }
 
+    public FurnishingLevel FurnishingLevel { get; set; }
+    public bool AllowsPets { get; set; }
+    public ParkingType ParkingType { get; set; }
+    public DateOnly AvailableFrom { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
+    [Range(1, 120)] public int MinLeaseMonths { get; set; } = 1;
+    [Range(1, 120)] public int MaxLeaseMonths { get; set; } = 12;
+    public HouseDirection? HouseDirection { get; set; }
+    [Range(0, 500)] public int? FloorNumber { get; set; }
+
     public ListingStatus Status { get; set; }
 
     public string? CoverImageUrl { get; set; }

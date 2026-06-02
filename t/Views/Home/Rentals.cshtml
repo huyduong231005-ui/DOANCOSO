@@ -257,7 +257,7 @@
                 <label>Chỗ đậu xe
                     <select name="parkingType" form="rentals-filter-form"><option value="">Không yêu cầu</option><option value="1" selected="@(Model.Search.ParkingType == t.Models.Entities.ParkingType.Motorbike)">Xe máy</option><option value="2" selected="@(Model.Search.ParkingType == t.Models.Entities.ParkingType.Car)">Ô tô</option></select>
                 </label>
-                <label><input type="checkbox" name="allowsPets" value="true" checked="@(Model.Search.AllowsPets == true)" form="rentals-filter-form" /> Cho phép nuôi thú cưng</label>
+                <label class="preference-checkbox-label"><input type="checkbox" name="allowsPets" value="true" checked="@(Model.Search.AllowsPets == true)" form="rentals-filter-form" /> Cho phép nuôi thú cưng</label>
                 <label>Ngày dự kiến vào ở <input type="date" name="availableBy" value="@Model.Search.AvailableBy?.ToString("yyyy-MM-dd")" form="rentals-filter-form" /></label>
                 <label>Địa chỉ ưu tiên <input type="text" name="preferredAddress" value="@Model.Search.PreferredAddress" form="rentals-filter-form" /></label>
                 <input type="hidden" name="preferredLatitude" value="@Model.Search.PreferredLatitude" form="rentals-filter-form" />
@@ -290,7 +290,7 @@
                 <legend class="font-semibold text-primary">Tiêu chí bắt buộc</legend>
                 @foreach (var criterion in t.Models.ViewModels.RentalPreferenceCriteria.Allowed)
                 {
-                    <label><input type="checkbox" name="requiredCriteria" value="@criterion" checked="@Model.Search.RequiredCriteria.Contains(criterion)" form="rentals-filter-form" /> @t.Models.ViewModels.RentalPreferenceCriteria.GetLabel(criterion)</label>
+                    <label class="preference-checkbox-label"><input type="checkbox" name="requiredCriteria" value="@criterion" checked="@Model.Search.RequiredCriteria.Contains(criterion)" form="rentals-filter-form" /> @t.Models.ViewModels.RentalPreferenceCriteria.GetLabel(criterion)</label>
                 }
             </fieldset>
         </div>

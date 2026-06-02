@@ -68,6 +68,7 @@ public sealed class RentalPreferenceUiFlowTests : IClassFixture<TestWebApplicati
         Assert.Contains("270px", css, StringComparison.Ordinal);
         Assert.Contains("z-index: 120", css, StringComparison.Ordinal);
         Assert.Contains("repeat(3, minmax(0, 1fr))", css, StringComparison.Ordinal);
+        Assert.Contains("preference-checkbox-label", css, StringComparison.Ordinal);
         Assert.DoesNotContain("lg:col-span-", rentalsView, StringComparison.Ordinal);
         Assert.Contains("luxe:page-loaded", script, StringComparison.Ordinal);
         Assert.Contains("data-preference-save", script, StringComparison.Ordinal);

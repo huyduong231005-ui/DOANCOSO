@@ -99,6 +99,7 @@ builder.Services.AddScoped<SetFavoriteCommandHandler>();
 builder.Services.AddScoped<AuthQueryHandler>();
 builder.Services.AddScoped<ProjectsQueryHandler>();
 builder.Services.AddScoped<RentalsQueryHandler>();
+builder.Services.AddScoped<NearbyApartmentRecommendationsQueryHandler>();
 builder.Services.AddSingleton<IDevResetTokenStore, InMemoryDevResetTokenStore>();
 builder.Services.AddScoped<InvoiceGenerator>();
 builder.Services.AddHostedService<InvoiceGenerationService>();

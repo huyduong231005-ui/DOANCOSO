@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -437,6 +438,8 @@ public class PlannedFlowTests : IClassFixture<TestWebApplicationFactory>, IClass
             { new StringContent("12345678"), "Price" },
             { new StringContent("Test fee note"), "FeeNote" },
             { new StringContent("123 Test St"), "Address" },
+            { new StringContent("10.794200"), "Latitude" },
+            { new StringContent("106.721900"), "Longitude" },
             { new StringContent(regionId.ToString()), "RegionId" },
             { new StringContent(projectId.ToString()), "ProjectId" },
             { new StringContent("0"), "CoverImageIndex" }
@@ -451,7 +454,21 @@ public class PlannedFlowTests : IClassFixture<TestWebApplicationFactory>, IClass
         content.Add(CreateImageContent("listing-4.jpg", 1024), "Images", "listing-4.jpg");
         content.Add(CreateImageContent("listing-5.jpg", 1024), "Images", "listing-5.jpg");
 
-        var response = await client.PostAsync("/Home/PostListing", content);
+        var originalCulture = CultureInfo.CurrentCulture;
+        var originalUiCulture = CultureInfo.CurrentUICulture;
+        HttpResponseMessage response;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("vi-VN");
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("vi-VN");
+            response = await client.PostAsync("/Home/PostListing", content);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+            CultureInfo.CurrentUICulture = originalUiCulture;
+        }
 
         if (response.StatusCode != HttpStatusCode.Redirect)
         {
@@ -461,6 +478,79 @@ public class PlannedFlowTests : IClassFixture<TestWebApplicationFactory>, IClass
         }
 
         Assert.Contains("/Home/ApartmentDetail", response.Headers.Location?.OriginalString ?? string.Empty);
+
+        var apartmentId = int.Parse(
+            response.Headers.Location!.OriginalString.Split('/').Last(),
+            CultureInfo.InvariantCulture);
+        var apartment = await db.Apartments.SingleAsync(a => a.Id == apartmentId);
+
+        Assert.Equal(10.7942, apartment.Latitude);
+        Assert.Equal(106.7219, apartment.Longitude);
+    }
+
+    [Fact]
+    public async Task PostListing_ShouldRenderMapLibreOpenFreeMapHooks_WithoutCredentials()
+    {
+        using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
+
+        await LoginAsHostAsync(client);
+
+        var response = await client.GetAsync("/Home/PostListing");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.DoesNotContain("data-mapbox-access-token", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("mapbox", html, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/js/maplibre-loader.js", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("leaflet", html, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("data-address-autocomplete", html, StringComparison.Ordinal);
+        Assert.Contains("id=\"address-suggestions\"", html, StringComparison.Ordinal);
+
+        var scriptPath = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory,
+            "..", "..", "..", "..",
+            "t", "wwwroot", "js", "post-listing.js"));
+        var script = File.ReadAllText(scriptPath);
+
+        Assert.Contains("window.loadMapLibre", script, StringComparison.Ordinal);
+        Assert.Contains("https://tiles.openfreemap.org/styles/liberty", script, StringComparison.Ordinal);
+        Assert.Contains("https://photon.komoot.io/api/", script, StringComparison.Ordinal);
+        Assert.Contains("AUTOCOMPLETE_DELAY_MS = 500", script, StringComparison.Ordinal);
+        Assert.Contains("AUTOCOMPLETE_MIN_CHARS = 3", script, StringComparison.Ordinal);
+        Assert.Contains("AUTOCOMPLETE_LIMIT = 5", script, StringComparison.Ordinal);
+        Assert.Contains("new AbortController()", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("mapbox", script, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("nominatim", script, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("google.maps", script, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("search/searchbox", script, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void SoftNavigation_ShouldReinitializeMapLibrePages()
+    {
+        var webRoot = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory,
+            "..", "..", "..", "..",
+            "t", "wwwroot", "js"));
+        var layoutPath = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory,
+            "..", "..", "..", "..",
+            "t", "Views", "Shared", "_Layout.cshtml"));
+
+        var layout = File.ReadAllText(layoutPath);
+        var siteScript = File.ReadAllText(Path.Combine(webRoot, "site.js"));
+        var postListingScript = File.ReadAllText(Path.Combine(webRoot, "post-listing.js"));
+        var detailMapScript = File.ReadAllText(Path.Combine(webRoot, "apartment-detail-map.js"));
+
+        Assert.Contains("~/js/maplibre-loader.js", layout, StringComparison.Ordinal);
+        Assert.Contains("~/js/post-listing.js", layout, StringComparison.Ordinal);
+        Assert.Contains("~/js/apartment-detail-map.js", layout, StringComparison.Ordinal);
+        Assert.Contains("luxe:page-loaded", siteScript, StringComparison.Ordinal);
+        Assert.Contains("luxe:page-loaded", postListingScript, StringComparison.Ordinal);
+        Assert.Contains("luxe:page-loaded", detailMapScript, StringComparison.Ordinal);
     }
 
     [Fact]

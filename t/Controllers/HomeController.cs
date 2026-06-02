@@ -7,6 +7,8 @@ using t.Application.Commands.Auth;
 using t.Application.Commands.Listings;
 using t.Application.Queries.Rentals;
 using t.Data;
+using t.Infrastructure.Formatting;
+using t.Infrastructure.Geo;
 using t.Infrastructure.Time;
 using t.Models;
 using t.Models.Entities;
@@ -22,6 +24,7 @@ public class HomeController : Controller
     private readonly CreateListingCommandHandler _createListingCommandHandler;
     private readonly AuthCommandHandler _authCommandHandler;
     private readonly RentalsQueryHandler _rentalsQueryHandler;
+    private readonly NearbyApartmentRecommendationsQueryHandler _nearbyApartmentRecommendationsQueryHandler;
 
     public HomeController(
         AppDbContext db,
@@ -29,7 +32,8 @@ public class HomeController : Controller
         SignInManager<AppUser> signInManager,
         CreateListingCommandHandler createListingCommandHandler,
         AuthCommandHandler authCommandHandler,
-        RentalsQueryHandler rentalsQueryHandler)
+        RentalsQueryHandler rentalsQueryHandler,
+        NearbyApartmentRecommendationsQueryHandler nearbyApartmentRecommendationsQueryHandler)
     {
         _db = db;
         _userManager = userManager;
@@ -37,6 +41,7 @@ public class HomeController : Controller
         _createListingCommandHandler = createListingCommandHandler;
         _authCommandHandler = authCommandHandler;
         _rentalsQueryHandler = rentalsQueryHandler;
+        _nearbyApartmentRecommendationsQueryHandler = nearbyApartmentRecommendationsQueryHandler;
     }
 
     public async Task<IActionResult> Index()
@@ -81,15 +86,32 @@ public class HomeController : Controller
         [FromQuery] List<int>? categoryIds,
         [FromQuery] List<int>? amenityIds,
         string? sort, int page = 1,
-        string? category = null)
+        string? category = null,
+        double? latitude = null,
+        double? longitude = null)
     {
         const int pageSize = 12;
+        var hasCoordinateBindingError =
+            HasModelStateErrors(nameof(latitude)) ||
+            HasModelStateErrors(nameof(longitude));
+        var coordinates = GeoDistance.ValidatePair(latitude, longitude);
+        if (hasCoordinateBindingError || !coordinates.IsValid)
+        {
+            TempData["Warning"] = "Vị trí không hợp lệ. Danh sách đang hiển thị theo thứ tự mặc định.";
+            latitude = null;
+            longitude = null;
+            if (sort == "distance_asc")
+                sort = null;
+        }
+
         var model = await _rentalsQueryHandler.SearchAsync(
             region, minPrice, maxPrice,
             minArea, maxArea,
             categoryIds, amenityIds,
             sort, page, pageSize,
-            category);
+            category,
+            latitude,
+            longitude);
 
         ViewData["ActiveCategorySlug"] = category;
 
@@ -99,6 +121,11 @@ public class HomeController : Controller
         ViewBag.FavoriteIds = await GetFavoriteIdsAsync();
 
         return View(model);
+    }
+
+    private bool HasModelStateErrors(string key)
+    {
+        return ModelState.TryGetValue(key, out var entry) && entry.Errors.Count > 0;
     }
 
     private async Task<HashSet<int>> GetFavoriteIdsAsync()
@@ -128,26 +155,7 @@ public class HomeController : Controller
 
         if (apartment == null) return NotFound();
 
-        var similar = await _db.Apartments
-            .AsNoTracking()
-            .Include(a => a.Images)
-            .Include(a => a.Category)
-            .Where(a => a.Id != id && a.Status == ListingStatus.Active && a.RegionId == apartment.RegionId)
-            .OrderByDescending(a => a.CreatedAt)
-            .ThenByDescending(a => a.Id)
-            .Take(3)
-            .Select(a => new SimilarApartmentViewModel
-            {
-                Id = a.Id,
-                Tag = a.Category.Name,
-                Title = a.Title,
-                Meta = $"{a.Area} m2 • {a.Bedrooms} PN",
-                Price = FormatPrice(a.Price),
-                Location = a.Address,
-                Image = a.Images.Where(i => i.IsCover).Select(i => i.Url).FirstOrDefault()
-                        ?? a.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).FirstOrDefault() ?? string.Empty
-            })
-            .ToListAsync();
+        var similar = await _nearbyApartmentRecommendationsQueryHandler.GetAsync(apartment);
 
         var cover = apartment.Images.FirstOrDefault(i => i.IsCover) ?? apartment.Images.FirstOrDefault();
         var sideImages = apartment.Images.Where(i => !i.IsCover).Take(3).ToList();
@@ -164,7 +172,7 @@ public class HomeController : Controller
                     ? apartment.Reviews.Average(r => r.Rating).ToString("0.0")
                     : "N/A",
                 ReviewSummary = $"{apartment.Reviews.Count} đánh giá",
-                Price = FormatPrice(apartment.Price),
+                Price = RentalPriceFormatter.Format(apartment.Price),
                 FeeNote = apartment.FeeNote ?? string.Empty,
                 MainImage = cover?.Url ?? string.Empty,
                 SideImageOne = sideImages.ElementAtOrDefault(0)?.Url ?? string.Empty,
@@ -480,13 +488,6 @@ public class HomeController : Controller
         model.Regions = await _db.Regions.AsNoTracking().ToListAsync();
         model.Amenities = await _db.Amenities.AsNoTracking().ToListAsync();
         model.Projects = await _db.Projects.AsNoTracking().OrderByDescending(p => p.CreatedAt).ToListAsync();
-    }
-
-    private static string FormatPrice(decimal price)
-    {
-        if (price >= 1_000_000)
-            return $"{price / 1_000_000:0.#}tr";
-        return $"{price / 1_000:0}k";
     }
 
     private static string ToVietnameseIdentityError(string code)

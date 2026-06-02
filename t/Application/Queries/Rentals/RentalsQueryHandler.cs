@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using t.Data;
+using t.Infrastructure.Geo;
+using t.Models.Entities;
 using t.Models.ViewModels;
 
 namespace t.Application.Queries.Rentals;
@@ -19,6 +21,8 @@ public sealed class RentalsQueryHandler
         List<int>? categoryIds, List<int>? amenityIds,
         string? sort, int page, int pageSize,
         string? categorySlug = null,
+        double? latitude = null,
+        double? longitude = null,
         CancellationToken cancellationToken = default)
     {
         page = page <= 0 ? 1 : page;
@@ -58,34 +62,70 @@ public sealed class RentalsQueryHandler
         if (amenityIds?.Count > 0)
             query = query.Where(a => a.ApartmentAmenities.Any(aa => amenityIds.Contains(aa.AmenityId)));
 
-        query = sort switch
-        {
-            "price_asc" => query.OrderBy(a => a.Price),
-            "price_desc" => query.OrderByDescending(a => a.Price),
-            "area_desc" => query.OrderByDescending(a => a.Area),
-            _ => query.OrderByDescending(a => a.CreatedAt)
-        };
-
+        var coordinates = GeoDistance.ValidatePair(latitude, longitude);
+        var isNearbySort = sort == "distance_asc" && coordinates.IsActive;
         var totalCount = await query.CountAsync(cancellationToken);
-        var apartments = await query
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(a => new ApartmentListViewModel
+        List<ApartmentListViewModel> apartments;
+
+        if (isNearbySort)
+        {
+            var candidates = await query
+                .Select(a => new NearbyCandidate(
+                    a.Id,
+                    a.Latitude,
+                    a.Longitude,
+                    a.CreatedAt))
+                .ToListAsync(cancellationToken);
+
+            var selectedCandidates = candidates
+                .Select(candidate => new NearbyCandidateDistance(
+                    candidate,
+                    GeoDistance.IsValidCoordinate(candidate.Latitude, candidate.Longitude)
+                        ? GeoDistance.CalculateKm(
+                            latitude!.Value,
+                            longitude!.Value,
+                            candidate.Latitude!.Value,
+                            candidate.Longitude!.Value)
+                        : null))
+                .OrderBy(candidate => !candidate.DistanceKm.HasValue)
+                .ThenBy(candidate => candidate.DistanceKm)
+                .ThenByDescending(candidate => candidate.Candidate.CreatedAt)
+                .ThenByDescending(candidate => candidate.Candidate.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var selectedIds = selectedCandidates.Select(candidate => candidate.Candidate.Id).ToList();
+            var distanceById = selectedCandidates.ToDictionary(
+                candidate => candidate.Candidate.Id,
+                candidate => candidate.DistanceKm);
+            var cardsById = await ProjectCards(query.Where(a => selectedIds.Contains(a.Id)))
+                .ToDictionaryAsync(card => card.Id, cancellationToken);
+
+            apartments = selectedIds
+                .Select(id =>
+                {
+                    var card = cardsById[id];
+                    card.DistanceKm = distanceById[id];
+                    return card;
+                })
+                .ToList();
+        }
+        else
+        {
+            query = sort switch
             {
-                Id = a.Id,
-                Title = a.Title,
-                Address = a.Address,
-                Price = a.Price,
-                Area = a.Area,
-                Bedrooms = a.Bedrooms,
-                CoverImageUrl = a.Images.Where(i => i.IsCover).OrderBy(i => i.SortOrder).Select(i => i.Url).FirstOrDefault()
-                                ?? a.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).FirstOrDefault(),
-                Badge = a.IsFeatured ? "Nổi bật" : (a.Category.Slug == "nha-tro" || a.Category.Slug == "chung-cu-mini" ? "Giá tốt" : null),
-                CategoryName = a.Category.Name,
-                AmenityIcons = a.ApartmentAmenities.OrderBy(aa => aa.AmenityId).Select(aa => aa.Amenity.Icon).Take(3).ToList(),
-                AmenityNames = a.ApartmentAmenities.OrderBy(aa => aa.AmenityId).Select(aa => aa.Amenity.Name).Take(3).ToList()
-            })
-            .ToListAsync(cancellationToken);
+                "price_asc" => query.OrderBy(a => a.Price),
+                "price_desc" => query.OrderByDescending(a => a.Price),
+                "area_desc" => query.OrderByDescending(a => a.Area),
+                _ => query.OrderByDescending(a => a.CreatedAt)
+            };
+
+            apartments = await ProjectCards(query)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+        }
 
         return new ApartmentListPageViewModel
         {
@@ -101,7 +141,38 @@ public sealed class RentalsQueryHandler
             CategoryIds = categoryIds,
             AmenityIds = amenityIds,
             SortBy = sort,
-            CategorySlug = categorySlug
+            CategorySlug = categorySlug,
+            Latitude = isNearbySort ? latitude : null,
+            Longitude = isNearbySort ? longitude : null
         };
     }
+
+    private static IQueryable<ApartmentListViewModel> ProjectCards(IQueryable<Apartment> query)
+    {
+        return query.Select(a => new ApartmentListViewModel
+        {
+            Id = a.Id,
+            Title = a.Title,
+            Address = a.Address,
+            Price = a.Price,
+            Area = a.Area,
+            Bedrooms = a.Bedrooms,
+            CoverImageUrl = a.Images.Where(i => i.IsCover).OrderBy(i => i.SortOrder).Select(i => i.Url).FirstOrDefault()
+                            ?? a.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).FirstOrDefault(),
+            Badge = a.IsFeatured ? "Nổi bật" : (a.Category.Slug == "nha-tro" || a.Category.Slug == "chung-cu-mini" ? "Giá tốt" : null),
+            CategoryName = a.Category.Name,
+            AmenityIcons = a.ApartmentAmenities.OrderBy(aa => aa.AmenityId).Select(aa => aa.Amenity.Icon).Take(3).ToList(),
+            AmenityNames = a.ApartmentAmenities.OrderBy(aa => aa.AmenityId).Select(aa => aa.Amenity.Name).Take(3).ToList()
+        });
+    }
+
+    private sealed record NearbyCandidate(
+        int Id,
+        double? Latitude,
+        double? Longitude,
+        DateTime CreatedAt);
+
+    private sealed record NearbyCandidateDistance(
+        NearbyCandidate Candidate,
+        double? DistanceKm);
 }

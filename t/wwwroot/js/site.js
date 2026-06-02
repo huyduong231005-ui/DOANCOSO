@@ -517,6 +517,7 @@
 
       window.scrollTo(0, 0);
       initPageEffects();
+      document.dispatchEvent(new CustomEvent("luxe:page-loaded"));
     } catch {
       window.location.assign(url);
     } finally {

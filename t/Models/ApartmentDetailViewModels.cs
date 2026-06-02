@@ -28,6 +28,7 @@ public sealed class SimilarApartmentViewModel
     public string Price { get; init; } = string.Empty;
     public string Location { get; init; } = string.Empty;
     public string Image { get; init; } = string.Empty;
+    public double? DistanceKm { get; init; }
 }
 
 public sealed class ApartmentDetailPageViewModel

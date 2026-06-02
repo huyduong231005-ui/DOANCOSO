@@ -1,8 +1,20 @@
-﻿@model t.Models.ViewModels.CreateApartmentViewModel
+@model t.Models.ViewModels.CreateApartmentViewModel
 @{
     ViewData["Title"] = "Đăng tin mới";
     ViewData["BodyClass"] = "luxe-posting";
 }
+
+@section Head {
+    <style>
+        #posting-map {
+            height: 100%;
+            width: 100%;
+            border-radius: 1rem;
+            z-index: 1;
+        }
+    </style>
+}
+
 
 <div class="posting-page">
     <header class="posting-topbar">
@@ -170,9 +182,22 @@
                                 <span asp-validation-for="Bathrooms" class="text-danger"></span>
                             </div>
 
-                            <div class="posting-field full">
+                            <div class="posting-field full posting-address-field">
                                 <span>Địa chỉ</span>
-                                <input asp-for="Address" placeholder="Số nhà, đường, quận/huyện, tỉnh/thành" />
+                                <input asp-for="Address"
+                                       placeholder="Số nhà, đường, quận/huyện, tỉnh/thành"
+                                       autocomplete="off"
+                                       data-address-autocomplete
+                                       aria-autocomplete="list"
+                                       aria-controls="address-suggestions"
+                                       aria-expanded="false" />
+                                <div id="address-suggestions"
+                                     class="posting-address-suggestions"
+                                     role="listbox"
+                                     hidden></div>
+                                <small id="address-search-status"
+                                       class="posting-address-status"
+                                       aria-live="polite"></small>
                                 <span asp-validation-for="Address" class="text-danger"></span>
                             </div>
 
@@ -248,12 +273,11 @@
                                 <p>Xác nhận vị trí để người thuê dễ đánh giá khoảng cách và kết nối giao thông.</p>
                             </div>
                         </div>
-
-                        <div class="posting-map" aria-hidden="true">
-                            <img src="~/img/detail/map.jpg" alt="Map preview" />
-                            <div class="posting-map-pin">
-                                <span class="material-symbols-outlined">location_on</span>
-                            </div>
+                        <input type="hidden" asp-for="Latitude" id="Latitude" />
+                        <input type="hidden" asp-for="Longitude" id="Longitude" />
+                        <div class="posting-map"
+                             id="posting-map"
+                             style="position: relative; height: 360px; border-radius: 1rem; overflow: hidden; z-index: 1;">
                         </div>
                     </section>
 
@@ -284,6 +308,4 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="~/js/post-listing.js" asp-append-version="true"></script>
 }
-

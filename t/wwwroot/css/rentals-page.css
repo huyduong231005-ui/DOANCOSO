@@ -5,6 +5,35 @@ body.luxe-rentals {
   margin: 0;
 }
 
+.luxe-rentals .rentals-nearby-action {
+  cursor: pointer;
+  transition: background-color 180ms ease, color 180ms ease, opacity 180ms ease;
+}
+
+.luxe-rentals .rentals-nearby-action:hover {
+  background: rgba(0, 30, 64, 0.06);
+}
+
+.luxe-rentals .rentals-nearby-action.is-loading {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.luxe-rentals .rentals-nearby-status {
+  min-height: 1rem;
+  margin: 0;
+  color: #48626e;
+  font-size: 0.75rem;
+  text-align: right;
+}
+
+.luxe-rentals .rentals-distance-label {
+  margin: 0;
+  color: #001e40;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .luxe-rentals main {
   animation: rentals-page-enter 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }

@@ -1,4 +1,6 @@
 @model t.Models.ViewModels.ApartmentListPageViewModel
+@using System.Globalization
+@using t.Infrastructure.Geo
 @{
     ViewData["BodyClass"] = "luxe-rentals";
     ViewData["ActiveNav"] = "rentals";
@@ -39,6 +41,11 @@
             {
                 <input type="hidden" name="category" value="@Model.CategorySlug" />
             }
+            @if (Model.IsNearbySort)
+            {
+                <input type="hidden" name="latitude" value="@Model.Latitude!.Value.ToString(CultureInfo.InvariantCulture)" />
+                <input type="hidden" name="longitude" value="@Model.Longitude!.Value.ToString(CultureInfo.InvariantCulture)" />
+            }
             <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant lg:col-span-1">
                 Khu vực
                 <select name="region" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background">
@@ -77,6 +84,10 @@
                     <option value="price_asc" selected="@(Model.SortBy == "price_asc")">Giá tăng dần</option>
                     <option value="price_desc" selected="@(Model.SortBy == "price_desc")">Giá giảm dần</option>
                     <option value="area_desc" selected="@(Model.SortBy == "area_desc")">Diện tích lớn nhất</option>
+                    @if (Model.IsNearbySort)
+                    {
+                        <option value="distance_asc" selected>Gần bạn</option>
+                    }
                 </select>
             </label>
 
@@ -110,8 +121,13 @@
 
             <div class="flex items-center justify-end gap-2 lg:col-span-6">
                 <a asp-action="Rentals" class="inline-flex h-11 items-center rounded-xl border border-outline-variant px-4 text-sm font-semibold text-on-background">Xóa bộ lọc</a>
+                <button type="button" class="rentals-nearby-action inline-flex h-11 items-center gap-2 rounded-xl border border-primary px-4 text-sm font-semibold text-primary" data-nearby-rentals>
+                    <span class="material-symbols-outlined text-base">near_me</span>
+                    Gần bạn
+                </button>
                 <button type="submit" class="inline-flex h-11 items-center rounded-xl bg-primary px-5 text-sm font-semibold text-white">Áp dụng</button>
             </div>
+            <p class="rentals-nearby-status lg:col-span-6" data-nearby-rentals-status aria-live="polite"></p>
         </form>
     </section>
 
@@ -163,6 +179,10 @@
                         </div>
 
                         <p class="line-clamp-1 text-sm text-on-surface-variant">@apartment.Address</p>
+                        @if (apartment.DistanceKm.HasValue)
+                        {
+                            <p class="rentals-distance-label">@GeoDistance.FormatKm(apartment.DistanceKm.Value)</p>
+                        }
 
                         <div class="grid grid-cols-2 gap-2 rounded-2xl bg-surface-container-low px-3 py-2 text-xs text-on-surface-variant">
                             <div>Diện tích: <strong class="text-on-background">@apartment.Area m2</strong></div>
@@ -186,7 +206,7 @@
                 @for (var i = 1; i <= Model.TotalPages; i++)
                 {
                     <li>
-                        <a href="@Url.Action("Rentals", new { page = i, region = Model.RegionSlug, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice, minArea = Model.MinArea, maxArea = Model.MaxArea, sort = Model.SortBy, categoryIds = Model.CategoryIds, amenityIds = Model.AmenityIds, category = Model.CategorySlug })"
+                        <a href="@Url.Action("Rentals", new { page = i, region = Model.RegionSlug, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice, minArea = Model.MinArea, maxArea = Model.MaxArea, sort = Model.SortBy, categoryIds = Model.CategoryIds, amenityIds = Model.AmenityIds, category = Model.CategorySlug, latitude = Model.Latitude, longitude = Model.Longitude })"
                            class="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border px-3 text-sm font-semibold @(i == Model.Page ? "border-primary bg-primary text-white" : "border-outline-variant bg-white text-on-background")">
                             @i
                         </a>

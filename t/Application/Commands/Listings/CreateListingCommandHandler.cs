@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using t.Data;
 using t.Infrastructure;
 using t.Models.Entities;
@@ -116,6 +116,8 @@ public sealed class CreateListingCommandHandler
                 ? "Chưa bao gồm phí quản lý"
                 : model.FeeNote,
             Address = model.Address,
+            Latitude = model.Latitude,
+            Longitude = model.Longitude,
             RegionId = model.RegionId,
             HostId = command.HostId,
             ProjectId = model.ProjectId,

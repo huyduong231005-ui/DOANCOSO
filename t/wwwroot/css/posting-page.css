@@ -479,6 +479,61 @@
   grid-column: 1 / -1;
 }
 
+.posting-address-field {
+  position: relative;
+}
+
+.posting-address-suggestions {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% - 1.2rem);
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  border: 1px solid rgba(225, 228, 235, 0.95);
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.14);
+}
+
+.posting-address-suggestion {
+  display: grid;
+  width: 100%;
+  gap: 0.16rem;
+  padding: 0.72rem 0.9rem;
+  border: 0;
+  border-bottom: 1px solid #eef0f5;
+  background: #fff;
+  color: #001e40;
+  cursor: pointer;
+  text-align: left;
+}
+
+.posting-address-suggestion:last-child {
+  border-bottom: 0;
+}
+
+.posting-address-suggestion:hover,
+.posting-address-suggestion:focus {
+  outline: none;
+  background: #fff5f3;
+}
+
+.posting-address-suggestion strong {
+  font-size: 0.84rem;
+}
+
+.posting-address-suggestion small,
+.posting-address-status {
+  color: #667085;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.posting-address-status:empty {
+  display: none;
+}
+
 .posting-field span {
   color: #001e40;
   font-size: 0.65rem;
@@ -697,11 +752,15 @@
   transform: scale(1.08);
 }
 
-.posting-map::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 30, 64, 0.08);
+.posting-map-message {
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: #f8fafc;
+  color: #475467;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .posting-map-pin {

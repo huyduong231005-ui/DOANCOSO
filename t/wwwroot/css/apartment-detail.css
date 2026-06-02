@@ -39,7 +39,7 @@ body.luxe-apartment-detail {
   color: #001e40;
 }
 
-.ap-breadcrumb > span:last-child {
+.ap-breadcrumb>span:last-child {
   color: #001e40;
   font-weight: 700;
 }
@@ -108,7 +108,7 @@ body.luxe-apartment-detail {
   gap: 1rem;
 }
 
-.ap-gallery-side > .ap-gallery-item {
+.ap-gallery-side>.ap-gallery-item {
   aspect-ratio: 16 / 10;
 }
 
@@ -322,7 +322,7 @@ body.ap-lightbox-open {
   font-size: 0.98rem;
 }
 
-.ap-section p + p {
+.ap-section p+p {
   margin-top: 0.95rem;
 }
 
@@ -382,30 +382,14 @@ body.ap-lightbox-open {
   filter: grayscale(0.06);
 }
 
-.ap-map::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(2, 6, 23, 0.2), transparent 48%);
-}
-
-.ap-map button {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1;
-  border: none;
-  border-radius: 0.95rem;
-  background: #001e40;
-  color: #fff;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.42rem;
-  font-weight: 700;
-  font-size: 0.96rem;
-  padding: 0.95rem 1.28rem;
-  cursor: pointer;
+.ap-map-message {
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: #f8fafc;
+  color: #475467;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .ap-review-head {
@@ -766,6 +750,13 @@ body.ap-lightbox-open {
   letter-spacing: 0.07em;
 }
 
+.ap-similar-distance {
+  margin: 0.45rem 0 0;
+  color: #001e40;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .ap-footer {
   margin-top: 3.2rem;
   background: #edf1f6;
@@ -952,6 +943,7 @@ body.ap-lightbox-open {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .luxe-apartment-detail .apartment-main,
   .ap-gallery-main img,
   .ap-gallery-item img,
@@ -977,6 +969,7 @@ body.ap-lightbox-open {
   border-radius: 18px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
+
 .ap-booking-card h4 {
   display: flex;
   align-items: center;
@@ -986,12 +979,18 @@ body.ap-lightbox-open {
   font-weight: 700;
   color: #001e40;
 }
-.ap-booking-card h4 .material-symbols-outlined { font-size: 22px; color: #fe6e60; }
+
+.ap-booking-card h4 .material-symbols-outlined {
+  font-size: 22px;
+  color: #fe6e60;
+}
+
 .ap-booking-hint {
   margin: 0 0 1rem 0;
   font-size: 13px;
   color: #475569;
 }
+
 .ap-booking-alert {
   display: flex;
   gap: 0.5rem;
@@ -1002,36 +1001,47 @@ body.ap-lightbox-open {
   font-size: 13.5px;
   line-height: 1.45;
 }
-.ap-booking-alert .material-symbols-outlined { font-size: 20px; flex-shrink: 0; }
+
+.ap-booking-alert .material-symbols-outlined {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
 .ap-booking-alert-success {
   background: #ecfdf5;
   color: #047857;
   border-left: 3px solid #10b981;
 }
+
 .ap-booking-alert-danger {
   background: #fef2f2;
   color: #b91c1c;
   border-left: 3px solid #ef4444;
 }
+
 .ap-booking-form {
   display: grid;
   gap: 0.75rem;
 }
+
 .ap-booking-form label {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
 }
-.ap-booking-form label > span {
+
+.ap-booking-form label>span {
   font-size: 13px;
   font-weight: 600;
   color: #0f172a;
 }
-.ap-booking-form label > span em {
+
+.ap-booking-form label>span em {
   font-style: normal;
   font-weight: 400;
   color: #94a3b8;
 }
+
 .ap-booking-form input,
 .ap-booking-form select,
 .ap-booking-form textarea {
@@ -1043,6 +1053,7 @@ body.ap-lightbox-open {
   background: #f8fafc;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
+
 .ap-booking-form input:focus,
 .ap-booking-form select:focus,
 .ap-booking-form textarea:focus {
@@ -1050,10 +1061,12 @@ body.ap-lightbox-open {
   border-color: #001e40;
   background: white;
 }
+
 .ap-booking-form textarea {
   resize: vertical;
   min-height: 60px;
 }
+
 .ap-booking-form button[type="submit"] {
   margin-top: 0.5rem;
   display: inline-flex;
@@ -1069,4 +1082,7 @@ body.ap-lightbox-open {
   font-weight: 600;
   cursor: pointer;
 }
-.ap-booking-form button[type="submit"]:hover { background: #003366; }
+
+.ap-booking-form button[type="submit"]:hover {
+  background: #003366;
+}

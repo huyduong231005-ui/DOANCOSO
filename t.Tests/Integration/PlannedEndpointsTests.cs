@@ -1,4 +1,5 @@
 using System.Net;
+using System.Globalization;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -60,4 +61,46 @@ public class PlannedEndpointsTests : IClassFixture<TestWebApplicationFactory>, I
         Assert.Contains("InMemory", db.Database.ProviderName ?? string.Empty);
         Assert.True(await db.Projects.AnyAsync());
     }
+
+    [Fact]
+    public async Task ApartmentDetail_ShouldRenderJavaScriptCoordinatesWithInvariantCulture()
+    {
+        var originalCulture = CultureInfo.CurrentCulture;
+        var originalUiCulture = CultureInfo.CurrentUICulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("vi-VN");
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("vi-VN");
+
+            var response = await _client.GetAsync("/Home/ApartmentDetail/1");
+            var html = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Contains("data-latitude=\"10.7942\"", html);
+            Assert.Contains("data-longitude=\"106.7219\"", html);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+            CultureInfo.CurrentUICulture = originalUiCulture;
+        }
+    }
+
+    [Fact]
+    public async Task ApartmentDetail_ShouldRenderMapLibreHooks_WithoutProviderCredentials()
+    {
+        var response = await _client.GetAsync("/Home/ApartmentDetail/1");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.DoesNotContain("data-mapbox-access-token", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("mapbox", html, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/js/maplibre-loader.js", html, StringComparison.Ordinal);
+        Assert.Contains("/js/apartment-detail-map.js", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("leaflet", html, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("nominatim", html, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("google-maps", html, StringComparison.OrdinalIgnoreCase);
+    }
+
 }

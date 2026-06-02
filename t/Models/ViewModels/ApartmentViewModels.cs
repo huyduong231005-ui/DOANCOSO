@@ -1,5 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using t.Infrastructure.ModelBinding;
 using t.Models.Entities;
 
 namespace t.Models.ViewModels;
@@ -18,6 +20,7 @@ public class ApartmentListViewModel
     public List<string> AmenityIcons { get; set; } = new();
     public List<string> AmenityNames { get; set; } = new();
     public bool IsFavorite { get; set; }
+    public double? DistanceKm { get; set; }
 }
 
 public class ApartmentListPageViewModel
@@ -37,6 +40,12 @@ public class ApartmentListPageViewModel
     public List<int>? AmenityIds { get; set; }
     public string? SortBy { get; set; }
     public string? CategorySlug { get; set; }
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+    public bool IsNearbySort =>
+        SortBy == "distance_asc" &&
+        Latitude.HasValue &&
+        Longitude.HasValue;
 }
 
 public class CreateApartmentViewModel
@@ -75,6 +84,12 @@ public class CreateApartmentViewModel
     [Required(ErrorMessage = "Vui lòng nhập địa chỉ.")]
     [StringLength(300, MinimumLength = 10, ErrorMessage = "Địa chỉ phải từ 10 đến 300 ký tự.")]
     public string Address { get; set; } = string.Empty;
+
+    [ModelBinder(BinderType = typeof(InvariantNullableDoubleModelBinder))]
+    public double? Latitude { get; set; }
+
+    [ModelBinder(BinderType = typeof(InvariantNullableDoubleModelBinder))]
+    public double? Longitude { get; set; }
 
     [Required(ErrorMessage = "Vui lòng chọn khu vực.")]
     [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn khu vực.")]

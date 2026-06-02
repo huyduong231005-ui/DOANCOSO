@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using t.Application.Queries.Rentals;
+using t.Infrastructure.Geo;
 using t.Models.ViewModels;
 
 namespace t.Controllers.Api;
@@ -23,15 +24,22 @@ public class RentalsApiController : ControllerBase
         [FromQuery] List<int>? amenityIds,
         string? sort,
         int page = 1,
-        int pageSize = 12)
+        int pageSize = 12,
+        double? latitude = null,
+        double? longitude = null)
     {
         pageSize = Math.Clamp(pageSize, 1, 50);
+        var coordinates = GeoDistance.ValidatePair(latitude, longitude);
+        if (!coordinates.IsValid)
+            return BadRequest(new { error = coordinates.Error });
 
         var model = await _rentalsQueryHandler.SearchAsync(
             region, minPrice, maxPrice,
             minArea, maxArea,
             categoryIds, amenityIds,
-            sort, page, pageSize);
+            sort, page, pageSize,
+            latitude: latitude,
+            longitude: longitude);
 
         return Ok(new RentalsSearchResultViewModel
         {

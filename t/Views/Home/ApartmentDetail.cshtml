@@ -1,5 +1,7 @@
-﻿@model t.Models.ApartmentDetailPageViewModel
+@model t.Models.ApartmentDetailPageViewModel
 @using t.Models.Entities
+@using System.Globalization
+@using t.Infrastructure.Geo
 @{
     ViewData["Title"] = "Chi tiết căn hộ";
     ViewData["BodyClass"] = "luxe-apartment-detail";
@@ -7,7 +9,8 @@
 
     var apartment = Model.Apartment;
     var entity = ViewBag.Entity as Apartment;
-
+    var latitude = (entity?.Latitude ?? 0).ToString(CultureInfo.InvariantCulture);
+    var longitude = (entity?.Longitude ?? 0).ToString(CultureInfo.InvariantCulture);
     string NormalizePhone(string phone)
     {
         if (string.IsNullOrWhiteSpace(phone)) return string.Empty;
@@ -76,6 +79,17 @@
         hostPhoneVisible = "Đang cập nhật";
     }
     var hostPhoneHidden = MaskPhone(hostPhoneVisible);
+}
+
+@section Head {
+    <style>
+        #detail-map {
+            height: 100%;
+            width: 100%;
+            border-radius: 1.2rem;
+            z-index: 1;
+        }
+    </style>
 }
 
 <div class="text-on-background">
@@ -204,11 +218,12 @@
                 <section class="ap-section reveal-item fx-up" data-reveal-delay="80">
                     <h2>Vị trí căn hộ</h2>
                     <div class="ap-map">
-                        <img src="@Url.Content(string.IsNullOrWhiteSpace(apartment.MapImage) ? "/img/detail/map.jpg" : apartment.MapImage)" alt="Bản đồ vị trí @apartment.Title" />
-                        <button type="button">
-                            <span class="material-symbols-outlined">map</span>
-                            Xem trên bản đồ
-                        </button>
+                        <div id="detail-map"
+                             data-latitude="@latitude"
+                             data-longitude="@longitude"
+                             data-address="@apartment.Location"
+                             data-title="@apartment.Title">
+                        </div>
                     </div>
                 </section>
 
@@ -419,7 +434,7 @@
         </div>
 
         <section class="ap-similar reveal-item fx-up" data-reveal-delay="140">
-            <h2>Căn hộ tương tự</h2>
+            <h2>Căn hộ gần vị trí này</h2>
             <div class="ap-similar-grid">
                 @foreach (var item in Model.SimilarApartments)
                 {
@@ -435,6 +450,10 @@
                                 <strong>@item.Price</strong>
                                 <span>@item.Location</span>
                             </div>
+                            @if (item.DistanceKm.HasValue)
+                            {
+                                <p class="ap-similar-distance">@GeoDistance.FormatKm(item.DistanceKm.Value)</p>
+                            }
                         </div>
                     </a>
                 }

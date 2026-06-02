@@ -143,6 +143,24 @@ public static class RentalPreferenceCriteria
         "maxDistance", "furnishing", "pets", "parking", "moveInDate",
         "floorRange", "direction", "leaseRange"
     };
+
+    public static string GetLabel(string criterion) => criterion switch
+    {
+        "region" => "Khu vực",
+        "priceRange" => "Khoảng giá",
+        "areaRange" => "Khoảng diện tích",
+        "bedrooms" => "Số phòng ngủ",
+        "category" => "Loại hình",
+        "maxDistance" => "Khoảng cách tối đa",
+        "furnishing" => "Nội thất",
+        "pets" => "Cho phép thú cưng",
+        "parking" => "Chỗ đậu xe",
+        "moveInDate" => "Ngày vào ở",
+        "floorRange" => "Khoảng tầng",
+        "direction" => "Hướng nhà",
+        "leaseRange" => "Thời hạn thuê",
+        _ => criterion
+    };
 }
 
 public sealed record RentalPreferenceNormalizationResult(

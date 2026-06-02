@@ -48,6 +48,7 @@ public sealed class RentalPreferenceUiFlowTests : IClassFixture<TestWebApplicati
         Assert.Contains("data-rentals-advanced-drawer", html, StringComparison.Ordinal);
         Assert.Contains("data-rentals-filter-open", html, StringComparison.Ordinal);
         Assert.Contains("data-preference-save", html, StringComparison.Ordinal);
+        Assert.Contains("name=\"houseDirection\"", html, StringComparison.Ordinal);
         Assert.Contains("Phù hợp nhất", html, StringComparison.Ordinal);
         Assert.Contains("Bộ lọc nâng cao", html, StringComparison.Ordinal);
         Assert.Contains("Lưu hồ sơ nhu cầu", html, StringComparison.Ordinal);
@@ -64,6 +65,7 @@ public sealed class RentalPreferenceUiFlowTests : IClassFixture<TestWebApplicati
 
         Assert.Contains("rentals-page-shell", css, StringComparison.Ordinal);
         Assert.Contains("270px", css, StringComparison.Ordinal);
+        Assert.Contains("z-index: 120", css, StringComparison.Ordinal);
         Assert.Contains("repeat(3, minmax(0, 1fr))", css, StringComparison.Ordinal);
         Assert.Contains("luxe:page-loaded", script, StringComparison.Ordinal);
         Assert.Contains("data-preference-save", script, StringComparison.Ordinal);

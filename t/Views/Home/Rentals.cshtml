@@ -242,7 +242,9 @@
     </section>
     </div>
 
-    <aside class="rentals-advanced-drawer" data-rentals-advanced-drawer hidden>
+</main>
+
+<aside class="rentals-advanced-drawer" data-rentals-advanced-drawer hidden>
         <div class="rentals-advanced-panel">
             <div class="flex items-center justify-between gap-3">
                 <h2 class="font-headline text-xl font-semibold text-primary">Bộ lọc nâng cao</h2>
@@ -260,6 +262,19 @@
                 <label>Địa chỉ ưu tiên <input type="text" name="preferredAddress" value="@Model.Search.PreferredAddress" form="rentals-filter-form" /></label>
                 <input type="hidden" name="preferredLatitude" value="@Model.Search.PreferredLatitude" form="rentals-filter-form" />
                 <input type="hidden" name="preferredLongitude" value="@Model.Search.PreferredLongitude" form="rentals-filter-form" />
+                <label>Hướng nhà
+                    <select name="houseDirection" form="rentals-filter-form">
+                        <option value="">Không yêu cầu</option>
+                        <option value="0" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.East)">Đông</option>
+                        <option value="1" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.West)">Tây</option>
+                        <option value="2" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.South)">Nam</option>
+                        <option value="3" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.North)">Bắc</option>
+                        <option value="4" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.NorthEast)">Đông Bắc</option>
+                        <option value="5" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.SouthEast)">Đông Nam</option>
+                        <option value="6" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.NorthWest)">Tây Bắc</option>
+                        <option value="7" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.SouthWest)">Tây Nam</option>
+                    </select>
+                </label>
                 <div class="preference-map-wrap sm:col-span-2">
                     <div id="preference-address-suggestions" class="preference-address-suggestions" hidden></div>
                     <p id="preference-address-status" class="text-xs text-on-surface-variant" aria-live="polite"></p>
@@ -275,15 +290,14 @@
                 <legend class="font-semibold text-primary">Tiêu chí bắt buộc</legend>
                 @foreach (var criterion in t.Models.ViewModels.RentalPreferenceCriteria.Allowed)
                 {
-                    <label><input type="checkbox" name="requiredCriteria" value="@criterion" checked="@Model.Search.RequiredCriteria.Contains(criterion)" form="rentals-filter-form" /> @criterion</label>
+                    <label><input type="checkbox" name="requiredCriteria" value="@criterion" checked="@Model.Search.RequiredCriteria.Contains(criterion)" form="rentals-filter-form" /> @t.Models.ViewModels.RentalPreferenceCriteria.GetLabel(criterion)</label>
                 }
             </fieldset>
         </div>
-    </aside>
+</aside>
 
-    <form asp-controller="RentalPreferences" asp-action="Save" method="post" data-preference-save-form hidden>
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="returnUrl" value="@returnUrl" />
-    </form>
-</main>
+<form asp-controller="RentalPreferences" asp-action="Save" method="post" data-preference-save-form hidden>
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="returnUrl" value="@returnUrl" />
+</form>
 

@@ -25,7 +25,7 @@ body.luxe-rentals {
 .luxe-rentals .rentals-advanced-drawer {
   position: fixed;
   inset: 0;
-  z-index: 70;
+  z-index: 120;
   display: grid;
   justify-items: end;
   background: rgba(0, 30, 64, 0.35);

@@ -4,6 +4,22 @@ namespace t.Models.Entities;
 
 public enum ListingStatus { Draft, Active, Expired, Hidden }
 
+public enum FurnishingLevel { None = 0, Basic = 1, FullyFurnished = 2 }
+
+public enum ParkingType { None = 0, Motorbike = 1, Car = 2 }
+
+public enum HouseDirection
+{
+    East = 0,
+    West = 1,
+    South = 2,
+    North = 3,
+    NorthEast = 4,
+    SouthEast = 5,
+    NorthWest = 6,
+    SouthWest = 7
+}
+
 public enum ApartmentOccupancy
 {
     Available = 0,

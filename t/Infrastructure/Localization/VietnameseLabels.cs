@@ -8,6 +8,35 @@ namespace t.Infrastructure.Localization;
 /// </summary>
 public static class VietnameseLabels
 {
+    public static string Vi(this FurnishingLevel value) => value switch
+    {
+        FurnishingLevel.None => "Chưa có nội thất",
+        FurnishingLevel.Basic => "Nội thất cơ bản",
+        FurnishingLevel.FullyFurnished => "Đầy đủ nội thất",
+        _ => value.ToString()
+    };
+
+    public static string Vi(this ParkingType value) => value switch
+    {
+        ParkingType.None => "Không có",
+        ParkingType.Motorbike => "Xe máy",
+        ParkingType.Car => "Ô tô",
+        _ => value.ToString()
+    };
+
+    public static string Vi(this HouseDirection value) => value switch
+    {
+        HouseDirection.East => "Đông",
+        HouseDirection.West => "Tây",
+        HouseDirection.South => "Nam",
+        HouseDirection.North => "Bắc",
+        HouseDirection.NorthEast => "Đông Bắc",
+        HouseDirection.SouthEast => "Đông Nam",
+        HouseDirection.NorthWest => "Tây Bắc",
+        HouseDirection.SouthWest => "Tây Nam",
+        _ => value.ToString()
+    };
+
     public static string Vi(this LeaseStatus s) => s switch
     {
         LeaseStatus.Pending => "Chờ kích hoạt",

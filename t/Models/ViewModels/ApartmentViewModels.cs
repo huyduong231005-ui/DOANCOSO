@@ -45,6 +45,7 @@ public class ApartmentListPageViewModel
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
     public RentalSearchRequest Search { get; set; } = new();
+    public RentalPreferenceDraft? SavedPreference { get; set; }
     public bool HasUsableMatchCriteria { get; set; }
     public bool IsMatchSort => Search.Sort == "match_desc";
     public bool IsNearbySort =>

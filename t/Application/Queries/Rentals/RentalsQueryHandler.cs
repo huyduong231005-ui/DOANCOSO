@@ -199,6 +199,13 @@ public sealed class RentalsQueryHandler
     {
         var normalization = RentalPreferenceNormalizer.Normalize(request, strict: false);
         var draft = normalization.Draft;
+        if (!draft.RegionId.HasValue && !string.IsNullOrWhiteSpace(request.Region))
+        {
+            draft.RegionId = await _db.Regions
+                .Where(region => region.Slug == request.Region)
+                .Select(region => (int?)region.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
         var effectiveCategoryIds = draft.CategoryIds.ToHashSet();
         if (!string.IsNullOrWhiteSpace(request.Category))
         {
@@ -302,6 +309,17 @@ public sealed class RentalsQueryHandler
             TotalCount = matches.Count,
             Page = request.Page,
             PageSize = request.PageSize,
+            RegionSlug = request.Region,
+            MinPrice = request.MinPrice,
+            MaxPrice = request.MaxPrice,
+            MinArea = request.MinArea,
+            MaxArea = request.MaxArea,
+            CategoryIds = request.CategoryIds,
+            AmenityIds = request.AmenityIds,
+            SortBy = request.Sort,
+            CategorySlug = request.Category,
+            Latitude = request.Latitude,
+            Longitude = request.Longitude,
             Search = request,
             HasUsableMatchCriteria = HasUsableMatchCriteria(draft)
         };

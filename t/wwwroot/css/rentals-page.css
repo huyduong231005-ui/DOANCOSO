@@ -5,6 +5,119 @@ body.luxe-rentals {
   margin: 0;
 }
 
+.luxe-rentals .rentals-page-shell {
+  display: grid;
+  grid-template-columns: 270px minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.luxe-rentals .rentals-filter-sidebar {
+  position: sticky;
+  top: 6.5rem;
+}
+
+.luxe-rentals .rentals-results-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.luxe-rentals .rentals-advanced-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  justify-items: end;
+  background: rgba(0, 30, 64, 0.35);
+}
+
+.luxe-rentals .rentals-advanced-drawer[hidden] {
+  display: none;
+}
+
+.luxe-rentals .rentals-advanced-panel {
+  width: min(34rem, 100%);
+  height: 100%;
+  overflow: auto;
+  padding: 1.5rem;
+  background: #fff;
+  box-shadow: -18px 0 48px rgba(0, 30, 64, 0.18);
+}
+
+.luxe-rentals .rentals-advanced-panel label {
+  display: grid;
+  gap: 0.35rem;
+  color: #48626e;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.luxe-rentals .rentals-advanced-panel input,
+.luxe-rentals .rentals-advanced-panel select {
+  border: 1px solid #c3c6d1;
+  border-radius: 0.7rem;
+  padding: 0.65rem 0.75rem;
+  color: #1a1c1d;
+  font-weight: 500;
+}
+
+.luxe-rentals .preference-map {
+  min-height: 15rem;
+  overflow: hidden;
+  border: 1px solid #c3c6d1;
+  border-radius: 0.85rem;
+  background: #eef3f8;
+}
+
+.luxe-rentals .preference-address-suggestions {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.luxe-rentals .preference-address-suggestion {
+  border: 1px solid #c3c6d1;
+  border-radius: 0.65rem;
+  padding: 0.55rem 0.7rem;
+  background: #fff;
+  color: #1a1c1d;
+  text-align: left;
+}
+
+.luxe-rentals .rentals-match-score {
+  margin: 0;
+  color: #001e40;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.luxe-rentals .rentals-match-reasons {
+  margin: 0;
+  padding-left: 1rem;
+  color: #48626e;
+  font-size: 0.72rem;
+}
+
+@media (max-width: 1023px) {
+  .luxe-rentals .rentals-page-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .luxe-rentals .rentals-filter-sidebar {
+    position: static;
+  }
+
+  .luxe-rentals .rentals-results-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .luxe-rentals .rentals-results-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .luxe-rentals .rentals-nearby-action {
   cursor: pointer;
   transition: background-color 180ms ease, color 180ms ease, opacity 180ms ease;

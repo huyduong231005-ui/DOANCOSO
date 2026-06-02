@@ -1,5 +1,6 @@
 using t.Infrastructure.Geo;
 using t.Models.Entities;
+using Microsoft.AspNetCore.Routing;
 
 namespace t.Models.ViewModels;
 
@@ -37,6 +38,74 @@ public sealed class RentalSearchRequest
     public List<string> RequiredCriteria { get; set; } = new();
     public List<int> RequiredAmenityIds { get; set; } = new();
     public bool PendingPreferenceSave { get; set; }
+
+    public RouteValueDictionary ToRouteValues(int? page = null, bool clearPendingSave = false)
+    {
+        return new RouteValueDictionary
+        {
+            [nameof(Region)] = Region,
+            [nameof(MinPrice)] = MinPrice,
+            [nameof(MaxPrice)] = MaxPrice,
+            [nameof(MinArea)] = MinArea,
+            [nameof(MaxArea)] = MaxArea,
+            [nameof(CategoryIds)] = CategoryIds,
+            [nameof(AmenityIds)] = AmenityIds,
+            [nameof(Sort)] = Sort,
+            [nameof(Page)] = page ?? Page,
+            [nameof(Category)] = Category,
+            [nameof(Latitude)] = Latitude,
+            [nameof(Longitude)] = Longitude,
+            [nameof(RegionId)] = RegionId,
+            [nameof(MinBedrooms)] = MinBedrooms,
+            [nameof(FurnishingLevel)] = FurnishingLevel,
+            [nameof(AllowsPets)] = AllowsPets,
+            [nameof(ParkingType)] = ParkingType,
+            [nameof(AvailableBy)] = AvailableBy,
+            [nameof(PreferredAddress)] = PreferredAddress,
+            [nameof(PreferredLatitude)] = PreferredLatitude,
+            [nameof(PreferredLongitude)] = PreferredLongitude,
+            [nameof(MaxDistanceKm)] = MaxDistanceKm,
+            [nameof(MinFloor)] = MinFloor,
+            [nameof(MaxFloor)] = MaxFloor,
+            [nameof(HouseDirection)] = HouseDirection,
+            [nameof(MinLeaseMonths)] = MinLeaseMonths,
+            [nameof(MaxLeaseMonths)] = MaxLeaseMonths,
+            [nameof(RequiredCriteria)] = RequiredCriteria,
+            [nameof(RequiredAmenityIds)] = RequiredAmenityIds,
+            [nameof(PendingPreferenceSave)] = clearPendingSave ? null : PendingPreferenceSave ? true : null
+        };
+    }
+
+    public static RentalSearchRequest FromDraft(RentalPreferenceDraft draft)
+    {
+        return new RentalSearchRequest
+        {
+            Sort = "match_desc",
+            RegionId = draft.RegionId,
+            MinPrice = draft.MinPrice,
+            MaxPrice = draft.MaxPrice,
+            MinArea = draft.MinArea,
+            MaxArea = draft.MaxArea,
+            MinBedrooms = draft.MinBedrooms,
+            CategoryIds = draft.CategoryIds.ToList(),
+            AmenityIds = draft.AmenityIds.ToList(),
+            RequiredAmenityIds = draft.RequiredAmenityIds.ToList(),
+            FurnishingLevel = draft.FurnishingLevel,
+            AllowsPets = draft.AllowsPets,
+            ParkingType = draft.ParkingType,
+            AvailableBy = draft.AvailableBy,
+            PreferredAddress = draft.PreferredAddress,
+            PreferredLatitude = draft.PreferredLatitude,
+            PreferredLongitude = draft.PreferredLongitude,
+            MaxDistanceKm = draft.MaxDistanceKm,
+            MinFloor = draft.MinFloor,
+            MaxFloor = draft.MaxFloor,
+            HouseDirection = draft.HouseDirection,
+            MinLeaseMonths = draft.MinLeaseMonths,
+            MaxLeaseMonths = draft.MaxLeaseMonths,
+            RequiredCriteria = draft.RequiredCriteria.ToList()
+        };
+    }
 }
 
 public sealed class RentalPreferenceDraft

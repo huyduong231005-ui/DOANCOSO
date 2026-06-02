@@ -363,6 +363,18 @@
     async function initMap() {
         const mapContainer = document.getElementById('posting-map');
         if (!mapContainer) return;
+        if (window.createLuxeAddressMap) {
+            return window.createLuxeAddressMap({
+                mapElement: mapContainer,
+                addressInput: document.querySelector('[data-address-autocomplete]'),
+                latitudeInput: document.getElementById('Latitude'),
+                longitudeInput: document.getElementById('Longitude'),
+                suggestionsElement: document.getElementById('address-suggestions'),
+                statusElement: document.getElementById('address-search-status'),
+                defaultPosition: { lat: 10.762622, lng: 106.660172 },
+                suggestionClassName: 'posting-address-suggestion'
+            });
+        }
         if (mapContainer.dataset.mapLibreMapInitialized === 'true') return;
         mapContainer.dataset.mapLibreMapInitialized = 'true';
 

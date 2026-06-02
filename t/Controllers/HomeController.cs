@@ -25,6 +25,7 @@ public class HomeController : Controller
     private readonly AuthCommandHandler _authCommandHandler;
     private readonly RentalsQueryHandler _rentalsQueryHandler;
     private readonly NearbyApartmentRecommendationsQueryHandler _nearbyApartmentRecommendationsQueryHandler;
+    private readonly RentalPreferenceProfileQueryHandler _rentalPreferenceProfileQueryHandler;
 
     public HomeController(
         AppDbContext db,
@@ -33,7 +34,8 @@ public class HomeController : Controller
         CreateListingCommandHandler createListingCommandHandler,
         AuthCommandHandler authCommandHandler,
         RentalsQueryHandler rentalsQueryHandler,
-        NearbyApartmentRecommendationsQueryHandler nearbyApartmentRecommendationsQueryHandler)
+        NearbyApartmentRecommendationsQueryHandler nearbyApartmentRecommendationsQueryHandler,
+        RentalPreferenceProfileQueryHandler rentalPreferenceProfileQueryHandler)
     {
         _db = db;
         _userManager = userManager;
@@ -42,6 +44,7 @@ public class HomeController : Controller
         _authCommandHandler = authCommandHandler;
         _rentalsQueryHandler = rentalsQueryHandler;
         _nearbyApartmentRecommendationsQueryHandler = nearbyApartmentRecommendationsQueryHandler;
+        _rentalPreferenceProfileQueryHandler = rentalPreferenceProfileQueryHandler;
     }
 
     public async Task<IActionResult> Index()
@@ -80,40 +83,42 @@ public class HomeController : Controller
 
     public IActionResult Privacy() => View();
 
-    public async Task<IActionResult> Rentals(
-        string? region, decimal? minPrice, decimal? maxPrice,
-        double? minArea, double? maxArea,
-        [FromQuery] List<int>? categoryIds,
-        [FromQuery] List<int>? amenityIds,
-        string? sort, int page = 1,
-        string? category = null,
-        double? latitude = null,
-        double? longitude = null)
+    public async Task<IActionResult> Rentals([FromQuery] RentalSearchRequest request)
     {
         const int pageSize = 12;
+        request.PageSize = pageSize;
         var hasCoordinateBindingError =
-            HasModelStateErrors(nameof(latitude)) ||
-            HasModelStateErrors(nameof(longitude));
-        var coordinates = GeoDistance.ValidatePair(latitude, longitude);
+            HasModelStateErrors(nameof(request.Latitude)) ||
+            HasModelStateErrors(nameof(request.Longitude));
+        var coordinates = GeoDistance.ValidatePair(request.Latitude, request.Longitude);
         if (hasCoordinateBindingError || !coordinates.IsValid)
         {
             TempData["Warning"] = "Vị trí không hợp lệ. Danh sách đang hiển thị theo thứ tự mặc định.";
-            latitude = null;
-            longitude = null;
-            if (sort == "distance_asc")
-                sort = null;
+            request.Latitude = null;
+            request.Longitude = null;
+            if (request.Sort == "distance_asc")
+                request.Sort = null;
         }
 
-        var model = await _rentalsQueryHandler.SearchAsync(
-            region, minPrice, maxPrice,
-            minArea, maxArea,
-            categoryIds, amenityIds,
-            sort, page, pageSize,
-            category,
-            latitude,
-            longitude);
+        var normalization = RentalPreferenceNormalizer.Normalize(request, strict: false);
+        if (!normalization.IsValid)
+        {
+            TempData["Warning"] = normalization.Errors[0];
+            if (request.Sort == "match_desc")
+                request.Sort = null;
+        }
+        else if (normalization.Warnings.Count > 0)
+        {
+            TempData["Warning"] = normalization.Warnings[0];
+        }
 
-        ViewData["ActiveCategorySlug"] = category;
+        var model = await _rentalsQueryHandler.SearchAsync(request);
+        model.Search = request;
+        var userId = _userManager.GetUserId(User);
+        if (userId != null)
+            model.SavedPreference = await _rentalPreferenceProfileQueryHandler.GetAsync(userId);
+
+        ViewData["ActiveCategorySlug"] = request.Category;
 
         ViewBag.Categories = await _db.Categories.AsNoTracking().ToListAsync();
         ViewBag.Amenities = await _db.Amenities.AsNoTracking().ToListAsync();

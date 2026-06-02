@@ -7,6 +7,8 @@
     var categories = ViewBag.Categories as IEnumerable<t.Models.Entities.Category> ?? Enumerable.Empty<t.Models.Entities.Category>();
     var amenities = ViewBag.Amenities as IEnumerable<t.Models.Entities.Amenity> ?? Enumerable.Empty<t.Models.Entities.Amenity>();
     var regions = ViewBag.Regions as IEnumerable<t.Models.Entities.Region> ?? Enumerable.Empty<t.Models.Entities.Region>();
+    var isAuthenticated = User?.Identity?.IsAuthenticated == true;
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
 
     var activeCategoryName = string.IsNullOrEmpty(Model.CategorySlug)
         ? null
@@ -25,7 +27,8 @@
 <partial name="_LuxeTopbar" />
 
 <main class="mx-auto w-full max-w-[1280px] px-4 pb-10 pt-24 sm:px-6 lg:px-8">
-    <section class="rentals-fx d-1 rounded-3xl border border-outline-variant/60 bg-white/85 px-5 py-5 shadow-sm sm:px-6">
+    <div class="rentals-page-shell">
+    <aside class="rentals-filter-sidebar rentals-fx d-1 rounded-3xl border border-outline-variant/60 bg-white/85 px-5 py-5 shadow-sm sm:px-6" data-rentals-filter-sidebar>
         <div class="flex flex-wrap items-end justify-between gap-4">
             <div>
                 <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">@pageEyebrow</p>
@@ -36,7 +39,7 @@
             </div>
         </div>
 
-        <form asp-action="Rentals" method="get" class="mt-4 grid gap-3 lg:grid-cols-6">
+        <form asp-action="Rentals" method="get" id="rentals-filter-form" class="mt-4 grid gap-3">
             @if (!string.IsNullOrEmpty(Model.CategorySlug))
             {
                 <input type="hidden" name="category" value="@Model.CategorySlug" />
@@ -84,11 +87,17 @@
                     <option value="price_asc" selected="@(Model.SortBy == "price_asc")">Giá tăng dần</option>
                     <option value="price_desc" selected="@(Model.SortBy == "price_desc")">Giá giảm dần</option>
                     <option value="area_desc" selected="@(Model.SortBy == "area_desc")">Diện tích lớn nhất</option>
+                    <option value="match_desc" selected="@(Model.SortBy == "match_desc")">Phù hợp nhất</option>
                     @if (Model.IsNearbySort)
                     {
                         <option value="distance_asc" selected>Gần bạn</option>
                     }
                 </select>
+            </label>
+
+            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">
+                Phòng ngủ tối thiểu
+                <input name="minBedrooms" type="number" min="0" value="@Model.Search.MinBedrooms" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background" />
             </label>
 
             <div class="rounded-2xl border border-outline-variant/70 bg-surface-container-low px-4 py-3 lg:col-span-3">
@@ -127,15 +136,20 @@
                 </button>
                 <button type="submit" class="inline-flex h-11 items-center rounded-xl bg-primary px-5 text-sm font-semibold text-white">Áp dụng</button>
             </div>
+            <button type="button" class="inline-flex h-11 items-center rounded-xl border border-primary px-4 text-sm font-semibold text-primary" data-rentals-filter-open>Bộ lọc nâng cao</button>
+            <button type="button" class="inline-flex h-11 items-center rounded-xl bg-primary px-5 text-sm font-semibold text-white" data-preference-save data-is-authenticated="@isAuthenticated.ToString().ToLowerInvariant()">Lưu hồ sơ nhu cầu</button>
+            @if (Model.SavedPreference != null)
+            {
+                <a href="@Url.Action("Rentals", t.Models.ViewModels.RentalSearchRequest.FromDraft(Model.SavedPreference).ToRouteValues())" class="text-sm font-semibold text-primary" data-preference-apply>Áp dụng hồ sơ đã lưu</a>
+            }
             <p class="rentals-nearby-status lg:col-span-6" data-nearby-rentals-status aria-live="polite"></p>
         </form>
-    </section>
+    </aside>
 
-    <section class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <section class="rentals-results">
+    <section class="rentals-results-grid mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-rentals-results-grid>
         @{
             var favIds = (ViewBag.FavoriteIds as HashSet<int>) ?? new HashSet<int>();
-            var isAuthenticated = User?.Identity?.IsAuthenticated == true;
-            var returnUrl = Context.Request.Path + Context.Request.QueryString;
         }
         @for (var i = 0; i < Model.Apartments.Count; i++)
         {
@@ -183,6 +197,16 @@
                         {
                             <p class="rentals-distance-label">@GeoDistance.FormatKm(apartment.DistanceKm.Value)</p>
                         }
+                        @if (Model.IsMatchSort && apartment.MatchPercent.HasValue)
+                        {
+                            <p class="rentals-match-score">@apartment.MatchPercent% phù hợp</p>
+                            <ul class="rentals-match-reasons">
+                                @foreach (var reason in apartment.MatchReasons.Take(3))
+                                {
+                                    <li>@reason</li>
+                                }
+                            </ul>
+                        }
 
                         <div class="grid grid-cols-2 gap-2 rounded-2xl bg-surface-container-low px-3 py-2 text-xs text-on-surface-variant">
                             <div>Diện tích: <strong class="text-on-background">@apartment.Area m2</strong></div>
@@ -206,7 +230,7 @@
                 @for (var i = 1; i <= Model.TotalPages; i++)
                 {
                     <li>
-                        <a href="@Url.Action("Rentals", new { page = i, region = Model.RegionSlug, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice, minArea = Model.MinArea, maxArea = Model.MaxArea, sort = Model.SortBy, categoryIds = Model.CategoryIds, amenityIds = Model.AmenityIds, category = Model.CategorySlug, latitude = Model.Latitude, longitude = Model.Longitude })"
+                        <a href="@Url.Action("Rentals", Model.Search.ToRouteValues(i))"
                            class="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border px-3 text-sm font-semibold @(i == Model.Page ? "border-primary bg-primary text-white" : "border-outline-variant bg-white text-on-background")">
                             @i
                         </a>
@@ -215,5 +239,51 @@
             </ul>
         </nav>
     }
+    </section>
+    </div>
+
+    <aside class="rentals-advanced-drawer" data-rentals-advanced-drawer hidden>
+        <div class="rentals-advanced-panel">
+            <div class="flex items-center justify-between gap-3">
+                <h2 class="font-headline text-xl font-semibold text-primary">Bộ lọc nâng cao</h2>
+                <button type="button" class="text-sm font-semibold text-primary" data-rentals-filter-close>Đóng</button>
+            </div>
+            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                <label>Nội thất
+                    <select name="furnishingLevel" form="rentals-filter-form"><option value="">Không yêu cầu</option><option value="1" selected="@(Model.Search.FurnishingLevel == t.Models.Entities.FurnishingLevel.Basic)">Cơ bản</option><option value="2" selected="@(Model.Search.FurnishingLevel == t.Models.Entities.FurnishingLevel.FullyFurnished)">Đầy đủ</option></select>
+                </label>
+                <label>Chỗ đậu xe
+                    <select name="parkingType" form="rentals-filter-form"><option value="">Không yêu cầu</option><option value="1" selected="@(Model.Search.ParkingType == t.Models.Entities.ParkingType.Motorbike)">Xe máy</option><option value="2" selected="@(Model.Search.ParkingType == t.Models.Entities.ParkingType.Car)">Ô tô</option></select>
+                </label>
+                <label><input type="checkbox" name="allowsPets" value="true" checked="@(Model.Search.AllowsPets == true)" form="rentals-filter-form" /> Cho phép nuôi thú cưng</label>
+                <label>Ngày dự kiến vào ở <input type="date" name="availableBy" value="@Model.Search.AvailableBy?.ToString("yyyy-MM-dd")" form="rentals-filter-form" /></label>
+                <label>Địa chỉ ưu tiên <input type="text" name="preferredAddress" value="@Model.Search.PreferredAddress" form="rentals-filter-form" /></label>
+                <input type="hidden" name="preferredLatitude" value="@Model.Search.PreferredLatitude" form="rentals-filter-form" />
+                <input type="hidden" name="preferredLongitude" value="@Model.Search.PreferredLongitude" form="rentals-filter-form" />
+                <div class="preference-map-wrap sm:col-span-2">
+                    <div id="preference-address-suggestions" class="preference-address-suggestions" hidden></div>
+                    <p id="preference-address-status" class="text-xs text-on-surface-variant" aria-live="polite"></p>
+                    <div id="preference-map" class="preference-map" aria-label="Bản đồ vị trí ưu tiên"></div>
+                </div>
+                <label>Bán kính tối đa (km) <input type="number" name="maxDistanceKm" min="1" step="0.5" value="@Model.Search.MaxDistanceKm" form="rentals-filter-form" /></label>
+                <label>Tầng tối thiểu <input type="number" name="minFloor" value="@Model.Search.MinFloor" form="rentals-filter-form" /></label>
+                <label>Tầng tối đa <input type="number" name="maxFloor" value="@Model.Search.MaxFloor" form="rentals-filter-form" /></label>
+                <label>Thời hạn thuê tối thiểu <input type="number" name="minLeaseMonths" min="1" value="@Model.Search.MinLeaseMonths" form="rentals-filter-form" /></label>
+                <label>Thời hạn thuê tối đa <input type="number" name="maxLeaseMonths" min="1" value="@Model.Search.MaxLeaseMonths" form="rentals-filter-form" /></label>
+            </div>
+            <fieldset class="mt-4 grid gap-2 text-sm">
+                <legend class="font-semibold text-primary">Tiêu chí bắt buộc</legend>
+                @foreach (var criterion in t.Models.ViewModels.RentalPreferenceCriteria.Allowed)
+                {
+                    <label><input type="checkbox" name="requiredCriteria" value="@criterion" checked="@Model.Search.RequiredCriteria.Contains(criterion)" form="rentals-filter-form" /> @criterion</label>
+                }
+            </fieldset>
+        </div>
+    </aside>
+
+    <form asp-controller="RentalPreferences" asp-action="Save" method="post" data-preference-save-form hidden>
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="returnUrl" value="@returnUrl" />
+    </form>
 </main>
 

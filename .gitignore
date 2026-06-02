@@ -59,6 +59,7 @@ secrets.json
 .claude/
 .agent/
 .tmp/
+.superpowers/
 
 ## Luxe Haven dev artifacts (do not commit)
 t/wwwroot/dev-emails/

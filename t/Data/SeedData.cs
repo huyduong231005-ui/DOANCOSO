@@ -6,6 +6,8 @@ namespace t.Data;
 
 public static class SeedData
 {
+    private static readonly DateOnly SeedAvailableFrom = new(2026, 6, 1);
+
     public const string RoleAdmin = "Admin";
     public const string RoleManager = "Manager";
     public const string RoleHost = "Host";
@@ -351,6 +353,11 @@ public static class SeedData
             Area = 45, Bedrooms = 1, Bathrooms = 1,
             Address = "Phường 22, Bình Thạnh, TP. Hồ Chí Minh",
             Latitude = 10.7942, Longitude = 106.7219,
+            FurnishingLevel = FurnishingLevel.FullyFurnished,
+            AvailableFrom = SeedAvailableFrom,
+            MinLeaseMonths = 6,
+            MaxLeaseMonths = 24,
+            FloorNumber = 5,
             Status = ListingStatus.Active, Occupancy = ApartmentOccupancy.Occupied, IsFeatured = true,
             HostId = host.Id, Region = hcm, Category = cats["luxury"], ProjectId = landmarkId,
             BuildingId = buildingAId, FloorId = floors["A5"].Id
@@ -365,6 +372,11 @@ public static class SeedData
             Area = 20, Bedrooms = 1, Bathrooms = 1,
             Address = "Phường Linh Tây, Thủ Đức, TP. Hồ Chí Minh",
             Latitude = 10.8530, Longitude = 106.7590,
+            ParkingType = ParkingType.Motorbike,
+            AvailableFrom = SeedAvailableFrom,
+            MinLeaseMonths = 3,
+            MaxLeaseMonths = 12,
+            FloorNumber = 1,
             Status = ListingStatus.Active, Occupancy = ApartmentOccupancy.Available,
             HostId = host.Id, Region = hcm, Category = cats["room"], ProjectId = thuDucId,
             BuildingId = buildingBId, FloorId = floors["B1"].Id
@@ -379,6 +391,11 @@ public static class SeedData
             Area = 72, Bedrooms = 2, Bathrooms = 2,
             Address = "Nguyễn Hữu Cảnh, Bình Thạnh, TP. Hồ Chí Minh",
             Latitude = 10.7952, Longitude = 106.7193,
+            FurnishingLevel = FurnishingLevel.FullyFurnished,
+            AvailableFrom = SeedAvailableFrom,
+            MinLeaseMonths = 6,
+            MaxLeaseMonths = 24,
+            FloorNumber = 5,
             Status = ListingStatus.Active, Occupancy = ApartmentOccupancy.Available,
             HostId = host.Id, Region = hcm, Category = cats["luxury"], ProjectId = landmarkId,
             BuildingId = buildingAId, FloorId = floors["A5"].Id
@@ -393,6 +410,12 @@ public static class SeedData
             Area = 25, Bedrooms = 1, Bathrooms = 1,
             Address = "Linh Tây, Thủ Đức, TP. Hồ Chí Minh",
             Latitude = 10.7326, Longitude = 106.7196,
+            FurnishingLevel = FurnishingLevel.Basic,
+            ParkingType = ParkingType.Motorbike,
+            AvailableFrom = SeedAvailableFrom,
+            MinLeaseMonths = 3,
+            MaxLeaseMonths = 12,
+            FloorNumber = 2,
             Status = ListingStatus.Active, Occupancy = ApartmentOccupancy.Available,
             HostId = host.Id, Region = hcm, Category = cats["mini"], ProjectId = quan7Id,
             BuildingId = buildingBId, FloorId = floors["B2"].Id

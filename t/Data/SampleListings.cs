@@ -4,6 +4,8 @@ namespace t.Data;
 
 internal static class SampleListings
 {
+    private static readonly DateOnly SeedAvailableFrom = new(2026, 6, 1);
+
     private record Sample(
         string Cat, int ImgIdx, string Title, string Slug, string Code,
         string Desc, string DescExtra, decimal Price, decimal Deposit, string FeeNote,
@@ -241,6 +243,7 @@ internal static class SampleListings
         foreach (var s in Data)
         {
             var region = s.RegionKey switch { "hcm" => hcm, "hn" => hn, _ => dn };
+            var (minLeaseMonths, maxLeaseMonths) = LeaseRangeFor(s.Cat);
             apartments.Add(new Apartment
             {
                 Title = s.Title, Slug = s.Slug, UnitCode = s.Code,
@@ -248,6 +251,16 @@ internal static class SampleListings
                 Price = s.Price, DefaultDeposit = s.Deposit, FeeNote = s.FeeNote,
                 Area = s.Area, Bedrooms = s.Beds, Bathrooms = s.Baths,
                 Address = s.Address, Latitude = s.Lat, Longitude = s.Lon,
+                FurnishingLevel = s.Amenities.Contains("furniture")
+                    ? FurnishingLevel.FullyFurnished
+                    : FurnishingLevel.None,
+                AllowsPets = s.Cat is "house" or "villa",
+                ParkingType = s.Amenities.Contains("parking")
+                    ? s.Cat is "house" or "villa" ? ParkingType.Car : ParkingType.Motorbike
+                    : ParkingType.None,
+                AvailableFrom = SeedAvailableFrom,
+                MinLeaseMonths = minLeaseMonths,
+                MaxLeaseMonths = maxLeaseMonths,
                 Status = ListingStatus.Active,
                 Occupancy = ApartmentOccupancy.Available,
                 IsFeatured = s.Featured,
@@ -284,5 +297,15 @@ internal static class SampleListings
             }
         }
         ctx.SaveChanges();
+    }
+
+    private static (int Min, int Max) LeaseRangeFor(string category)
+    {
+        return category switch
+        {
+            "room" or "mini" => (3, 12),
+            "house" or "villa" => (12, 36),
+            _ => (6, 24)
+        };
     }
 }

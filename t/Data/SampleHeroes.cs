@@ -8,6 +8,8 @@ namespace t.Data;
 /// </summary>
 internal static class SampleHeroes
 {
+    private static readonly DateOnly SeedAvailableFrom = new(2026, 6, 1);
+
     public const string LandmarkSlug = "landmark-81-sky-villa";
     public const string OceanParkSlug = "vinhomes-ocean-park-residence";
     public const string SunGroupSlug = "sun-group-residence";
@@ -74,6 +76,10 @@ internal static class SampleHeroes
             Area = 120, Bedrooms = 3, Bathrooms = 3,
             Address = "Tôn Đức Thắng, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
             Latitude = 10.7794, Longitude = 106.7050,
+            FurnishingLevel = FurnishingLevel.FullyFurnished,
+            AvailableFrom = SeedAvailableFrom,
+            MinLeaseMonths = 6,
+            MaxLeaseMonths = 24,
             Status = ListingStatus.Active,
             Occupancy = ApartmentOccupancy.Available,
             IsFeatured = true,
@@ -96,6 +102,10 @@ internal static class SampleHeroes
             Area = 35, Bedrooms = 1, Bathrooms = 1,
             Address = "Đa Tốn, Gia Lâm, Hà Nội",
             Latitude = 20.9890, Longitude = 105.9320,
+            FurnishingLevel = FurnishingLevel.FullyFurnished,
+            AvailableFrom = SeedAvailableFrom,
+            MinLeaseMonths = 6,
+            MaxLeaseMonths = 24,
             Status = ListingStatus.Active,
             Occupancy = ApartmentOccupancy.Available,
             IsFeatured = true,
@@ -118,6 +128,11 @@ internal static class SampleHeroes
             Area = 95, Bedrooms = 2, Bathrooms = 2,
             Address = "Bạch Đằng, Phường Hải Châu 1, Hải Châu, Đà Nẵng",
             Latitude = 16.0742, Longitude = 108.2240,
+            FurnishingLevel = FurnishingLevel.FullyFurnished,
+            AllowsPets = true,
+            AvailableFrom = SeedAvailableFrom,
+            MinLeaseMonths = 12,
+            MaxLeaseMonths = 36,
             Status = ListingStatus.Active,
             Occupancy = ApartmentOccupancy.Available,
             IsFeatured = true,

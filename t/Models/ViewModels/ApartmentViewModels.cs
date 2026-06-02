@@ -97,6 +97,31 @@ public class CreateApartmentViewModel
     [ModelBinder(BinderType = typeof(InvariantNullableDoubleModelBinder))]
     public double? Longitude { get; set; }
 
+    [Required(ErrorMessage = "Vui lòng chọn tình trạng nội thất.")]
+    public FurnishingLevel? FurnishingLevel { get; set; } = t.Models.Entities.FurnishingLevel.None;
+
+    [Required(ErrorMessage = "Vui lòng chọn chính sách thú cưng.")]
+    public bool? AllowsPets { get; set; } = false;
+
+    [Required(ErrorMessage = "Vui lòng chọn loại chỗ đậu xe.")]
+    public ParkingType? ParkingType { get; set; } = t.Models.Entities.ParkingType.None;
+
+    [Required(ErrorMessage = "Vui lòng chọn ngày có thể vào ở.")]
+    public DateOnly? AvailableFrom { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
+
+    [Required(ErrorMessage = "Vui lòng nhập thời hạn thuê tối thiểu.")]
+    [Range(1, 120, ErrorMessage = "Thời hạn thuê tối thiểu phải từ 1 đến 120 tháng.")]
+    public int? MinLeaseMonths { get; set; } = 1;
+
+    [Required(ErrorMessage = "Vui lòng nhập thời hạn thuê tối đa.")]
+    [Range(1, 120, ErrorMessage = "Thời hạn thuê tối đa phải từ 1 đến 120 tháng.")]
+    public int? MaxLeaseMonths { get; set; } = 12;
+
+    public HouseDirection? HouseDirection { get; set; }
+
+    [Range(0, 500, ErrorMessage = "Số tầng không hợp lệ.")]
+    public int? FloorNumber { get; set; }
+
     [Required(ErrorMessage = "Vui lòng chọn khu vực.")]
     [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn khu vực.")]
     public int RegionId { get; set; }

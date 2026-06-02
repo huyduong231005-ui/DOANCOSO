@@ -215,6 +215,26 @@
                         </div>
                     </section>
 
+                    <section id="dieu-kien-thue" class="posting-card posting-fx delay-2">
+                        <div class="posting-card-head">
+                            <span class="material-symbols-outlined">contract_edit</span>
+                            <div>
+                                <h2>Điều kiện thuê</h2>
+                                <p>Khai báo rõ điều kiện để người thuê tìm được căn phù hợp hơn.</p>
+                            </div>
+                        </div>
+                        <div class="posting-grid">
+                            <label class="posting-field"><span>Nội thất</span><select asp-for="FurnishingLevel"><option value="0">Chưa có nội thất</option><option value="1">Nội thất cơ bản</option><option value="2">Đầy đủ nội thất</option></select><span asp-validation-for="FurnishingLevel" class="text-danger"></span></label>
+                            <label class="posting-field"><span>Cho phép thú cưng</span><select asp-for="AllowsPets"><option value="false">Không</option><option value="true">Có</option></select><span asp-validation-for="AllowsPets" class="text-danger"></span></label>
+                            <label class="posting-field"><span>Chỗ đậu xe</span><select asp-for="ParkingType"><option value="0">Không có</option><option value="1">Xe máy</option><option value="2">Ô tô</option></select><span asp-validation-for="ParkingType" class="text-danger"></span></label>
+                            <label class="posting-field"><span>Ngày có thể vào ở</span><input asp-for="AvailableFrom" type="date" /><span asp-validation-for="AvailableFrom" class="text-danger"></span></label>
+                            <label class="posting-field"><span>Thuê tối thiểu (tháng)</span><input asp-for="MinLeaseMonths" type="number" min="1" max="120" /><span asp-validation-for="MinLeaseMonths" class="text-danger"></span></label>
+                            <label class="posting-field"><span>Thuê tối đa (tháng)</span><input asp-for="MaxLeaseMonths" type="number" min="1" max="120" /><span asp-validation-for="MaxLeaseMonths" class="text-danger"></span></label>
+                            <label class="posting-field"><span>Tầng</span><input asp-for="FloorNumber" type="number" min="0" max="500" /><span asp-validation-for="FloorNumber" class="text-danger"></span></label>
+                            <label class="posting-field"><span>Hướng nhà</span><select asp-for="HouseDirection"><option value="">Chưa xác định</option><option value="0">Đông</option><option value="1">Tây</option><option value="2">Nam</option><option value="3">Bắc</option><option value="4">Đông Bắc</option><option value="5">Đông Nam</option><option value="6">Tây Bắc</option><option value="7">Tây Nam</option></select></label>
+                        </div>
+                    </section>
+
                     <section id="hinh-anh" class="posting-card posting-fx delay-2">
                         <div class="posting-card-head posting-between">
                             <div>

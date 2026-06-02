@@ -440,6 +440,14 @@ public class PlannedFlowTests : IClassFixture<TestWebApplicationFactory>, IClass
             { new StringContent("123 Test St"), "Address" },
             { new StringContent("10.794200"), "Latitude" },
             { new StringContent("106.721900"), "Longitude" },
+            { new StringContent("2"), "FurnishingLevel" },
+            { new StringContent("true"), "AllowsPets" },
+            { new StringContent("2"), "ParkingType" },
+            { new StringContent("2026-06-15"), "AvailableFrom" },
+            { new StringContent("6"), "MinLeaseMonths" },
+            { new StringContent("24"), "MaxLeaseMonths" },
+            { new StringContent("5"), "HouseDirection" },
+            { new StringContent("12"), "FloorNumber" },
             { new StringContent(regionId.ToString()), "RegionId" },
             { new StringContent(projectId.ToString()), "ProjectId" },
             { new StringContent("0"), "CoverImageIndex" }
@@ -486,6 +494,14 @@ public class PlannedFlowTests : IClassFixture<TestWebApplicationFactory>, IClass
 
         Assert.Equal(10.7942, apartment.Latitude);
         Assert.Equal(106.7219, apartment.Longitude);
+        Assert.Equal(FurnishingLevel.FullyFurnished, apartment.FurnishingLevel);
+        Assert.True(apartment.AllowsPets);
+        Assert.Equal(ParkingType.Car, apartment.ParkingType);
+        Assert.Equal(new DateOnly(2026, 6, 15), apartment.AvailableFrom);
+        Assert.Equal(6, apartment.MinLeaseMonths);
+        Assert.Equal(24, apartment.MaxLeaseMonths);
+        Assert.Equal(HouseDirection.SouthEast, apartment.HouseDirection);
+        Assert.Equal(12, apartment.FloorNumber);
     }
 
     [Fact]

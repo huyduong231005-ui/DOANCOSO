@@ -35,6 +35,23 @@ public sealed class CreateListingCommandHandler
         model.Description = model.Description?.Trim();
         model.FeeNote = model.FeeNote?.Trim();
 
+        if (!model.FurnishingLevel.HasValue || !Enum.IsDefined(model.FurnishingLevel.Value))
+            errors.Add((nameof(model.FurnishingLevel), "Tình trạng nội thất không hợp lệ."));
+        if (!model.AllowsPets.HasValue)
+            errors.Add((nameof(model.AllowsPets), "Vui lòng chọn chính sách thú cưng."));
+        if (!model.ParkingType.HasValue || !Enum.IsDefined(model.ParkingType.Value))
+            errors.Add((nameof(model.ParkingType), "Loại chỗ đậu xe không hợp lệ."));
+        if (model.HouseDirection.HasValue && !Enum.IsDefined(model.HouseDirection.Value))
+            errors.Add((nameof(model.HouseDirection), "Hướng nhà không hợp lệ."));
+        if (!model.AvailableFrom.HasValue || model.AvailableFrom.Value == default)
+            errors.Add((nameof(model.AvailableFrom), "Ngày có thể vào ở không hợp lệ."));
+        if (model.FloorNumber < 0)
+            errors.Add((nameof(model.FloorNumber), "Số tầng không hợp lệ."));
+        if (!model.MinLeaseMonths.HasValue || model.MinLeaseMonths < 1)
+            errors.Add((nameof(model.MinLeaseMonths), "Thời hạn thuê tối thiểu phải từ 1 tháng."));
+        if (!model.MaxLeaseMonths.HasValue || model.MaxLeaseMonths < model.MinLeaseMonths)
+            errors.Add((nameof(model.MaxLeaseMonths), "Thời hạn thuê tối đa không hợp lệ."));
+
         var categoryExists = await _db.Categories.AnyAsync(c => c.Id == model.CategoryId, cancellationToken);
         if (!categoryExists)
             errors.Add((nameof(model.CategoryId), "Loại hình đã chọn không tồn tại."));
@@ -118,6 +135,14 @@ public sealed class CreateListingCommandHandler
             Address = model.Address,
             Latitude = model.Latitude,
             Longitude = model.Longitude,
+            FurnishingLevel = model.FurnishingLevel!.Value,
+            AllowsPets = model.AllowsPets!.Value,
+            ParkingType = model.ParkingType!.Value,
+            AvailableFrom = model.AvailableFrom!.Value,
+            MinLeaseMonths = model.MinLeaseMonths!.Value,
+            MaxLeaseMonths = model.MaxLeaseMonths!.Value,
+            HouseDirection = model.HouseDirection,
+            FloorNumber = model.FloorNumber,
             RegionId = model.RegionId,
             HostId = command.HostId,
             ProjectId = model.ProjectId,

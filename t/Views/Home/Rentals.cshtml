@@ -49,7 +49,7 @@
                 <input type="hidden" name="latitude" value="@Model.Latitude!.Value.ToString(CultureInfo.InvariantCulture)" />
                 <input type="hidden" name="longitude" value="@Model.Longitude!.Value.ToString(CultureInfo.InvariantCulture)" />
             }
-            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant lg:col-span-1">
+            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">
                 Khu vực
                 <select name="region" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background">
                     <option value="">Tất cả</option>
@@ -60,27 +60,27 @@
                 </select>
             </label>
 
-            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant lg:col-span-1">
+            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">
                 Giá tối thiểu
                 <input name="minPrice" type="number" value="@Model.MinPrice" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background" />
             </label>
 
-            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant lg:col-span-1">
+            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">
                 Giá tối đa
                 <input name="maxPrice" type="number" value="@Model.MaxPrice" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background" />
             </label>
 
-            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant lg:col-span-1">
+            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">
                 Diện tích tối thiểu
                 <input name="minArea" type="number" value="@Model.MinArea" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background" />
             </label>
 
-            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant lg:col-span-1">
+            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">
                 Diện tích tối đa
                 <input name="maxArea" type="number" value="@Model.MaxArea" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background" />
             </label>
 
-            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant lg:col-span-1">
+            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">
                 Sắp xếp
                 <select name="sort" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background">
                     <option value="" selected="@(string.IsNullOrEmpty(Model.SortBy))">Mới nhất</option>
@@ -100,7 +100,7 @@
                 <input name="minBedrooms" type="number" min="0" value="@Model.Search.MinBedrooms" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background" />
             </label>
 
-            <div class="rounded-2xl border border-outline-variant/70 bg-surface-container-low px-4 py-3 lg:col-span-3">
+            <div class="rounded-2xl border border-outline-variant/70 bg-surface-container-low px-4 py-3">
                 <p class="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">Loại hình</p>
                 <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm text-on-background">
                     @foreach (var category in categories)
@@ -114,7 +114,7 @@
                 </div>
             </div>
 
-            <div class="rounded-2xl border border-outline-variant/70 bg-surface-container-low px-4 py-3 lg:col-span-3">
+            <div class="rounded-2xl border border-outline-variant/70 bg-surface-container-low px-4 py-3">
                 <p class="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">Tiện ích</p>
                 <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm text-on-background">
                     @foreach (var amenity in amenities)
@@ -128,7 +128,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center justify-end gap-2 lg:col-span-6">
+            <div class="flex flex-wrap items-center gap-2">
                 <a asp-action="Rentals" class="inline-flex h-11 items-center rounded-xl border border-outline-variant px-4 text-sm font-semibold text-on-background">Xóa bộ lọc</a>
                 <button type="button" class="rentals-nearby-action inline-flex h-11 items-center gap-2 rounded-xl border border-primary px-4 text-sm font-semibold text-primary" data-nearby-rentals>
                     <span class="material-symbols-outlined text-base">near_me</span>
@@ -142,7 +142,7 @@
             {
                 <a href="@Url.Action("Rentals", t.Models.ViewModels.RentalSearchRequest.FromDraft(Model.SavedPreference).ToRouteValues())" class="text-sm font-semibold text-primary" data-preference-apply>Áp dụng hồ sơ đã lưu</a>
             }
-            <p class="rentals-nearby-status lg:col-span-6" data-nearby-rentals-status aria-live="polite"></p>
+            <p class="rentals-nearby-status" data-nearby-rentals-status aria-live="polite"></p>
         </form>
     </aside>
 

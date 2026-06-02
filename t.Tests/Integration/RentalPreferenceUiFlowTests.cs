@@ -62,11 +62,13 @@ public sealed class RentalPreferenceUiFlowTests : IClassFixture<TestWebApplicati
         var script = File.ReadAllText(GetWebRootFile("js", "rentals-preferences.js"));
         var mapHelper = File.ReadAllText(GetWebRootFile("js", "address-map-autocomplete.js"));
         var layout = File.ReadAllText(GetViewFile("Shared", "_Layout.cshtml"));
+        var rentalsView = File.ReadAllText(GetViewFile("Home", "Rentals.cshtml"));
 
         Assert.Contains("rentals-page-shell", css, StringComparison.Ordinal);
         Assert.Contains("270px", css, StringComparison.Ordinal);
         Assert.Contains("z-index: 120", css, StringComparison.Ordinal);
         Assert.Contains("repeat(3, minmax(0, 1fr))", css, StringComparison.Ordinal);
+        Assert.DoesNotContain("lg:col-span-", rentalsView, StringComparison.Ordinal);
         Assert.Contains("luxe:page-loaded", script, StringComparison.Ordinal);
         Assert.Contains("data-preference-save", script, StringComparison.Ordinal);
         Assert.Contains("pendingPreferenceSave", script, StringComparison.Ordinal);

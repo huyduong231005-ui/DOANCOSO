@@ -332,6 +332,9 @@ Trong migration sinh ra:
 - tạo ba bảng profile;
 - chạy SQL backfill nội thất từ tiện ích slug `furniture`;
 - chạy SQL backfill đậu xe mức `Motorbike` từ tiện ích slug `parking`;
+- chạy SQL backfill khoảng thuê theo loại hình để dữ liệu Neon đã tồn tại có giá trị
+  demo hợp lý: nhà trọ/chung cư mini `3-12`, căn hộ/penthouse `6-24`, nhà nguyên
+  căn/biệt thự `12-36`;
 - không tự suy đoán hướng nhà hoặc tầng.
 
 - [ ] **Step 7: Kiểm tra migration script và chạy test metadata**
@@ -413,6 +416,11 @@ vì chỉ dựa vào default. Quy ước:
 - `AvailableFrom` dùng ngày seed ổn định để test dự đoán được.
 
 Khai báo tương tự cho `SampleHeroes` và bốn căn mẫu đầu trong `SeedData`.
+
+Lưu ý rollout: `SeedData.InitializeAsync()` hiện thoát sớm khi database đã có region.
+Vì vậy source seed mới chỉ làm dữ liệu database sạch nhất quán; dữ liệu Neon đang tồn
+tại phải được đồng bộ bằng SQL idempotent trong migration, không dựa vào việc app seed
+lại khi khởi động.
 
 - [ ] **Step 4: Chạy test seed và regression hiện có**
 
@@ -1407,7 +1415,19 @@ dotnet test .\t.Tests\t.Tests.csproj
 
 Expected: toàn bộ test PASS.
 
-- [ ] **Step 3: Kiểm tra migration PostgreSQL**
+- [ ] **Step 3: Chạy test PostgreSQL**
+
+Run:
+
+```powershell
+dotnet test .\t.PostgresTests\t.PostgresTests.csproj --no-restore --verbosity minimal
+```
+
+Expected: PASS khi Docker hoặc `FAVORITES_TEST_POSTGRES_CONNECTION` trỏ đến PostgreSQL
+local khả dụng. Nếu chưa có runtime, khởi động PostgreSQL local dùng lại được theo cấu
+hình máy, không bỏ qua suite này khi chuẩn bị rollout Neon.
+
+- [ ] **Step 4: Kiểm tra migration PostgreSQL**
 
 Run:
 
@@ -1417,9 +1437,9 @@ dotnet ef migrations script --project .\t\t.csproj --startup-project .\t\t.cspro
 
 Expected: sinh script thành công. Nếu Docker/PostgreSQL local khả dụng, chạy
 migration trên database test sạch và rollback/recreate theo quy trình local.
-Nếu không khả dụng, ghi rõ giới hạn xác minh.
+Không apply migration Neon trước khi script đã được kiểm tra trên PostgreSQL local sạch.
 
-- [ ] **Step 4: Khởi động app local và test desktop**
+- [ ] **Step 5: Khởi động app local và test desktop**
 
 Dùng app tại `http://localhost:5073` và Playwright headed. Kiểm tra:
 
@@ -1431,7 +1451,7 @@ Dùng app tại `http://localhost:5073` và Playwright headed. Kiểm tra:
 6. `Gần bạn` vẫn xin geolocation chỉ sau click.
 7. Pagination giữ advanced filter.
 
-- [ ] **Step 5: Test login-return-save**
+- [ ] **Step 6: Test login-return-save**
 
 Trong browser:
 
@@ -1444,7 +1464,7 @@ Trong browser:
 7. chỉnh filter, lưu lại và xác nhận không tạo profile thứ hai;
 8. bấm `Áp dụng hồ sơ đã lưu`.
 
-- [ ] **Step 6: Test map và form đăng tin**
+- [ ] **Step 7: Test map và form đăng tin**
 
 Trong browser:
 
@@ -1458,7 +1478,7 @@ Trong browser:
 8. sửa lại tin qua `Tin của tôi`;
 9. kiểm tra detail hiển thị tóm tắt điều kiện thuê.
 
-- [ ] **Step 7: Test responsive**
+- [ ] **Step 8: Test responsive**
 
 Playwright viewport:
 
@@ -1470,7 +1490,7 @@ Mobile: 390x844
 
 Xác nhận desktop ba cột, tablet hai cột, mobile một cột và drawer toàn màn hình.
 
-- [ ] **Step 8: Smoke test ít nhất mười màn hình**
+- [ ] **Step 9: Smoke test ít nhất mười màn hình**
 
 Kiểm tra status, title, heading và console error:
 
@@ -1492,7 +1512,7 @@ Kiểm tra status, title, heading và console error:
 Guest route cần auth phải redirect đúng. Console phải không có error ứng dụng.
 Ghi riêng warning MapLibre/OpenFreeMap không chặn luồng nếu vẫn còn.
 
-- [ ] **Step 9: Kiểm tra worktree**
+- [ ] **Step 10: Kiểm tra worktree**
 
 Run:
 
@@ -1510,11 +1530,23 @@ Expected:
   `docs/superpowers/plans/2026-05-31-favorites-hardening-and-ui.md`
   vẫn không bị stage.
 
-- [ ] **Step 10: Commit fix xác minh nếu có**
+- [ ] **Step 11: Commit fix xác minh nếu có**
 
 Chỉ commit nếu browser hoặc full suite phát hiện regression và đã sửa bằng
 test fail trước. Chỉ stage đúng các file của fix đã xác minh, rồi commit:
 `fix: resolve rental preference regressions`.
+
+- [ ] **Step 12: Rollout Neon và production**
+
+Chỉ thực hiện sau khi Step 1-11 PASS:
+
+1. tạo backup hoặc xác nhận điểm khôi phục Neon hiện có;
+2. apply migration bằng `dotnet ef database update`;
+3. query `__EFMigrationsHistory` và kiểm tra các cột/bảng profile mới;
+4. push branch release lên GitHub theo phạm vi đã xác minh;
+5. đợi Render deploy;
+6. smoke-test production: rentals sidebar/drawer, `match_desc`, lưu và áp dụng profile,
+   nearby regression, detail map, post-listing map và autocomplete Photon.
 
 ## Checklist Nghiệm Thu Cuối
 

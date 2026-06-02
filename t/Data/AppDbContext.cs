@@ -52,6 +52,9 @@ public class AppDbContext : IdentityDbContext<AppUser>
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<ViewingAppointment> ViewingAppointments => Set<ViewingAppointment>();
+    public DbSet<RentalPreferenceProfile> RentalPreferenceProfiles => Set<RentalPreferenceProfile>();
+    public DbSet<RentalPreferenceCategory> RentalPreferenceCategories => Set<RentalPreferenceCategory>();
+    public DbSet<RentalPreferenceAmenity> RentalPreferenceAmenities => Set<RentalPreferenceAmenity>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -177,6 +180,14 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.Property(a => a.Address).HasColumnName("DiaChi").HasMaxLength(500);
             e.Property(a => a.Latitude).HasColumnName("ViDo");
             e.Property(a => a.Longitude).HasColumnName("KinhDo");
+            e.Property(a => a.FurnishingLevel).HasColumnName("MucNoiThat").HasDefaultValue(FurnishingLevel.None);
+            e.Property(a => a.AllowsPets).HasColumnName("ChoPhepThuCung").HasDefaultValue(false);
+            e.Property(a => a.ParkingType).HasColumnName("LoaiChoDauXe").HasDefaultValue(ParkingType.None);
+            e.Property(a => a.AvailableFrom).HasColumnName("NgayCoTheVaoO").HasDefaultValueSql("CURRENT_DATE");
+            e.Property(a => a.MinLeaseMonths).HasColumnName("SoThangThueToiThieu").HasDefaultValue(1);
+            e.Property(a => a.MaxLeaseMonths).HasColumnName("SoThangThueToiDa").HasDefaultValue(12);
+            e.Property(a => a.HouseDirection).HasColumnName("HuongNha");
+            e.Property(a => a.FloorNumber).HasColumnName("SoTang");
             e.Property(a => a.Status).HasColumnName("TrangThai");
             e.Property(a => a.Occupancy).HasColumnName("TinhTrangThue");
             e.Property(a => a.IsFeatured).HasColumnName("NoiBat");
@@ -202,6 +213,9 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.HasIndex(a => a.FloorId);
             e.HasIndex(a => a.HostId);
             e.HasIndex(a => a.IsFeatured);
+            e.HasIndex(a => a.FurnishingLevel);
+            e.HasIndex(a => a.ParkingType);
+            e.HasIndex(a => a.AvailableFrom);
             e.HasIndex(a => new { a.BuildingId, a.UnitCode })
              .IsUnique()
              .HasFilter("\"ToaNhaId\" IS NOT NULL AND \"MaCanHo\" IS NOT NULL");
@@ -235,6 +249,97 @@ public class AppDbContext : IdentityDbContext<AppUser>
              .WithMany(f => f.Apartments)
              .HasForeignKey(a => a.FloorId)
              .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // ================== RentalPreferenceProfile ==================
+        b.Entity<RentalPreferenceProfile>(e =>
+        {
+            e.ToTable("HoSoNhuCauThue");
+            MapBaseEntityColumns(e);
+
+            e.Property(x => x.UserId).HasColumnName("NguoiDungId");
+            e.Property(x => x.RegionId).HasColumnName("KhuVucId");
+            e.Property(x => x.MinPrice).HasColumnName("GiaToiThieu").HasColumnType("decimal(18,0)");
+            e.Property(x => x.MaxPrice).HasColumnName("GiaToiDa").HasColumnType("decimal(18,0)");
+            e.Property(x => x.MinArea).HasColumnName("DienTichToiThieu");
+            e.Property(x => x.MaxArea).HasColumnName("DienTichToiDa");
+            e.Property(x => x.MinBedrooms).HasColumnName("SoPhongNguToiThieu");
+            e.Property(x => x.PreferredAddress).HasColumnName("DiaChiUuTien").HasMaxLength(500);
+            e.Property(x => x.PreferredLatitude).HasColumnName("ViDoUuTien");
+            e.Property(x => x.PreferredLongitude).HasColumnName("KinhDoUuTien");
+            e.Property(x => x.MaxDistanceKm).HasColumnName("BanKinhToiDaKm");
+            e.Property(x => x.FurnishingLevel).HasColumnName("MucNoiThat");
+            e.Property(x => x.AllowsPets).HasColumnName("CanChoPhepThuCung");
+            e.Property(x => x.ParkingType).HasColumnName("LoaiChoDauXe");
+            e.Property(x => x.MoveInDate).HasColumnName("NgayDuKienVaoO");
+            e.Property(x => x.MinFloor).HasColumnName("TangToiThieu");
+            e.Property(x => x.MaxFloor).HasColumnName("TangToiDa");
+            e.Property(x => x.HouseDirection).HasColumnName("HuongNha");
+            e.Property(x => x.MinLeaseMonths).HasColumnName("SoThangThueToiThieu");
+            e.Property(x => x.MaxLeaseMonths).HasColumnName("SoThangThueToiDa");
+            e.Property(x => x.RequireRegion).HasColumnName("BatBuocKhuVuc");
+            e.Property(x => x.RequirePriceRange).HasColumnName("BatBuocKhoangGia");
+            e.Property(x => x.RequireAreaRange).HasColumnName("BatBuocDienTich");
+            e.Property(x => x.RequireBedrooms).HasColumnName("BatBuocPhongNgu");
+            e.Property(x => x.RequireCategoryMatch).HasColumnName("BatBuocLoaiHinh");
+            e.Property(x => x.RequireMaxDistance).HasColumnName("BatBuocKhoangCach");
+            e.Property(x => x.RequireFurnishing).HasColumnName("BatBuocNoiThat");
+            e.Property(x => x.RequirePets).HasColumnName("BatBuocThuCung");
+            e.Property(x => x.RequireParking).HasColumnName("BatBuocDauXe");
+            e.Property(x => x.RequireMoveInDate).HasColumnName("BatBuocNgayVaoO");
+            e.Property(x => x.RequireFloorRange).HasColumnName("BatBuocKhoangTang");
+            e.Property(x => x.RequireDirection).HasColumnName("BatBuocHuongNha");
+            e.Property(x => x.RequireLeaseRange).HasColumnName("BatBuocThoiHanThue");
+
+            e.HasIndex(x => x.UserId).IsUnique();
+            e.HasIndex(x => x.RegionId);
+
+            e.HasOne(x => x.User)
+             .WithOne(x => x.RentalPreferenceProfile)
+             .HasForeignKey<RentalPreferenceProfile>(x => x.UserId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(x => x.Region)
+             .WithMany()
+             .HasForeignKey(x => x.RegionId)
+             .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ================== RentalPreferenceCategory ==================
+        b.Entity<RentalPreferenceCategory>(e =>
+        {
+            e.ToTable("HoSoNhuCauThue_DanhMuc");
+            e.HasKey(x => new { x.ProfileId, x.CategoryId });
+            e.Property(x => x.ProfileId).HasColumnName("HoSoNhuCauThueId");
+            e.Property(x => x.CategoryId).HasColumnName("DanhMucId");
+            e.Property(x => x.CreatedAt).HasColumnName("NgayTao");
+            e.Property(x => x.CreatedBy).HasColumnName("NguoiTao");
+            e.Property(x => x.UpdatedAt).HasColumnName("NgayCapNhat");
+            e.Property(x => x.UpdatedBy).HasColumnName("NguoiCapNhat");
+            e.HasIndex(x => x.CategoryId);
+            e.HasOne(x => x.Profile).WithMany(x => x.Categories)
+             .HasForeignKey(x => x.ProfileId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Category).WithMany()
+             .HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ================== RentalPreferenceAmenity ==================
+        b.Entity<RentalPreferenceAmenity>(e =>
+        {
+            e.ToTable("HoSoNhuCauThue_TienIch");
+            e.HasKey(x => new { x.ProfileId, x.AmenityId });
+            e.Property(x => x.ProfileId).HasColumnName("HoSoNhuCauThueId");
+            e.Property(x => x.AmenityId).HasColumnName("TienIchId");
+            e.Property(x => x.IsRequired).HasColumnName("BatBuoc");
+            e.Property(x => x.CreatedAt).HasColumnName("NgayTao");
+            e.Property(x => x.CreatedBy).HasColumnName("NguoiTao");
+            e.Property(x => x.UpdatedAt).HasColumnName("NgayCapNhat");
+            e.Property(x => x.UpdatedBy).HasColumnName("NguoiCapNhat");
+            e.HasIndex(x => x.AmenityId);
+            e.HasOne(x => x.Profile).WithMany(x => x.Amenities)
+             .HasForeignKey(x => x.ProfileId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Amenity).WithMany()
+             .HasForeignKey(x => x.AmenityId).OnDelete(DeleteBehavior.Restrict);
         });
 
         // ================== ApartmentImage ==================
@@ -856,6 +961,10 @@ public class AppDbContext : IdentityDbContext<AppUser>
     {
         b.Entity<ApartmentAmenity>()
             .HasQueryFilter(x => !x.Apartment.IsDeleted && !x.Amenity.IsDeleted);
+        b.Entity<RentalPreferenceAmenity>()
+            .HasQueryFilter(x => !x.Profile.IsDeleted && !x.Amenity.IsDeleted);
+        b.Entity<RentalPreferenceCategory>()
+            .HasQueryFilter(x => !x.Profile.IsDeleted && !x.Category.IsDeleted);
         b.Entity<LeaseTenant>()
             .HasQueryFilter(x => !x.Lease.IsDeleted && !x.Tenant.IsDeleted);
         b.Entity<RolePermission>()

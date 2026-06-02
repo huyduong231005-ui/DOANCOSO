@@ -28,4 +28,5 @@ public class AppUser : IdentityUser, IAuditable, ISoftDeletable
     public ICollection<Lease> Leases { get; set; } = new List<Lease>();
     public ICollection<LeaseTenant> CoTenancies { get; set; } = new List<LeaseTenant>();
     public ICollection<Building> ManagedBuildings { get; set; } = new List<Building>();
+    public RentalPreferenceProfile? RentalPreferenceProfile { get; set; }
 }

@@ -44,6 +44,14 @@ public class Apartment : BaseEntity
     public string Address { get; set; } = string.Empty;
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
+    public FurnishingLevel FurnishingLevel { get; set; }
+    public bool AllowsPets { get; set; }
+    public ParkingType ParkingType { get; set; }
+    public DateOnly AvailableFrom { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
+    public int MinLeaseMonths { get; set; } = 1;
+    public int MaxLeaseMonths { get; set; } = 12;
+    public HouseDirection? HouseDirection { get; set; }
+    public int? FloorNumber { get; set; }
     public ListingStatus Status { get; set; } = ListingStatus.Draft;
     public ApartmentOccupancy Occupancy { get; set; } = ApartmentOccupancy.Available;
     public bool IsFeatured { get; set; }

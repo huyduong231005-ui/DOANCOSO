@@ -21,6 +21,8 @@ public class ApartmentListViewModel
     public List<string> AmenityNames { get; set; } = new();
     public bool IsFavorite { get; set; }
     public double? DistanceKm { get; set; }
+    public int? MatchPercent { get; set; }
+    public List<string> MatchReasons { get; set; } = new();
 }
 
 public class ApartmentListPageViewModel
@@ -42,6 +44,9 @@ public class ApartmentListPageViewModel
     public string? CategorySlug { get; set; }
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
+    public RentalSearchRequest Search { get; set; } = new();
+    public bool HasUsableMatchCriteria { get; set; }
+    public bool IsMatchSort => Search.Sort == "match_desc";
     public bool IsNearbySort =>
         SortBy == "distance_asc" &&
         Latitude.HasValue &&

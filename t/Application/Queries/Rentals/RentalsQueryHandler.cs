@@ -16,6 +16,33 @@ public sealed class RentalsQueryHandler
     }
 
     public async Task<ApartmentListPageViewModel> SearchAsync(
+        RentalSearchRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        request.Page = request.Page <= 0 ? 1 : request.Page;
+        request.PageSize = request.PageSize <= 0 ? 12 : request.PageSize;
+
+        if (request.Sort == "match_desc")
+            return await SearchByMatchAsync(request, cancellationToken);
+
+        return await SearchAsync(
+            request.Region,
+            request.MinPrice,
+            request.MaxPrice,
+            request.MinArea,
+            request.MaxArea,
+            request.CategoryIds,
+            request.AmenityIds,
+            request.Sort,
+            request.Page,
+            request.PageSize,
+            request.Category,
+            request.Latitude,
+            request.Longitude,
+            cancellationToken);
+    }
+
+    public async Task<ApartmentListPageViewModel> SearchAsync(
         string? region, decimal? minPrice, decimal? maxPrice,
         double? minArea, double? maxArea,
         List<int>? categoryIds, List<int>? amenityIds,
@@ -164,6 +191,175 @@ public sealed class RentalsQueryHandler
             AmenityIcons = a.ApartmentAmenities.OrderBy(aa => aa.AmenityId).Select(aa => aa.Amenity.Icon).Take(3).ToList(),
             AmenityNames = a.ApartmentAmenities.OrderBy(aa => aa.AmenityId).Select(aa => aa.Amenity.Name).Take(3).ToList()
         });
+    }
+
+    private async Task<ApartmentListPageViewModel> SearchByMatchAsync(
+        RentalSearchRequest request,
+        CancellationToken cancellationToken)
+    {
+        var normalization = RentalPreferenceNormalizer.Normalize(request, strict: false);
+        var draft = normalization.Draft;
+        var effectiveCategoryIds = draft.CategoryIds.ToHashSet();
+        if (!string.IsNullOrWhiteSpace(request.Category))
+        {
+            var slugId = await _db.Categories
+                .Where(category => category.Slug == request.Category)
+                .Select(category => (int?)category.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+            effectiveCategoryIds.Add(slugId ?? -1);
+        }
+        draft.CategoryIds = effectiveCategoryIds;
+
+        var query = _db.Apartments
+            .AsNoTracking()
+            .Where(apartment => apartment.Status == ListingStatus.Active);
+
+        query = ApplyRequiredSqlFilters(query, draft);
+        var projectedCandidates = await query
+            .Select(apartment => new
+            {
+                apartment.Id,
+                apartment.CreatedAt,
+                apartment.RegionId,
+                apartment.Price,
+                apartment.Area,
+                apartment.Bedrooms,
+                apartment.CategoryId,
+                AmenityIds = apartment.ApartmentAmenities
+                    .Select(link => link.AmenityId)
+                    .ToList(),
+                apartment.FurnishingLevel,
+                apartment.AllowsPets,
+                apartment.ParkingType,
+                apartment.AvailableFrom,
+                apartment.MinLeaseMonths,
+                apartment.MaxLeaseMonths,
+                FloorNumber = apartment.Floor != null
+                    ? apartment.Floor.Number
+                    : apartment.FloorNumber,
+                apartment.HouseDirection,
+                apartment.Latitude,
+                apartment.Longitude
+            })
+            .ToListAsync(cancellationToken);
+
+        var matches = projectedCandidates
+            .Select(candidate => new
+            {
+                candidate.Id,
+                candidate.CreatedAt,
+                Result = RentalMatchScorer.Score(
+                    new RentalMatchCandidate(
+                        candidate.Id,
+                        candidate.CreatedAt,
+                        candidate.RegionId,
+                        candidate.Price,
+                        candidate.Area,
+                        candidate.Bedrooms,
+                        candidate.CategoryId,
+                        candidate.AmenityIds.ToHashSet(),
+                        candidate.FurnishingLevel,
+                        candidate.AllowsPets,
+                        candidate.ParkingType,
+                        candidate.AvailableFrom,
+                        candidate.MinLeaseMonths,
+                        candidate.MaxLeaseMonths,
+                        candidate.FloorNumber,
+                        candidate.HouseDirection,
+                        candidate.Latitude,
+                        candidate.Longitude),
+                    draft)
+            })
+            .Where(match => match.Result.IsEligible)
+            .OrderByDescending(match => match.Result.ScorePercent)
+            .ThenByDescending(match => match.CreatedAt)
+            .ThenByDescending(match => match.Id)
+            .ToList();
+        var selected = matches
+            .Skip((request.Page - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToList();
+        var selectedIds = selected.Select(match => match.Id).ToList();
+        var matchById = selected.ToDictionary(match => match.Id, match => match.Result);
+        var cardsById = await ProjectCards(
+                _db.Apartments
+                    .AsNoTracking()
+                    .Where(apartment => selectedIds.Contains(apartment.Id)))
+            .ToDictionaryAsync(card => card.Id, cancellationToken);
+        var apartments = selectedIds
+            .Select(id =>
+            {
+                var card = cardsById[id];
+                card.MatchPercent = matchById[id].ScorePercent;
+                card.MatchReasons = matchById[id].Reasons.ToList();
+                return card;
+            })
+            .ToList();
+
+        return new ApartmentListPageViewModel
+        {
+            Apartments = apartments,
+            TotalCount = matches.Count,
+            Page = request.Page,
+            PageSize = request.PageSize,
+            Search = request,
+            HasUsableMatchCriteria = HasUsableMatchCriteria(draft)
+        };
+    }
+
+    private static IQueryable<Apartment> ApplyRequiredSqlFilters(
+        IQueryable<Apartment> query,
+        RentalPreferenceDraft draft)
+    {
+        if (draft.RequiredCriteria.Contains("region") && draft.RegionId.HasValue)
+            query = query.Where(apartment => apartment.RegionId == draft.RegionId.Value);
+        if (draft.RequiredCriteria.Contains("priceRange"))
+        {
+            if (draft.MinPrice.HasValue)
+                query = query.Where(apartment => apartment.Price >= draft.MinPrice.Value);
+            if (draft.MaxPrice.HasValue)
+                query = query.Where(apartment => apartment.Price <= draft.MaxPrice.Value);
+        }
+        if (draft.RequiredCriteria.Contains("areaRange"))
+        {
+            if (draft.MinArea.HasValue)
+                query = query.Where(apartment => apartment.Area >= draft.MinArea.Value);
+            if (draft.MaxArea.HasValue)
+                query = query.Where(apartment => apartment.Area <= draft.MaxArea.Value);
+        }
+        if (draft.RequiredCriteria.Contains("bedrooms") && draft.MinBedrooms.HasValue)
+            query = query.Where(apartment => apartment.Bedrooms >= draft.MinBedrooms.Value);
+        if (draft.RequiredCriteria.Contains("category") && draft.CategoryIds.Count > 0)
+            query = query.Where(apartment => draft.CategoryIds.Contains(apartment.CategoryId));
+        foreach (var requiredAmenityId in draft.RequiredAmenityIds)
+        {
+            query = query.Where(apartment =>
+                apartment.ApartmentAmenities.Any(link => link.AmenityId == requiredAmenityId));
+        }
+
+        return query;
+    }
+
+    private static bool HasUsableMatchCriteria(RentalPreferenceDraft draft)
+    {
+        return draft.RegionId.HasValue ||
+               draft.MinPrice.HasValue ||
+               draft.MaxPrice.HasValue ||
+               draft.MinArea.HasValue ||
+               draft.MaxArea.HasValue ||
+               draft.MinBedrooms.HasValue ||
+               draft.CategoryIds.Count > 0 ||
+               draft.AmenityIds.Count > 0 ||
+               draft.FurnishingLevel.HasValue ||
+               draft.AllowsPets == true ||
+               draft.ParkingType.HasValue ||
+               draft.AvailableBy.HasValue ||
+               draft.MaxDistanceKm.HasValue ||
+               draft.MinFloor.HasValue ||
+               draft.MaxFloor.HasValue ||
+               draft.HouseDirection.HasValue ||
+               draft.MinLeaseMonths.HasValue ||
+               draft.MaxLeaseMonths.HasValue;
     }
 
     private sealed record NearbyCandidate(

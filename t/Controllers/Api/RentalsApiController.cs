@@ -18,28 +18,18 @@ public class RentalsApiController : ControllerBase
 
     [HttpGet("search")]
     public async Task<ActionResult<RentalsSearchResultViewModel>> Search(
-        string? region, decimal? minPrice, decimal? maxPrice,
-        double? minArea, double? maxArea,
-        [FromQuery] List<int>? categoryIds,
-        [FromQuery] List<int>? amenityIds,
-        string? sort,
-        int page = 1,
-        int pageSize = 12,
-        double? latitude = null,
-        double? longitude = null)
+        [FromQuery] RentalSearchRequest request)
     {
-        pageSize = Math.Clamp(pageSize, 1, 50);
-        var coordinates = GeoDistance.ValidatePair(latitude, longitude);
+        request.PageSize = Math.Clamp(request.PageSize, 1, 50);
+        var coordinates = GeoDistance.ValidatePair(request.Latitude, request.Longitude);
         if (!coordinates.IsValid)
             return BadRequest(new { error = coordinates.Error });
 
-        var model = await _rentalsQueryHandler.SearchAsync(
-            region, minPrice, maxPrice,
-            minArea, maxArea,
-            categoryIds, amenityIds,
-            sort, page, pageSize,
-            latitude: latitude,
-            longitude: longitude);
+        var normalization = RentalPreferenceNormalizer.Normalize(request, strict: true);
+        if (!normalization.IsValid)
+            return BadRequest(new { error = normalization.Errors[0] });
+
+        var model = await _rentalsQueryHandler.SearchAsync(request);
 
         return Ok(new RentalsSearchResultViewModel
         {

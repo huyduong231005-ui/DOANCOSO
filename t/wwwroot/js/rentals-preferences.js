@@ -20,10 +20,29 @@
     });
   }
 
+  function syncLeaseDurationControls() {
+    document.querySelectorAll('[data-lease-duration-control]').forEach(function (control) {
+      var valueInput = control.querySelector('[data-lease-display-value]');
+      var unitInput = control.querySelector('[data-lease-display-unit]');
+      var targetInput = control.querySelector('[data-lease-months-target]');
+      if (!valueInput || !unitInput || !targetInput) {
+        return;
+      }
+
+      var value = Number.parseInt(valueInput.value, 10);
+      if (!Number.isFinite(value) || value <= 0) {
+        targetInput.value = '';
+        return;
+      }
+
+      targetInput.value = String(unitInput.value === 'years' ? value * 12 : value);
+    });
+  }
+
   function bind() {
     var filterForm = document.querySelector('#rentals-filter-form');
     var drawer = document.querySelector('[data-rentals-advanced-drawer]');
-    var openButton = document.querySelector('[data-rentals-filter-open]');
+    var openButtons = document.querySelectorAll('[data-rentals-filter-open]');
     var closeButton = document.querySelector('[data-rentals-filter-close]');
     var saveButton = document.querySelector('[data-preference-save]');
     var saveForm = document.querySelector('[data-preference-save-form]');
@@ -46,15 +65,19 @@
       });
     }
 
-    openButton?.addEventListener('click', function () {
-      drawer.hidden = false;
-      initPreferenceMap();
+    openButtons.forEach(function (openButton) {
+      openButton.addEventListener('click', function () {
+        drawer.hidden = false;
+        initPreferenceMap();
+      });
     });
     closeButton?.addEventListener('click', function () {
       drawer.hidden = true;
     });
+    filterForm.addEventListener('submit', syncLeaseDurationControls);
 
     function submitPreference() {
+      syncLeaseDurationControls();
       populateSaveForm(filterForm, saveForm);
       var returnUrl = saveForm.querySelector('input[name="returnUrl"]');
       if (returnUrl) {

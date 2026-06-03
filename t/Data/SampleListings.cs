@@ -66,13 +66,6 @@ internal static class SampleListings
             30, 1, 1, "Trần Quốc Hoàn, Phường Dịch Vọng Hậu, Cầu Giấy, Hà Nội",
             21.0367, 105.7872, "hn", new[]{"wifi","ac","fridge","furniture","washer"}),
 
-        new("mini", 3, "Mini Tân Bình full đồ chỉ việc xách vali",       "ccm-tan-binh-full-do",            "TB-505",
-            "Căn 22m² đầy đủ máy lạnh, máy giặt, tủ lạnh, bếp từ. Ở được ngay.",
-            "Toà 6 tầng có thang máy, free wifi tốc độ cao.",
-            4_800_000m, 9_600_000m, "Điện 3.500đ/kWh, nước 20.000đ/m³",
-            22, 1, 1, "Hoàng Hoa Thám, Phường 12, Tân Bình, TP. Hồ Chí Minh",
-            10.7984, 106.6444, "hcm", new[]{"wifi","ac","fridge","washer","furniture"}),
-
         new("mini", 4, "Mini Phú Nhuận tầng cao yên tĩnh",               "ccm-phu-nhuan-tang-cao",          "PN-602",
             "Studio 28m² tầng 6, view thoáng, hướng đón gió. Khu vực an ninh.",
             "Có chỗ để xe máy, xe đạp riêng, camera hành lang 24/7.",

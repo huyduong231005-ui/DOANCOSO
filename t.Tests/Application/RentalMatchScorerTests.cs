@@ -267,4 +267,63 @@ public sealed class RentalPreferenceNormalizerTests
         Assert.Null(result.Draft.AllowsPets);
         Assert.DoesNotContain("pets", result.Draft.RequiredCriteria);
     }
+
+    [Fact]
+    public void Normalize_ShouldTreatZeroPriceRangeAsNoPreference()
+    {
+        var request = new RentalSearchRequest
+        {
+            MinPrice = 0,
+            MaxPrice = 0,
+            RequiredCriteria = ["priceRange"]
+        };
+
+        var result = RentalPreferenceNormalizer.Normalize(request, strict: false);
+
+        Assert.True(result.IsValid);
+        Assert.Null(result.Draft.MinPrice);
+        Assert.Null(result.Draft.MaxPrice);
+        Assert.Null(request.MinPrice);
+        Assert.Null(request.MaxPrice);
+        Assert.DoesNotContain("priceRange", result.Draft.RequiredCriteria);
+    }
+
+    [Fact]
+    public void Normalize_ShouldKeepManualAddressAndDropDistance_WhenCoordinatesAreMissingInMvcMode()
+    {
+        var result = RentalPreferenceNormalizer.Normalize(
+            new RentalSearchRequest
+            {
+                PreferredAddress = "42/26 Ung Văn Khiêm",
+                PreferredLatitude = 10.8,
+                PreferredLongitude = null,
+                MaxDistanceKm = 3,
+                RequiredCriteria = ["maxDistance"]
+            },
+            strict: false);
+
+        Assert.True(result.IsValid);
+        Assert.Equal("42/26 Ung Văn Khiêm", result.Draft.PreferredAddress);
+        Assert.Null(result.Draft.PreferredLatitude);
+        Assert.Null(result.Draft.PreferredLongitude);
+        Assert.Null(result.Draft.MaxDistanceKm);
+        Assert.DoesNotContain("maxDistance", result.Draft.RequiredCriteria);
+        Assert.NotEmpty(result.Warnings);
+    }
+
+    [Fact]
+    public void Normalize_ShouldRejectInvalidPreferredCoordinates_InStrictMode()
+    {
+        var result = RentalPreferenceNormalizer.Normalize(
+            new RentalSearchRequest
+            {
+                PreferredAddress = "42/26 Ung Văn Khiêm",
+                PreferredLatitude = 10.8,
+                PreferredLongitude = null,
+                MaxDistanceKm = 3
+            },
+            strict: true);
+
+        Assert.False(result.IsValid);
+    }
 }

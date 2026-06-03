@@ -14,14 +14,100 @@
         ? null
         : categories.FirstOrDefault(c => c.Slug == Model.CategorySlug)?.Name;
     var pageHeading = activeCategoryName ?? "Danh sách căn hộ cho thuê";
-    var pageEyebrow = Model.CategorySlug switch
-    {
-        "chung-cu-mini" => "Mini Apartments",
-        "nha-nguyen-can" => "Whole Houses",
-        "nha-tro" => "Boarding Rooms",
-        _ => "Rentals Discovery"
-    };
     ViewData["Title"] = activeCategoryName ?? "Thuê căn hộ";
+
+    var categoriesList = categories.ToList();
+    var amenitiesList = amenities.ToList();
+    var quickAmenities = amenitiesList.Take(6).ToList();
+    var advancedAmenities = amenitiesList.Skip(6).ToList();
+    var selectedCategoryIds = Model.CategoryIds ?? new List<int>();
+    var selectedAmenityIds = Model.AmenityIds ?? new List<int>();
+
+    string BuildFilterUrl(Action<Microsoft.AspNetCore.Routing.RouteValueDictionary> mutate)
+    {
+        var routeValues = Model.Search.ToRouteValues(page: 1, clearPendingSave: true);
+        routeValues["Page"] = null;
+        mutate(routeValues);
+        return Url.Action("Rentals", routeValues) ?? "#";
+    }
+
+    string FormatCompactPrice(decimal? value)
+    {
+        if (!value.HasValue)
+        {
+            return string.Empty;
+        }
+
+        return value.Value >= 1_000_000m
+            ? $"{value.Value / 1_000_000m:0.#}tr"
+            : value.Value.ToString("N0", CultureInfo.InvariantCulture);
+    }
+
+    string FormatRange(string prefix, object? min, object? max)
+    {
+        if (min is null && max is null)
+        {
+            return string.Empty;
+        }
+
+        return min is not null && max is not null
+            ? $"{prefix}: {min} - {max}"
+            : min is not null
+                ? $"{prefix}: từ {min}"
+                : $"{prefix}: đến {max}";
+    }
+
+    int? LeaseDisplayValue(int? months) =>
+        months.HasValue && months.Value >= 12 && months.Value % 12 == 0
+            ? months.Value / 12
+            : months;
+
+    string LeaseDisplayUnit(int? months) =>
+        months.HasValue && months.Value >= 12 && months.Value % 12 == 0
+            ? "years"
+            : "months";
+
+    string FormatCoordinate(double? value) =>
+        value.HasValue
+            ? value.Value.ToString(CultureInfo.InvariantCulture)
+            : string.Empty;
+
+    var activeFilterChips = new List<(string Label, string Url)>();
+    if (!string.IsNullOrEmpty(Model.RegionSlug))
+    {
+        var regionName = regions.FirstOrDefault(region => region.Slug == Model.RegionSlug)?.Name ?? Model.RegionSlug;
+        activeFilterChips.Add(($"Khu vực: {regionName}", BuildFilterUrl(route => route["Region"] = null)));
+    }
+    if (Model.MinPrice.HasValue || Model.MaxPrice.HasValue)
+    {
+        var minPriceLabel = Model.MinPrice.HasValue ? FormatCompactPrice(Model.MinPrice) : null;
+        var maxPriceLabel = Model.MaxPrice.HasValue ? FormatCompactPrice(Model.MaxPrice) : null;
+        activeFilterChips.Add((FormatRange("Giá", minPriceLabel, maxPriceLabel), BuildFilterUrl(route =>
+        {
+            route["MinPrice"] = null;
+            route["MaxPrice"] = null;
+        })));
+    }
+    if (Model.MinArea.HasValue || Model.MaxArea.HasValue)
+    {
+        activeFilterChips.Add((FormatRange("Diện tích", Model.MinArea, Model.MaxArea), BuildFilterUrl(route =>
+        {
+            route["MinArea"] = null;
+            route["MaxArea"] = null;
+        })));
+    }
+    if (Model.Search.MinBedrooms.HasValue)
+    {
+        activeFilterChips.Add(($"Từ {Model.Search.MinBedrooms} phòng ngủ", BuildFilterUrl(route => route["MinBedrooms"] = null)));
+    }
+    foreach (var category in categoriesList.Where(category => selectedCategoryIds.Contains(category.Id)))
+    {
+        activeFilterChips.Add(($"Loại: {category.Name}", BuildFilterUrl(route => route["CategoryIds"] = selectedCategoryIds.Where(id => id != category.Id).ToList())));
+    }
+    foreach (var amenity in amenitiesList.Where(amenity => selectedAmenityIds.Contains(amenity.Id)))
+    {
+        activeFilterChips.Add(($"Tiện ích: {amenity.Name}", BuildFilterUrl(route => route["AmenityIds"] = selectedAmenityIds.Where(id => id != amenity.Id).ToList())));
+    }
 }
 
 <partial name="_LuxeTopbar" />
@@ -31,13 +117,25 @@
     <aside class="rentals-filter-sidebar rentals-fx d-1 rounded-3xl border border-outline-variant/60 bg-white/85 px-5 py-5 shadow-sm sm:px-6" data-rentals-filter-sidebar>
         <div class="flex flex-wrap items-end justify-between gap-4">
             <div>
-                <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant">@pageEyebrow</p>
                 <h1 class="font-headline text-2xl font-semibold text-primary sm:text-3xl">@pageHeading</h1>
             </div>
             <div class="rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-white">
                 Tìm thấy @Model.TotalCount kết quả
             </div>
         </div>
+
+        @if (activeFilterChips.Count > 0)
+        {
+            <div class="rentals-active-filters" data-active-filter-chips>
+                @foreach (var chip in activeFilterChips)
+                {
+                    <a href="@chip.Url" class="rentals-active-filter-chip" data-active-filter-chip>
+                        <span>@chip.Label</span>
+                        <span class="material-symbols-outlined text-sm" aria-hidden="true">close</span>
+                    </a>
+                }
+            </div>
+        }
 
         <form asp-action="Rentals" method="get" id="rentals-filter-form" class="mt-4 grid gap-3">
             @if (!string.IsNullOrEmpty(Model.CategorySlug))
@@ -60,25 +158,17 @@
                 </select>
             </label>
 
-            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">
-                Giá tối thiểu
-                <input name="minPrice" type="number" value="@Model.MinPrice" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background" />
-            </label>
-
-            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">
-                Giá tối đa
-                <input name="maxPrice" type="number" value="@Model.MaxPrice" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background" />
-            </label>
-
-            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">
-                Diện tích tối thiểu
-                <input name="minArea" type="number" value="@Model.MinArea" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background" />
-            </label>
-
-            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">
-                Diện tích tối đa
-                <input name="maxArea" type="number" value="@Model.MaxArea" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background" />
-            </label>
+            <div class="rentals-filter-range" data-filter-range="price">
+                <p class="rentals-filter-label">Khoảng giá</p>
+                <label>
+                    Từ
+                    <input name="minPrice" type="number" value="@Model.MinPrice" inputmode="numeric" placeholder="0" />
+                </label>
+                <label>
+                    Đến
+                    <input name="maxPrice" type="number" value="@Model.MaxPrice" inputmode="numeric" placeholder="0" />
+                </label>
+            </div>
 
             <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">
                 Sắp xếp
@@ -95,31 +185,18 @@
                 </select>
             </label>
 
-            <label class="block text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">
-                Phòng ngủ tối thiểu
-                <input name="minBedrooms" type="number" min="0" value="@Model.Search.MinBedrooms" class="mt-2 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-background" />
-            </label>
-
-            <div class="rounded-2xl border border-outline-variant/70 bg-surface-container-low px-4 py-3">
-                <p class="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">Loại hình</p>
-                <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm text-on-background">
-                    @foreach (var category in categories)
+            <div class="rentals-filter-group" data-quick-filter-group="amenities">
+                <div class="mb-2 flex items-center justify-between gap-2">
+                    <p class="text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">Tiện ích phổ biến</p>
+                    @if (advancedAmenities.Count > 0)
                     {
-                        var isChecked = Model.CategoryIds?.Contains(category.Id) == true;
-                        <label class="inline-flex items-center gap-2">
-                            <input type="checkbox" name="categoryIds" value="@category.Id" checked="@isChecked" class="h-4 w-4 rounded border-outline-variant text-primary" />
-                            @category.Name
-                        </label>
+                        <button type="button" class="text-xs font-semibold text-primary" data-rentals-filter-open>Xem thêm</button>
                     }
                 </div>
-            </div>
-
-            <div class="rounded-2xl border border-outline-variant/70 bg-surface-container-low px-4 py-3">
-                <p class="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-on-surface-variant">Tiện ích</p>
                 <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm text-on-background">
-                    @foreach (var amenity in amenities)
+                    @foreach (var amenity in quickAmenities)
                     {
-                        var isChecked = Model.AmenityIds?.Contains(amenity.Id) == true;
+                        var isChecked = selectedAmenityIds.Contains(amenity.Id);
                         <label class="inline-flex items-center gap-2">
                             <input type="checkbox" name="amenityIds" value="@amenity.Id" checked="@isChecked" class="h-4 w-4 rounded border-outline-variant text-primary" />
                             @amenity.Name
@@ -128,20 +205,22 @@
                 </div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2">
-                <a asp-action="Rentals" class="inline-flex h-11 items-center rounded-xl border border-outline-variant px-4 text-sm font-semibold text-on-background">Xóa bộ lọc</a>
-                <button type="button" class="rentals-nearby-action inline-flex h-11 items-center gap-2 rounded-xl border border-primary px-4 text-sm font-semibold text-primary" data-nearby-rentals>
+            <div class="rentals-filter-actions">
+                <button type="submit" class="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-white">Áp dụng</button>
+                <button type="button" class="inline-flex h-11 items-center justify-center rounded-xl border border-primary px-4 text-sm font-semibold text-primary" data-rentals-filter-open>Bộ lọc thêm</button>
+                <button type="button" class="rentals-nearby-action inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-primary px-4 text-sm font-semibold text-primary" data-nearby-rentals>
                     <span class="material-symbols-outlined text-base">near_me</span>
                     Gần bạn
                 </button>
-                <button type="submit" class="inline-flex h-11 items-center rounded-xl bg-primary px-5 text-sm font-semibold text-white">Áp dụng</button>
+                <a asp-action="Rentals" class="inline-flex h-11 items-center justify-center rounded-xl border border-outline-variant px-4 text-sm font-semibold text-on-background">Xóa bộ lọc</a>
             </div>
-            <button type="button" class="inline-flex h-11 items-center rounded-xl border border-primary px-4 text-sm font-semibold text-primary" data-rentals-filter-open>Bộ lọc nâng cao</button>
-            <button type="button" class="inline-flex h-11 items-center rounded-xl bg-primary px-5 text-sm font-semibold text-white" data-preference-save data-is-authenticated="@isAuthenticated.ToString().ToLowerInvariant()">Lưu hồ sơ nhu cầu</button>
-            @if (Model.SavedPreference != null)
-            {
-                <a href="@Url.Action("Rentals", t.Models.ViewModels.RentalSearchRequest.FromDraft(Model.SavedPreference).ToRouteValues())" class="text-sm font-semibold text-primary" data-preference-apply>Áp dụng hồ sơ đã lưu</a>
-            }
+            <div class="rentals-preference-actions" data-preference-secondary-action>
+                <button type="button" class="text-left text-sm font-semibold text-primary" data-preference-save data-is-authenticated="@isAuthenticated.ToString().ToLowerInvariant()">Lưu hồ sơ nhu cầu</button>
+                @if (Model.SavedPreference != null)
+                {
+                    <a href="@Url.Action("Rentals", t.Models.ViewModels.RentalSearchRequest.FromDraft(Model.SavedPreference).ToRouteValues())" class="text-sm font-semibold text-primary" data-preference-apply>Áp dụng hồ sơ đã lưu</a>
+                }
+            </div>
             <p class="rentals-nearby-status" data-nearby-rentals-status aria-live="polite"></p>
         </form>
     </aside>
@@ -245,55 +324,142 @@
 </main>
 
 <aside class="rentals-advanced-drawer" data-rentals-advanced-drawer hidden>
-        <div class="rentals-advanced-panel">
-            <div class="flex items-center justify-between gap-3">
-                <h2 class="font-headline text-xl font-semibold text-primary">Bộ lọc nâng cao</h2>
-                <button type="button" class="text-sm font-semibold text-primary" data-rentals-filter-close>Đóng</button>
-            </div>
-            <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                <label>Nội thất
-                    <select name="furnishingLevel" form="rentals-filter-form"><option value="">Không yêu cầu</option><option value="1" selected="@(Model.Search.FurnishingLevel == t.Models.Entities.FurnishingLevel.Basic)">Cơ bản</option><option value="2" selected="@(Model.Search.FurnishingLevel == t.Models.Entities.FurnishingLevel.FullyFurnished)">Đầy đủ</option></select>
-                </label>
-                <label>Chỗ đậu xe
-                    <select name="parkingType" form="rentals-filter-form"><option value="">Không yêu cầu</option><option value="1" selected="@(Model.Search.ParkingType == t.Models.Entities.ParkingType.Motorbike)">Xe máy</option><option value="2" selected="@(Model.Search.ParkingType == t.Models.Entities.ParkingType.Car)">Ô tô</option></select>
-                </label>
-                <label class="preference-checkbox-label"><input type="checkbox" name="allowsPets" value="true" checked="@(Model.Search.AllowsPets == true)" form="rentals-filter-form" /> Cho phép nuôi thú cưng</label>
-                <label>Ngày dự kiến vào ở <input type="date" name="availableBy" value="@Model.Search.AvailableBy?.ToString("yyyy-MM-dd")" form="rentals-filter-form" /></label>
-                <label>Địa chỉ ưu tiên <input type="text" name="preferredAddress" value="@Model.Search.PreferredAddress" form="rentals-filter-form" /></label>
-                <input type="hidden" name="preferredLatitude" value="@Model.Search.PreferredLatitude" form="rentals-filter-form" />
-                <input type="hidden" name="preferredLongitude" value="@Model.Search.PreferredLongitude" form="rentals-filter-form" />
-                <label>Hướng nhà
-                    <select name="houseDirection" form="rentals-filter-form">
-                        <option value="">Không yêu cầu</option>
-                        <option value="0" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.East)">Đông</option>
-                        <option value="1" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.West)">Tây</option>
-                        <option value="2" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.South)">Nam</option>
-                        <option value="3" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.North)">Bắc</option>
-                        <option value="4" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.NorthEast)">Đông Bắc</option>
-                        <option value="5" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.SouthEast)">Đông Nam</option>
-                        <option value="6" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.NorthWest)">Tây Bắc</option>
-                        <option value="7" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.SouthWest)">Tây Nam</option>
-                    </select>
-                </label>
-                <div class="preference-map-wrap sm:col-span-2">
-                    <div id="preference-address-suggestions" class="preference-address-suggestions" hidden></div>
-                    <p id="preference-address-status" class="text-xs text-on-surface-variant" aria-live="polite"></p>
-                    <div id="preference-map" class="preference-map" aria-label="Bản đồ vị trí ưu tiên"></div>
+    <div class="rentals-advanced-panel">
+        <div class="flex items-center justify-between gap-3">
+            <h2 class="font-headline text-xl font-semibold text-primary">Bộ lọc nâng cao</h2>
+            <button type="button" class="text-sm font-semibold text-primary" data-rentals-filter-close>Đóng</button>
+        </div>
+
+        <div class="rentals-advanced-content">
+            <section class="rentals-advanced-group" data-advanced-filter-group="categories">
+                <h3>Loại hình</h3>
+                <div class="rentals-checkbox-grid">
+                    @foreach (var category in categoriesList)
+                    {
+                        var isChecked = selectedCategoryIds.Contains(category.Id);
+                        <label class="preference-checkbox-label">
+                            <input type="checkbox" name="categoryIds" value="@category.Id" checked="@isChecked" form="rentals-filter-form" />
+                            @category.Name
+                        </label>
+                    }
                 </div>
-                <label>Bán kính tối đa (km) <input type="number" name="maxDistanceKm" min="1" step="0.5" value="@Model.Search.MaxDistanceKm" form="rentals-filter-form" /></label>
-                <label>Tầng tối thiểu <input type="number" name="minFloor" value="@Model.Search.MinFloor" form="rentals-filter-form" /></label>
-                <label>Tầng tối đa <input type="number" name="maxFloor" value="@Model.Search.MaxFloor" form="rentals-filter-form" /></label>
-                <label>Thời hạn thuê tối thiểu <input type="number" name="minLeaseMonths" min="1" value="@Model.Search.MinLeaseMonths" form="rentals-filter-form" /></label>
-                <label>Thời hạn thuê tối đa <input type="number" name="maxLeaseMonths" min="1" value="@Model.Search.MaxLeaseMonths" form="rentals-filter-form" /></label>
-            </div>
-            <fieldset class="mt-4 grid gap-2 text-sm">
-                <legend class="font-semibold text-primary">Tiêu chí bắt buộc</legend>
-                @foreach (var criterion in t.Models.ViewModels.RentalPreferenceCriteria.Allowed)
-                {
-                    <label class="preference-checkbox-label"><input type="checkbox" name="requiredCriteria" value="@criterion" checked="@Model.Search.RequiredCriteria.Contains(criterion)" form="rentals-filter-form" /> @t.Models.ViewModels.RentalPreferenceCriteria.GetLabel(criterion)</label>
-                }
+            </section>
+
+            <section class="rentals-advanced-group" data-advanced-filter-group="housing">
+                <h3>Nhu cầu ở</h3>
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <label>Phòng ngủ tối thiểu <input type="number" name="minBedrooms" min="0" value="@Model.Search.MinBedrooms" form="rentals-filter-form" /></label>
+                    <label>Ngày dự kiến vào ở <input type="date" name="availableBy" value="@Model.Search.AvailableBy?.ToString("yyyy-MM-dd")" form="rentals-filter-form" /></label>
+                    <label>Nội thất
+                        <select name="furnishingLevel" form="rentals-filter-form"><option value="">Không yêu cầu</option><option value="1" selected="@(Model.Search.FurnishingLevel == t.Models.Entities.FurnishingLevel.Basic)">Cơ bản</option><option value="2" selected="@(Model.Search.FurnishingLevel == t.Models.Entities.FurnishingLevel.FullyFurnished)">Đầy đủ</option></select>
+                    </label>
+                    <label>Chỗ đậu xe
+                        <select name="parkingType" form="rentals-filter-form"><option value="">Không yêu cầu</option><option value="1" selected="@(Model.Search.ParkingType == t.Models.Entities.ParkingType.Motorbike)">Xe máy</option><option value="2" selected="@(Model.Search.ParkingType == t.Models.Entities.ParkingType.Car)">Ô tô</option></select>
+                    </label>
+                    <label class="preference-checkbox-label"><input type="checkbox" name="allowsPets" value="true" checked="@(Model.Search.AllowsPets == true)" form="rentals-filter-form" /> Cho phép nuôi thú cưng</label>
+                </div>
+            </section>
+
+            <section class="rentals-advanced-group" data-advanced-filter-group="space">
+                <h3>Diện tích và tầng</h3>
+                <div class="rentals-filter-range" data-filter-range="area">
+                    <p class="rentals-filter-label">Diện tích</p>
+                    <label>Từ <input type="number" name="minArea" value="@Model.MinArea" form="rentals-filter-form" /></label>
+                    <label>Đến <input type="number" name="maxArea" value="@Model.MaxArea" form="rentals-filter-form" /></label>
+                </div>
+                <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                    <label>Tầng tối thiểu <input type="number" name="minFloor" value="@Model.Search.MinFloor" form="rentals-filter-form" /></label>
+                    <label>Tầng tối đa <input type="number" name="maxFloor" value="@Model.Search.MaxFloor" form="rentals-filter-form" /></label>
+                    <label>Hướng nhà
+                        <select name="houseDirection" form="rentals-filter-form">
+                            <option value="">Không yêu cầu</option>
+                            <option value="0" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.East)">Đông</option>
+                            <option value="1" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.West)">Tây</option>
+                            <option value="2" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.South)">Nam</option>
+                            <option value="3" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.North)">Bắc</option>
+                            <option value="4" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.NorthEast)">Đông Bắc</option>
+                            <option value="5" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.SouthEast)">Đông Nam</option>
+                            <option value="6" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.NorthWest)">Tây Bắc</option>
+                            <option value="7" selected="@(Model.Search.HouseDirection == t.Models.Entities.HouseDirection.SouthWest)">Tây Nam</option>
+                        </select>
+                    </label>
+                </div>
+            </section>
+
+            <section class="rentals-advanced-group" data-advanced-filter-group="location">
+                <h3>Tìm quanh địa điểm</h3>
+                <p class="rentals-advanced-help">Dùng khi bạn muốn thuê gần cơ quan, trường học hoặc một khu vực cụ thể.</p>
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <label>Địa điểm muốn ở gần <input type="text" name="preferredAddress" value="@Model.Search.PreferredAddress" placeholder="VD: Ung Văn Khiêm, Bình Thạnh" form="rentals-filter-form" /></label>
+                    <label>Bán kính tìm kiếm (km) <input type="number" name="maxDistanceKm" min="1" step="0.5" value="@Model.Search.MaxDistanceKm" form="rentals-filter-form" /></label>
+                    <input type="hidden" name="preferredLatitude" value="@FormatCoordinate(Model.Search.PreferredLatitude)" form="rentals-filter-form" />
+                    <input type="hidden" name="preferredLongitude" value="@FormatCoordinate(Model.Search.PreferredLongitude)" form="rentals-filter-form" />
+                    <div class="preference-map-wrap sm:col-span-2">
+                        <div id="preference-address-suggestions" class="preference-address-suggestions" hidden></div>
+                        <p id="preference-address-status" class="text-xs text-on-surface-variant" aria-live="polite"></p>
+                        <div id="preference-map" class="preference-map" aria-label="Bản đồ vị trí ưu tiên"></div>
+                    </div>
+                </div>
+            </section>
+
+            @if (advancedAmenities.Count > 0)
+            {
+                <section class="rentals-advanced-group" data-advanced-filter-group="amenities">
+                    <h3>Tiện ích khác</h3>
+                    <div class="rentals-checkbox-grid">
+                        @foreach (var amenity in advancedAmenities)
+                        {
+                            var isChecked = selectedAmenityIds.Contains(amenity.Id);
+                            <label class="preference-checkbox-label"><input type="checkbox" name="amenityIds" value="@amenity.Id" checked="@isChecked" form="rentals-filter-form" /> @amenity.Name</label>
+                        }
+                    </div>
+                </section>
+            }
+
+            <section class="rentals-advanced-group" data-advanced-filter-group="lease">
+                <h3>Thời hạn thuê</h3>
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <div class="rentals-lease-control" data-lease-duration-control>
+                        <label>Thời hạn thuê tối thiểu</label>
+                        <div class="rentals-lease-inputs">
+                            <input type="number" min="1" value="@LeaseDisplayValue(Model.Search.MinLeaseMonths)" data-lease-display-value />
+                            <select data-lease-display-unit>
+                                <option value="months" selected="@(LeaseDisplayUnit(Model.Search.MinLeaseMonths) == "months")">Tháng</option>
+                                <option value="years" selected="@(LeaseDisplayUnit(Model.Search.MinLeaseMonths) == "years")">Năm</option>
+                            </select>
+                        </div>
+                        <input type="hidden" name="minLeaseMonths" value="@Model.Search.MinLeaseMonths" data-lease-months-target="minLeaseMonths" form="rentals-filter-form" />
+                    </div>
+                    <div class="rentals-lease-control" data-lease-duration-control>
+                        <label>Thời hạn thuê tối đa</label>
+                        <div class="rentals-lease-inputs">
+                            <input type="number" min="1" value="@LeaseDisplayValue(Model.Search.MaxLeaseMonths)" data-lease-display-value />
+                            <select data-lease-display-unit>
+                                <option value="months" selected="@(LeaseDisplayUnit(Model.Search.MaxLeaseMonths) == "months")">Tháng</option>
+                                <option value="years" selected="@(LeaseDisplayUnit(Model.Search.MaxLeaseMonths) == "years")">Năm</option>
+                            </select>
+                        </div>
+                        <input type="hidden" name="maxLeaseMonths" value="@Model.Search.MaxLeaseMonths" data-lease-months-target="maxLeaseMonths" form="rentals-filter-form" />
+                    </div>
+                </div>
+            </section>
+
+            <fieldset class="rentals-advanced-group" data-advanced-filter-group="required">
+                <legend>Tiêu chí bắt buộc</legend>
+                <div class="rentals-checkbox-grid">
+                    @foreach (var criterion in t.Models.ViewModels.RentalPreferenceCriteria.Allowed)
+                    {
+                        <label class="preference-checkbox-label"><input type="checkbox" name="requiredCriteria" value="@criterion" checked="@Model.Search.RequiredCriteria.Contains(criterion)" form="rentals-filter-form" /> @t.Models.ViewModels.RentalPreferenceCriteria.GetLabel(criterion)</label>
+                    }
+                </div>
             </fieldset>
         </div>
+
+        <div class="rentals-advanced-footer" data-advanced-filter-footer>
+            <a asp-action="Rentals" class="inline-flex h-11 items-center justify-center rounded-xl border border-outline-variant px-4 text-sm font-semibold text-on-background">Xóa bộ lọc</a>
+            <button type="submit" form="rentals-filter-form" class="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-white">Áp dụng</button>
+        </div>
+    </div>
 </aside>
 
 <form asp-controller="RentalPreferences" asp-action="Save" method="post" data-preference-save-form hidden>

@@ -2,6 +2,7 @@
   'use strict';
 
   var photonApiUrl = 'https://photon.komoot.io/api/';
+  var nominatimApiUrl = 'https://nominatim.openstreetmap.org/search';
   var mapStyleUrl = 'https://tiles.openfreemap.org/styles/liberty';
 
   window.createLuxeAddressMap = async function (options) {
@@ -20,6 +21,137 @@
       return null;
     }
     mapElement.dataset.luxeAddressMapInitialized = 'true';
+
+    function appendVietnamHint(query) {
+      return /vi(e|ệ)t\s*nam/i.test(query) ? query : query + ', Vietnam';
+    }
+
+    function isValidFeature(feature) {
+      var coordinates = feature.geometry && feature.geometry.coordinates;
+      return Array.isArray(coordinates) &&
+        Number.isFinite(coordinates[0]) &&
+        Number.isFinite(coordinates[1]);
+    }
+
+    async function fetchPhotonFeatures(query, signal) {
+      var url = new URL(photonApiUrl);
+      url.searchParams.set('q', appendVietnamHint(query));
+      url.searchParams.set('limit', '5');
+      url.searchParams.set('lat', '10.7769');
+      url.searchParams.set('lon', '106.7009');
+      var response = await fetch(url, { signal: signal });
+      if (!response.ok) throw new Error('Photon request failed.');
+      var payload = await response.json();
+      return (payload.features || []).filter(isValidFeature);
+    }
+
+    function mapNominatimResult(result) {
+      var lat = Number.parseFloat(result.lat);
+      var lng = Number.parseFloat(result.lon);
+      var address = result.address || {};
+      var road = address.road || address.pedestrian || address.suburb || address.neighbourhood;
+      var primary = [address.house_number, road].filter(Boolean).join(' ') ||
+        result.name ||
+        road ||
+        result.display_name;
+      return {
+        geometry: { coordinates: [lng, lat] },
+        properties: {
+          label: result.display_name,
+          name: primary,
+          street: road,
+          city: address.city || address.town || address.state
+        }
+      };
+    }
+
+    async function fetchNominatimFeatures(query, signal) {
+      var url = new URL(nominatimApiUrl);
+      url.searchParams.set('format', 'jsonv2');
+      url.searchParams.set('q', appendVietnamHint(query));
+      url.searchParams.set('limit', '5');
+      url.searchParams.set('countrycodes', 'vn');
+      url.searchParams.set('addressdetails', '1');
+      url.searchParams.set('accept-language', 'vi,en');
+      var response = await fetch(url, { signal: signal });
+      if (!response.ok) throw new Error('Nominatim request failed.');
+      var payload = await response.json();
+      return (payload || []).map(mapNominatimResult).filter(isValidFeature);
+    }
+
+    async function fetchAddressFeatures(query, signal) {
+      var photonError = null;
+      try {
+        var photonFeatures = await fetchPhotonFeatures(query, signal);
+        if (photonFeatures.length > 0) return photonFeatures;
+      } catch (error) {
+        photonError = error;
+      }
+
+      try {
+        return await fetchNominatimFeatures(query, signal);
+      } catch (error) {
+        if (error.name === 'AbortError') throw error;
+        if (photonError) throw photonError;
+        throw error;
+      }
+    }
+
+    function featureLabel(feature) {
+      var properties = feature.properties || {};
+      return properties.label || properties.name || properties.street || properties.city || 'Địa điểm đã chọn';
+    }
+
+    function setCoordinateValues(lng, lat) {
+      latitudeInput.value = Number(lat).toFixed(6);
+      longitudeInput.value = Number(lng).toFixed(6);
+    }
+
+    function clearPosition() {
+      latitudeInput.value = '';
+      longitudeInput.value = '';
+    }
+
+    var form = addressInput.form;
+    var maxDistanceInput = form?.querySelector('[name="maxDistanceKm"]');
+    var resolvingSubmit = false;
+
+    async function resolveAddressBeforeSubmit(event) {
+      if (resolvingSubmit) {
+        resolvingSubmit = false;
+        return;
+      }
+
+      var query = addressInput.value.trim();
+      var hasDistance = maxDistanceInput && Number.parseFloat(maxDistanceInput.value) > 0;
+      var hasCoordinates = latitudeInput.value && longitudeInput.value;
+      if (!query || !hasDistance || hasCoordinates) {
+        return;
+      }
+
+      event.preventDefault();
+      statusElement.textContent = 'Đang xác định tọa độ địa điểm...';
+      try {
+        var features = await fetchAddressFeatures(query);
+        if (features.length === 0) {
+          statusElement.textContent = 'Không xác định được tọa độ. Hãy nhập thêm quận/thành phố hoặc chọn vị trí trên bản đồ.';
+          return;
+        }
+
+        var coordinates = features[0].geometry.coordinates;
+        setCoordinateValues(coordinates[0], coordinates[1]);
+        addressInput.value = featureLabel(features[0]);
+        statusElement.textContent = 'Đã xác định tọa độ, đang áp dụng bộ lọc.';
+        resolvingSubmit = true;
+        form.requestSubmit(event.submitter || undefined);
+      } catch (error) {
+        statusElement.textContent = 'Không thể xác định tọa độ lúc này. Hãy chọn vị trí trên bản đồ hoặc thử lại sau.';
+      }
+    }
+
+    if (form) {
+      form.addEventListener('submit', resolveAddressBeforeSubmit);
+    }
 
     var initialPosition = {
       lat: Number.parseFloat(latitudeInput.value) || defaultPosition.lat,
@@ -41,15 +173,11 @@
         .addTo(map);
 
       function setPosition(position) {
-        latitudeInput.value = Number(position.lat).toFixed(6);
-        longitudeInput.value = Number(position.lng).toFixed(6);
+        setCoordinateValues(position.lng, position.lat);
         marker.setLngLat([position.lng, position.lat]);
         map.easeTo({ center: [position.lng, position.lat] });
       }
 
-      if (!latitudeInput.value || !longitudeInput.value) {
-        setPosition(initialPosition);
-      }
       marker.on('dragend', function () {
         setPosition(marker.getLngLat());
       });
@@ -68,6 +196,7 @@
       addressInput.addEventListener('input', function () {
         window.clearTimeout(timer);
         if (activeRequest) activeRequest.abort();
+        clearPosition();
         var query = addressInput.value.trim();
         if (query.length < 3) {
           clearSuggestions('');
@@ -76,23 +205,12 @@
         statusElement.textContent = 'Đang tìm địa chỉ...';
         timer = window.setTimeout(async function () {
           activeRequest = new AbortController();
-          var url = new URL(photonApiUrl);
-          url.searchParams.set('q', query);
-          url.searchParams.set('limit', '5');
           try {
-            var response = await fetch(url, { signal: activeRequest.signal });
-            if (!response.ok) throw new Error('Photon request failed.');
-            var payload = await response.json();
+            var features = await fetchAddressFeatures(query, activeRequest.signal);
             suggestionsElement.replaceChildren();
-            (payload.features || []).filter(function (feature) {
-              var coordinates = feature.geometry && feature.geometry.coordinates;
-              return Array.isArray(coordinates) &&
-                Number.isFinite(coordinates[0]) &&
-                Number.isFinite(coordinates[1]);
-            }).forEach(function (feature) {
+            features.forEach(function (feature) {
               var coordinates = feature.geometry.coordinates;
-              var properties = feature.properties || {};
-              var label = properties.name || properties.street || properties.city || 'Địa điểm đã chọn';
+              var label = featureLabel(feature);
               var button = document.createElement('button');
               button.type = 'button';
               button.className = suggestionClassName;
@@ -106,17 +224,17 @@
             });
             suggestionsElement.hidden = suggestionsElement.children.length === 0;
             addressInput.setAttribute('aria-expanded', String(!suggestionsElement.hidden));
-            statusElement.textContent = suggestionsElement.hidden ? 'Không tìm thấy địa chỉ phù hợp.' : 'Chọn một địa chỉ gợi ý.';
+            statusElement.textContent = suggestionsElement.hidden ? 'Không tìm thấy địa chỉ phù hợp. Hãy nhập thêm quận/thành phố hoặc chọn vị trí trên bản đồ.' : 'Chọn một địa chỉ gợi ý.';
           } catch (error) {
             if (error.name === 'AbortError') return;
-            clearSuggestions('Không thể tải gợi ý. Bạn vẫn có thể chọn vị trí trên bản đồ.');
+            clearSuggestions('Không thể tải gợi ý. Bạn vẫn có thể chọn vị trí trên bản đồ hoặc nhập địa điểm thủ công.');
           }
         }, 500);
       });
       return map;
     } catch (error) {
-      mapElement.textContent = 'Không thể tải bản đồ. Bạn vẫn có thể nhập địa chỉ thủ công.';
-      statusElement.textContent = 'Bản đồ chưa sẵn sàng.';
+      mapElement.hidden = true;
+      statusElement.textContent = 'Chưa tải được bản đồ; vẫn có thể lọc theo địa điểm đã nhập.';
       return null;
     }
   };

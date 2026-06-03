@@ -177,6 +177,7 @@ public static class RentalPreferenceNormalizer
     {
         var errors = new List<string>();
         var warnings = new List<string>();
+        NormalizeEmptyPriceRange(request);
         ValidateRange(request.MinPrice, request.MaxPrice, "Khoảng giá", errors);
         ValidateRange(request.MinArea, request.MaxArea, "Khoảng diện tích", errors);
         ValidateRange(request.MinFloor, request.MaxFloor, "Khoảng tầng", errors);
@@ -195,7 +196,9 @@ public static class RentalPreferenceNormalizer
 
         var coordinates = GeoDistance.ValidatePair(request.PreferredLatitude, request.PreferredLongitude);
         if (!coordinates.IsValid)
-            errors.Add("Vị trí ưu tiên không hợp lệ.");
+        {
+            AddIssue(strict, errors, warnings, "Không thể xác định tọa độ cho địa điểm đã nhập; đã bỏ điều kiện bán kính.");
+        }
 
         var amenities = request.AmenityIds.Where(id => id > 0).ToHashSet();
         var requiredAmenities = request.RequiredAmenityIds.Where(id => id > 0).ToHashSet();
@@ -249,6 +252,14 @@ public static class RentalPreferenceNormalizer
             },
             errors,
             warnings);
+    }
+
+    private static void NormalizeEmptyPriceRange(RentalSearchRequest request)
+    {
+        if (request.MinPrice <= 0)
+            request.MinPrice = null;
+        if (request.MaxPrice <= 0)
+            request.MaxPrice = null;
     }
 
     private static bool HasValue(string key, RentalSearchRequest request, bool hasPreferredCoordinates)

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using t.Application.Queries.Rentals;
 using t.Data;
 using t.Models.Entities;
+using t.Models.ViewModels;
 
 namespace t.Tests.Integration;
 
@@ -62,6 +63,53 @@ public class NearbyRentalsQueryHandlerTests
 
         var apartment = Assert.Single(result.Apartments);
         Assert.Equal(seeded.FarId, apartment.Id);
+        Assert.NotNull(apartment.DistanceKm);
+    }
+
+    [Fact]
+    public async Task SearchAsync_ShouldTreatZeroPriceBoundsAsNoPriceFilter()
+    {
+        await using var db = CreateDb();
+        var seeded = await SeedAsync(db);
+        var handler = new RentalsQueryHandler(db);
+
+        var result = await handler.SearchAsync(
+            region: seeded.SelectedRegionSlug,
+            minPrice: 0,
+            maxPrice: 0,
+            minArea: null,
+            maxArea: null,
+            categoryIds: null,
+            amenityIds: null,
+            sort: null,
+            page: 1,
+            pageSize: 10);
+
+        Assert.Equal(3, result.TotalCount);
+        Assert.Contains(result.Apartments, apartment => apartment.Id == seeded.NearId);
+    }
+
+    [Fact]
+    public async Task SearchAsync_ShouldFilterByPreferredAddressRadius_WhenRadiusAndCoordinatesProvided()
+    {
+        await using var db = CreateDb();
+        var seeded = await SeedAsync(db);
+        var handler = new RentalsQueryHandler(db);
+
+        var result = await handler.SearchAsync(new RentalSearchRequest
+        {
+            Region = seeded.SelectedRegionSlug,
+            PreferredAddress = "Hẻm 42 Ung Văn Khiêm",
+            PreferredLatitude = 10.7942,
+            PreferredLongitude = 106.7219,
+            MaxDistanceKm = 3,
+            Page = 1,
+            PageSize = 10
+        });
+
+        var apartment = Assert.Single(result.Apartments);
+        Assert.Equal(seeded.NearId, apartment.Id);
+        Assert.Equal(1, result.TotalCount);
         Assert.NotNull(apartment.DistanceKm);
     }
 

@@ -36,6 +36,8 @@ public static class SeedData
         if (admin != null && !await userMgr.IsInRoleAsync(admin, RoleAdmin))
             await userMgr.AddToRoleAsync(admin, RoleAdmin);
 
+        await HideDeprecatedSampleListingsAsync(ctx);
+
         if (await ctx.Regions.AnyAsync()) return;
 
         var (hcm, hn, dn) = SeedRegions(ctx);
@@ -132,6 +134,27 @@ public static class SeedData
                 p.Code is "apartments.view" or "apartments.create" or "apartments.update"
                        or "bookings.view" or "invoices.view" or "payments.view"))
                 ctx.RolePermissions.Add(new RolePermission { RoleId = hostRole.Id, PermissionId = p.Id });
+
+        await ctx.SaveChangesAsync();
+    }
+
+    private static async Task HideDeprecatedSampleListingsAsync(AppDbContext ctx)
+    {
+        var deprecatedSlugs = new[] { "ccm-tan-binh-full-do" };
+        var apartments = await ctx.Apartments
+            .IgnoreQueryFilters()
+            .Where(apartment => deprecatedSlugs.Contains(apartment.Slug) && !apartment.IsDeleted)
+            .ToListAsync();
+
+        if (apartments.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var apartment in apartments)
+        {
+            apartment.IsDeleted = true;
+        }
 
         await ctx.SaveChangesAsync();
     }

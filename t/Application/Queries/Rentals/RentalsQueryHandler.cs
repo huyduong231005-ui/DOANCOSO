@@ -25,7 +25,7 @@ public sealed class RentalsQueryHandler
         if (request.Sort == "match_desc")
             return await SearchByMatchAsync(request, cancellationToken);
 
-        return await SearchAsync(
+        var result = await SearchAsync(
             request.Region,
             request.MinPrice,
             request.MaxPrice,
@@ -39,7 +39,12 @@ public sealed class RentalsQueryHandler
             request.Category,
             request.Latitude,
             request.Longitude,
+            request.PreferredLatitude,
+            request.PreferredLongitude,
+            request.MaxDistanceKm,
             cancellationToken);
+        result.Search = request;
+        return result;
     }
 
     public async Task<ApartmentListPageViewModel> SearchAsync(
@@ -50,9 +55,14 @@ public sealed class RentalsQueryHandler
         string? categorySlug = null,
         double? latitude = null,
         double? longitude = null,
+        double? preferredLatitude = null,
+        double? preferredLongitude = null,
+        double? maxDistanceKm = null,
         CancellationToken cancellationToken = default)
     {
         page = page <= 0 ? 1 : page;
+        minPrice = minPrice > 0 ? minPrice : null;
+        maxPrice = maxPrice > 0 ? maxPrice : null;
 
         var effectiveCategoryIds = categoryIds?.ToList() ?? new List<int>();
         if (!string.IsNullOrWhiteSpace(categorySlug))
@@ -90,6 +100,39 @@ public sealed class RentalsQueryHandler
             query = query.Where(a => a.ApartmentAmenities.Any(aa => amenityIds.Contains(aa.AmenityId)));
 
         var coordinates = GeoDistance.ValidatePair(latitude, longitude);
+        var preferredCoordinates = GeoDistance.ValidatePair(preferredLatitude, preferredLongitude);
+        Dictionary<int, double>? preferredDistanceById = null;
+        if (preferredCoordinates.IsActive && maxDistanceKm > 0)
+        {
+            var distanceCandidates = await query
+                .Select(a => new NearbyCandidate(
+                    a.Id,
+                    a.Latitude,
+                    a.Longitude,
+                    a.CreatedAt))
+                .ToListAsync(cancellationToken);
+
+            var matchingCandidates = distanceCandidates
+                .Select(candidate => new NearbyCandidateDistance(
+                    candidate,
+                    GeoDistance.IsValidCoordinate(candidate.Latitude, candidate.Longitude)
+                        ? GeoDistance.CalculateKm(
+                            preferredLatitude!.Value,
+                            preferredLongitude!.Value,
+                            candidate.Latitude!.Value,
+                            candidate.Longitude!.Value)
+                        : null))
+                .Where(candidate => candidate.DistanceKm.HasValue &&
+                                    candidate.DistanceKm.Value <= maxDistanceKm.Value)
+                .ToList();
+
+            var matchingIds = matchingCandidates.Select(candidate => candidate.Candidate.Id).ToList();
+            preferredDistanceById = matchingCandidates.ToDictionary(
+                candidate => candidate.Candidate.Id,
+                candidate => candidate.DistanceKm!.Value);
+            query = query.Where(a => matchingIds.Contains(a.Id));
+        }
+
         var isNearbySort = sort == "distance_asc" && coordinates.IsActive;
         var totalCount = await query.CountAsync(cancellationToken);
         List<ApartmentListViewModel> apartments;
@@ -152,6 +195,14 @@ public sealed class RentalsQueryHandler
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync(cancellationToken);
+            if (preferredDistanceById is not null)
+            {
+                foreach (var apartment in apartments)
+                {
+                    if (preferredDistanceById.TryGetValue(apartment.Id, out var distanceKm))
+                        apartment.DistanceKm = distanceKm;
+                }
+            }
         }
 
         return new ApartmentListPageViewModel
@@ -170,7 +221,26 @@ public sealed class RentalsQueryHandler
             SortBy = sort,
             CategorySlug = categorySlug,
             Latitude = isNearbySort ? latitude : null,
-            Longitude = isNearbySort ? longitude : null
+            Longitude = isNearbySort ? longitude : null,
+            Search = new RentalSearchRequest
+            {
+                Region = region,
+                MinPrice = minPrice,
+                MaxPrice = maxPrice,
+                MinArea = minArea,
+                MaxArea = maxArea,
+                CategoryIds = categoryIds?.ToList() ?? new List<int>(),
+                AmenityIds = amenityIds?.ToList() ?? new List<int>(),
+                Sort = sort,
+                Page = page,
+                PageSize = pageSize,
+                Category = categorySlug,
+                Latitude = latitude,
+                Longitude = longitude,
+                PreferredLatitude = preferredLatitude,
+                PreferredLongitude = preferredLongitude,
+                MaxDistanceKm = maxDistanceKm
+            }
         };
     }
 

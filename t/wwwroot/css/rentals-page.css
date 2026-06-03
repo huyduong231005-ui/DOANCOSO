@@ -15,6 +15,10 @@ body.luxe-rentals {
 .luxe-rentals .rentals-filter-sidebar {
   position: sticky;
   top: 6.5rem;
+  max-height: calc(100svh - 7.5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .luxe-rentals .rentals-results-grid {
@@ -59,6 +63,197 @@ body.luxe-rentals {
   padding: 0.65rem 0.75rem;
   color: #1a1c1d;
   font-weight: 500;
+}
+
+.luxe-rentals .rentals-active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 1rem;
+}
+
+.luxe-rentals .rentals-active-filter-chip {
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid rgba(0, 30, 64, 0.14);
+  border-radius: 999px;
+  background: #eef4fb;
+  padding: 0.35rem 0.7rem;
+  color: #001e40;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.luxe-rentals .rentals-filter-group {
+  border: 1px solid rgba(195, 198, 209, 0.78);
+  border-radius: 1rem;
+  background: #f3f3f5;
+  padding: 0.85rem 0.9rem;
+}
+
+.luxe-rentals .rentals-filter-label {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #48626e;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.luxe-rentals .rentals-filter-range {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 0.65rem;
+  row-gap: 0.45rem;
+  border: 1px solid rgba(195, 198, 209, 0.78);
+  border-radius: 1rem;
+  background: #f9f9fb;
+  padding: 0.85rem 0.9rem;
+}
+
+.luxe-rentals .rentals-filter-range label {
+  display: grid;
+  gap: 0.35rem;
+  color: #48626e;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.luxe-rentals .rentals-filter-range input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #c3c6d1;
+  border-radius: 0.75rem;
+  background: #f9f9fb;
+  padding: 0.65rem 0.75rem;
+  color: #1a1c1d;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.luxe-rentals .rentals-filter-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+
+.luxe-rentals .rentals-filter-actions > * {
+  width: 100%;
+}
+
+.luxe-rentals .rentals-filter-actions button[type="submit"],
+.luxe-rentals .rentals-filter-actions a {
+  grid-column: 1 / -1;
+}
+
+.luxe-rentals .rentals-filter-actions button[type="submit"],
+.luxe-rentals .rentals-advanced-footer button[type="submit"] {
+  border-color: #001e40;
+  background: #001e40;
+  color: #ffffff;
+}
+
+.luxe-rentals .rentals-filter-actions button[type="submit"]:hover,
+.luxe-rentals .rentals-advanced-footer button[type="submit"]:hover {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.luxe-rentals .rentals-preference-actions {
+  display: grid;
+  gap: 0.45rem;
+  border-top: 1px solid rgba(195, 198, 209, 0.65);
+  padding-top: 0.85rem;
+}
+
+.luxe-rentals .rentals-preference-actions button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.luxe-rentals .rentals-advanced-content {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-bottom: 5.25rem;
+}
+
+.luxe-rentals .rentals-advanced-group {
+  display: grid;
+  gap: 0.75rem;
+  border: 1px solid rgba(195, 198, 209, 0.7);
+  border-radius: 1rem;
+  background: #f9f9fb;
+  padding: 1rem;
+}
+
+.luxe-rentals fieldset.rentals-advanced-group {
+  margin: 0;
+}
+
+.luxe-rentals .rentals-advanced-group h3,
+.luxe-rentals .rentals-advanced-group legend {
+  margin: 0;
+  color: #001e40;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.luxe-rentals .rentals-advanced-help {
+  margin: -0.25rem 0 0;
+  color: #48626e;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.luxe-rentals .rentals-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem 0.75rem;
+}
+
+.luxe-rentals .rentals-lease-control {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.luxe-rentals .rentals-lease-control > label {
+  color: #48626e;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.luxe-rentals .rentals-lease-inputs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 6.5rem;
+  gap: 0.5rem;
+}
+
+.luxe-rentals .rentals-lease-inputs input,
+.luxe-rentals .rentals-lease-inputs select {
+  min-width: 0;
+}
+
+.luxe-rentals .rentals-advanced-footer {
+  position: sticky;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 0.75rem;
+  margin: 0 -1.5rem -1.5rem;
+  border-top: 1px solid rgba(195, 198, 209, 0.8);
+  background: rgba(255, 255, 255, 0.96);
+  padding: 1rem 1.5rem;
+  backdrop-filter: blur(16px);
 }
 
 .luxe-rentals .rentals-advanced-panel .preference-checkbox-label {
@@ -127,6 +322,12 @@ body.luxe-rentals {
 
 @media (max-width: 639px) {
   .luxe-rentals .rentals-results-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .luxe-rentals .rentals-filter-actions,
+  .luxe-rentals .rentals-checkbox-grid,
+  .luxe-rentals .rentals-advanced-footer {
     grid-template-columns: 1fr;
   }
 }

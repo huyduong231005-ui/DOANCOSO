@@ -19,6 +19,13 @@ public abstract class AdminBaseController : Controller
 
     protected void SetActiveNav(string key) => ViewData["ActiveNav"] = key;
 
+    protected IActionResult RedirectToLocalOrDefault(string? returnUrl, string fallbackUrl)
+    {
+        return !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)
+            ? Redirect(returnUrl)
+            : Redirect(fallbackUrl);
+    }
+
     protected static string Slugify(string input)
     {
         if (string.IsNullOrWhiteSpace(input)) return string.Empty;

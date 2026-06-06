@@ -279,7 +279,7 @@ public class ApartmentsController : AdminBaseController
         apt.Status = status;
         await Db.SaveChangesAsync();
         TempData["Success"] = $"Đã đổi trạng thái → {status.Vi()}.";
-        return Redirect(string.IsNullOrEmpty(returnUrl) ? Url.Action(nameof(Details), new { id })! : returnUrl);
+        return RedirectToLocalOrDefault(returnUrl, Url.Action(nameof(Details), new { id })!);
     }
 
     public async Task<IActionResult> Pending()
@@ -306,7 +306,7 @@ public class ApartmentsController : AdminBaseController
         if (apt.Status != ListingStatus.Draft)
         {
             TempData["Danger"] = $"Chỉ duyệt được tin ở trạng thái Nháp (hiện tại: {apt.Status.Vi()}).";
-            return Redirect(string.IsNullOrEmpty(returnUrl) ? Url.Action(nameof(Pending))! : returnUrl);
+            return RedirectToLocalOrDefault(returnUrl, Url.Action(nameof(Pending))!);
         }
         apt.Status = ListingStatus.Active;
         apt.ApprovedAt = DateTime.UtcNow;
@@ -314,7 +314,7 @@ public class ApartmentsController : AdminBaseController
         apt.ModerationNote = null;
         await Db.SaveChangesAsync();
         TempData["Success"] = $"Đã duyệt tin {apt.Title}.";
-        return Redirect(string.IsNullOrEmpty(returnUrl) ? Url.Action(nameof(Pending))! : returnUrl);
+        return RedirectToLocalOrDefault(returnUrl, Url.Action(nameof(Pending))!);
     }
 
     [HttpPost, ValidateAntiForgeryToken]
@@ -325,7 +325,7 @@ public class ApartmentsController : AdminBaseController
         if (apt.Status != ListingStatus.Draft)
         {
             TempData["Danger"] = $"Chỉ từ chối được tin ở trạng thái Nháp (hiện tại: {apt.Status.Vi()}).";
-            return Redirect(string.IsNullOrEmpty(returnUrl) ? Url.Action(nameof(Pending))! : returnUrl);
+            return RedirectToLocalOrDefault(returnUrl, Url.Action(nameof(Pending))!);
         }
         apt.Status = ListingStatus.Hidden;
         apt.ModerationNote = string.IsNullOrWhiteSpace(reason) ? "Không đạt tiêu chuẩn nội dung." : reason.Trim();
@@ -333,7 +333,7 @@ public class ApartmentsController : AdminBaseController
         apt.ApprovedBy = null;
         await Db.SaveChangesAsync();
         TempData["Success"] = $"Đã từ chối tin {apt.Title}.";
-        return Redirect(string.IsNullOrEmpty(returnUrl) ? Url.Action(nameof(Pending))! : returnUrl);
+        return RedirectToLocalOrDefault(returnUrl, Url.Action(nameof(Pending))!);
     }
 
     [HttpPost, ValidateAntiForgeryToken]

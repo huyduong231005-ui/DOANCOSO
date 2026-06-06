@@ -13,13 +13,15 @@
             if (!input.files || !input.files.length) return;
             var target = targetSel ? document.querySelector(targetSel) : null;
             var status = input.parentElement && input.parentElement.querySelector('[data-upload-status]');
+            var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            var headers = tokenInput ? { 'RequestVerificationToken': tokenInput.value } : {};
             if (status) status.textContent = 'Đang tải lên...';
 
             var fd = new FormData();
             for (var i = 0; i < input.files.length; i++) fd.append('files', input.files[i]);
             try {
                 var res = await fetch('/admin/uploads/multi/' + encodeURIComponent(folder), {
-                    method: 'POST', body: fd, credentials: 'same-origin'
+                    method: 'POST', body: fd, headers: headers, credentials: 'same-origin'
                 });
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 var json = await res.json();
@@ -46,7 +48,13 @@
         });
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
+    function bindAll() {
         document.querySelectorAll('input[type=file][data-upload]').forEach(attach);
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bindAll);
+    }
+    bindAll();
+    document.addEventListener('luxe:page-loaded', bindAll);
 })();

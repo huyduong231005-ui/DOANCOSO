@@ -356,7 +356,7 @@ public class MaintenanceController : AdminBaseController
 
         await Db.SaveChangesAsync();
         TempData["Success"] = $"Đã cập nhật trạng thái: {status.Vi()}.";
-        return Redirect(string.IsNullOrEmpty(returnUrl) ? Url.Action(nameof(Index))! : returnUrl);
+        return RedirectToLocalOrDefault(returnUrl, Url.Action(nameof(Index))!);
     }
 
     private async Task PopulateLookupsAsync(MaintenanceEditVm vm)

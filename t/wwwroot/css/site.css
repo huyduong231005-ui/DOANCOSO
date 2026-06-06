@@ -3,7 +3,7 @@
 }
 
 :root {
-  --form-font-family: "Segoe UI", "Noto Sans", Tahoma, sans-serif;
+  --form-font-family: "Be Vietnam Pro", system-ui, sans-serif;
 }
 
 * {
@@ -12,7 +12,7 @@
 
 body {
   margin: 0;
-  font-family: "Inter", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   color: #0d1c3d;
   background: #f6f8fb;
 }
@@ -28,6 +28,18 @@ form label {
 
 a {
   color: inherit;
+}
+
+/* Đồng bộ font cho UI nội bộ của bản đồ maplibre/mapbox (CSS của map nạp động sau site.css nên cần !important) */
+.maplibregl-map,
+.maplibregl-ctrl,
+.maplibregl-ctrl-attrib,
+.maplibregl-popup,
+.mapboxgl-map,
+.mapboxgl-ctrl,
+.mapboxgl-ctrl-attrib,
+.mapboxgl-popup {
+  font-family: "Be Vietnam Pro", system-ui, sans-serif !important;
 }
 
 .page-shell {

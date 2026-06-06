@@ -1,5 +1,5 @@
 body.luxe-rentals {
-  font-family: "Inter", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   background-color: #f9f9fb;
   color: #1a1c1d;
   margin: 0;
@@ -372,7 +372,7 @@ body.luxe-rentals {
 }
 
 .luxe-rentals .font-headline {
-  font-family: "Be Vietnam Pro", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
 }
 
 .luxe-rentals .material-symbols-outlined {

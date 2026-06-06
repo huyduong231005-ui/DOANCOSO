@@ -6,6 +6,7 @@ namespace t.Models.ViewModels;
 
 public sealed class RentalSearchRequest
 {
+    public string? Keyword { get; set; }
     public string? Region { get; set; }
     public decimal? MinPrice { get; set; }
     public decimal? MaxPrice { get; set; }
@@ -43,6 +44,7 @@ public sealed class RentalSearchRequest
     {
         return new RouteValueDictionary
         {
+            [nameof(Keyword)] = Keyword,
             [nameof(Region)] = Region,
             [nameof(MinPrice)] = MinPrice,
             [nameof(MaxPrice)] = MaxPrice,

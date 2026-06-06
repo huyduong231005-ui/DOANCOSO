@@ -17,45 +17,23 @@
         <div class="hero-overlay"></div>
 
         <div class="shell hero-content intro-strong">
-            <span class="hero-eyebrow">Redefining Modern Living</span>
             <h1>
                 KIẾN TẠO<br>
                 <span class="script">không gian</span>
                 MỚI
             </h1>
 
-            <form class="search-panel" asp-controller="Home" asp-action="Rentals" method="get">
-                <div class="search-fields">
-                    <div class="search-field">
-                        <label>Khu vực</label>
-                        <select class="value" name="region">
-                            <option value="">Toàn quốc</option>
-                            @if (ViewBag.Regions != null)
-                            {
-                                foreach (var r in ViewBag.Regions)
-                                {
-                                    <option value="@r.Slug">@r.Name</option>
-                                }
-                            }
-                        </select>
-                    </div>
-                    <div class="search-field">
-                        <label>Mức giá tối thiểu</label>
-                        <input class="value" type="number" name="minPrice" min="0" step="100000" placeholder="0" />
-                    </div>
-                    <div class="search-field">
-                        <label>Diện tích tối thiểu</label>
-                        <input class="value" type="number" name="minArea" min="0" step="1" placeholder="0" />
-                    </div>
-                    <div class="search-field">
-                        <label>Sắp xếp</label>
-                        <select class="value" name="sort">
-                            <option value="">Mới nhất</option>
-                            <option value="price_asc">Giá tăng dần</option>
-                            <option value="price_desc">Giá giảm dần</option>
-                            <option value="area_desc">Diện tích lớn nhất</option>
-                        </select>
-                    </div>
+            <form class="search-panel search-panel--name" asp-controller="Home" asp-action="Rentals" method="get"
+                  autocomplete="off" data-name-search>
+                <div class="search-name-field">
+                    <span class="material-symbols-outlined search-name-icon">search</span>
+                    <input class="search-name-input" type="text" name="Keyword"
+                           placeholder="Tìm theo tên căn hộ, dự án hoặc địa chỉ..."
+                           aria-label="Tìm theo tên" autocomplete="off"
+                           data-suggest-input
+                           data-suggest-url="@Url.Action("SearchSuggestions", "Home")"
+                           data-detail-url="@Url.Action("ApartmentDetail", "Home")" />
+                    <div class="search-suggest" data-suggest-list role="listbox" hidden></div>
                 </div>
                 <button type="submit" class="search-button">
                     <span class="material-symbols-outlined">search</span>
@@ -160,7 +138,6 @@
                 <div class="blob two">
                     <img src="~/img/hero-4.jpg" alt="Nội thất hiện đại" />
                 </div>
-                <div class="budget-badge">Chỉ từ <span>2tr</span></div>
             </div>
 
             <div class="budget-copy reveal-item fx-right">
@@ -293,6 +270,10 @@
     <a href="#"><span class="material-symbols-outlined">favorite</span><small>Lưu tin</small></a>
     <a href="#"><span class="material-symbols-outlined">account_circle</span><small>Của tôi</small></a>
 </nav>
+
+@section Scripts {
+    <script src="~/js/home-search.js" asp-append-version="true"></script>
+}
 
 
 

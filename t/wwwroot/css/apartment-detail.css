@@ -1,6 +1,6 @@
 body.luxe-apartment-detail {
   margin: 0;
-  font-family: "Inter", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   background: #f3f5f9;
   color: #1a1c1d;
 }
@@ -227,7 +227,7 @@ body.ap-lightbox-open {
 
 .ap-header-copy h1 {
   margin: 0 0 0.95rem;
-  font-family: "Be Vietnam Pro", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   color: #001e40;
   font-size: clamp(2rem, 3vw, 3.1rem);
   line-height: 1.08;
@@ -261,7 +261,7 @@ body.ap-lightbox-open {
 .ap-price div {
   color: #fe6e60;
   font-size: 2.45rem;
-  font-family: "Be Vietnam Pro", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-weight: 900;
   line-height: 1;
 }
@@ -308,7 +308,7 @@ body.ap-lightbox-open {
 
 .ap-section h2 {
   margin: 0 0 1rem;
-  font-family: "Be Vietnam Pro", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   color: #001e40;
   font-size: 1.55rem;
   font-weight: 800;
@@ -509,7 +509,7 @@ body.ap-lightbox-open {
 
 .ap-agent-head h3 {
   margin: 0;
-  font-family: "Be Vietnam Pro", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   color: #001e40;
   font-size: 1.1rem;
 }
@@ -628,7 +628,7 @@ body.ap-lightbox-open {
 
 .ap-promo h4 {
   margin: 0 0 0.48rem;
-  font-family: "Be Vietnam Pro", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-size: 1.42rem;
 }
 
@@ -654,7 +654,7 @@ body.ap-lightbox-open {
 
 .ap-similar h2 {
   margin: 0 0 1.25rem;
-  font-family: "Be Vietnam Pro", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   color: #001e40;
   font-size: 1.9rem;
   font-weight: 800;
@@ -716,7 +716,7 @@ body.ap-lightbox-open {
 
 .ap-similar-body h3 {
   margin: 0 0 0.44rem;
-  font-family: "Be Vietnam Pro", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   color: #001e40;
   font-size: 1.08rem;
 }
@@ -739,7 +739,7 @@ body.ap-lightbox-open {
 .ap-similar-meta strong {
   color: #fe6e60;
   font-size: 1.08rem;
-  font-family: "Be Vietnam Pro", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
 }
 
 .ap-similar-meta span {
@@ -778,7 +778,7 @@ body.ap-lightbox-open {
 .ap-footer-brand {
   display: inline-block;
   margin-bottom: 0.72rem;
-  font-family: "Be Vietnam Pro", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   color: #001e40;
   font-size: 1.9rem;
   font-weight: 900;

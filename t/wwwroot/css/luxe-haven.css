@@ -15,7 +15,7 @@
 
 body.luxe-landing {
   margin: 0;
-  font-family: "Inter", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   color: var(--text);
   background: var(--surface);
   line-height: 1.45;
@@ -70,7 +70,7 @@ body.luxe-landing .material-symbols-outlined {
   gap: 0.56rem;
   margin-left: 2cm;
   color: var(--primary);
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1;
@@ -84,7 +84,7 @@ body.luxe-landing .material-symbols-outlined {
   place-items: center;
   color: #fff;
   background: var(--primary);
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-size: 0.95rem;
   font-weight: 700;
   box-shadow: 0 4px 10px rgb(0 30 64 / 16%);
@@ -105,7 +105,7 @@ body.luxe-landing .material-symbols-outlined {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   text-transform: uppercase;
   font-size: 10px;
   font-weight: 700;
@@ -157,7 +157,7 @@ body.luxe-landing .material-symbols-outlined {
 }
 
 .login-link {
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.2em;
@@ -182,7 +182,7 @@ body.luxe-landing .material-symbols-outlined {
   border-radius: 999px;
   background: var(--primary);
   color: #fff;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.13em;
   font-size: 11px;
@@ -331,7 +331,7 @@ body.luxe-landing .material-symbols-outlined {
   border: 1px solid rgb(255 255 255 / 20%);
   background: rgb(255 255 255 / 10%);
   backdrop-filter: blur(8px);
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
@@ -340,7 +340,7 @@ body.luxe-landing .material-symbols-outlined {
 
 .hero h1 {
   margin: 0;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-size: clamp(3rem, 8vw, 6rem);
   line-height: 1.08;
   font-weight: 900;
@@ -350,10 +350,10 @@ body.luxe-landing .material-symbols-outlined {
 
 .hero h1 .script {
   display: inline-block;
-  font-family: "Inter", sans-serif;
-  font-style: italic;
-  font-weight: 300;
-  text-transform: none;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .search-panel {
@@ -416,7 +416,7 @@ body.luxe-landing .material-symbols-outlined {
 .search-field label {
   display: block;
   margin-bottom: 3px;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.15em;
   font-size: 8px;
@@ -467,7 +467,7 @@ body.luxe-landing .material-symbols-outlined {
   min-width: 205px;
   background: var(--primary);
   color: #fff;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -520,6 +520,166 @@ body.luxe-landing .material-symbols-outlined {
   font-size: 20px;
 }
 
+/* ===== Tìm kiếm theo tên (trang chủ) ===== */
+.search-panel--name {
+  gap: 0.5rem;
+}
+
+.search-name-field {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 0.4rem 0 1.4rem;
+}
+
+.search-name-icon {
+  font-size: 22px;
+  color: #94a3b8;
+  flex-shrink: 0;
+  transition: color 0.25s ease;
+}
+
+.search-name-field:focus-within .search-name-icon {
+  color: var(--accent, #fe6e60);
+}
+
+.search-name-input {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: #0f172a;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 0.9rem 0;
+}
+
+.search-name-input::placeholder {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.search-suggest {
+  position: absolute;
+  top: calc(100% + 14px);
+  left: -1.4rem;
+  right: -0.4rem;
+  z-index: 60;
+  background: #fff;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 1.25rem;
+  box-shadow: 0 24px 48px rgba(0, 30, 64, 0.16), 0 6px 16px rgba(0, 0, 0, 0.05);
+  padding: 0.5rem;
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.search-suggest-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 0.85rem;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.18s ease;
+}
+
+.search-suggest-item:hover,
+.search-suggest-item.is-active {
+  background: rgba(0, 30, 64, 0.06);
+}
+
+.search-suggest-thumb {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 0.7rem;
+  overflow: hidden;
+  background: #eef1f6;
+  display: grid;
+  place-items: center;
+  color: #94a3b8;
+}
+
+.search-suggest-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.search-suggest-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-suggest-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-suggest-title mark {
+  background: transparent;
+  color: var(--accent, #fe6e60);
+  font-weight: 800;
+}
+
+.search-suggest-meta {
+  display: block;
+  font-size: 12px;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-suggest-price {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--primary, #001e40);
+  white-space: nowrap;
+}
+
+.search-suggest-empty {
+  padding: 1rem 1.1rem;
+  font-size: 13px;
+  color: #94a3b8;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .search-panel--name {
+    flex-direction: column;
+    border-radius: 1.4rem;
+  }
+
+  .search-name-field {
+    width: 100%;
+    padding: 0.2rem 0.6rem 0.2rem 1.1rem;
+  }
+
+  .search-panel--name .search-button {
+    width: 100%;
+    min-width: 0;
+    padding: 0.95rem 1rem;
+  }
+
+  .search-suggest {
+    left: 0;
+    right: 0;
+  }
+}
+
 .section {
   padding: 6rem 0;
 }
@@ -540,7 +700,7 @@ body.luxe-landing .material-symbols-outlined {
   display: block;
   margin-bottom: 0.75rem;
   color: var(--primary);
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.4em;
   font-size: 10px;
@@ -555,7 +715,7 @@ body.luxe-landing .material-symbols-outlined {
 
 .section-title {
   margin: 0;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-size: clamp(2.5rem, 5vw, 4rem);
   font-weight: 900;
   letter-spacing: -0.03em;
@@ -590,7 +750,7 @@ body.luxe-landing .material-symbols-outlined {
   align-items: center;
   gap: 0.7rem;
   text-transform: uppercase;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.15em;
@@ -664,7 +824,7 @@ body.luxe-landing .material-symbols-outlined {
   border-radius: 999px;
   background: rgb(255 255 255 / 95%);
   color: var(--primary);
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.14em;
   font-size: 8px;
@@ -682,7 +842,7 @@ body.luxe-landing .material-symbols-outlined {
 
 .feature-text h3 {
   margin: 0 0 1.2rem;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-size: clamp(2.2rem, 4.5vw, 3.2rem);
   font-weight: 900;
   line-height: 0.9;
@@ -703,7 +863,7 @@ body.luxe-landing .material-symbols-outlined {
   margin-bottom: 2px;
   text-transform: uppercase;
   font-size: 7px;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-weight: 700;
   letter-spacing: 0.12em;
   opacity: 0.75;
@@ -719,7 +879,7 @@ body.luxe-landing .material-symbols-outlined {
 }
 
 .feature-meta .price-box strong {
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-style: normal;
   font-size: 2.2rem;
   letter-spacing: -0.02em;
@@ -796,7 +956,7 @@ body.luxe-landing .material-symbols-outlined {
 
 .title-row h4 {
   margin: 0;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   color: #0f172a;
@@ -814,7 +974,7 @@ body.luxe-landing .material-symbols-outlined {
   align-items: center;
   gap: 0.3rem;
   color: #94a3b8;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.15em;
   font-size: 10px;
@@ -885,7 +1045,7 @@ body.luxe-landing .material-symbols-outlined {
   display: grid;
   place-items: center;
   text-align: center;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-size: 8px;
@@ -901,7 +1061,7 @@ body.luxe-landing .material-symbols-outlined {
 
 .budget-copy h2 {
   margin: 0 0 1.5rem;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   color: #0f172a;
   font-size: clamp(2.6rem, 5vw, 4rem);
   font-weight: 900;
@@ -957,7 +1117,7 @@ body.luxe-landing .material-symbols-outlined {
 }
 
 .chip-card strong {
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   color: #0f172a;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -986,7 +1146,7 @@ body.luxe-landing .material-symbols-outlined {
   text-transform: uppercase;
   letter-spacing: 0.4em;
   font-size: 10px;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-weight: 700;
 }
 
@@ -1055,7 +1215,7 @@ body.luxe-landing .material-symbols-outlined {
 .region-card .caption h4 {
   margin: 0;
   font-size: 2.4rem;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-style: italic;
   font-weight: 900;
   text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -1065,7 +1225,7 @@ body.luxe-landing .material-symbols-outlined {
   margin: 0.2rem 0 0;
   text-transform: uppercase;
   letter-spacing: 0.3em;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-size: 8px;
   font-weight: 700;
   opacity: 0.85;
@@ -1105,7 +1265,7 @@ body.luxe-landing .material-symbols-outlined {
 
 .service-item h3 {
   margin: 0 0 1rem;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-size: 2rem;
   font-weight: 900;
   line-height: 1;
@@ -1137,7 +1297,7 @@ body.luxe-landing .material-symbols-outlined {
 
 .footer-brand h4 {
   margin: 0 0 1.1rem;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-size: 2rem;
   font-weight: 900;
   color: #fff;
@@ -1174,7 +1334,7 @@ body.luxe-landing .material-symbols-outlined {
 
 .footer-col h6 {
   margin: 0 0 1.25rem;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.3em;
   color: #fff;
@@ -1215,7 +1375,7 @@ body.luxe-landing .material-symbols-outlined {
 
 .contact-list .phone {
   color: #fff;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-size: 1.25rem;
   font-weight: 900;
   font-style: italic;
@@ -1224,7 +1384,7 @@ body.luxe-landing .material-symbols-outlined {
 .footer-bottom {
   padding-top: 2.4rem;
   text-align: center;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-size: 8px;
   font-weight: 700;
   text-transform: uppercase;
@@ -1266,7 +1426,7 @@ body.luxe-landing .material-symbols-outlined {
 }
 
 .mobile-dock a small {
-  font-family: "Montserrat", sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-size: 7px;

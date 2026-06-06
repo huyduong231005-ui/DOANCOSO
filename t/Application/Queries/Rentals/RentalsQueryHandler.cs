@@ -42,6 +42,7 @@ public sealed class RentalsQueryHandler
             request.PreferredLatitude,
             request.PreferredLongitude,
             request.MaxDistanceKm,
+            request.Keyword,
             cancellationToken);
         result.Search = request;
         return result;
@@ -58,11 +59,13 @@ public sealed class RentalsQueryHandler
         double? preferredLatitude = null,
         double? preferredLongitude = null,
         double? maxDistanceKm = null,
+        string? keyword = null,
         CancellationToken cancellationToken = default)
     {
         page = page <= 0 ? 1 : page;
         minPrice = minPrice > 0 ? minPrice : null;
         maxPrice = maxPrice > 0 ? maxPrice : null;
+        keyword = string.IsNullOrWhiteSpace(keyword) ? null : keyword.Trim();
 
         var effectiveCategoryIds = categoryIds?.ToList() ?? new List<int>();
         if (!string.IsNullOrWhiteSpace(categorySlug))
@@ -84,6 +87,13 @@ public sealed class RentalsQueryHandler
             .Where(a => a.Status == Models.Entities.ListingStatus.Active)
             .AsQueryable();
 
+        if (keyword is not null)
+        {
+            var keywordLower = keyword.ToLower();
+            query = query.Where(a =>
+                a.Title.ToLower().Contains(keywordLower) ||
+                a.Address.ToLower().Contains(keywordLower));
+        }
         if (!string.IsNullOrWhiteSpace(region))
             query = query.Where(a => a.Region.Slug == region);
         if (minPrice.HasValue)
@@ -224,6 +234,7 @@ public sealed class RentalsQueryHandler
             Longitude = isNearbySort ? longitude : null,
             Search = new RentalSearchRequest
             {
+                Keyword = keyword,
                 Region = region,
                 MinPrice = minPrice,
                 MaxPrice = maxPrice,
@@ -287,9 +298,18 @@ public sealed class RentalsQueryHandler
         }
         draft.CategoryIds = effectiveCategoryIds;
 
+        var keyword = string.IsNullOrWhiteSpace(request.Keyword) ? null : request.Keyword.Trim();
         var query = _db.Apartments
             .AsNoTracking()
             .Where(apartment => apartment.Status == ListingStatus.Active);
+
+        if (keyword is not null)
+        {
+            var keywordLower = keyword.ToLower();
+            query = query.Where(apartment =>
+                apartment.Title.ToLower().Contains(keywordLower) ||
+                apartment.Address.ToLower().Contains(keywordLower));
+        }
 
         query = ApplyRequiredSqlFilters(query, draft);
         var projectedCandidates = await query

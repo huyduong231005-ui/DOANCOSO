@@ -83,6 +83,36 @@ public class HomeController : Controller
 
     public IActionResult Privacy() => View();
 
+    [HttpGet]
+    public async Task<IActionResult> SearchSuggestions(string? q, CancellationToken cancellationToken)
+    {
+        var term = q?.Trim();
+        if (string.IsNullOrWhiteSpace(term) || term.Length < 2)
+            return Json(Array.Empty<object>());
+
+        var termLower = term.ToLower();
+        var suggestions = await _db.Apartments
+            .AsNoTracking()
+            .Where(a => a.Status == ListingStatus.Active &&
+                        (a.Title.ToLower().Contains(termLower) || a.Address.ToLower().Contains(termLower)))
+            .OrderByDescending(a => a.IsFeatured)
+            .ThenByDescending(a => a.CreatedAt)
+            .ThenByDescending(a => a.Id)
+            .Take(7)
+            .Select(a => new
+            {
+                id = a.Id,
+                title = a.Title,
+                address = a.Address,
+                price = a.Price,
+                cover = a.Images.Where(i => i.IsCover).OrderBy(i => i.SortOrder).Select(i => i.Url).FirstOrDefault()
+                        ?? a.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).FirstOrDefault()
+            })
+            .ToListAsync(cancellationToken);
+
+        return Json(suggestions);
+    }
+
     public async Task<IActionResult> Rentals([FromQuery] RentalSearchRequest request)
     {
         const int pageSize = 12;

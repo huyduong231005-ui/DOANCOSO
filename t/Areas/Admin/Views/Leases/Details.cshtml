@@ -93,6 +93,63 @@
 
         <div class="card">
             <div class="card-header">
+                <h2>Phí định kỳ hằng tháng</h2>
+            </div>
+            <div class="card-body" style="padding-bottom:.6rem;">
+                <p class="text-muted" style="font-size:13px;margin-top:0;">
+                    Các khoản này (Internet, phí dịch vụ...) sẽ tự động được thêm vào hoá đơn tiền thuê mỗi kỳ.
+                </p>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>Mô tả</th><th class="num">Số tiền/tháng</th><th>Trạng thái</th><th class="actions-cell">Thao tác</th></tr></thead>
+                    <tbody>
+                    @if (!Model.RecurringCharges.Any())
+                    {
+                        <tr><td colspan="4"><div class="empty-state"><span class="material-symbols-outlined">add_card</span><h3>Chưa có khoản phí định kỳ</h3></div></td></tr>
+                    }
+                    else
+                    {
+                        foreach (var c in Model.RecurringCharges.OrderBy(x => x.SortOrder))
+                        {
+                            <tr>
+                                <td>@c.Description</td>
+                                <td class="num">@Money(c.Amount)</td>
+                                <td>@(c.IsActive ? Html.Raw("<span class=\"pill pill-success\">Đang áp dụng</span>") : Html.Raw("<span class=\"pill pill-neutral\">Tạm tắt</span>"))</td>
+                                <td class="actions-cell">
+                                    <form asp-action="ToggleRecurringCharge" asp-route-id="@Model.Id" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="chargeId" value="@c.Id" />
+                                        <button type="submit" class="btn btn-ghost btn-sm" title="@(c.IsActive ? "Tạm tắt" : "Bật lại")">
+                                            <span class="material-symbols-outlined">@(c.IsActive ? "toggle_on" : "toggle_off")</span>
+                                        </button>
+                                    </form>
+                                    <form asp-action="RemoveRecurringCharge" asp-route-id="@Model.Id" method="post" style="display:inline;" data-confirm="Xoá khoản phí định kỳ này?" data-confirm-title="Xoá phí định kỳ" data-confirm-ok="Xoá">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="chargeId" value="@c.Id" />
+                                        <button type="submit" class="btn btn-ghost btn-sm" title="Xoá"><span class="material-symbols-outlined">delete</span></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-body">
+                <form asp-action="AddRecurringCharge" asp-route-id="@Model.Id" method="post" class="hstack" style="gap:.6rem;flex-wrap:wrap;">
+                    @Html.AntiForgeryToken()
+                    <input type="text" name="description" placeholder="Tên khoản phí (vd: Internet)" required
+                           style="flex:1;min-width:160px;padding:.5rem;border:1px solid var(--admin-line);border-radius:8px;" />
+                    <input type="number" name="amount" placeholder="Số tiền/tháng" step="10000" min="0" required
+                           style="width:160px;padding:.5rem;border:1px solid var(--admin-line);border-radius:8px;" />
+                    <button type="submit" class="btn btn-outline btn-sm"><span class="material-symbols-outlined">add</span>Thêm</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
                 <h2>Biên bản nhận / trả nhà</h2>
                 @if (Model.Status is LeaseStatus.Pending or LeaseStatus.Active)
                 {

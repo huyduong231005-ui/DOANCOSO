@@ -654,6 +654,11 @@ public static class SeedData
             };
             ctx.Leases.Add(lease);
 
+            // Phí định kỳ mẫu — để hoá đơn tự sinh các kỳ sau cũng có Internet + phí dịch vụ.
+            ctx.RecurringCharges.AddRange(
+                new RecurringCharge { Lease = lease, Description = "Internet", Amount = 200000m, SortOrder = 0, IsActive = true },
+                new RecurringCharge { Lease = lease, Description = "Phí dịch vụ", Amount = 500000m, SortOrder = 1, IsActive = true });
+
             decimal prevElec = 1200m;
             decimal prevWater = 45m;
 

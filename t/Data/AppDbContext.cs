@@ -42,6 +42,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<Invoice> Invoices => Set<Invoice>();
     public DbSet<InvoiceItem> InvoiceItems => Set<InvoiceItem>();
     public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<RecurringCharge> RecurringCharges => Set<RecurringCharge>();
 
     public DbSet<MaintenanceRequest> MaintenanceRequests => Set<MaintenanceRequest>();
     public DbSet<LeaseInspection> LeaseInspections => Set<LeaseInspection>();
@@ -787,6 +788,26 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.HasOne(x => x.Invoice)
              .WithMany(i => i.Items)
              .HasForeignKey(x => x.InvoiceId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ================== RecurringCharge ==================
+        b.Entity<RecurringCharge>(e =>
+        {
+            e.ToTable("PhiDinhKy");
+            MapBaseEntityColumns(e);
+
+            e.Property(x => x.LeaseId).HasColumnName("HopDongId");
+            e.Property(x => x.Description).HasColumnName("MoTa").HasMaxLength(250).IsRequired();
+            e.Property(x => x.Amount).HasColumnName("SoTien").HasColumnType("decimal(18,0)");
+            e.Property(x => x.SortOrder).HasColumnName("ThuTu");
+            e.Property(x => x.IsActive).HasColumnName("DangApDung");
+
+            e.HasIndex(x => x.LeaseId);
+
+            e.HasOne(x => x.Lease)
+             .WithMany(l => l.RecurringCharges)
+             .HasForeignKey(x => x.LeaseId)
              .OnDelete(DeleteBehavior.Cascade);
         });
 

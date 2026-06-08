@@ -25,6 +25,7 @@ public class InvoiceGenerator
         var lease = await _db.Leases
             .Include(l => l.Apartment)
             .Include(l => l.UtilityReadings).ThenInclude(r => r.UtilityType)
+            .Include(l => l.RecurringCharges)
             .FirstOrDefaultAsync(l => l.Id == leaseId, ct);
         if (lease == null) return new(false, "Không tìm thấy hợp đồng.");
         if (lease.Status != LeaseStatus.Active) return new(false, "Hợp đồng không ở trạng thái Active.");
@@ -59,6 +60,16 @@ public class InvoiceGenerator
                 Quantity = r.Consumption, UnitPrice = r.Rate, LineTotal = r.Amount, SortOrder = sort++
             });
             r.Billed = true;
+        }
+
+        // Phí cố định lặp lại hằng tháng (Internet, phí dịch vụ...) đang áp dụng cho hợp đồng.
+        foreach (var c in lease.RecurringCharges.Where(c => c.IsActive).OrderBy(c => c.SortOrder))
+        {
+            items.Add(new InvoiceItem
+            {
+                Description = c.Description,
+                Quantity = 1m, UnitPrice = c.Amount, LineTotal = c.Amount, SortOrder = sort++
+            });
         }
 
         var subTotal = items.Sum(x => x.LineTotal);

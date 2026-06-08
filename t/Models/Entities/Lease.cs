@@ -45,6 +45,7 @@ public class Lease : BaseEntity
     public ICollection<LeaseTenant> AdditionalTenants { get; set; } = new List<LeaseTenant>();
     public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
     public ICollection<UtilityReading> UtilityReadings { get; set; } = new List<UtilityReading>();
+    public ICollection<RecurringCharge> RecurringCharges { get; set; } = new List<RecurringCharge>();
     public ICollection<LeaseInspection> Inspections { get; set; } = new List<LeaseInspection>();
     public ICollection<DepositTransaction> DepositTransactions { get; set; } = new List<DepositTransaction>();
     public ICollection<MaintenanceRequest> MaintenanceRequests { get; set; } = new List<MaintenanceRequest>();

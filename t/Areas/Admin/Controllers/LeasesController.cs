@@ -120,6 +120,7 @@ public class LeasesController : AdminBaseController
             .Include(l => l.AdditionalTenants).ThenInclude(t => t.Tenant)
             .Include(l => l.Invoices).ThenInclude(i => i.Items)
             .Include(l => l.UtilityReadings).ThenInclude(r => r.UtilityType)
+            .Include(l => l.RecurringCharges)
             .Include(l => l.Inspections)
             .Include(l => l.DepositTransactions)
             .Include(l => l.MaintenanceRequests)
@@ -594,6 +595,62 @@ public class LeasesController : AdminBaseController
     {
         var result = await _invoiceGenerator.GenerateMonthlyInvoiceAsync(id, VnTime.Now);
         TempData[result.Success ? "Success" : "Danger"] = result.Message;
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    // ── Recurring charges (phí định kỳ) ──
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddRecurringCharge(int id, string description, decimal amount)
+    {
+        if (!await Db.Leases.AnyAsync(l => l.Id == id)) return NotFound();
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            TempData["Danger"] = "Nhập tên khoản phí.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+        if (amount <= 0)
+        {
+            TempData["Danger"] = "Số tiền phải > 0.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        var nextSort = await Db.RecurringCharges
+            .Where(c => c.LeaseId == id)
+            .Select(c => (int?)c.SortOrder)
+            .MaxAsync() ?? -1;
+
+        Db.RecurringCharges.Add(new RecurringCharge
+        {
+            LeaseId = id,
+            Description = description.Trim(),
+            Amount = amount,
+            SortOrder = nextSort + 1,
+            IsActive = true
+        });
+        await Db.SaveChangesAsync();
+        TempData["Success"] = "Đã thêm khoản phí định kỳ.";
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleRecurringCharge(int id, int chargeId)
+    {
+        var charge = await Db.RecurringCharges.FirstOrDefaultAsync(c => c.Id == chargeId && c.LeaseId == id);
+        if (charge == null) return NotFound();
+        charge.IsActive = !charge.IsActive;
+        await Db.SaveChangesAsync();
+        TempData["Success"] = charge.IsActive ? "Đã bật khoản phí." : "Đã tạm tắt khoản phí.";
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveRecurringCharge(int id, int chargeId)
+    {
+        var charge = await Db.RecurringCharges.FirstOrDefaultAsync(c => c.Id == chargeId && c.LeaseId == id);
+        if (charge == null) return NotFound();
+        Db.RecurringCharges.Remove(charge);
+        await Db.SaveChangesAsync();
+        TempData["Success"] = "Đã xoá khoản phí định kỳ.";
         return RedirectToAction(nameof(Details), new { id });
     }
 

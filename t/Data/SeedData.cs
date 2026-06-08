@@ -667,14 +667,13 @@ public static class SeedData
                 var monthDate = new DateTime(today.Year, today.Month, 1).AddMonths(offset);
                 var billingMonth = monthDate.Year * 100 + monthDate.Month;
                 var issueDate = monthDate;
-                // Đặt DueDate xa trong tương lai cho Issued/PartiallyPaid để background service
-                // không tự đổi trạng thái sang Overdue.
-                var dueDate = state switch
-                {
-                    PayState.Issued => today.AddDays(30),
-                    PayState.PartiallyPaid => today.AddDays(15),
-                    _ => monthDate.AddDays(7)
-                };
+                // Hạn thanh toán theo đúng quy tắc thật của hệ thống: NgayChotKy + 7 (tối đa ngày 28).
+                var dueDate = new DateTime(monthDate.Year, monthDate.Month, Math.Min(lease.BillingDay + 7, 28));
+                // Hoá đơn demo chưa thanh toán xong (Issued/PartiallyPaid): nếu hạn đã ở quá khứ thì
+                // lùi tới hôm nay + ân hạn để background service không lập tức gắn Quá hạn, giữ
+                // trạng thái mẫu ổn định.
+                if (state is PayState.Issued or PayState.PartiallyPaid && dueDate < today)
+                    dueDate = today.AddDays(lease.LateFeeAfterDays);
 
                 var elecAmount = elecKwh * 3500m;
                 var waterAmount = waterM3 * 25000m;

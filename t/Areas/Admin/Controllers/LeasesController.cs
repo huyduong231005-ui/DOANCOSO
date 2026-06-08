@@ -257,11 +257,19 @@ public class LeasesController : AdminBaseController
         };
         if (apartmentId.HasValue)
         {
-            var apt = await Db.Apartments.FindAsync(apartmentId.Value);
+            var apt = await Db.Apartments.Include(a => a.Building).FirstOrDefaultAsync(a => a.Id == apartmentId.Value);
             if (apt != null)
             {
                 vm.MonthlyRent = apt.Price;
                 vm.Deposit = apt.DefaultDeposit ?? apt.Price * 2;
+
+                // Điền sẵn chính sách thanh toán theo mặc định của toà nhà (nếu căn thuộc toà).
+                if (apt.Building != null)
+                {
+                    vm.BillingDay = apt.Building.DefaultBillingDay;
+                    vm.LateFeeAfterDays = apt.Building.DefaultLateFeeAfterDays;
+                    vm.LateFeePercent = apt.Building.DefaultLateFeePercent;
+                }
             }
         }
         await PopulateLookupsAsync(vm);

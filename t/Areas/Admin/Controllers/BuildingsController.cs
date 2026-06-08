@@ -109,7 +109,10 @@ public class BuildingsController : AdminBaseController
             ProjectId = b.ProjectId, RegionId = b.RegionId,
             Address = b.Address, FloorCount = b.FloorCount,
             ThumbnailUrl = b.ThumbnailUrl, Description = b.Description,
-            ManagerId = b.ManagerId, Status = b.Status
+            ManagerId = b.ManagerId, Status = b.Status,
+            DefaultBillingDay = b.DefaultBillingDay,
+            DefaultLateFeeAfterDays = b.DefaultLateFeeAfterDays,
+            DefaultLateFeePercent = b.DefaultLateFeePercent
         };
         await PopulateLookupsAsync(vm);
         return View(vm);
@@ -149,6 +152,9 @@ public class BuildingsController : AdminBaseController
         b.ThumbnailUrl = input.ThumbnailUrl; b.Description = input.Description;
         b.ManagerId = string.IsNullOrEmpty(input.ManagerId) ? null : input.ManagerId;
         b.Status = input.Status;
+        b.DefaultBillingDay = input.DefaultBillingDay;
+        b.DefaultLateFeeAfterDays = input.DefaultLateFeeAfterDays;
+        b.DefaultLateFeePercent = input.DefaultLateFeePercent;
 
         await Db.SaveChangesAsync();
 

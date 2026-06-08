@@ -135,6 +135,10 @@ public class BuildingEditVm
     public string? ManagerId { get; set; }
     public BuildingStatus Status { get; set; } = BuildingStatus.Active;
 
+    [Range(1, 28)] public int DefaultBillingDay { get; set; } = 1;
+    [Range(0, 60)] public int DefaultLateFeeAfterDays { get; set; } = 7;
+    [Range(0, 100)] public int DefaultLateFeePercent { get; set; } = 5;
+
     public List<Region> Regions { get; set; } = new();
     public List<Project> Projects { get; set; } = new();
     public List<HostOption> Managers { get; set; } = new();

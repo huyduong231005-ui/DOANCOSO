@@ -80,6 +80,35 @@
         </div>
     </div>
 
+    <div class="card">
+        <div class="card-header"><h2>Chính sách thanh toán mặc định</h2></div>
+        <div class="card-body">
+            <p class="text-muted" style="font-size:13px;margin-top:0;">
+                Dùng để điền sẵn khi tạo hợp đồng mới cho căn hộ thuộc toà này. Mỗi hợp đồng vẫn chỉnh riêng được.
+            </p>
+            <div class="form-grid">
+                <div class="form-field span-4">
+                    <label asp-for="DefaultBillingDay">Ngày chốt kỳ</label>
+                    <input asp-for="DefaultBillingDay" type="number" min="1" max="28" />
+                    <span class="hint">Hạn thanh toán = ngày chốt kỳ + 7</span>
+                    <span class="err" asp-validation-for="DefaultBillingDay"></span>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="DefaultLateFeeAfterDays">Ân hạn trễ (ngày)</label>
+                    <input asp-for="DefaultLateFeeAfterDays" type="number" min="0" max="60" />
+                    <span class="hint">Quá hạn bao nhiêu ngày thì tính phí trễ</span>
+                    <span class="err" asp-validation-for="DefaultLateFeeAfterDays"></span>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="DefaultLateFeePercent">Phí trễ (%)</label>
+                    <input asp-for="DefaultLateFeePercent" type="number" min="0" max="100" />
+                    <span class="hint">Khuyến nghị ≤ 8% theo quy định</span>
+                    <span class="err" asp-validation-for="DefaultLateFeePercent"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="hstack mt-3" style="justify-content:flex-end;">
         <a class="btn btn-ghost" asp-action="Index">Huỷ</a>
         <button type="submit" class="btn btn-primary">Lưu</button>

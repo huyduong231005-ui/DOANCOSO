@@ -502,6 +502,9 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.Property(x => x.Description).HasColumnName("MoTa");
             e.Property(x => x.ManagerId).HasColumnName("QuanLyId");
             e.Property(x => x.Status).HasColumnName("TrangThai");
+            e.Property(x => x.DefaultBillingDay).HasColumnName("NgayChotKyMacDinh").HasDefaultValue(1);
+            e.Property(x => x.DefaultLateFeeAfterDays).HasColumnName("SoNgayTreHanMacDinh").HasDefaultValue(7);
+            e.Property(x => x.DefaultLateFeePercent).HasColumnName("PhanTramPhiTreMacDinh").HasDefaultValue(5);
 
             e.HasIndex(x => x.Slug).IsUnique();
             e.HasIndex(x => x.RegionId);

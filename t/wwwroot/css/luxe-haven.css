@@ -154,6 +154,8 @@ body.luxe-landing .material-symbols-outlined {
   display: flex;
   align-items: center;
   gap: 1.2rem;
+  /* Lề phải cân xứng với margin-left của .brand để "Đăng tin" không dính rìa. */
+  margin-right: 2cm;
 }
 
 .login-link {
@@ -1783,6 +1785,10 @@ body.js-reveal .reveal-item.is-visible {
 
   .nav-cta .login-link {
     display: none;
+  }
+
+  .nav-cta {
+    margin-right: 0.6rem;
   }
 
   .brand {

@@ -1,7 +1,7 @@
 @model List<t.Areas.Admin.Models.OccupancyRow>
 @{
     ViewData["Title"] = "Báo cáo lấp đầy";
-    string Money(decimal v) => v >= 1_000_000 ? $"{v/1_000_000m:0.#}tr" : v.ToString("N0");
+    string Money(decimal v) => v.ToString("N0");
     var totalUnits = Model.Sum(x => x.Total);
     var totalOcc = Model.Sum(x => x.Occupied);
     var totalRev = Model.Sum(x => x.MonthlyRevenue);

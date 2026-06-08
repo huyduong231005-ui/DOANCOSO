@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Trang chủ";
     ViewData["BodyClass"] = "luxe-landing";
     ViewData["ActiveNav"] = "home";
@@ -60,7 +60,7 @@
                 var heroLandmark = ViewBag.HeroLandmark as t.Models.Entities.Apartment;
                 var heroOcean = ViewBag.HeroOceanPark as t.Models.Entities.Apartment;
                 var heroSun = ViewBag.HeroSunGroup as t.Models.Entities.Apartment;
-                string MoneyShort(decimal v) => v >= 1_000_000m ? $"{v / 1_000_000m:0.#}tr" : v.ToString("N0");
+                string MoneyShort(decimal v) => v.ToString("N0");
                 string CoverOf(t.Models.Entities.Apartment? a, string fallback) =>
                     a?.Images?.FirstOrDefault(i => i.IsCover)?.Url
                     ?? a?.Images?.OrderBy(i => i.SortOrder).FirstOrDefault()?.Url

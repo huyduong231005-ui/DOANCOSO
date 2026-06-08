@@ -1,7 +1,7 @@
 @model List<t.Areas.Admin.Models.ArrearsRow>
 @{
     ViewData["Title"] = "Công nợ";
-    string Money(decimal v) => v >= 1_000_000 ? $"{v/1_000_000m:0.#}tr" : v.ToString("N0");
+    string Money(decimal v) => v.ToString("N0");
     var labels = (string[])ViewBag.BucketLabels;
     var totals = (decimal[])ViewBag.BucketTotals;
     var grand = (decimal)ViewBag.GrandTotal;

@@ -5,7 +5,7 @@
     var pager = (t.Areas.Admin.Models.PageInfo)ViewBag.Pager;
     var q = (string?)ViewBag.Q;
     var status = (LeaseStatus?)ViewBag.Status;
-    string Money(decimal v) => v >= 1_000_000 ? $"{v/1_000_000m:0.#}tr" : v.ToString("N0");
+    string Money(decimal v) => v.ToString("N0");
     string Pill(LeaseStatus s) => s switch
     {
         LeaseStatus.Active => "pill pill-success",

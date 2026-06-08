@@ -1,7 +1,7 @@
 @model List<t.Models.Entities.Apartment>
 @{
     ViewData["Title"] = "Tin đăng chờ duyệt";
-    string Money(decimal v) => v >= 1_000_000 ? $"{v/1_000_000m:0.#}tr" : v.ToString("N0");
+    string Money(decimal v) => v.ToString("N0");
 }
 
 <section class="page-header">

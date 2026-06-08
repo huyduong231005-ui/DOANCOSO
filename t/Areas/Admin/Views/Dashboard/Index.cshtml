@@ -1,9 +1,7 @@
 @model t.Areas.Admin.Models.DashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
-    string Money(decimal v) => v >= 1_000_000_000 ? $"{v/1_000_000_000m:0.##} tỷ"
-                              : v >= 1_000_000 ? $"{v/1_000_000m:0.#} tr"
-                              : v.ToString("N0");
+    string Money(decimal v) => v.ToString("N0");
     string Pill(t.Models.Entities.LeaseStatus s) => s switch
     {
         t.Models.Entities.LeaseStatus.Active => "pill pill-success",

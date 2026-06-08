@@ -38,9 +38,7 @@
             return string.Empty;
         }
 
-        return value.Value >= 1_000_000m
-            ? $"{value.Value / 1_000_000m:0.#}tr"
-            : value.Value.ToString("N0", CultureInfo.InvariantCulture);
+        return value.Value.ToString("N0", CultureInfo.InvariantCulture);
     }
 
     string FormatRange(string prefix, object? min, object? max)

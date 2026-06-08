@@ -1,7 +1,7 @@
 @model List<t.Areas.Admin.Models.ForecastRow>
 @{
     ViewData["Title"] = "Dự báo doanh thu";
-    string Money(decimal v) => v >= 1_000_000 ? $"{v/1_000_000m:0.#}tr" : v.ToString("N0");
+    string Money(decimal v) => v.ToString("N0");
     var max = Model.Count == 0 ? 0 : Model.Max(x => x.ProjectedRevenue);
     var total = Model.Sum(x => x.ProjectedRevenue);
 }

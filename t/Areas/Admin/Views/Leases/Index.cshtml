@@ -7,7 +7,7 @@
     var status = (LeaseStatus?)ViewBag.Status;
     var buildingId = (int?)ViewBag.BuildingId;
     var buildings = (List<Building>)ViewBag.Buildings;
-    string Money(decimal v) => v >= 1_000_000 ? $"{v/1_000_000m:0.#}tr" : v.ToString("N0");
+    string Money(decimal v) => v.ToString("N0");
     string Pill(LeaseStatus s) => s switch
     {
         LeaseStatus.Active => "pill pill-success",

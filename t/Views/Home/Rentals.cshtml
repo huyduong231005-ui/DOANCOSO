@@ -256,7 +256,12 @@
                                     <input type="hidden" name="apartmentId" value="@apartment.Id" />
                                     <input type="hidden" name="shouldBeFavorite" value="@(isFav ? "false" : "true")" />
                                     <input type="hidden" name="returnUrl" value="@returnUrl" />
-                                    <button type="submit" title="@(isFav ? "Bỏ yêu thích" : "Thêm vào yêu thích")"
+                                    <button type="submit" data-favorite-button
+                                            data-fav-on-title="Bỏ yêu thích"
+                                            data-fav-off-title="Thêm vào yêu thích"
+                                            data-fav-on-class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary bg-primary/10 text-primary"
+                                            data-fav-off-class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-outline-variant text-on-surface-variant"
+                                            title="@(isFav ? "Bỏ yêu thích" : "Thêm vào yêu thích")"
                                             class="inline-flex h-9 w-9 items-center justify-center rounded-full border @(isFav ? "border-primary bg-primary/10 text-primary" : "border-outline-variant text-on-surface-variant")">
                                         <span class="material-symbols-outlined text-base" style="@(isFav ? "font-variation-settings:'FILL' 1;" : "")">favorite</span>
                                     </button>

@@ -606,6 +606,48 @@ public class LeasesController : AdminBaseController
         return RedirectToAction(nameof(Details), new { id });
     }
 
+    /// <summary>
+    /// Xoá cứng hoá đơn tiền thuê của tháng hiện tại rồi tạo lại theo logic mới
+    /// (gồm phí định kỳ + hạn = ngày chốt kỳ + 7). Chỉ cho phép khi hoá đơn cũ chưa có
+    /// thanh toán thành công, để không phá vỡ sổ sách.
+    /// </summary>
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> RegenerateInvoice(int id)
+    {
+        var billingMonth = InvoiceGenerator.ToBillingMonth(VnTime.Now);
+        var existing = await Db.Invoices
+            .Include(i => i.Payments)
+            .FirstOrDefaultAsync(i => i.LeaseId == id
+                                      && i.BillingMonth == billingMonth
+                                      && i.Kind == InvoiceKind.MonthlyRent);
+
+        if (existing != null)
+        {
+            if (existing.Payments.Any(p => p.Status == PaymentStatus.Succeeded))
+            {
+                TempData["Danger"] = "Hoá đơn tháng này đã có thanh toán thành công — không thể tạo lại. Hãy hoàn tiền trước.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            // Gỡ các thanh toán chưa thành công (FK Restrict) rồi xoá hoá đơn (Items cascade).
+            Db.Payments.RemoveRange(existing.Payments);
+            Db.Invoices.Remove(existing);
+
+            // Trả lại trạng thái "chưa xuất" cho chỉ số điện/nước của kỳ này để được tính lại.
+            var readings = await Db.UtilityReadings
+                .Where(r => r.LeaseId == id && r.BillingMonth == billingMonth && r.Billed)
+                .ToListAsync();
+            foreach (var r in readings) r.Billed = false;
+
+            await Db.SaveChangesAsync();
+        }
+
+        var result = await _invoiceGenerator.GenerateMonthlyInvoiceAsync(id, VnTime.Now);
+        TempData[result.Success ? "Success" : "Danger"] =
+            (existing != null ? "Đã xoá hoá đơn cũ và tạo lại. " : "") + result.Message;
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
     // ── Recurring charges (phí định kỳ) ──
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> AddRecurringCharge(int id, string description, decimal amount)

@@ -48,6 +48,7 @@
         @if (Model.Status == LeaseStatus.Active)
         {
             <form asp-action="GenerateInvoice" asp-route-id="@Model.Id" method="post" style="display:inline;">@Html.AntiForgeryToken()<button class="btn btn-accent"><span class="material-symbols-outlined">receipt_long</span>Tạo hoá đơn tháng</button></form>
+            <form asp-action="RegenerateInvoice" asp-route-id="@Model.Id" method="post" style="display:inline;" data-confirm="Xoá hoá đơn tiền thuê tháng hiện tại (nếu có) và tạo lại theo logic mới? Chỉ áp dụng khi hoá đơn chưa có thanh toán thành công." data-confirm-title="Tạo lại hoá đơn tháng" data-confirm-ok="Tạo lại">@Html.AntiForgeryToken()<button class="btn btn-outline"><span class="material-symbols-outlined">restart_alt</span>Tạo lại HĐ tháng</button></form>
         }
     </div>
 </section>

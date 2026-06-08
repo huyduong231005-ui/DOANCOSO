@@ -48,9 +48,45 @@ public class InvoiceGenerator
             }
         };
 
+        // Tự ước chỉ số điện/nước cho kỳ này nếu chưa có (theo mức tiêu thụ kỳ gần nhất),
+        // để hoá đơn luôn đủ chi phí. Admin nhập chỉ số thực sau thì sửa/tính lại.
+        var estimatedReadings = new List<UtilityReading>();
+        var typeIdsWithHistory = lease.UtilityReadings.Select(r => r.UtilityTypeId).Distinct().ToList();
+        foreach (var typeId in typeIdsWithHistory)
+        {
+            if (lease.UtilityReadings.Any(r => r.UtilityTypeId == typeId && r.BillingMonth == billingMonth))
+                continue;
+
+            var last = lease.UtilityReadings
+                .Where(r => r.UtilityTypeId == typeId && r.BillingMonth < billingMonth)
+                .OrderByDescending(r => r.BillingMonth)
+                .FirstOrDefault();
+            if (last == null) continue;
+
+            estimatedReadings.Add(new UtilityReading
+            {
+                LeaseId = lease.Id,
+                UtilityTypeId = typeId,
+                UtilityType = last.UtilityType,
+                BillingMonth = billingMonth,
+                PreviousReading = last.CurrentReading,
+                Consumption = last.Consumption,
+                CurrentReading = last.CurrentReading + last.Consumption,
+                Rate = last.Rate,
+                Amount = Math.Round(last.Consumption * last.Rate, 0),
+                Billed = false,
+                ReadAt = forDate,
+                Note = "Ước theo kỳ trước (chưa chốt chỉ số thực)"
+            });
+        }
+
+        // Gộp chỉ số chưa xuất sẵn có + chỉ số vừa ước, tránh đếm trùng do EF fixup.
         var unbilledReadings = lease.UtilityReadings
             .Where(r => !r.Billed && r.BillingMonth == billingMonth)
+            .Concat(estimatedReadings)
+            .OrderBy(r => r.UtilityTypeId)
             .ToList();
+        if (estimatedReadings.Count > 0) _db.UtilityReadings.AddRange(estimatedReadings);
         var sort = 1;
         foreach (var r in unbilledReadings)
         {

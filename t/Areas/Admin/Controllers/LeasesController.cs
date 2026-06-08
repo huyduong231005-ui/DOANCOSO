@@ -615,36 +615,39 @@ public class LeasesController : AdminBaseController
     public async Task<IActionResult> RegenerateInvoice(int id)
     {
         var billingMonth = InvoiceGenerator.ToBillingMonth(VnTime.Now);
-        var existing = await Db.Invoices
-            .Include(i => i.Payments)
-            .FirstOrDefaultAsync(i => i.LeaseId == id
-                                      && i.BillingMonth == billingMonth
-                                      && i.Kind == InvoiceKind.MonthlyRent);
 
-        if (existing != null)
+        // Lấy mọi hoá đơn tiền thuê kỳ này của hợp đồng — kể cả đã xoá-mềm — vì Invoice
+        // là ISoftDeletable: Remove() chỉ đặt cờ DaXoa, hàng vẫn giữ số hoá đơn và chặn
+        // việc tạo lại (trùng unique SoHoaDon). Phải XOÁ CỨNG để giải phóng số.
+        var existingIds = await Db.Invoices.IgnoreQueryFilters()
+            .Where(i => i.LeaseId == id && i.BillingMonth == billingMonth && i.Kind == InvoiceKind.MonthlyRent)
+            .Select(i => i.Id)
+            .ToListAsync();
+
+        if (existingIds.Count > 0)
         {
-            if (existing.Payments.Any(p => p.Status == PaymentStatus.Succeeded))
+            var hasSucceeded = await Db.Payments.IgnoreQueryFilters()
+                .AnyAsync(p => existingIds.Contains(p.InvoiceId) && p.Status == PaymentStatus.Succeeded);
+            if (hasSucceeded)
             {
                 TempData["Danger"] = "Hoá đơn tháng này đã có thanh toán thành công — không thể tạo lại. Hãy hoàn tiền trước.";
                 return RedirectToAction(nameof(Details), new { id });
             }
 
-            // Gỡ các thanh toán chưa thành công (FK Restrict) rồi xoá hoá đơn (Items cascade).
-            Db.Payments.RemoveRange(existing.Payments);
-            Db.Invoices.Remove(existing);
+            // Xoá cứng theo thứ tự FK: thanh toán → dòng hoá đơn → hoá đơn.
+            await Db.Payments.IgnoreQueryFilters().Where(p => existingIds.Contains(p.InvoiceId)).ExecuteDeleteAsync();
+            await Db.InvoiceItems.IgnoreQueryFilters().Where(it => existingIds.Contains(it.InvoiceId)).ExecuteDeleteAsync();
+            await Db.Invoices.IgnoreQueryFilters().Where(i => existingIds.Contains(i.Id)).ExecuteDeleteAsync();
 
             // Trả lại trạng thái "chưa xuất" cho chỉ số điện/nước của kỳ này để được tính lại.
-            var readings = await Db.UtilityReadings
+            await Db.UtilityReadings
                 .Where(r => r.LeaseId == id && r.BillingMonth == billingMonth && r.Billed)
-                .ToListAsync();
-            foreach (var r in readings) r.Billed = false;
-
-            await Db.SaveChangesAsync();
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.Billed, false));
         }
 
         var result = await _invoiceGenerator.GenerateMonthlyInvoiceAsync(id, VnTime.Now);
         TempData[result.Success ? "Success" : "Danger"] =
-            (existing != null ? "Đã xoá hoá đơn cũ và tạo lại. " : "") + result.Message;
+            (existingIds.Count > 0 ? "Đã xoá hoá đơn cũ và tạo lại. " : "") + result.Message;
         return RedirectToAction(nameof(Details), new { id });
     }
 

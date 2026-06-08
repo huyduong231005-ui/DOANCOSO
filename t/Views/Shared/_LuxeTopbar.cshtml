@@ -10,6 +10,9 @@
     var displayName = User?.Identity?.Name;
     var isAdminOrManager = User?.IsInRole("Admin") == true || User?.IsInRole("Manager") == true;
     var isTenant = User?.IsInRole("Tenant") == true;
+    var avatarInitial = !string.IsNullOrWhiteSpace(displayName)
+        ? displayName.Trim().Substring(0, 1).ToUpperInvariant()
+        : "?";
 }
 
 <header class="topbar">
@@ -30,32 +33,40 @@
         <div class="nav-cta">
             @if (isAuthenticated)
             {
-                @if (!string.IsNullOrWhiteSpace(displayName))
-                {
-                    <span class="login-link">Xin chào, @displayName</span>
-                }
-
-                @if (isAdminOrManager)
-                {
-                    <a class="login-link" href="/admin" title="Quay về giao diện quản trị">
-                        <span class="material-symbols-outlined" style="font-size:16px;vertical-align:-3px;">dashboard</span>
-                        Quản trị
-                    </a>
-                }
-                @if (isTenant)
-                {
-                    <a class="login-link" href="/tenant" title="Trang khách thuê">
-                        <span class="material-symbols-outlined" style="font-size:16px;vertical-align:-3px;">person</span>
-                        Khách thuê
-                    </a>
-                }
-                <a class="login-link @(activeNav == "mylistings" ? "active" : string.Empty)" asp-controller="MyListings" asp-action="Index" data-soft-nav="true">Tin của tôi</a>
-                <a class="login-link @(activeNav == "favorites" ? "active" : string.Empty)" asp-controller="Favorites" asp-action="Index" data-soft-nav="true">Yêu thích</a>
-
-                <form asp-controller="Home" asp-action="Logout" method="post" class="d-inline">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="login-link" style="background:none;border:none;padding:0;cursor:pointer;">Đăng xuất</button>
-                </form>
+                <div class="user-menu" data-user-menu>
+                    <button type="button" class="user-menu-trigger" data-user-menu-trigger aria-haspopup="true" aria-expanded="false">
+                        <span class="user-avatar">@avatarInitial</span>
+                        <span class="user-menu-name">@displayName</span>
+                        <span class="material-symbols-outlined user-menu-caret">expand_more</span>
+                    </button>
+                    <div class="user-menu-panel" data-user-menu-panel role="menu">
+                        @if (isAdminOrManager)
+                        {
+                            <a class="user-menu-item" href="/admin" role="menuitem" title="Quay về giao diện quản trị">
+                                <span class="material-symbols-outlined">dashboard</span>Quản trị
+                            </a>
+                        }
+                        @if (isTenant)
+                        {
+                            <a class="user-menu-item" href="/tenant" role="menuitem" title="Trang khách thuê">
+                                <span class="material-symbols-outlined">person</span>Khách thuê
+                            </a>
+                        }
+                        <a class="user-menu-item @(activeNav == "mylistings" ? "active" : string.Empty)" asp-controller="MyListings" asp-action="Index" data-soft-nav="true" role="menuitem">
+                            <span class="material-symbols-outlined">article</span>Tin của tôi
+                        </a>
+                        <a class="user-menu-item @(activeNav == "favorites" ? "active" : string.Empty)" asp-controller="Favorites" asp-action="Index" data-soft-nav="true" role="menuitem">
+                            <span class="material-symbols-outlined">favorite</span>Yêu thích
+                        </a>
+                        <div class="user-menu-divider"></div>
+                        <form asp-controller="Home" asp-action="Logout" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="user-menu-item user-menu-logout" role="menuitem">
+                                <span class="material-symbols-outlined">logout</span>Đăng xuất
+                            </button>
+                        </form>
+                    </div>
+                </div>
             }
             else
             {

@@ -62,7 +62,7 @@
   margin: 0 0 1.1rem;
   font-family: var(--form-font-family);
   font-size: clamp(2.2rem, 4.2vw, 3.55rem);
-  line-height: 1.06;
+  line-height: 1.2;
   letter-spacing: -0.02em;
   max-width: 30rem;
 }
@@ -407,7 +407,7 @@
 
 .auth-register .auth-header h2 {
   font-size: 2.05rem;
-  line-height: 1.06;
+  line-height: 1.2;
 }
 
 .auth-register .auth-header p {
@@ -452,7 +452,7 @@
 
 .auth-login .auth-header h2 {
   font-size: 2.05rem;
-  line-height: 1.05;
+  line-height: 1.2;
 }
 
 .auth-login .auth-header p {
@@ -497,7 +497,7 @@
 
 .auth-forgot .auth-header h2 {
   font-size: 2rem;
-  line-height: 1.06;
+  line-height: 1.2;
 }
 
 .auth-forgot .auth-header p {

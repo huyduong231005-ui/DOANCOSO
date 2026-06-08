@@ -230,7 +230,7 @@ body.ap-lightbox-open {
   font-family: "Be Vietnam Pro", system-ui, sans-serif;
   color: #001e40;
   font-size: clamp(2rem, 3vw, 3.1rem);
-  line-height: 1.08;
+  line-height: 1.2;
   letter-spacing: -0.015em;
 }
 

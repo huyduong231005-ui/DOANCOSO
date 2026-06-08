@@ -254,7 +254,8 @@ body.admin-shell .material-symbols-outlined {
     background: #fff;
     border: 1px solid var(--admin-line);
     border-radius: var(--admin-radius);
-    padding: 1.1rem 1.2rem;
+    /* Chừa khoảng phải để chữ không bị icon (góc trên-phải) đè lên. */
+    padding: 1.1rem 3.7rem 1.1rem 1.2rem;
     box-shadow: var(--admin-shadow);
     display: flex; flex-direction: column; gap: .35rem;
     position: relative;
@@ -267,6 +268,7 @@ body.admin-shell .material-symbols-outlined {
 .kpi-card .kpi-label {
     font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.16em;
     color: var(--admin-muted); font-family: "Be Vietnam Pro", system-ui, sans-serif; font-weight: 700;
+    line-height: 1.45;
 }
 .kpi-card .kpi-value {
     font-family: "Be Vietnam Pro", system-ui, sans-serif;

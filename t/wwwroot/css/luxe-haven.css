@@ -62,13 +62,14 @@ body.luxe-landing .material-symbols-outlined {
   align-items: center;
   gap: 2rem;
   height: 4.9rem;
+  /* Lề 2 bên cân xứng để logo (trái) và nút Đăng tin (phải) không dính rìa. */
+  padding: 0 2.5cm;
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 0.56rem;
-  margin-left: 2cm;
   color: var(--primary);
   font-family: "Be Vietnam Pro", system-ui, sans-serif;
   font-weight: 800;
@@ -154,8 +155,6 @@ body.luxe-landing .material-symbols-outlined {
   display: flex;
   align-items: center;
   gap: 1.2rem;
-  /* Lề phải cân xứng với margin-left của .brand để "Đăng tin" không dính rìa. */
-  margin-right: 2cm;
 }
 
 .login-link {
@@ -1725,6 +1724,7 @@ body.js-reveal .reveal-item.is-visible {
     grid-template-columns: auto auto;
     gap: 1rem;
     height: 4.4rem;
+    padding: 0 1.2cm;
   }
 
   .brand-name {
@@ -1787,8 +1787,8 @@ body.js-reveal .reveal-item.is-visible {
     display: none;
   }
 
-  .nav-cta {
-    margin-right: 0.6rem;
+  .topbar-inner {
+    padding: 0 0.9rem;
   }
 
   .brand {

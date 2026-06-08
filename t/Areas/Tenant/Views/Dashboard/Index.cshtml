@@ -2,7 +2,7 @@
 @using t.Models.Entities
 @{
     ViewData["Title"] = "Trang chính";
-    string Money(decimal v) => v >= 1_000_000 ? $"{v/1_000_000m:0.#}tr" : v.ToString("N0");
+    string Money(decimal v) => v.ToString("N0");
     string InvPill(InvoiceStatus s) => s switch
     {
         InvoiceStatus.Paid => "pill pill-success",

@@ -57,6 +57,7 @@
             });
 
             map.addControl(new maplibregl.NavigationControl(), 'top-right');
+            map.once('load', () => map.resize());
             if (!resolved.showMarker) return;
 
             const popup = new maplibregl.Popup({ offset: 22 })

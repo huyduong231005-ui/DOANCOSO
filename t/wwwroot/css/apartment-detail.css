@@ -369,6 +369,11 @@ body.ap-lightbox-open {
   overflow: hidden;
 }
 
+#detail-map {
+  width: 100%;
+  height: 100%;
+}
+
 .ap-map img {
   width: 100%;
   height: 100%;

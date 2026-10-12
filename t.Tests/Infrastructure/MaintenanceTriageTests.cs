@@ -31,6 +31,17 @@ public class MaintenanceTriageTests
     }
 
     [Fact]
+    public void Parse_reads_handler_and_ignores_missing_or_unknown_values()
+    {
+        var withHandler = ValidJson.Replace("\"priority\"", "\"handler\":\"security\",\"priority\"");
+        var unknown = ValidJson.Replace("\"priority\"", "\"handler\":\"police\",\"priority\"");
+
+        Assert.Equal("security", MaintenanceTriageService.Parse(withHandler)!.Handler);
+        Assert.Null(MaintenanceTriageService.Parse(unknown)!.Handler);
+        Assert.Null(MaintenanceTriageService.Parse(ValidJson)!.Handler);
+    }
+
+    [Fact]
     public void Parse_keeps_follow_up_question_only_when_model_needs_more_info()
     {
         var vague = ValidJson.Replace("\"need_more_info\":false,\"follow_up_question\":\"\"",

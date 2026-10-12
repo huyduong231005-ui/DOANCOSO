@@ -53,6 +53,29 @@ public class MaintenanceDispatcher
         _ => null,
     };
 
+    /// <summary>
+    /// Nhóm nên tiếp nhận một sự cố không có thợ chuyên trách, để gợi ý cho quản lý. Loại vệ sinh, côn trùng,
+    /// mạng có nhóm cố định; loại "Khác" lấy theo mô hình. Null khi không có gợi ý.
+    /// </summary>
+    public static string? SuggestedHandler(MaintenanceCategory category, MaintenanceTriage? triage) => category switch
+    {
+        MaintenanceCategory.Cleaning => "Đội vệ sinh",
+        MaintenanceCategory.Pest => "Đơn vị diệt côn trùng",
+        MaintenanceCategory.Network => "Kỹ thuật mạng / nhà mạng",
+        MaintenanceCategory.Other => triage?.Handler switch
+        {
+            "security" => "Bảo vệ",
+            "building_engineering" => "Kỹ thuật tòa nhà",
+            "accounting" => "Kế toán",
+            "cleaning_team" => "Đội vệ sinh",
+            "pest_control" => "Đơn vị diệt côn trùng",
+            "network_provider" => "Kỹ thuật mạng / nhà mạng",
+            "management" => "Ban quản lý tự xử lý",
+            _ => null,
+        },
+        _ => null,
+    };
+
     /// <param name="aiUnavailable">Mô hình được bật nhưng không trả kết quả dùng được cho yêu cầu này.</param>
     public async Task DispatchAsync(MaintenanceRequest req, MaintenanceTriage? triage,
         bool aiUnavailable = false, CancellationToken ct = default)
@@ -86,7 +109,7 @@ public class MaintenanceDispatcher
                 sends.Add(SendSafeAsync(new[] { assignee }, $"[Luxe Haven] {tag}Giao việc {label}",
                     "<p>Anh/chị được giao xử lý sự cố sau.</p>" + details, req.RequestNumber, ct));
 
-            var managerMail = ManagerMail(assignee, isVague, isUrgent, triage);
+            var managerMail = ManagerMail(assignee, isVague, isUrgent, triage, SuggestedHandler(req.Category, triage));
             if (managerMail != null)
                 sends.Add(SendSafeAsync(managers, $"[Luxe Haven] {tag}{managerMail.Value.Subject} {label}",
                     managerMail.Value.Lead + details, req.RequestNumber, ct));
@@ -111,7 +134,8 @@ public class MaintenanceDispatcher
     }
 
     /// <summary>Thư cho quản lý, hoặc null khi sự cố thường đã giao được thợ (quản lý xem trên trang Bảo trì).</summary>
-    private static (string Subject, string Lead)? ManagerMail(AppUser? assignee, bool isVague, bool isUrgent, MaintenanceTriage? triage)
+    private static (string Subject, string Lead)? ManagerMail(AppUser? assignee, bool isVague, bool isUrgent,
+        MaintenanceTriage? triage, string? suggestedHandler)
     {
         if (assignee != null)
             return isUrgent
@@ -119,7 +143,8 @@ public class MaintenanceDispatcher
                 : null;
         return isVague
             ? ("Cần hỏi lại cư dân", $"<p>Mô tả chưa đủ rõ nên chưa giao thợ. Cần hỏi lại cư dân: <em>{E(triage!.FollowUpQuestion)}</em></p>")
-            : ("Cần phân công", "<p>Chưa có thợ chuyên trách nhận sự cố này. Cần quản lý phân công.</p>");
+            : ("Cần phân công", "<p>Chưa có thợ chuyên trách nhận sự cố này. Cần quản lý phân công.</p>" +
+                (suggestedHandler == null ? "" : $"<p>Đề xuất chuyển cho: <strong>{E(suggestedHandler)}</strong></p>"));
     }
 
     /// <summary>Một thư cho cả nhóm người nhận (không phải mỗi người một thư).</summary>

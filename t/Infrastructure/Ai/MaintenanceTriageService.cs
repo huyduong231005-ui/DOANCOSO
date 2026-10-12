@@ -10,7 +10,9 @@ public record MaintenanceTriage(
     bool IsDangerous,
     string RawJson,
     // Câu hỏi lại cư dân khi mô tả quá mơ hồ; null nếu mô hình thấy mô tả đã đủ rõ.
-    string? FollowUpQuestion = null);
+    string? FollowUpQuestion = null,
+    // Nhóm nên tiếp nhận sự cố theo mô hình (security, accounting...); null nếu mô hình không trả hoặc trả sai nhãn.
+    string? Handler = null);
 
 /// <summary>
 /// Hỏi mô hình chạy trên Ollama để phân loại mô tả sự cố của cư dân.
@@ -36,6 +38,16 @@ public class MaintenanceTriageService
         - network: internet, wifi, truyền hình
         - other: không thuộc loại nào ở trên hoặc không đủ thông tin để xác định
 
+        handler - nhóm nên tiếp nhận sự cố, chọn một:
+        - technician: thợ sửa chữa (luôn dùng khi category là plumbing, electrical, appliance hoặc structural)
+        - cleaning_team: đội vệ sinh
+        - pest_control: đơn vị diệt côn trùng
+        - network_provider: kỹ thuật mạng, nhà mạng
+        - security: bảo vệ (an ninh, người lạ, giữ xe, tiếng ồn, hàng xóm, vật nuôi, và ứng cứu khi có cháy hoặc người gặp nạn)
+        - building_engineering: kỹ thuật tòa nhà (thang máy, thiết bị phòng cháy, cổng, barie, tiện ích và cây xanh khu vực chung)
+        - accounting: kế toán (phí, hóa đơn, thanh toán)
+        - management: ban quản lý tự xử lý (thủ tục, đăng ký, góp ý, khiếu nại, hoặc mô tả chưa rõ)
+
         priority - chọn một:
         - urgent: đe dọa an toàn của người hoặc tài sản ngay lúc này (cháy, khói, rò gas, chập điện, điện giật, ngập nước lan rộng, người mắc kẹt, vật sắp rơi)
         - high: mất một chức năng thiết yếu của căn hộ (mất điện, mất nước, mất internet khi cần gấp, toilet duy nhất bị tắc, không khóa được cửa, nước đang rò liên tục)
@@ -53,6 +65,11 @@ public class MaintenanceTriageService
 
     private static readonly string[] Categories =
         Enum.GetNames<MaintenanceCategory>().Select(n => n.ToLowerInvariant()).ToArray();
+    public static readonly string[] Handlers =
+    {
+        "technician", "cleaning_team", "pest_control", "network_provider",
+        "security", "building_engineering", "accounting", "management",
+    };
     private static readonly string[] Priorities =
         Enum.GetNames<MaintenancePriority>().Select(n => n.ToLowerInvariant()).ToArray();
 
@@ -62,6 +79,7 @@ public class MaintenanceTriageService
         properties = new
         {
             category = new { type = "string", @enum = Categories },
+            handler = new { type = "string", @enum = Handlers },
             priority = new { type = "string", @enum = Priorities },
             is_dangerous = new { type = "boolean" },
             need_more_info = new { type = "boolean" },
@@ -92,8 +110,9 @@ public class MaintenanceTriageService
         try
         {
             using var client = _httpFactory.CreateClient("ollama");
-            // Đo trên GTX 1650: ~2 giây mỗi yêu cầu khi mô hình đã nạp. Lần gọi đầu sau khi Ollama
-            // gỡ mô hình khỏi VRAM mất 8-10 giây nên sẽ quá hạn và rơi về lựa chọn của cư dân.
+            // Đo trên GTX 1650: khoảng 4 giây mỗi yêu cầu khi mô hình đã nạp, 10-15 giây khi Ollama phải nạp
+            // mô hình vào VRAM. keep_alive bên dưới giữ mô hình sẵn để chỉ lần gọi đầu sau khi bật Ollama bị chậm;
+            // Ollama:TimeoutSeconds phải đủ dài cho lần đó, nếu không yêu cầu rơi về lựa chọn của cư dân.
             client.Timeout = TimeSpan.FromSeconds(_config.GetValue("Ollama:TimeoutSeconds", 5));
             using var response = await client.PostAsJsonAsync(baseUrl.TrimEnd('/') + "/api/chat", new
             {
@@ -104,6 +123,7 @@ public class MaintenanceTriageService
                     new { role = "user", content = description.Length > MaxDescriptionChars ? description[..MaxDescriptionChars] : description },
                 },
                 stream = false,
+                keep_alive = "24h",
                 think = false,
                 // Bản fine-tune chạy bằng runner llama.cpp, runner này ép khóa JSON theo thứ tự bảng chữ cái
                 // khi nhận schema (follow_up_question đứng trước need_more_info), lệch thứ tự lúc train và
@@ -146,13 +166,20 @@ public class MaintenanceTriageService
                 Enum.Parse<MaintenancePriority>(priority!, ignoreCase: true),
                 dangerous.GetBoolean(),
                 raw,
-                FollowUpQuestionOf(root));
+                FollowUpQuestionOf(root),
+                HandlerOf(root));
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException)
         {
             return null;
         }
     }
+
+    private static string? HandlerOf(JsonElement root) =>
+        root.TryGetProperty("handler", out var h) && h.ValueKind == JsonValueKind.String
+            && Handlers.Contains(h.GetString())
+            ? h.GetString()
+            : null;
 
     private static string? FollowUpQuestionOf(JsonElement root)
     {

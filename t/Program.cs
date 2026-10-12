@@ -25,21 +25,6 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Render (và đa số cloud) gán PORT qua biến môi trường. App phải bind vào port đó.
-var port = Environment.GetEnvironmentVariable("PORT");
-if (!string.IsNullOrEmpty(port))
-    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
-
-// Khi chạy sau reverse proxy (Render/Railway/Cloudflare), tin các header X-Forwarded-*
-// để biết request gốc là HTTPS, IP thật của khách...
-builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>(o =>
-{
-    o.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
-                       | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
-    o.KnownIPNetworks.Clear();
-    o.KnownProxies.Clear();
-});
-
 // On Windows, the host adds an EventLog logger provider by default. It throws
 // ObjectDisposedException during shutdown if any logger writes after the provider
 // has been disposed (a noisy red "BackgroundService failed" stack trace that has
@@ -113,7 +98,12 @@ builder.Services.AddScoped<t.Infrastructure.Payments.VietQrService>();
 builder.Services.AddScoped<t.Infrastructure.Ai.MaintenanceTriageService>();
 builder.Services.AddScoped<InvoicePdfGenerator>();
 builder.Services.AddScoped<LeaseContractPdfGenerator>();
-builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>();
+builder.Services.AddScoped<t.Infrastructure.Maintenance.MaintenanceDispatcher>();
+// Chưa cấu hình Smtp:Host thì email chỉ ghi log và lưu vào wwwroot/dev-emails.
+if (string.IsNullOrWhiteSpace(builder.Configuration["Smtp:Host"]))
+    builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>();
+else
+    builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
 builder.Services.AddHostedService<NotificationReminderService>();
 
 var app = builder.Build();
@@ -121,18 +111,13 @@ var app = builder.Build();
 // ── Seed Data ──
 await SeedData.InitializeAsync(app.Services);
 
-// Đặt ForwardedHeaders TRƯỚC mọi middleware khác để các bước sau biết là HTTPS thật
-app.UseForwardedHeaders();
-
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
-// Trong container Render, SSL đã được terminate ở edge nên tắt redirect (tránh vòng lặp).
-if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PORT")))
-    app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 app.UseRouting();
 
 app.UseAuthentication();

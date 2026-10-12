@@ -4,6 +4,7 @@ using t.Areas.Tenant.Models;
 using t.Data;
 using t.Infrastructure.Ai;
 using t.Infrastructure.Billing;
+using t.Infrastructure.Maintenance;
 using t.Models.Entities;
 
 namespace t.Areas.Tenant.Controllers;
@@ -12,9 +13,12 @@ public class MaintenanceController : TenantBaseController
 {
     private readonly MaintenanceTriageService _triage;
 
-    public MaintenanceController(AppDbContext db, MaintenanceTriageService triage) : base(db)
+    private readonly MaintenanceDispatcher _dispatcher;
+
+    public MaintenanceController(AppDbContext db, MaintenanceTriageService triage, MaintenanceDispatcher dispatcher) : base(db)
     {
         _triage = triage;
+        _dispatcher = dispatcher;
     }
 
     public async Task<IActionResult> Index(MaintenanceStatus? status, int page = 1)
@@ -128,7 +132,12 @@ public class MaintenanceController : TenantBaseController
             await Db.SaveChangesAsync();
         }
 
+        // Không truyền RequestAborted: yêu cầu đã lưu thì vẫn phải báo cho thợ dù cư dân đóng trang.
+        await _dispatcher.DispatchAsync(req, triage);
+
         TempData["Success"] = "Đã gửi yêu cầu. Ban quản lý sẽ phản hồi sớm.";
+        if (triage?.FollowUpQuestion != null)
+            TempData["Info"] = "Ban quản lý cần thêm thông tin: " + triage.FollowUpQuestion;
         return RedirectToAction(nameof(Details), new { id = req.Id });
     }
 }

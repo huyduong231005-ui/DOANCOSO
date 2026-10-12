@@ -14,6 +14,13 @@ public static class SeedData
     public const string RoleTenant = "Tenant";
     public const string RoleCustomer = "Customer";
 
+    // Thợ nhận sự cố theo chuyên môn (xem MaintenanceDispatcher.RoleFor).
+    public const string RoleElectrician = "Electrician";
+    public const string RolePlumber = "Plumber";
+    public const string RoleAcTechnician = "AcTechnician";
+    public const string RoleCarpenter = "Carpenter";
+    public const string RoleGlazier = "Glazier";
+
     public static async Task InitializeAsync(IServiceProvider services)
     {
         using var scope = services.CreateScope();
@@ -81,7 +88,8 @@ public static class SeedData
 
     private static async Task SeedRolesAndPermissionsAsync(AppDbContext ctx, RoleManager<IdentityRole> roleMgr)
     {
-        foreach (var role in new[] { RoleAdmin, RoleManager, RoleHost, RoleTenant, RoleCustomer })
+        foreach (var role in new[] { RoleAdmin, RoleManager, RoleHost, RoleTenant, RoleCustomer,
+                     RoleElectrician, RolePlumber, RoleAcTechnician, RoleCarpenter, RoleGlazier })
         {
             if (!await roleMgr.RoleExistsAsync(role))
                 await roleMgr.CreateAsync(new IdentityRole(role));

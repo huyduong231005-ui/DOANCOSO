@@ -110,6 +110,7 @@ builder.Services.AddHostedService<LeaseLifecycleService>();
 builder.Services.AddScoped<FileStorageService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<t.Infrastructure.Payments.VietQrService>();
+builder.Services.AddScoped<t.Infrastructure.Ai.MaintenanceTriageService>();
 builder.Services.AddScoped<InvoicePdfGenerator>();
 builder.Services.AddScoped<LeaseContractPdfGenerator>();
 builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>();

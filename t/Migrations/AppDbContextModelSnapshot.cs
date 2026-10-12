@@ -1717,6 +1717,9 @@ namespace t.Migrations
                         .HasColumnType("decimal(18,0)")
                         .HasColumnName("ChiPhiThucTe");
 
+                    b.Property<string>("AiTriageJson")
+                        .HasColumnType("text");
+
                     b.Property<int>("ApartmentId")
                         .HasColumnType("integer")
                         .HasColumnName("CanHoId");

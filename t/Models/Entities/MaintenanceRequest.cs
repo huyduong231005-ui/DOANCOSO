@@ -58,6 +58,12 @@ public class MaintenanceRequest : BaseEntity
     public string? ResolutionNote { get; set; }
     public string? PhotoUrls { get; set; }
 
+    /// <summary>
+    /// JSON nguyên văn mô hình AI trả về lúc cư dân gửi yêu cầu (null nếu mô hình không chạy).
+    /// So với Category/Priority sau khi admin sửa để đo độ chính xác và gom dữ liệu train.
+    /// </summary>
+    public string? AiTriageJson { get; set; }
+
     public decimal EstimatedCost { get; set; }
     public decimal ActualCost { get; set; }
     public bool ChargeToTenant { get; set; }

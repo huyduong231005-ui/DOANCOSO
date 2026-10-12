@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using t.Areas.Tenant.Models;
 using t.Data;
+using t.Infrastructure.Ai;
 using t.Infrastructure.Billing;
 using t.Models.Entities;
 
@@ -9,7 +10,12 @@ namespace t.Areas.Tenant.Controllers;
 
 public class MaintenanceController : TenantBaseController
 {
-    public MaintenanceController(AppDbContext db) : base(db) { }
+    private readonly MaintenanceTriageService _triage;
+
+    public MaintenanceController(AppDbContext db, MaintenanceTriageService triage) : base(db)
+    {
+        _triage = triage;
+    }
 
     public async Task<IActionResult> Index(MaintenanceStatus? status, int page = 1)
     {
@@ -96,6 +102,9 @@ public class MaintenanceController : TenantBaseController
             return View(input);
         }
 
+        var triage = await _triage.TriageAsync(input.Description, HttpContext.RequestAborted);
+        var (category, priority) = MaintenanceTriageService.Apply(input.Category, input.Priority, triage);
+
         var req = new MaintenanceRequest
         {
             RequestNumber = await BillingNumberGenerator.NextMaintenanceNumberAsync(Db),
@@ -104,8 +113,9 @@ public class MaintenanceController : TenantBaseController
             ReporterId = CurrentUserId,
             Title = input.Title,
             Description = input.Description,
-            Category = input.Category,
-            Priority = input.Priority,
+            Category = category,
+            Priority = priority,
+            AiTriageJson = triage?.RawJson,
             PhotoUrls = input.PhotoUrls,
             Status = MaintenanceStatus.Open,
             ReportedAt = DateTime.UtcNow

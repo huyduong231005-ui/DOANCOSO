@@ -30,6 +30,18 @@ public class MaintenanceTriageTests
         Assert.Equal(MaintenanceCategory.Other, result!.Category);
     }
 
+    [Fact]
+    public void Parse_keeps_follow_up_question_only_when_model_needs_more_info()
+    {
+        var vague = ValidJson.Replace("\"need_more_info\":false,\"follow_up_question\":\"\"",
+            "\"need_more_info\":true,\"follow_up_question\":\"Hỏng ở đâu ạ?\"");
+        var clearButChatty = ValidJson.Replace("\"follow_up_question\":\"\"", "\"follow_up_question\":\"Hỏng ở đâu ạ?\"");
+
+        Assert.Equal("Hỏng ở đâu ạ?", MaintenanceTriageService.Parse(vague)!.FollowUpQuestion);
+        Assert.Null(MaintenanceTriageService.Parse(clearButChatty)!.FollowUpQuestion);
+        Assert.Null(MaintenanceTriageService.Parse(ValidJson)!.FollowUpQuestion);
+    }
+
     [Theory]
     [InlineData("không phải json")]
     [InlineData("""{"category":"hvac","priority":"high","is_dangerous":false}""")]
@@ -87,6 +99,7 @@ public class MaintenanceTriageTests
         {
             ["Ollama:BaseUrl"] = url,
             ["Ollama:Model"] = Environment.GetEnvironmentVariable("OLLAMA_LIVE_MODEL") ?? "qwen3:4b",
+            ["Ollama:JsonMode"] = Environment.GetEnvironmentVariable("OLLAMA_LIVE_JSON_MODE") ?? "false",
             ["Ollama:TimeoutSeconds"] = "120",
         }).Build();
         using var services = new ServiceCollection().AddHttpClient().BuildServiceProvider();
@@ -110,7 +123,7 @@ public class MaintenanceTriageTests
     }
 
     [Theory]
-    [InlineData("")]                       // tính năng tắt (Render)
+    [InlineData("")]                       // tính năng tắt
     [InlineData("http://127.0.0.1:1")]     // Ollama không chạy
     public async Task TriageAsync_returns_null_instead_of_throwing_when_model_is_unreachable(string baseUrl)
     {

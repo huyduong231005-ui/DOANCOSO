@@ -143,6 +143,44 @@ print(stats.metrics)
 ''')
 
 md("""
+## Kiểm tra nhanh trên tập val
+
+Nếu `eval_loss` ở epoch 3 cao hơn epoch 2 thì mô hình bắt đầu học vẹt: giảm `EPOCHS` xuống 2 rồi chạy lại.
+""")
+
+code('''
+import torch
+
+FastLanguageModel.for_inference(model)
+
+
+def predict(text):
+    inputs = tokenizer(prompt_for(text), return_tensors="pt").to(model.device)
+    with torch.no_grad():
+        out = model.generate(**inputs, max_new_tokens=200, do_sample=False)
+    raw = tokenizer.decode(out[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True)
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return None
+
+
+hits = {k: 0 for k in ["json", "category", "priority", "is_dangerous", "need_more_info"]}
+for row in val_rows:
+    pred = predict(row["text"])
+    if pred is None:
+        continue
+    hits["json"] += 1
+    for k in list(hits)[1:]:
+        hits[k] += pred.get(k) == row[k]
+for k, v in hits.items():
+    print(f"{k}: {v}/{len(val_rows)}")
+
+for sample in ["nha em bi hu roi, nho sua giup", "Có khói bốc ra từ tủ điện ở hành lang tầng 9."]:
+    print(sample, "->", predict(sample))
+''')
+
+md("""
 ## Xuất mô hình
 
 Gộp LoRA vào mô hình gốc và xuất GGUF 4-bit (`q4_k_m`, cùng mức nén với `qwen3:4b` trên Ollama).
@@ -161,6 +199,26 @@ for path in glob.glob("/kaggle/working/**/*.gguf", recursive=True):
 md("""
 Xong: bấm **Save Version → Save & Run All** để giữ file, rồi tải file `.gguf` ở tab **Output**
 (hoặc tải ngay từ khung file bên phải trong phiên đang chạy).
+
+## Đưa vào Ollama trên máy
+
+```
+echo FROM ./ten-file.gguf > Modelfile
+ollama create qwen3-suco -f Modelfile
+ollama show qwen3-suco
+```
+
+`ollama show` phải liệt kê `thinking` trong Capabilities: ứng dụng luôn gửi `think=false`, mô hình
+không có khả năng này sẽ bị Ollama từ chối (HTTP 400) và tính năng phân loại tắt lặng lẽ.
+
+Sau đó chấm điểm bằng đúng bộ test đã dùng cho mô hình gốc, rồi mới đổi `Ollama:Model`. Bản fine-tune phải
+chạy với `--json-mode` (và `Ollama:JsonMode=true` trong app): gửi schema thì Ollama ép khóa JSON theo thứ
+tự bảng chữ cái, lệch thứ tự lúc train, mô hình sẽ hỏi lại thừa.
+
+```
+python run_test.py --models qwen3:4b
+python run_test.py --models qwen3-suco --json-mode --out results_suco
+```
 """)
 
 notebook = {

@@ -28,3 +28,73 @@
 {"id": 28, "text": "Nước máy chảy ra có màu vàng đục và mùi tanh từ hôm qua.", "category": ["plumbing"], "priority": "high", "dangerous": null, "vague": false}
 {"id": 29, "text": "Cửa sổ phòng ngủ tầng 15 bị bung bản lề, cánh cửa lỏng lẻo sắp rơi ra ngoài.", "category": ["structural"], "priority": "urgent", "dangerous": true, "vague": false}
 {"id": 30, "text": "Có vấn đề với điện.", "category": ["electrical"], "priority": "medium", "dangerous": false, "vague": true}
+{"id": 31, "text": "Máy lạnh phòng khách bật lên là nhảy CB tổng, thử 3 lần đều vậy, giờ không dám bật nữa.", "category": ["appliance", "electrical"], "priority": "high", "dangerous": null, "vague": false}
+{"id": 32, "text": "may lanh chay nuoc tong tong xuong giuong, phai lay xo hung", "category": ["appliance"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 33, "text": "Điều hòa phòng ngủ kêu è è rất to, cục nóng ngoài ban công rung bần bật.", "category": ["appliance"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 34, "text": "Remote máy lạnh bấm không ăn, đã thay pin mới rồi vẫn không được.", "category": ["appliance"], "priority": "low", "dangerous": false, "vague": false}
+{"id": 35, "text": "Máy lạnh có mùi khét và bốc khói nhẹ ở dàn lạnh, em đã rút điện.", "category": ["appliance", "electrical"], "priority": "urgent", "dangerous": true, "vague": false}
+{"id": 36, "text": "Cánh tủ bếp trên bị sút bản lề, treo lủng lẳng ngay trên đầu chỗ nấu ăn, sợ rơi trúng người.", "category": ["structural"], "priority": "urgent", "dangerous": true, "vague": false}
+{"id": 37, "text": "Cửa gỗ phòng ngủ bị xệ, đóng không khít, phải nhấc lên mới đóng được.", "category": ["structural"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 38, "text": "ngan keo tu quan ao bi truot ray, keo ra la roi xuong", "category": ["structural", "other"], "priority": "low", "dangerous": false, "vague": false}
+{"id": 39, "text": "Sàn gỗ phòng khách bị phồng rộp một mảng sau đợt mưa, đi lên kêu cọt kẹt.", "category": ["structural"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 40, "text": "Tay nắm cửa nhà vệ sinh bị gãy, hôm qua con em bị kẹt bên trong phải cạy cửa mới ra được.", "category": ["structural"], "priority": "high", "dangerous": null, "vague": false}
+{"id": 41, "text": "Kính cửa sổ phòng khách bị nứt một đường dài từ góc, gió mạnh nghe kêu răng rắc.", "category": ["structural"], "priority": "high", "dangerous": null, "vague": false}
+{"id": 42, "text": "Vách kính nhà tắm bị vỡ vụn, mảnh kính đầy sàn, may không ai ở trong đó.", "category": ["structural"], "priority": "high", "dangerous": null, "vague": false}
+{"id": 43, "text": "cua lua ban cong bi ket ray, day mai khong mo duoc", "category": ["structural"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 44, "text": "Cửa nhôm kính ban công không khóa được chốt, nhà ở tầng 3 nên em lo trộm.", "category": ["structural"], "priority": "high", "dangerous": false, "vague": false}
+{"id": 45, "text": "Gioăng cao su cửa sổ bị bong, mưa tạt là nước ngấm vào nhà.", "category": ["structural"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 46, "text": "Lan can kính ban công tầng 18 bị lung lay, ốc chân trụ lỏng hết rồi.", "category": ["structural"], "priority": "urgent", "dangerous": true, "vague": false}
+{"id": 47, "text": "Ổ cắm bếp bị lỏng, cắm phích vào hay tuột ra, thỉnh thoảng thấy tia lửa nhỏ.", "category": ["electrical"], "priority": "urgent", "dangerous": true, "vague": false}
+{"id": 48, "text": "Đèn phòng tắm nhấp nháy liên tục, lúc sáng lúc tắt.", "category": ["electrical"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 49, "text": "cong tac den phong ngu bat khong len, thay bong moi roi van vay", "category": ["electrical"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 50, "text": "Cả tầng 6 mất điện từ 9h sáng, thang máy cũng không chạy.", "category": ["electrical"], "priority": "high", "dangerous": null, "vague": false}
+{"id": 51, "text": "Dây điện ngoài hành lang tầng 4 bị hở lõi đồng, ngay tầm tay trẻ con.", "category": ["electrical"], "priority": "urgent", "dangerous": true, "vague": false}
+{"id": 52, "text": "Chuông cửa nhà em không kêu nữa.", "category": ["electrical", "appliance", "other"], "priority": "low", "dangerous": false, "vague": false}
+{"id": 53, "text": "Aptomat phòng bếp nóng ran, sờ vào bỏng tay, có mùi nhựa cháy.", "category": ["electrical"], "priority": "urgent", "dangerous": true, "vague": false}
+{"id": 54, "text": "quat tran phong khach quay cham, keu ken ket", "category": ["appliance", "electrical"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 55, "text": "Vòi sen bị rỉ nước ở chỗ nối dây, không ảnh hưởng lắm nhưng nhờ thay giúp.", "category": ["plumbing"], "priority": "low", "dangerous": false, "vague": false}
+{"id": 56, "text": "Ống cấp nước dưới bồn rửa chén bung khớp nối, nước xịt tung tóe khắp bếp, em vặn van tổng mà không khóa được.", "category": ["plumbing"], "priority": "urgent", "dangerous": null, "vague": false}
+{"id": 57, "text": "bon rua mat thoat nuoc cham, phai doi 5 phut moi rut het", "category": ["plumbing"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 58, "text": "Nhà em mất nước từ tối qua, hỏi hàng xóm thì họ vẫn có nước.", "category": ["plumbing"], "priority": "high", "dangerous": false, "vague": false}
+{"id": 59, "text": "Nước nóng không có, tắm toàn nước lạnh, bình nóng lạnh đèn vẫn sáng.", "category": ["appliance", "plumbing"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 60, "text": "Đồng hồ nước nhà tôi quay liên tục dù đã khóa hết vòi, chắc rò ở đâu đó.", "category": ["plumbing"], "priority": "high", "dangerous": false, "vague": false}
+{"id": 61, "text": "Nắp cống thoát nước ở sân chung bị mất, tối đi dễ sụp chân.", "category": ["other", "structural", "plumbing"], "priority": "high", "dangerous": true, "vague": false}
+{"id": 62, "text": "Bếp từ báo lỗi E1, không nhận nồi.", "category": ["appliance"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 63, "text": "Bếp gas bật không lên lửa, đánh lửa kêu tạch tạch mà không cháy.", "category": ["appliance"], "priority": "medium", "dangerous": null, "vague": false}
+{"id": 64, "text": "Máy giặt đang giặt thì nước tràn ra đầy sàn, chảy sang cả phòng khách.", "category": ["appliance", "plumbing"], "priority": "high", "dangerous": false, "vague": false}
+{"id": 65, "text": "lo vi song chay thi toe lua ben trong", "category": ["appliance", "electrical"], "priority": "urgent", "dangerous": true, "vague": false}
+{"id": 66, "text": "Máy hút mùi bếp không hút, bật chỉ nghe tiếng kêu.", "category": ["appliance"], "priority": "low", "dangerous": false, "vague": false}
+{"id": 67, "text": "Thùng rác tầng 8 đầy tràn ra ngoài 2 ngày rồi, ruồi bu đầy.", "category": ["cleaning"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 68, "text": "Thang bộ thoát hiểm tầng 3 có người để đồ đạc chắn hết lối đi.", "category": ["other", "cleaning"], "priority": "high", "dangerous": null, "vague": false}
+{"id": 69, "text": "Sảnh tầng trệt có vũng nước lau chưa khô, mẹ tôi suýt trượt té.", "category": ["cleaning"], "priority": "medium", "dangerous": null, "vague": false}
+{"id": 70, "text": "ham xe hoi mui nuoc cong nong nac may hom nay", "category": ["cleaning", "plumbing"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 71, "text": "Nhà có mối ăn chân tủ gỗ và khung cửa, thấy đường mối chạy lên tường.", "category": ["pest", "structural"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 72, "text": "Ban công có tổ ong to bằng cái tô, ong bay vào nhà, nhà có trẻ nhỏ.", "category": ["pest"], "priority": "high", "dangerous": true, "vague": false}
+{"id": 73, "text": "muoi nhieu qua, nho bql phun thuoc khu cay xanh", "category": ["pest"], "priority": "low", "dangerous": false, "vague": false}
+{"id": 74, "text": "Tivi không bắt được kênh truyền hình cáp nào, báo không có tín hiệu.", "category": ["network"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 75, "text": "mang cham qua, xem youtube cu quay vong vong", "category": ["network"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 76, "text": "Dây cáp mạng ngoài hành lang bị đứt, lòng thòng xuống lối đi.", "category": ["network", "other"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 77, "text": "Thẻ từ thang máy của em không quẹt được, phải nhờ bảo vệ.", "category": ["other"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 78, "text": "Hàng xóm tầng trên khoan đục ầm ầm tới 11 giờ đêm.", "category": ["other"], "priority": "medium", "dangerous": false, "vague": false}
+{"id": 79, "text": "Camera hành lang tầng 10 bị ai xoay lên trần.", "category": ["other", "network"], "priority": "low", "dangerous": false, "vague": false}
+{"id": 80, "text": "Barie cổng hầm xe không mở, xe ùn một hàng dài.", "category": ["other"], "priority": "high", "dangerous": false, "vague": false}
+{"id": 81, "text": "Chuông báo cháy tầng 7 kêu liên tục 10 phút rồi, không thấy khói.", "category": ["other", "electrical"], "priority": "high", "dangerous": null, "vague": false}
+{"id": 82, "text": "Có mùi khét như dây điện cháy ở hành lang tầng 11, không rõ từ đâu.", "category": ["electrical", "other"], "priority": "urgent", "dangerous": true, "vague": false}
+{"id": 83, "text": "Bị hư rồi ạ.", "category": ["other"], "priority": "medium", "dangerous": false, "vague": true}
+{"id": 84, "text": "cai do lai bi nua roi", "category": ["other"], "priority": "medium", "dangerous": false, "vague": true}
+{"id": 85, "text": "Nhờ BQL lên xem giúp nhà em với.", "category": ["other"], "priority": "medium", "dangerous": false, "vague": true}
+{"id": 86, "text": "Phòng ngủ có tiếng kêu lạ.", "category": ["other", "appliance", "structural", "pest"], "priority": "medium", "dangerous": false, "vague": true}
+{"id": 87, "text": "Nó không chạy.", "category": ["other", "appliance"], "priority": "medium", "dangerous": false, "vague": true}
+{"id": 88, "text": "Bị chảy nước.", "category": ["plumbing", "appliance", "other"], "priority": "medium", "dangerous": false, "vague": true}
+{"id": 89, "text": "Cửa bị hư.", "category": ["structural"], "priority": "medium", "dangerous": false, "vague": true}
+{"id": 90, "text": "may bi hu, sua gap giup em", "category": ["appliance", "other"], "priority": "medium", "dangerous": false, "vague": true}
+{"id": 91, "text": "Chào BQL, em ở đây được 2 tháng. Từ tuần trước vòi nước bếp bắt đầu rỉ, em nghĩ không sao nhưng hôm nay nước chảy thành dòng xuống tủ dưới, ván tủ ngấm nước phồng lên rồi. Em đi làm cả ngày nên nhờ thợ qua sau 6h tối.", "category": ["plumbing"], "priority": "high", "dangerous": false, "vague": false}
+{"id": 92, "text": "Em xin báo mấy việc: bóng đèn ban công cháy, vòi rửa chén hơi lỏng, và quan trọng nhất là ổ điện cạnh giường con em bị nóng, có vết cháy xém đen.", "category": ["electrical"], "priority": "urgent", "dangerous": true, "vague": false}
+{"id": 93, "text": "Tối qua mưa to, nước tạt qua khe cửa sổ phòng ngủ chảy xuống sàn gỗ, sáng nay sàn phồng lên, ổ điện sát sàn cũng bị ướt, em chưa dám cắm gì vào.", "category": ["structural", "electrical", "plumbing"], "priority": "high", "dangerous": true, "vague": false}
+{"id": 94, "text": "Dạ em không rành lắm nhưng cái máy lạnh mới lắp tháng trước giờ bật lên khoảng 10 phút là tự tắt, đèn nháy xanh, phòng không mát chút nào, trời đang nóng mà nhà có em bé.", "category": ["appliance"], "priority": "high", "dangerous": false, "vague": false}
+{"id": 95, "text": "anh chi oi cho em hoi, nha em o tang 9, may hom nay cu mo voi la nuoc ra yeu xiu, luc co luc khong, sang nay thi mat han luon", "category": ["plumbing"], "priority": "high", "dangerous": false, "vague": false}
+{"id": 96, "text": "Cửa chính nhà tôi khóa điện tử hết pin hay sao mà bấm mã không mở, tôi đang đứng ngoài hành lang với con nhỏ, không vào nhà được.", "category": ["structural", "appliance", "other"], "priority": "high", "dangerous": false, "vague": false}
+{"id": 97, "text": "Trần thạch cao phòng khách bị võng xuống một mảng to, có vết nứt xung quanh, hôm nay thấy võng thêm, sợ sập.", "category": ["structural"], "priority": "urgent", "dangerous": true, "vague": false}
+{"id": 98, "text": "Gạch ốp tường nhà tắm bị bong 3 viên, rơi vỡ dưới sàn, mấy viên bên cạnh gõ cũng nghe bộp bộp.", "category": ["structural"], "priority": "medium", "dangerous": null, "vague": false}
+{"id": 99, "text": "Ron silicon quanh bồn rửa mặt bị mốc đen, nhìn mất thẩm mỹ.", "category": ["plumbing", "structural", "cleaning"], "priority": "low", "dangerous": false, "vague": false}
+{"id": 100, "text": "Vệt sơn trần hành lang tầng 2 bị ố, không gấp nhưng báo để BQL biết.", "category": ["structural", "cleaning"], "priority": "low", "dangerous": false, "vague": false}

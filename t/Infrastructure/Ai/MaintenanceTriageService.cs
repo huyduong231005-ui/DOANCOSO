@@ -8,11 +8,13 @@ public record MaintenanceTriage(
     MaintenanceCategory Category,
     MaintenancePriority Priority,
     bool IsDangerous,
-    string RawJson);
+    string RawJson,
+    // Câu hỏi lại cư dân khi mô tả quá mơ hồ; null nếu mô hình thấy mô tả đã đủ rõ.
+    string? FollowUpQuestion = null);
 
 /// <summary>
 /// Hỏi mô hình chạy trên Ollama để phân loại mô tả sự cố của cư dân.
-/// Tắt hẳn khi <c>Ollama:BaseUrl</c> để trống (ví dụ trên Render, nơi không có GPU).
+/// Tắt hẳn khi <c>Ollama:BaseUrl</c> để trống (máy không có GPU hoặc không cài Ollama).
 /// Mọi lỗi đều trả về null để việc báo sự cố không phụ thuộc vào mô hình.
 /// </summary>
 public class MaintenanceTriageService
@@ -100,7 +102,10 @@ public class MaintenanceTriageService
                 },
                 stream = false,
                 think = false,
-                format = Schema,
+                // Bản fine-tune chạy bằng runner llama.cpp, runner này ép khóa JSON theo thứ tự bảng chữ cái
+                // khi nhận schema (follow_up_question đứng trước need_more_info), lệch thứ tự lúc train và
+                // làm mô hình hỏi lại thừa. Bật Ollama:JsonMode cho mô hình fine-tune; Parse vẫn kiểm tra nhãn.
+                format = _config.GetValue("Ollama:JsonMode", false) ? (object)"json" : Schema,
                 options = new { temperature = 0, num_ctx = 2048, num_predict = 300 },
             }, ct);
             response.EnsureSuccessStatusCode();
@@ -137,12 +142,21 @@ public class MaintenanceTriageService
                 Enum.Parse<MaintenanceCategory>(category!, ignoreCase: true),
                 Enum.Parse<MaintenancePriority>(priority!, ignoreCase: true),
                 dangerous.GetBoolean(),
-                raw);
+                raw,
+                FollowUpQuestionOf(root));
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException)
         {
             return null;
         }
+    }
+
+    private static string? FollowUpQuestionOf(JsonElement root)
+    {
+        if (!root.TryGetProperty("need_more_info", out var more) || more.ValueKind != JsonValueKind.True) return null;
+        if (!root.TryGetProperty("follow_up_question", out var q) || q.ValueKind != JsonValueKind.String) return null;
+        var question = q.GetString();
+        return string.IsNullOrWhiteSpace(question) ? null : question.Trim();
     }
 
     /// <summary>

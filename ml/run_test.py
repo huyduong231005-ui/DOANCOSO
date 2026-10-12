@@ -77,6 +77,7 @@ class Runner:
         self.host = host.rstrip("/")
         self.num_ctx = num_ctx
         self.timeout = timeout
+        self.fmt = SCHEMA
         self.send_think = {}  # model -> co gui "think": false hay khong
 
     def chat(self, model, text):
@@ -87,7 +88,7 @@ class Runner:
                 {"role": "user", "content": text},
             ],
             "stream": False,
-            "format": SCHEMA,
+            "format": self.fmt,
             "options": {"temperature": 0, "num_ctx": self.num_ctx},
         }
         # Mo hinh co che do "thinking" (vi du qwen3) se cham hon nhieu neu khong tat.
@@ -156,6 +157,8 @@ def main():
     ap.add_argument("--host", default="http://localhost:11434")
     ap.add_argument("--num-ctx", type=int, default=2048)
     ap.add_argument("--timeout", type=int, default=300)
+    ap.add_argument("--json-mode", action="store_true",
+                    help="gui format=json thay vi schema (llama.cpp ep thu tu khoa theo bang chu cai khi dung schema)")
     ap.add_argument("--limit", type=int, default=0, help="chi chay N tinh huong dau")
     args = ap.parse_args()
 
@@ -167,6 +170,8 @@ def main():
     out_dir = Path(args.out)
     out_dir.mkdir(exist_ok=True)
     runner = Runner(args.host, args.num_ctx, args.timeout)
+    if args.json_mode:
+        runner.fmt = "json"
 
     try:
         get_json(runner.host + "/api/version")

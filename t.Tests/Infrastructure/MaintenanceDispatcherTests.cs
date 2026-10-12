@@ -94,6 +94,14 @@ public class MaintenanceDispatcherTests
         Assert.DoesNotContain("<script>", sender.Bodies.Single());
     }
 
+    [Fact]
+    public void Redirect_sends_everything_to_the_demo_inbox_and_keeps_the_original_recipient_in_the_subject()
+    {
+        Assert.Equal(("demo@test.local", "[Gửi cho tho.dien@luxehaven.vn] Sự cố"),
+            SmtpEmailSender.Redirect("demo@test.local", "tho.dien@luxehaven.vn", "Sự cố"));
+        Assert.Equal(("tho.dien@luxehaven.vn", "Sự cố"), SmtpEmailSender.Redirect("", "tho.dien@luxehaven.vn", "Sự cố"));
+    }
+
     private static AppDbContext NewDb() => new(new DbContextOptionsBuilder<AppDbContext>()
         .UseInMemoryDatabase($"dispatch-{Guid.NewGuid():N}").Options);
 

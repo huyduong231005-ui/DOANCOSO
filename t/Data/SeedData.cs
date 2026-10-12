@@ -43,6 +43,7 @@ public static class SeedData
         if (admin != null && !await userMgr.IsInRoleAsync(admin, RoleAdmin))
             await userMgr.AddToRoleAsync(admin, RoleAdmin);
 
+        await SeedMaintenanceStaffAsync(userMgr);
         await HideDeprecatedSampleListingsAsync(ctx);
 
         if (await ctx.Regions.AnyAsync()) return;
@@ -249,6 +250,26 @@ public static class SeedData
         };
         ctx.Projects.AddRange(landmark, thuDuc, quan7);
         return (landmark, thuDuc, quan7);
+    }
+
+    // Quản lý và thợ mẫu cho luồng báo sự cố. Không đặt mật khẩu: họ chỉ nhận email, không đăng nhập.
+    private static async Task SeedMaintenanceStaffAsync(UserManager<AppUser> userMgr)
+    {
+        var staff = new (string Email, string Name, string Role)[]
+        {
+            ("quanly@luxehaven.vn", "Trần Thị Mai (Quản lý tòa nhà)", RoleManager),
+            ("tho.dien@luxehaven.vn", "Lê Văn Hùng (Thợ điện)", RoleElectrician),
+            ("tho.nuoc@luxehaven.vn", "Phạm Văn Tâm (Thợ nước)", RolePlumber),
+            ("tho.maylanh@luxehaven.vn", "Nguyễn Văn Sơn (Thợ máy lạnh)", RoleAcTechnician),
+            ("tho.moc@luxehaven.vn", "Võ Văn Phúc (Thợ mộc)", RoleCarpenter),
+            ("tho.nhomkinh@luxehaven.vn", "Đặng Văn Khoa (Thợ nhôm kính)", RoleGlazier),
+        };
+        foreach (var (email, name, role) in staff)
+        {
+            if (await userMgr.FindByEmailAsync(email) != null) continue;
+            var user = new AppUser { UserName = email, Email = email, FullName = name, EmailConfirmed = true };
+            if ((await userMgr.CreateAsync(user)).Succeeded) await userMgr.AddToRoleAsync(user, role);
+        }
     }
 
     private static async Task<AppUser?> SeedAdminAsync(UserManager<AppUser> userMgr)

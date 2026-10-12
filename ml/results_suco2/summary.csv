@@ -1,0 +1,2 @@
+﻿model,gpu_%,json_hop_le,dung_loai,dung_uu_tien,uu_tien_lech_toi_da_1_bac,bat_nguy_hiem,bao_dong_gia,bat_mo_ta_mo_ho,hoi_thua,giay_trung_binh,giay_cham_nhat,token_moi_giay
+qwen3-suco2,100,100%,93%,74%,99%,19/20,2/66,10/11,0/89,3.8,4.2,45.8

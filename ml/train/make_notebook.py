@@ -63,6 +63,16 @@ category - chọn một:
 - network: internet, wifi, truyền hình
 - other: không thuộc loại nào ở trên hoặc không đủ thông tin để xác định
 
+handler - nhóm nên tiếp nhận sự cố, chọn một:
+- technician: thợ sửa chữa (luôn dùng khi category là plumbing, electrical, appliance hoặc structural)
+- cleaning_team: đội vệ sinh
+- pest_control: đơn vị diệt côn trùng
+- network_provider: kỹ thuật mạng, nhà mạng
+- security: bảo vệ (an ninh, người lạ, giữ xe, tiếng ồn, hàng xóm, vật nuôi, và ứng cứu khi có cháy hoặc người gặp nạn)
+- building_engineering: kỹ thuật tòa nhà (thang máy, thiết bị phòng cháy, cổng, barie, tiện ích và cây xanh khu vực chung)
+- accounting: kế toán (phí, hóa đơn, thanh toán)
+- management: ban quản lý tự xử lý (thủ tục, đăng ký, góp ý, khiếu nại, hoặc mô tả chưa rõ)
+
 priority - chọn một:
 - urgent: đe dọa an toàn của người hoặc tài sản ngay lúc này (cháy, khói, rò gas, chập điện, điện giật, ngập nước lan rộng, người mắc kẹt, vật sắp rơi)
 - high: mất một chức năng thiết yếu của căn hộ (mất điện, mất nước, mất internet khi cần gấp, toilet duy nhất bị tắc, không khóa được cửa, nước đang rò liên tục)
@@ -74,7 +84,7 @@ need_more_info: true chỉ khi mô tả quá mơ hồ, không xác định đư�
 follow_up_question: nếu need_more_info là true, viết MỘT câu hỏi ngắn, lịch sự bằng tiếng Việt để hỏi lại cư dân; nếu không thì để chuỗi rỗng.
 summary: tóm tắt sự cố trong một câu tiếng Việt có dấu, tối đa 20 từ."""
 
-FIELDS = ["category", "priority", "is_dangerous", "need_more_info", "follow_up_question", "summary"]
+FIELDS = ["category", "handler", "priority", "is_dangerous", "need_more_info", "follow_up_question", "summary"]
 ''')
 
 code('''
@@ -165,7 +175,7 @@ def predict(text):
         return None
 
 
-hits = {k: 0 for k in ["json", "category", "priority", "is_dangerous", "need_more_info"]}
+hits = {k: 0 for k in ["json", "category", "handler", "priority", "is_dangerous", "need_more_info"]}
 for row in val_rows:
     pred = predict(row["text"])
     if pred is None:

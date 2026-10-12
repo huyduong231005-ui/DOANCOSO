@@ -1,0 +1,50 @@
+# Vong 4: nhom xu ly cho cac su co thuoc quan ly (loai other).
+# text | priority(L/M/H/U) | D=nguy hiểm, -=không | summary | câu hỏi lại (nếu mơ hồ)
+
+## other:accounting
+Tôi đã đóng phí quản lý quý này bằng tiền mặt ở quầy nhưng chưa nhận được biên lai. | L | - | Đã đóng phí quản lý tại quầy nhưng chưa nhận biên lai.
+Tiền nước tháng 8 nhà em bị ghi 45 khối trong khi mọi tháng chỉ khoảng 12 khối. | M | - | Tiền nước tháng 8 bị ghi 45 khối, cao bất thường.
+cho em hoi phi quan ly tinh theo met vuong thong thuy hay tim tuong | L | - | Cư dân hỏi cách tính diện tích để thu phí quản lý.
+Em chuyển khoản phí gửi xe nhầm sang số tài khoản cũ của ban quản lý, nhờ kiểm tra giúp. | M | - | Chuyển khoản phí gửi xe nhầm tài khoản cũ.
+Hóa đơn tháng này có khoản phí bảo trì thang máy mà tôi không thấy thông báo trước. | L | - | Hóa đơn có khoản phí bảo trì thang máy chưa được thông báo.
+Nhà em đi vắng ba tháng, xin hỏi có được miễn giảm phí dịch vụ không. | L | - | Hỏi về miễn giảm phí dịch vụ khi đi vắng ba tháng.
+toi can xuat hoa don VAT cho phi quan ly nam nay de nop cong ty | L | - | Yêu cầu xuất hóa đơn VAT phí quản lý cả năm.
+Tiền điện khu vực chung chia cho các hộ tháng này tăng 30 phần trăm, đề nghị giải trình. | M | - | Tiền điện khu vực chung tăng 30%, đề nghị giải trình.
+Tôi bị tính phí phạt chậm nộp dù đã thanh toán trước hạn hai ngày. | M | - | Bị tính phí phạt chậm nộp dù đã thanh toán đúng hạn.
+Em muốn đăng ký trích nợ tự động phí quản lý hàng tháng qua ngân hàng. | L | - | Muốn đăng ký trích nợ tự động phí quản lý.
+Tiền đặt cọc thi công nội thất nhà em hoàn công ba tháng rồi mà chưa được trả lại. | M | - | Chưa được hoàn tiền đặt cọc thi công sau ba tháng.
+phi gui xe may thang nay sao len 150 nghin vay a | L | - | Hỏi lý do phí gửi xe máy tăng lên 150 nghìn.
+
+## other:building_engineering
+Thang hàng block B không lên được tầng 20 trở lên, bấm nút không nhận. | M | - | Thang hàng block B không lên được từ tầng 20.
+Cửa cuốn lối xuống hầm B2 bị kẹt nửa chừng, ô tô không qua được. | H | - | Cửa cuốn lối xuống hầm B2 kẹt, ô tô không qua được.
+Đài phun nước ở sân trung tâm bị rò, nước chảy tràn ra lối đi bộ. | M | - | Đài phun nước sân trung tâm rò, nước tràn ra lối đi.
+Hệ thống quạt thông gió tầng hầm không chạy, trong hầm ngột ngạt mùi khói xe. | H | D | Quạt thông gió tầng hầm không chạy, hầm ngột ngạt khói xe.
+Cột đèn sân vườn bị nghiêng sau trận gió tối qua, sắp đổ ra lối đi. | H | D | Cột đèn sân vườn nghiêng, sắp đổ ra lối đi.
+may loc nuoc o phong gym bi hong, khong ra nuoc | L | - | Máy lọc nước phòng gym bị hỏng.
+Nút gọi thang máy ở tầng 11 bị liệt, phải đi bộ xuống tầng 10 để gọi. | M | - | Nút gọi thang máy tầng 11 bị liệt.
+Vòi chữa cháy vách tường tầng 3 bị rò nước ở khớp nối, sàn hành lang ướt. | M | - | Vòi chữa cháy vách tường tầng 3 rò nước ở khớp nối.
+Cầu trượt khu vui chơi trẻ em bị nứt một đường dài, mép sắc. | H | D | Cầu trượt khu vui chơi nứt, mép sắc.
+Em chào BQL, thang máy số 3 mấy hôm nay cửa đóng rất mạnh và nhanh, hôm qua kẹp vào tay mẹ em khi bà đang bước vào, may chỉ bị bầm. Nhờ BQL cho kỹ thuật kiểm tra cảm biến cửa. | H | D | Cửa thang máy số 3 đóng mạnh, đã kẹp tay người.
+
+## other:security
+Có người lạ đi theo cư dân vào sảnh mà không quẹt thẻ, bảo vệ không kiểm tra. | M | - | Người lạ theo cư dân vào sảnh không quẹt thẻ.
+Xe đạp của con em khóa ở bãi xe tầng trệt bị mất tối qua. | M | - | Xe đạp khóa ở bãi tầng trệt bị mất.
+Nhà đối diện tụ tập đánh bài ăn tiền, người lạ ra vào suốt đêm. | M | - | Căn đối diện tụ tập đánh bài, người lạ ra vào suốt đêm.
+o to la dau chan truoc cua thoat hiem tang ham ca buoi sang | H | - | Ô tô lạ đậu chắn cửa thoát hiểm tầng hầm.
+Có người say rượu nằm ở sảnh thang máy tầng 6, la hét khi có người đi qua. | H | - | Người say rượu nằm ở sảnh thang máy tầng 6, la hét.
+Hàng xóm tầng trên tưới cây làm nước bẩn chảy xuống quần áo nhà tôi đang phơi, nhắc nhiều lần không được. | L | - | Hàng xóm tưới cây làm nước bẩn chảy xuống đồ phơi.
+Kính gửi BQL, tối nào khoảng 11 giờ cũng có một nhóm chạy xe máy nẹt pô trong hầm B1 rồi phóng lên dốc rất nhanh, hôm qua suýt tông vào một chị đang dắt con. Đề nghị bảo vệ có biện pháp. | H | D | Nhóm xe máy nẹt pô, phóng nhanh trong hầm B1 mỗi tối.
+Em thấy cửa căn hộ 15.07 có dấu bị cạy, chủ nhà đi công tác chưa về. | H | - | Cửa căn 15.07 có dấu bị cạy khi chủ nhà đi vắng.
+
+## other:management
+Tôi muốn đăng ký thêm một thẻ thang máy cho người giúp việc. | L | - | Đăng ký thêm thẻ thang máy cho người giúp việc.
+Cho em hỏi quy định về việc nuôi thú cưng trong chung cư. | L | - | Hỏi quy định nuôi thú cưng trong chung cư.
+Em cần giấy xác nhận cư trú để làm hồ sơ nhập học cho con. | L | - | Xin giấy xác nhận cư trú để làm hồ sơ nhập học.
+Đề nghị BQL tổ chức họp cư dân về việc tăng phí gửi xe. | L | - | Đề nghị họp cư dân về việc tăng phí gửi xe.
+Bảng tin tầng trệt dán thông báo cũ từ năm ngoái, nhờ cập nhật. | L | - | Bảng tin tầng trệt còn thông báo cũ.
+toi muon muon hoi truong tang 3 de to chuc sinh nhat cho con | L | - | Muốn mượn hội trường tầng 3 tổ chức sinh nhật.
+Nhà tôi chuẩn bị cho thuê lại căn hộ, cần làm thủ tục gì với ban quản lý. | L | - | Hỏi thủ tục khi cho thuê lại căn hộ.
+Nhân viên vệ sinh tầng 9 làm việc rất chu đáo, tôi muốn gửi lời khen. | L | - | Cư dân gửi lời khen nhân viên vệ sinh tầng 9.
+Tôi đã báo sự cố ba lần trong tháng mà không ai phản hồi, đề nghị xem lại cách tiếp nhận. | M | - | Khiếu nại việc báo sự cố nhiều lần không được phản hồi.
+Em muốn đổi chỗ đậu ô tô sang vị trí gần thang máy hơn vì nhà có người khuyết tật. | L | - | Xin đổi chỗ đậu ô tô gần thang máy vì có người khuyết tật.

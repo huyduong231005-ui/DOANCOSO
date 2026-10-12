@@ -127,7 +127,7 @@ tivi ko xem dc | L | - | Cư dân báo tivi không xem được nhưng chưa nê
 Màn hình thông báo ở sảnh bị đơ, hiện sai lịch cắt nước. | L | - | Màn hình thông báo ở sảnh đơ, hiện sai lịch.
 Loa thông báo tầng 11 rè, không nghe rõ thông báo PCCC. | M | - | Loa thông báo tầng 11 rè, không nghe rõ.
 Mất mạng 3 ngày chưa ai xử lý, tôi đã báo 2 lần. | H | - | Mất mạng 3 ngày, đã báo 2 lần chưa xử lý.
-## other
+## other:security
 Hàng xóm tầng trên khoan tường lúc 10 giờ đêm. | L | - | Tầng trên khoan tường lúc 10 giờ đêm.
 nha ben canh hat karaoke toi 1h sang | L | - | Nhà bên cạnh hát karaoke tới 1 giờ sáng.
 Có người lạ lảng vảng ở hành lang tầng 7, thử mở cửa từng nhà. | U | D | Người lạ ở hành lang tầng 7 thử mở cửa từng nhà.
@@ -135,39 +135,47 @@ Xe tôi bị trầy ở hầm, nhờ BQL trích camera. | M | - | Xe bị trầy
 Xe máy bị mất ở hầm B1 đêm qua. | H | - | Xe máy bị mất ở hầm B1 đêm qua.
 Có ô tô đỗ chắn lối ra hầm, xe khác không ra được. | H | - | Ô tô đỗ chắn lối ra hầm.
 xe la do vao cho dau cua toi | L | - | Xe lạ đỗ vào chỗ đậu của cư dân.
-Bảo vệ ngủ gật ở chốt cổng sau lúc nửa đêm. | L | - | Bảo vệ ngủ gật ở chốt cổng sau.
 Có đám cháy ở căn hộ tầng 14, khói ra hành lang rất nhiều. | U | D | Cháy ở căn hộ tầng 14, khói ra hành lang.
 chay o phong rac tang ham, khoi len ca thang bo | U | D | Cháy ở phòng rác tầng hầm, khói lên thang bộ.
 Có cụ ông ngất xỉu ở sảnh, cần hỗ trợ gấp. | U | D | Cụ ông ngất xỉu ở sảnh, cần hỗ trợ gấp.
 Một bé bị kẹt đầu vào song lan can cầu thang tầng 3. | U | D | Trẻ em kẹt đầu vào song lan can cầu thang tầng 3.
 Nghe tiếng kêu cứu từ căn hộ bên cạnh, gõ cửa không ai trả lời. | U | D | Có tiếng kêu cứu từ căn hộ bên cạnh, không ai mở cửa.
 Hai nhà tầng 9 đang đánh nhau ngoài hành lang. | U | D | Hai hộ tầng 9 đang đánh nhau ngoài hành lang.
-Tôi muốn đăng ký thẻ xe cho ô tô thứ hai. | L | - | Cư dân muốn đăng ký thẻ xe cho ô tô thứ hai.
-cho e hoi phi quan ly thang nay sao tang | L | - | Cư dân hỏi vì sao phí quản lý tháng này tăng.
-Xin cấp lại thẻ cư dân bị mất. | L | - | Cư dân xin cấp lại thẻ bị mất.
-Đăng ký chuyển đồ vào ngày chủ nhật, cần dùng thang hàng. | L | - | Cư dân đăng ký chuyển đồ chủ nhật, cần thang hàng.
-Nhà tôi sắp sửa chữa, cần xin giấy phép thi công. | L | - | Cư dân xin giấy phép thi công sửa nhà.
-Bưu kiện của tôi gửi ở lễ tân bị thất lạc. | M | - | Bưu kiện gửi ở lễ tân bị thất lạc.
 Trẻ con chơi bóng ở hành lang ồn ào, đá trúng cửa nhà tôi. | L | - | Trẻ con chơi bóng ở hành lang gây ồn.
 Căn bên cạnh nuôi chó sủa suốt đêm. | L | - | Chó nhà bên cạnh sủa suốt đêm.
 nha tren nem tan thuoc xuong ban cong nha e, chay thung ca ao | M | D | Tầng trên ném tàn thuốc xuống ban công làm cháy thủng áo.
 Có người ném chai lọ từ tầng cao xuống sân chơi. | U | D | Có người ném chai lọ từ tầng cao xuống sân chơi.
 Chậu cây nhà tầng 12 đặt trên lan can, gió to là rơi xuống đầu người. | H | D | Chậu cây đặt trên lan can tầng 12, có nguy cơ rơi.
-Bình chữa cháy ở hành lang tầng 5 hết hạn kiểm định. | M | - | Bình chữa cháy hành lang tầng 5 hết hạn kiểm định.
-Tủ vòi chữa cháy tầng 10 bị mất cuộn vòi. | H | - | Tủ chữa cháy tầng 10 mất cuộn vòi.
 Lối thoát hiểm tầng 2 bị hàng quán chiếm để đồ. | H | D | Lối thoát hiểm tầng 2 bị chiếm để đồ.
-Bể bơi không có cứu hộ trực vào buổi tối, trẻ con vẫn xuống bơi. | H | D | Bể bơi không có cứu hộ buổi tối, trẻ vẫn bơi.
-Cây to ở sân bị nghiêng sau bão, sắp đổ vào bãi xe. | U | D | Cây to ở sân nghiêng sau bão, sắp đổ vào bãi xe.
-canh cay gay treo lo lung tren loi di bo | H | D | Cành cây gãy treo lơ lửng trên lối đi bộ.
-Phòng gym mở nhạc quá to lúc 6 giờ sáng. | L | - | Phòng gym mở nhạc to lúc 6 giờ sáng.
-Tôi bị tính sai tiền nước tháng này, nhờ kiểm tra lại. | L | - | Cư dân phản ánh tiền nước tháng này tính sai.
-Shipper không được lên nhà, phải xuống nhận rất bất tiện. | L | - | Cư dân phản ánh shipper không được lên nhà.
-Góp ý: nên lắp thêm gương cầu lồi ở khúc cua hầm xe. | L | - | Góp ý lắp gương cầu lồi ở khúc cua hầm xe.
 Hầm xe có xe máy đang cháy, khói đen bốc lên. | U | D | Xe máy đang cháy ở hầm xe, khói đen bốc lên.
 Có mùi khét không rõ nguồn ở hành lang tầng 13. | U | D | Hành lang tầng 13 có mùi khét không rõ nguồn.
 co mui gas o hanh lang tang 6, khong biet nha nao | U | D | Có mùi gas ở hành lang tầng 6, chưa rõ căn nào.
 Căn hộ đối diện để cửa mở toang 2 ngày nay, không thấy ai, nhờ kiểm tra. | M | - | Căn hộ đối diện mở cửa 2 ngày không thấy người.
 Người già sống một mình ở căn bên 3 ngày không thấy ra ngoài, gọi không trả lời. | U | D | Người già sống một mình 3 ngày không ra ngoài, gọi không trả lời.
+Drone của ai đó bay sát cửa sổ các tầng cao quay phim. | M | - | Drone bay sát cửa sổ tầng cao quay phim.
+
+## other:building_engineering
+Bình chữa cháy ở hành lang tầng 5 hết hạn kiểm định. | M | - | Bình chữa cháy hành lang tầng 5 hết hạn kiểm định.
+Tủ vòi chữa cháy tầng 10 bị mất cuộn vòi. | H | - | Tủ chữa cháy tầng 10 mất cuộn vòi.
+Cây to ở sân bị nghiêng sau bão, sắp đổ vào bãi xe. | U | D | Cây to ở sân nghiêng sau bão, sắp đổ vào bãi xe.
+canh cay gay treo lo lung tren loi di bo | H | D | Cành cây gãy treo lơ lửng trên lối đi bộ.
+Đèn giao thông tự chế ở lối ra hầm bị hỏng, xe ra vào suýt đâm nhau. | H | D | Đèn tín hiệu lối ra hầm hỏng, xe suýt va chạm.
+
+## other:accounting
+cho e hoi phi quan ly thang nay sao tang | L | - | Cư dân hỏi vì sao phí quản lý tháng này tăng.
+Tôi bị tính sai tiền nước tháng này, nhờ kiểm tra lại. | L | - | Cư dân phản ánh tiền nước tháng này tính sai.
+
+## other:management
+Bảo vệ ngủ gật ở chốt cổng sau lúc nửa đêm. | L | - | Bảo vệ ngủ gật ở chốt cổng sau.
+Tôi muốn đăng ký thẻ xe cho ô tô thứ hai. | L | - | Cư dân muốn đăng ký thẻ xe cho ô tô thứ hai.
+Xin cấp lại thẻ cư dân bị mất. | L | - | Cư dân xin cấp lại thẻ bị mất.
+Đăng ký chuyển đồ vào ngày chủ nhật, cần dùng thang hàng. | L | - | Cư dân đăng ký chuyển đồ chủ nhật, cần thang hàng.
+Nhà tôi sắp sửa chữa, cần xin giấy phép thi công. | L | - | Cư dân xin giấy phép thi công sửa nhà.
+Bưu kiện của tôi gửi ở lễ tân bị thất lạc. | M | - | Bưu kiện gửi ở lễ tân bị thất lạc.
+Bể bơi không có cứu hộ trực vào buổi tối, trẻ con vẫn xuống bơi. | H | D | Bể bơi không có cứu hộ buổi tối, trẻ vẫn bơi.
+Phòng gym mở nhạc quá to lúc 6 giờ sáng. | L | - | Phòng gym mở nhạc to lúc 6 giờ sáng.
+Shipper không được lên nhà, phải xuống nhận rất bất tiện. | L | - | Cư dân phản ánh shipper không được lên nhà.
+Góp ý: nên lắp thêm gương cầu lồi ở khúc cua hầm xe. | L | - | Góp ý lắp gương cầu lồi ở khúc cua hầm xe.
 giup em voi | M | - | Cư dân cần giúp đỡ nhưng chưa nêu vấn đề. | Anh/chị cho biết đang gặp vấn đề gì và ở đâu ạ?
 Có chuyện rồi, BQL lên nhà em ngay. | H | - | Cư dân yêu cầu lên nhà ngay nhưng chưa nêu sự việc. | Anh/chị cho biết đang xảy ra việc gì ạ, có ai gặp nguy hiểm không?
 hu roi | M | - | Cư dân báo hư hỏng nhưng chưa nêu cái gì. | Anh/chị cho biết cái gì bị hư và ở vị trí nào ạ?
@@ -180,5 +188,3 @@ Có mùi lạ trong nhà. | M | - | Cư dân báo có mùi lạ trong nhà nhưn
 nguy hiem lam, len ngay di | H | - | Cư dân báo nguy hiểm nhưng chưa nêu sự việc. | Anh/chị cho biết đang có nguy hiểm gì và ở đâu ạ?
 Tầng dưới phàn nàn nhà tôi gây ồn, nhờ BQL làm việc giúp. | L | - | Cư dân nhờ BQL làm việc về phàn nàn tiếng ồn.
 Xin hỏi giờ hoạt động của bể bơi dịp lễ. | L | - | Cư dân hỏi giờ hoạt động bể bơi dịp lễ.
-Đèn giao thông tự chế ở lối ra hầm bị hỏng, xe ra vào suýt đâm nhau. | H | D | Đèn tín hiệu lối ra hầm hỏng, xe suýt va chạm.
-Drone của ai đó bay sát cửa sổ các tầng cao quay phim. | M | - | Drone bay sát cửa sổ tầng cao quay phim.

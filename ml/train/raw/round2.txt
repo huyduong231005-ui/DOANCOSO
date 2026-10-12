@@ -4,37 +4,43 @@
 # - muc uu tien hay bi danh thap mot bac (high -> medium, medium -> low)
 # text | priority(L/M/H/U) | D=nguy hiểm, -=không | summary | câu hỏi lại (nếu mơ hồ)
 
-## other
-Thẻ ra vào cổng chính của em bị lỗi, quẹt mấy lần cửa không mở. | M | - | Thẻ ra vào cổng chính bị lỗi, không mở được cửa.
-the tu gui xe cua em bi mat, nho bql lam lai giup | L | - | Cư dân mất thẻ từ gửi xe, cần làm lại.
+## other:security
+Có xe lạ đậu chiếm chỗ đậu xe của căn 12.05 ba ngày nay. | L | - | Xe lạ chiếm chỗ đậu của căn 12.05 ba ngày.
+Nhà bên cạnh mở nhạc lớn tới 1 giờ sáng, em nhắc rồi mà không được. | M | - | Hàng xóm mở nhạc lớn đến 1 giờ sáng.
+tang tren keo ban ghe am am ca dem, con nho khong ngu duoc | M | - | Tầng trên kéo bàn ghế ồn cả đêm.
+Căn đối diện sửa nhà đục tường cả ngày chủ nhật, bụi bay đầy hành lang. | M | - | Căn đối diện thi công đục tường ngày chủ nhật, bụi đầy hành lang.
+Có người lạ đứng lảng vảng trước cửa nhà em từ chiều, nhìn vào trong nhà. | H | - | Người lạ lảng vảng trước cửa căn hộ từ chiều.
+Hộp thư tầng trệt của nhà em bị cạy, mất mấy lá thư ngân hàng. | M | - | Hộp thư tầng trệt bị cạy, mất thư.
+Cửa thoát hiểm tầng 6 bị khóa trái, có cháy thì không chạy ra được. | U | D | Cửa thoát hiểm tầng 6 bị khóa trái.
+Lối thoát hiểm tầng 12 bị mấy thùng carton và xe đạp bít kín. | H | D | Lối thoát hiểm tầng 12 bị đồ đạc bít kín.
+Có người hút thuốc trong cầu thang bộ, khói bay vào nhà em. | M | - | Có người hút thuốc trong cầu thang bộ, khói bay vào căn hộ.
+Nhà hàng xóm nuôi chó thả rông ngoài hành lang, sủa và đuổi theo trẻ con. | H | D | Chó thả rông ngoài hành lang đuổi theo trẻ con.
+
+## other:building_engineering
 Thang máy số 2 block A báo lỗi, đứng im ở tầng 1 từ sáng, không có ai kẹt bên trong. | H | - | Thang máy số 2 block A ngừng hoạt động từ sáng.
 Thang máy đang chạy thì khựng lại rồi rơi nhẹ một nhịp, mọi người trong thang rất hoảng. | U | D | Thang máy khựng và tụt nhẹ khi đang chạy, gây hoảng sợ.
 thang may keu ken ket rat to moi lan dong cua | M | - | Thang máy kêu ken két to mỗi lần đóng cửa.
 Cổng tự động lối vào hầm đóng mở liên tục, suýt kẹp vào xe của tôi. | H | D | Cổng tự động hầm xe đóng mở thất thường, suýt kẹp xe.
 Thanh chắn bãi giữ xe bị gãy, nằm chắn ngang lối vào. | H | - | Thanh chắn bãi giữ xe gãy, chắn ngang lối vào.
-Có xe lạ đậu chiếm chỗ đậu xe của căn 12.05 ba ngày nay. | L | - | Xe lạ chiếm chỗ đậu của căn 12.05 ba ngày.
-Nhà bên cạnh mở nhạc lớn tới 1 giờ sáng, em nhắc rồi mà không được. | M | - | Hàng xóm mở nhạc lớn đến 1 giờ sáng.
-tang tren keo ban ghe am am ca dem, con nho khong ngu duoc | M | - | Tầng trên kéo bàn ghế ồn cả đêm.
-Căn đối diện sửa nhà đục tường cả ngày chủ nhật, bụi bay đầy hành lang. | M | - | Căn đối diện thi công đục tường ngày chủ nhật, bụi đầy hành lang.
-Bảo vệ ca đêm ngủ gật, người lạ đi thẳng lên tầng không ai hỏi. | H | - | Bảo vệ ca đêm lơ là, người lạ lên tầng không bị kiểm tra.
-Có người lạ đứng lảng vảng trước cửa nhà em từ chiều, nhìn vào trong nhà. | H | - | Người lạ lảng vảng trước cửa căn hộ từ chiều.
-Hộp thư tầng trệt của nhà em bị cạy, mất mấy lá thư ngân hàng. | M | - | Hộp thư tầng trệt bị cạy, mất thư.
 Bình chữa cháy ở hành lang tầng 14 hết hạn từ năm ngoái. | H | - | Bình chữa cháy hành lang tầng 14 đã hết hạn.
-Cửa thoát hiểm tầng 6 bị khóa trái, có cháy thì không chạy ra được. | U | D | Cửa thoát hiểm tầng 6 bị khóa trái.
-Lối thoát hiểm tầng 12 bị mấy thùng carton và xe đạp bít kín. | H | D | Lối thoát hiểm tầng 12 bị đồ đạc bít kín.
 Đèn exit cầu thang bộ tầng 5 không sáng. | M | - | Đèn exit cầu thang bộ tầng 5 không sáng.
 Xích đu khu vui chơi trẻ em bị đứt một bên dây, bé nhà em suýt ngã. | H | D | Xích đu khu vui chơi đứt một bên dây.
 Ghế đá sân chung bị gãy chân, ngồi vào là đổ. | M | - | Ghế đá sân chung bị gãy chân.
 Phòng gym máy chạy bộ số 3 không lên nguồn. | L | - | Máy chạy bộ số 3 phòng gym không lên nguồn.
 Hồ bơi nước đục và có mùi clo nồng, bơi xong ngứa da. | M | - | Nước hồ bơi đục, mùi clo nồng, gây ngứa da.
-Em đặt phòng sinh hoạt cộng đồng tối thứ bảy mà đến nơi cửa khóa, không ai giữ chìa. | M | - | Phòng sinh hoạt cộng đồng đã đặt nhưng bị khóa.
-Hóa đơn phí quản lý tháng này của nhà em bị tính trùng hai lần. | M | - | Phí quản lý tháng này bị tính trùng.
-cho em hoi phi gui xe o to thang nay tang len bao nhieu a | L | - | Cư dân hỏi mức phí gửi ô tô tháng này.
 Loa thông báo tầng 9 rè, không nghe được nội dung thông báo. | L | - | Loa thông báo tầng 9 bị rè.
 Màn hình hiển thị tầng trong thang máy bị tắt, không biết đang ở tầng mấy. | L | - | Màn hình hiển thị tầng trong thang máy bị tắt.
+
+## other:accounting
+Hóa đơn phí quản lý tháng này của nhà em bị tính trùng hai lần. | M | - | Phí quản lý tháng này bị tính trùng.
+cho em hoi phi gui xe o to thang nay tang len bao nhieu a | L | - | Cư dân hỏi mức phí gửi ô tô tháng này.
+
+## other:management
+Thẻ ra vào cổng chính của em bị lỗi, quẹt mấy lần cửa không mở. | M | - | Thẻ ra vào cổng chính bị lỗi, không mở được cửa.
+the tu gui xe cua em bi mat, nho bql lam lai giup | L | - | Cư dân mất thẻ từ gửi xe, cần làm lại.
+Bảo vệ ca đêm ngủ gật, người lạ đi thẳng lên tầng không ai hỏi. | H | - | Bảo vệ ca đêm lơ là, người lạ lên tầng không bị kiểm tra.
+Em đặt phòng sinh hoạt cộng đồng tối thứ bảy mà đến nơi cửa khóa, không ai giữ chìa. | M | - | Phòng sinh hoạt cộng đồng đã đặt nhưng bị khóa.
 Intercom gọi xuống lễ tân không ai nghe máy cả buổi sáng. | L | - | Gọi intercom xuống lễ tân không ai nghe máy.
-Có người hút thuốc trong cầu thang bộ, khói bay vào nhà em. | M | - | Có người hút thuốc trong cầu thang bộ, khói bay vào căn hộ.
-Nhà hàng xóm nuôi chó thả rông ngoài hành lang, sủa và đuổi theo trẻ con. | H | D | Chó thả rông ngoài hành lang đuổi theo trẻ con.
 
 ## cleaning
 Sàn hầm xe B2 có vệt nhớt dài ngay khúc cua, tối qua có người trượt xe. | H | D | Vệt nhớt ở khúc cua hầm B2 làm trượt xe.

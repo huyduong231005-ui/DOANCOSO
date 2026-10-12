@@ -18,18 +18,21 @@ from pathlib import Path
 CATEGORIES = ["plumbing", "electrical", "appliance", "structural",
               "cleaning", "pest", "network", "other"]
 PRIORITIES = ["low", "medium", "high", "urgent"]
+HANDLERS = ["technician", "cleaning_team", "pest_control", "network_provider",
+            "security", "building_engineering", "accounting", "management"]
 
 SCHEMA = {
     "type": "object",
     "properties": {
         "category": {"type": "string", "enum": CATEGORIES},
+        "handler": {"type": "string", "enum": HANDLERS},
         "priority": {"type": "string", "enum": PRIORITIES},
         "is_dangerous": {"type": "boolean"},
         "need_more_info": {"type": "boolean"},
         "follow_up_question": {"type": "string"},
         "summary": {"type": "string"},
     },
-    "required": ["category", "priority", "is_dangerous",
+    "required": ["category", "handler", "priority", "is_dangerous",
                  "need_more_info", "follow_up_question", "summary"],
 }
 
@@ -46,6 +49,16 @@ category - chọn một:
 - pest: côn trùng, chuột
 - network: internet, wifi, truyền hình
 - other: không thuộc loại nào ở trên hoặc không đủ thông tin để xác định
+
+handler - nhóm nên tiếp nhận sự cố, chọn một:
+- technician: thợ sửa chữa (luôn dùng khi category là plumbing, electrical, appliance hoặc structural)
+- cleaning_team: đội vệ sinh
+- pest_control: đơn vị diệt côn trùng
+- network_provider: kỹ thuật mạng, nhà mạng
+- security: bảo vệ (an ninh, người lạ, giữ xe, tiếng ồn, hàng xóm, vật nuôi, và ứng cứu khi có cháy hoặc người gặp nạn)
+- building_engineering: kỹ thuật tòa nhà (thang máy, thiết bị phòng cháy, cổng, barie, tiện ích và cây xanh khu vực chung)
+- accounting: kế toán (phí, hóa đơn, thanh toán)
+- management: ban quản lý tự xử lý (thủ tục, đăng ký, góp ý, khiếu nại, hoặc mô tả chưa rõ)
 
 priority - chọn một:
 - urgent: đe dọa an toàn của người hoặc tài sản ngay lúc này (cháy, khói, rò gas, chập điện, điện giật, ngập nước lan rộng, người mắc kẹt, vật sắp rơi)
@@ -139,6 +152,8 @@ def score_case(case, out):
     if case["dangerous"] is not None:
         s["danger_ok"] = out.get("is_dangerous") == case["dangerous"]
     s["vague_ok"] = out.get("need_more_info") == case["vague"]
+    if case.get("handler"):  # chi cham cac ca co ghi nhom xu ly mong doi
+        s["handler_ok"] = out.get("handler") in case["handler"]
     return s
 
 
@@ -252,6 +267,7 @@ def main():
             "gpu_%": gpu if gpu is not None else "",
             "json_hop_le": pct(count("json_ok"), n),
             "dung_loai": pct(count("category_ok"), n),
+            "dung_nhom_xu_ly": f"{count('handler_ok')}/{sum(1 for c in cases if c.get('handler'))}",
             "dung_uu_tien": pct(count("priority_ok"), n),
             "uu_tien_lech_toi_da_1_bac": pct(count("priority_near"), n),
             "bat_nguy_hiem": f"{danger_caught}/{len(dangerous_ids)}",

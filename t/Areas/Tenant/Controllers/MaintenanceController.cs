@@ -133,7 +133,7 @@ public class MaintenanceController : TenantBaseController
         }
 
         // Không truyền RequestAborted: yêu cầu đã lưu thì vẫn phải báo cho thợ dù cư dân đóng trang.
-        await _dispatcher.DispatchAsync(req, triage);
+        await _dispatcher.DispatchAsync(req, triage, aiUnavailable: triage == null && _triage.IsEnabled);
 
         TempData["Success"] = "Đã gửi yêu cầu. Ban quản lý sẽ phản hồi sớm.";
         if (triage?.FollowUpQuestion != null)

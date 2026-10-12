@@ -23,6 +23,21 @@ using t.Models.Entities;
 // như hành vi EF Core 5/Npgsql 5 cũ. Tránh phải sửa hàng loạt DateTime → UTC trong code.
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
+// Nạp file .env (không commit) thành biến môi trường, để nhập cấu hình bí mật trên máy dev cho dễ.
+// Mỗi dòng dạng TÊN=giá trị; dòng trống, dòng bắt đầu bằng # và giá trị rỗng được bỏ qua.
+// Tìm ở thư mục hiện tại (chạy từ t/) rồi t/.env (chạy từ thư mục gốc repo).
+var envFile = new[] { ".env", Path.Combine("t", ".env") }.FirstOrDefault(File.Exists);
+if (envFile != null)
+{
+    foreach (var line in File.ReadAllLines(envFile))
+    {
+        var eq = line.IndexOf('=');
+        if (eq <= 0 || line.TrimStart().StartsWith('#')) continue;
+        var value = line[(eq + 1)..].Trim();
+        if (value.Length > 0) Environment.SetEnvironmentVariable(line[..eq].Trim(), value);
+    }
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // On Windows, the host adds an EventLog logger provider by default. It throws
@@ -99,8 +114,8 @@ builder.Services.AddScoped<t.Infrastructure.Ai.MaintenanceTriageService>();
 builder.Services.AddScoped<InvoicePdfGenerator>();
 builder.Services.AddScoped<LeaseContractPdfGenerator>();
 builder.Services.AddScoped<t.Infrastructure.Maintenance.MaintenanceDispatcher>();
-// Chưa cấu hình Smtp:Host thì email chỉ ghi log và lưu vào wwwroot/dev-emails.
-if (string.IsNullOrWhiteSpace(builder.Configuration["Smtp:Host"]))
+// Chưa cấu hình đủ Smtp:Host và Smtp:Password thì email chỉ ghi log và lưu vào wwwroot/dev-emails.
+if (string.IsNullOrWhiteSpace(builder.Configuration["Smtp:Host"]) || string.IsNullOrWhiteSpace(builder.Configuration["Smtp:Password"]))
     builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>();
 else
     builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();

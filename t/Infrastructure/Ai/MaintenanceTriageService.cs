@@ -82,6 +82,9 @@ public class MaintenanceTriageService
         _log = log;
     }
 
+    /// <summary>False khi <c>Ollama:BaseUrl</c> để trống, tức tính năng được tắt có chủ ý.</summary>
+    public bool IsEnabled => !string.IsNullOrWhiteSpace(_config["Ollama:BaseUrl"]);
+
     public async Task<MaintenanceTriage?> TriageAsync(string description, CancellationToken ct = default)
     {
         var baseUrl = _config["Ollama:BaseUrl"];

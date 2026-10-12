@@ -27,6 +27,11 @@ def has_diacritics(text):
     return any(unicodedata.combining(c) for c in unicodedata.normalize("NFD", text)) or "đ" in text.lower()
 
 
+def strip_diacritics(text):
+    text = unicodedata.normalize("NFD", text.replace("đ", "d").replace("Đ", "D"))
+    return unicodedata.normalize("NFC", "".join(c for c in text if not unicodedata.combining(c)))
+
+
 def load():
     rows, errors = [], []
     for path in sorted((HERE / "raw").glob("*.txt")):
@@ -84,6 +89,14 @@ def main():
         cut = max(1, round(len(group) * VAL_RATIO))
         val += group[:cut]
         train += group[cut:]
+    # Cu dan hay go khong dau va mo hinh sai nhieu nhat o cac mo ta do: them ban khong dau cho
+    # mot nua so mau train co dau. Val giu nguyen de so sanh duoc voi cac vong truoc.
+    taken = test_texts | {norm(r["text"]) for r in rows}
+    for r in list(train):
+        plain = strip_diacritics(r["text"]).lower()
+        if has_diacritics(r["text"]) and rng.random() < 0.5 and norm(plain) not in taken:
+            taken.add(norm(plain))
+            train.append({**r, "text": plain})
     rng.shuffle(train)
     rng.shuffle(val)
     for name, data in (("train.jsonl", train), ("val.jsonl", val)):

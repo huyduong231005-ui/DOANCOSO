@@ -85,6 +85,37 @@ public class MaintenanceDispatcherTests
         Assert.Equal(2, new System.Net.Mail.MailMessage("from@test.local", mail.To).To.Count);
     }
 
+    [Theory]
+    [InlineData(MaintenanceCategory.Other, "security", "Bảo vệ")]
+    [InlineData(MaintenanceCategory.Other, "accounting", "Kế toán")]
+    [InlineData(MaintenanceCategory.Other, "technician", null)]
+    [InlineData(MaintenanceCategory.Other, null, null)]
+    [InlineData(MaintenanceCategory.Pest, "security", "Đơn vị diệt côn trùng")]
+    [InlineData(MaintenanceCategory.Plumbing, "security", null)]
+    public void SuggestedHandler_uses_the_model_only_for_the_other_category(
+        MaintenanceCategory category, string? modelHandler, string? expected)
+    {
+        var triage = new MaintenanceTriage(category, MaintenancePriority.Medium, false, "{}", null, modelHandler);
+
+        Assert.Equal(expected, MaintenanceDispatcher.SuggestedHandler(category, triage));
+    }
+
+    [Fact]
+    public async Task Manager_mail_names_the_group_the_model_suggests()
+    {
+        await using var db = NewDb();
+        AddUser(db, "manager", SeedData.RoleManager);
+        var req = AddRequest(db, MaintenanceCategory.Other, MaintenancePriority.Medium);
+        await db.SaveChangesAsync();
+        var sender = new RecordingSender();
+        var triage = new MaintenanceTriage(MaintenanceCategory.Other, MaintenancePriority.Medium, false, "{}", null, "security");
+
+        await Dispatcher(db, sender).DispatchAsync(req, triage);
+
+        Assert.Contains("Đề xuất chuyển cho", System.Net.WebUtility.HtmlDecode(Assert.Single(sender.Mails).Body));
+        Assert.Contains("Bảo vệ", System.Net.WebUtility.HtmlDecode(sender.Mails[0].Body));
+    }
+
     [Fact]
     public async Task Vague_report_asks_managers_to_follow_up_instead_of_assigning_a_technician()
     {

@@ -15,9 +15,17 @@ public class SmtpEmailSender : IEmailSender
 
     public SmtpEmailSender(IConfiguration config) => _config = config;
 
+    /// <summary>
+    /// Demo: khi đặt <c>Smtp:RedirectAllTo</c>, mọi email dồn về một hộp thư thật và người nhận gốc
+    /// được ghi vào tiêu đề, để tài khoản mẫu (@luxehaven.vn) không bao giờ nhận thư thật.
+    /// </summary>
+    public static (string To, string Subject) Redirect(string? redirectAllTo, string to, string subject) =>
+        string.IsNullOrWhiteSpace(redirectAllTo) ? (to, subject) : (redirectAllTo, $"[Gửi cho {to}] {subject}");
+
     public async Task SendAsync(string to, string subject, string htmlBody, CancellationToken ct = default)
     {
         var smtp = _config.GetSection("Smtp");
+        (to, subject) = Redirect(smtp["RedirectAllTo"], to, subject);
         var user = smtp["User"];
         using var client = new System.Net.Mail.SmtpClient(smtp["Host"], smtp.GetValue("Port", 587))
         {

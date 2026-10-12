@@ -1,0 +1,50 @@
+# Bổ sung mô tả mơ hồ (cần hỏi lại) và câu không dấu. Cùng định dạng với các file khác.
+## plumbing
+nuoc bi gi do | M | - | Cư dân báo nước có vấn đề nhưng chưa nêu rõ. | Anh/chị cho biết nước đang bị hiện tượng gì ạ?
+Bồn cầu có vấn đề. | M | - | Cư dân báo bồn cầu có vấn đề nhưng chưa nêu rõ. | Anh/chị cho biết bồn cầu bị tắc, rò nước hay không xả được ạ?
+Vòi nước hỏng. | M | - | Cư dân báo vòi nước hỏng nhưng chưa nêu vòi nào. | Anh/chị cho biết vòi nước ở đâu và hỏng như thế nào ạ?
+uot het roi | M | - | Cư dân báo bị ướt nhưng chưa nêu chỗ nào. | Anh/chị cho biết chỗ nào bị ướt và nước từ đâu ra ạ?
+Có nước chảy. | M | - | Cư dân báo có nước chảy nhưng chưa nêu vị trí. | Anh/chị cho biết nước chảy ở đâu và chảy nhiều không ạ?
+ống bị rò | M | - | Cư dân báo ống bị rò nhưng chưa nêu ống nào. | Anh/chị cho biết ống nào bị rò và ở vị trí nào ạ?
+## electrical
+dien bi gi roi a | M | - | Cư dân báo điện có vấn đề nhưng chưa nêu rõ. | Anh/chị cho biết điện đang bị hiện tượng gì ạ?
+Công tắc hỏng. | L | - | Cư dân báo công tắc hỏng nhưng chưa nêu công tắc nào. | Anh/chị cho biết công tắc ở phòng nào bị hỏng ạ?
+toi om | M | - | Cư dân báo bị tối nhưng chưa nêu khu vực. | Anh/chị cho biết khu vực nào đang bị tối, do mất điện hay hỏng đèn ạ?
+Có tiếng lạ phát ra từ chỗ điện. | H | - | Cư dân báo có tiếng lạ từ thiết bị điện nhưng chưa nêu rõ. | Anh/chị cho biết tiếng phát ra từ ổ cắm, tủ điện hay thiết bị nào ạ?
+cai o no bi sao y | M | - | Cư dân báo ổ cắm có vấn đề nhưng chưa nêu rõ. | Anh/chị cho biết ổ cắm ở đâu và đang bị hiện tượng gì ạ?
+Điện chập chờn lắm. | M | - | Cư dân báo điện chập chờn nhưng chưa nêu phạm vi. | Anh/chị cho biết chập chờn cả căn hộ hay chỉ một phòng ạ?
+## appliance
+may hu roi | M | - | Cư dân báo máy hư nhưng chưa nêu máy nào. | Anh/chị cho biết máy nào bị hư ạ?
+Tủ lạnh có vấn đề. | M | - | Cư dân báo tủ lạnh có vấn đề nhưng chưa nêu rõ. | Anh/chị cho biết tủ lạnh đang bị hiện tượng gì ạ?
+Thang máy bị sao ấy. | M | - | Cư dân báo thang máy có vấn đề nhưng chưa nêu rõ. | Anh/chị cho biết thang máy nào và đang bị hiện tượng gì ạ?
+ko chay nua | M | - | Cư dân báo thiết bị không chạy nhưng chưa nêu thiết bị nào. | Anh/chị cho biết thiết bị nào không chạy nữa ạ?
+Bình nóng lạnh lạ lắm. | M | - | Cư dân báo bình nóng lạnh bất thường nhưng chưa nêu rõ. | Anh/chị cho biết bình nóng lạnh đang bị hiện tượng gì ạ?
+no bao loi | M | - | Cư dân báo thiết bị báo lỗi nhưng chưa nêu thiết bị nào. | Anh/chị cho biết thiết bị nào báo lỗi và mã lỗi là gì ạ?
+## structural
+Cửa sổ có vấn đề. | M | - | Cư dân báo cửa sổ có vấn đề nhưng chưa nêu rõ. | Anh/chị cho biết cửa sổ phòng nào và bị hiện tượng gì ạ?
+san nha bi gi do | M | - | Cư dân báo sàn nhà có vấn đề nhưng chưa nêu rõ. | Anh/chị cho biết sàn ở phòng nào và đang bị hiện tượng gì ạ?
+Bị bong ra rồi. | M | - | Cư dân báo có thứ bị bong nhưng chưa nêu cái gì. | Anh/chị cho biết cái gì bị bong và ở vị trí nào ạ?
+ko dong duoc | M | - | Cư dân báo không đóng được nhưng chưa nêu cái gì. | Anh/chị cho biết cửa hay cửa sổ nào không đóng được ạ?
+Ban công nhà em không ổn. | M | - | Cư dân báo ban công có vấn đề nhưng chưa nêu rõ. | Anh/chị cho biết ban công đang bị hiện tượng gì ạ?
+## cleaning
+ban lam | L | - | Cư dân phản ánh bẩn nhưng chưa nêu khu vực. | Anh/chị cho biết khu vực nào đang bẩn ạ?
+Khu chung có mùi. | M | - | Cư dân phản ánh khu chung có mùi nhưng chưa nêu vị trí. | Anh/chị cho biết mùi ở khu vực nào và giống mùi gì ạ?
+Chưa ai dọn. | L | - | Cư dân phản ánh chưa được dọn nhưng chưa nêu khu vực. | Anh/chị cho biết khu vực nào chưa được dọn ạ?
+## pest
+co con gi do can day | M | - | Cư dân báo có con vật cắn dây nhưng chưa nêu rõ. | Anh/chị cho biết dây gì bị cắn và ở vị trí nào ạ?
+Nhiều lắm, phun thuốc giúp. | L | - | Cư dân nhờ phun thuốc nhưng chưa nêu loại côn trùng. | Anh/chị cho biết loại côn trùng gì và ở khu vực nào ạ?
+## network
+mat roi | M | - | Cư dân báo bị mất nhưng chưa nêu mất gì. | Anh/chị cho biết đang bị mất mạng, mất điện hay mất nước ạ?
+Không vào được. | M | - | Cư dân báo không vào được nhưng chưa nêu rõ. | Anh/chị cho biết không vào được mạng, app hay cửa ạ?
+song yeu | L | - | Cư dân báo sóng yếu nhưng chưa nêu loại sóng. | Anh/chị cho biết sóng wifi hay sóng điện thoại yếu, và ở khu vực nào ạ?
+## other
+co van de | M | - | Cư dân báo có vấn đề nhưng chưa nêu nội dung. | Anh/chị cho biết vấn đề cụ thể là gì ạ?
+Lên xem giúp em với ạ. | M | - | Cư dân nhờ lên xem nhưng chưa nêu sự việc. | Anh/chị cho biết cần xem việc gì ạ?
+nha em bi gi y | M | - | Cư dân báo nhà có vấn đề nhưng chưa nêu rõ. | Anh/chị mô tả giúp nhà đang bị hiện tượng gì ạ?
+Sửa giúp. | M | - | Cư dân nhờ sửa nhưng chưa nêu sửa gì. | Anh/chị cho biết cần sửa cái gì ạ?
+??? | L | - | Cư dân gửi tin nhắn chưa có nội dung sự cố. | Anh/chị cần báo sự cố gì ạ?
+van chua duoc | M | - | Cư dân báo vẫn chưa được nhưng chưa nêu việc gì. | Anh/chị cho biết việc nào vẫn chưa được xử lý ạ?
+Hôm qua báo rồi mà chưa thấy ai. | M | - | Cư dân nhắc lại yêu cầu hôm qua nhưng chưa nêu nội dung. | Anh/chị cho biết hôm qua đã báo sự cố gì ạ?
+no lai bi | M | - | Cư dân báo sự cố tái diễn nhưng chưa nêu là gì. | Anh/chị cho biết sự cố nào đang bị lại ạ?
+Tầng 5 có chuyện. | M | - | Cư dân báo tầng 5 có chuyện nhưng chưa nêu sự việc. | Anh/chị cho biết tầng 5 đang xảy ra việc gì ạ?
+gap lam | H | - | Cư dân báo việc gấp nhưng chưa nêu sự việc. | Anh/chị cho biết việc gấp là gì và ở đâu ạ?

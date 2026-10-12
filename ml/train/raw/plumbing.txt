@@ -1,0 +1,97 @@
+# text | priority(L/M/H/U) | D=nguy hiểm, -=không | summary | câu hỏi lại (nếu mơ hồ)
+Vòi rửa mặt trong toilet bị rỉ nước ở chân vòi, lau xong một lúc lại ướt. | M | - | Vòi rửa mặt trong toilet rỉ nước ở chân vòi.
+ong nuoc duoi bon rua mat bi xi, nuoc chay ra san nha tam | H | - | Ống nước dưới bồn rửa mặt bị xì, nước chảy ra sàn nhà tắm.
+Nhà em mất nước hoàn toàn từ trưa, mở vòi nào cũng không ra giọt nào. | H | - | Căn hộ mất nước hoàn toàn từ trưa.
+Nước yếu lắm ạ, tắm vòi sen chảy nhỏ như sợi chỉ mấy hôm nay. | M | - | Áp lực nước yếu, vòi sen chảy rất nhỏ mấy hôm nay.
+bồn cầu xả xong nước cứ chảy rỉ rả hoài ko ngắt | M | - | Bồn cầu chảy nước liên tục sau khi xả, không tự ngắt.
+Bồn cầu nhà tôi bị tắc, xả nước dâng lên gần tràn, nhà có 2 toilet nên tạm dùng cái kia. | M | - | Bồn cầu bị tắc, nước dâng gần tràn; nhà còn một toilet khác.
+toilet duy nhat bi nghet roi, ca nha ko di ve sinh duoc | H | - | Toilet duy nhất trong nhà bị nghẹt, không sử dụng được.
+Thoát sàn nhà tắm thoát rất chậm, tắm xong nước đọng cả tiếng mới rút. | M | - | Thoát sàn nhà tắm thoát chậm, nước đọng lâu sau khi tắm.
+Lavabo bị nghẹt, nước không xuống, có mùi hôi bốc lên. | M | - | Lavabo bị nghẹt, nước không xuống và có mùi hôi.
+Ống nước trong hộp kỹ thuật bị vỡ, nước phun mạnh ra hành lang, đang chảy xuống cầu thang. | U | D | Ống nước trong hộp kỹ thuật vỡ, nước phun ra hành lang và chảy xuống cầu thang.
+nuoc tran tu nha tam ra phong ngu roi, e khoa van tong ma van chay | U | - | Nước tràn từ nhà tắm ra phòng ngủ, đã khóa van tổng nhưng vẫn chảy.
+Trần phòng ngủ có vệt ố vàng mới xuất hiện, sờ thấy ẩm. | M | - | Trần phòng ngủ có vệt ố vàng mới, sờ thấy ẩm.
+Tường giáp nhà tắm bị thấm, sơn phồng rộp lên từng mảng. | M | - | Tường giáp nhà tắm bị thấm, sơn phồng rộp.
+Trần nhà vệ sinh nhỏ nước tong tong xuống, hứng được nửa xô mỗi đêm. | H | - | Trần nhà vệ sinh nhỏ nước liên tục, hứng được nửa xô mỗi đêm.
+nuoc tu tran nho xuong ngay bong den phong tam, den chop chop | U | D | Nước từ trần nhỏ xuống bóng đèn phòng tắm, đèn chập chờn.
+Vòi sen bị gãy tay cầm, nước xịt tứ tung không tắm được. | M | - | Vòi sen gãy tay cầm, nước xịt tứ tung.
+Dây xịt vệ sinh bị bục, nước phun ra mỗi lần mở van. | M | - | Dây xịt vệ sinh bị bục, nước phun ra khi mở van.
+van khoa nuoc duoi bon cau bi ket, van ko duoc | L | - | Van khóa nước dưới bồn cầu bị kẹt, không vặn được.
+Đồng hồ nước nhà em quay liên tục dù đã khóa hết các vòi, nghi rò ngầm. | H | - | Đồng hồ nước quay liên tục dù đã khóa hết vòi, nghi rò rỉ ngầm.
+Nước máy sáng nay có mùi clo nồng nặc, không dám nấu ăn. | M | - | Nước máy có mùi clo nồng, cư dân không dám dùng nấu ăn.
+nuoc may ra mau nau do nhu gi set, xa 10p van chua het | H | - | Nước máy có màu nâu đỏ như gỉ sét, xả 10 phút chưa hết.
+Chậu rửa bát thoát nước chậm, hay bị trào ngược lên cặn bẩn. | M | - | Chậu rửa bát thoát chậm, hay trào ngược cặn bẩn.
+Nước thải trào ngược lên từ thoát sàn nhà tắm, hôi kinh khủng, đang lan ra ngoài. | U | - | Nước thải trào ngược từ thoát sàn nhà tắm, đang lan ra ngoài.
+ống thoát nước máy giặt ở lô gia bị tuột, giặt là nước chảy lênh láng | M | - | Ống thoát nước máy giặt ở lô gia bị tuột, nước chảy lênh láng khi giặt.
+Đường nước nóng ra rất yếu, nước lạnh thì bình thường. | M | - | Đường nước nóng chảy rất yếu, nước lạnh bình thường.
+Mối nối ống nước dưới bếp nhỏ giọt, em quấn băng keo tạm rồi ạ. | M | - | Mối nối ống nước dưới bếp nhỏ giọt, đã quấn băng keo tạm.
+bon tam thoat nuoc cham, toc ket day lo thoat | L | - | Bồn tắm thoát nước chậm do tóc kẹt ở lỗ thoát.
+Nắp bồn cầu bị nứt, ngồi lên kêu rắc rắc. | L | - | Nắp bồn cầu bị nứt.
+Phao bồn cầu hỏng, nước không lên két nên không xả được. | H | - | Phao bồn cầu hỏng, két không lên nước nên không xả được.
+Sàn nhà tắm đọng nước do dốc ngược, nước chảy ra phía cửa. | L | - | Sàn nhà tắm dốc ngược, nước chảy ra phía cửa.
+nha tam tang tren ro nuoc xuong nha e, tran thach cao vong xuong sap sap | U | D | Nước rò từ tầng trên làm trần thạch cao võng xuống, có nguy cơ sập.
+Hầm B2 bị ngập nước khoảng 20cm ở khu để xe máy, nước vẫn đang lên. | U | D | Hầm B2 ngập khoảng 20cm ở khu để xe máy, nước đang lên.
+Vòi nước ban công không khóa chặt được, chảy rỉ cả ngày. | M | - | Vòi nước ban công không khóa chặt, chảy rỉ cả ngày.
+voi bep bi long, xoay la lac qua lac lai | L | - | Vòi bếp bị lỏng, lắc qua lại khi xoay.
+Nước rò từ máy lọc dưới bồn rửa ra ướt hết tủ bếp, gỗ bắt đầu phồng. | H | - | Nước rò từ máy lọc dưới bồn rửa làm ướt và phồng tủ bếp.
+Cả tầng 8 mất nước từ sáng, hàng xóm cũng bị. | H | - | Cả tầng 8 mất nước từ sáng.
+mat nuoc nong ca tuan nay, nuoc lanh van co | M | - | Mất nước nóng cả tuần, nước lạnh vẫn có.
+Ống thoát nước mưa ở ban công bị tắc lá cây, mưa to nước tràn vào phòng khách. | H | - | Ống thoát nước mưa ban công tắc, mưa to nước tràn vào phòng khách.
+Nước chảy ra từ chân tường hành lang tầng 3, sàn trơn lắm, có cụ già suýt ngã. | H | D | Nước chảy ra từ chân tường hành lang tầng 3, sàn trơn dễ ngã.
+Gioăng vòi nước bị mòn, vặn hết cỡ vẫn nhỏ giọt. | L | - | Gioăng vòi nước mòn, vặn hết cỡ vẫn nhỏ giọt.
+bồn rửa chén bị nghẹt cứng, nước đầy bồn ko rút, e thông mãi ko đc | H | - | Bồn rửa chén nghẹt cứng, nước đầy bồn không rút.
+Có tiếng nước chảy trong tường phòng ngủ suốt đêm dù không ai dùng nước. | M | - | Có tiếng nước chảy trong tường phòng ngủ suốt đêm.
+Xi phông lavabo bị rò, nước nhỏ xuống tủ bên dưới. | M | - | Xi phông lavabo bị rò, nước nhỏ xuống tủ bên dưới.
+nuoc trong bon cau cu sui bot len moi khi nha tren xa nuoc | M | - | Nước trong bồn cầu sủi bọt mỗi khi tầng trên xả nước.
+Vòi nước nóng lạnh chỉ ra nước lạnh, gạt sang nóng không có tác dụng. | M | - | Vòi nóng lạnh chỉ ra nước lạnh.
+Mưa lớn nước hắt qua khe cửa sổ thấm xuống tường, ướt cả ổ cắm bên dưới. | U | D | Nước mưa thấm qua khe cửa sổ làm ướt ổ cắm bên dưới.
+Nước rò từ trần xuống tủ điện tổng của căn hộ, em chưa dám đụng vào. | U | D | Nước rò từ trần xuống tủ điện tổng của căn hộ.
+san phong khach bi phong len, nghi do ong nuoc ben duoi bi ro | H | - | Sàn phòng khách phồng lên, nghi do ống nước bên dưới rò.
+Vòi xịt bị rò nhẹ ở đầu nối, mỗi ngày đọng một vũng nhỏ. | L | - | Vòi xịt rò nhẹ ở đầu nối, đọng vũng nhỏ mỗi ngày.
+Nhà vệ sinh chung tầng trệt bị tắc cả hai bồn, nước bẩn tràn ra sàn. | H | - | Nhà vệ sinh chung tầng trệt tắc cả hai bồn, nước bẩn tràn ra sàn.
+nuoc nha e bi sao a | M | - | Cư dân báo nước trong nhà có vấn đề nhưng chưa nêu rõ. | Anh/chị cho biết nước bị làm sao ạ: mất nước, rò rỉ hay nước bẩn?
+Chỗ nước bị rỉ, nhờ thợ lên xem. | M | - | Cư dân báo có chỗ bị rỉ nước nhưng chưa nêu vị trí. | Anh/chị cho biết nước rỉ ở vị trí nào trong căn hộ ạ?
+bi tac roi | M | - | Cư dân báo bị tắc nhưng chưa nêu rõ thiết bị nào. | Anh/chị cho biết chỗ nào bị tắc ạ: bồn cầu, bồn rửa hay thoát sàn?
+Nhà tắm có vấn đề, nhờ BQL kiểm tra giúp. | M | - | Cư dân báo nhà tắm có vấn đề nhưng chưa nêu cụ thể. | Anh/chị mô tả giúp nhà tắm đang gặp vấn đề gì ạ?
+Thấm. | M | - | Cư dân báo bị thấm nhưng chưa nêu vị trí. | Anh/chị cho biết bị thấm ở vị trí nào và mức độ ra sao ạ?
+Ống cấp nước máy giặt bị bung khi đang giặt, nước phun khắp lô gia và chảy xuống tầng dưới. | U | - | Ống cấp nước máy giặt bung, nước phun khắp lô gia và chảy xuống tầng dưới.
+Hàng xóm tầng dưới lên báo trần nhà họ bị thấm từ nhà tắm nhà tôi. | H | - | Tầng dưới báo trần bị thấm từ nhà tắm của căn hộ.
+voi lavabo chay yeu, chac bi can ban o dau voi | L | - | Vòi lavabo chảy yếu, nghi cặn bẩn ở đầu vòi.
+Nước nóng năng lượng mặt trời của tòa nhà mấy hôm nay chỉ âm ấm. | L | - | Nước nóng năng lượng mặt trời của tòa nhà chỉ âm ấm.
+Bồn cầu bị rò nước ở chân, sàn quanh bồn lúc nào cũng ướt và có mùi. | M | - | Bồn cầu rò nước ở chân, sàn quanh bồn luôn ướt và có mùi.
+két nước bồn cầu bị nứt, nước chảy ra sàn liên tục phải khóa van | H | - | Két nước bồn cầu nứt, nước chảy ra sàn liên tục.
+Khu vực máy bơm tầng hầm có nước rò thành vũng lớn cạnh tủ điện máy bơm. | U | D | Nước rò thành vũng lớn cạnh tủ điện máy bơm ở tầng hầm.
+Ống nước nóng dưới bồn rửa bị bục, nước nóng phun ra, con em suýt bị bỏng. | U | D | Ống nước nóng dưới bồn rửa bục, nước nóng phun ra gây nguy cơ bỏng.
+nuoc mua dot tu tran hanh lang tang thuong xuong, ai di qua cung bi uot | M | - | Nước mưa dột từ trần hành lang tầng thượng.
+Mỗi lần mở vòi nước là đường ống kêu ù ù rung cả tường. | L | - | Đường ống kêu ù và rung tường mỗi khi mở vòi.
+Hộp gen nước ngoài hành lang chảy nước ra sàn, không rõ từ căn nào. | H | - | Hộp gen nước ngoài hành lang chảy nước ra sàn.
+bon rua mat bi nut 1 duong, nuoc ri ra theo vet nut | M | - | Bồn rửa mặt nứt, nước rỉ theo vết nứt.
+Vòi nước ở khu rửa tay sảnh tầng 1 bị hỏng cảm ứng, nước chảy không ngừng. | M | - | Vòi cảm ứng khu rửa tay sảnh tầng 1 hỏng, nước chảy không ngừng.
+Bể bơi chung có nước rò ra khu phòng thay đồ, sàn rất trơn. | H | D | Nước rò từ bể bơi ra phòng thay đồ, sàn rất trơn.
+Nước ngấm từ sân thượng xuống căn hộ tầng trên cùng, mưa là trần nhỏ giọt ở 3 chỗ. | H | - | Nước ngấm từ sân thượng, trần nhỏ giọt ở ba chỗ khi mưa.
+e moi chuyen vao, voi sen ko co nuoc nong du da bat binh | M | - | Vòi sen không có nước nóng dù đã bật bình.
+Thoát nước ban công nhà trên chảy thẳng xuống ban công nhà tôi, ướt hết đồ phơi. | L | - | Nước thoát từ ban công tầng trên chảy xuống ban công căn hộ.
+Sau khi thợ sửa hôm qua, chỗ nối ống lại rỉ nước trở lại. | M | - | Chỗ nối ống rỉ nước trở lại sau khi sửa hôm qua.
+nước bồn cầu dâng lên rồi tràn ra sàn, có cả chất thải, cần xử lý gấp ạ | U | - | Bồn cầu tràn nước và chất thải ra sàn.
+Nước ở vòi bếp có cặn trắng lợn cợn, đun lên đóng cặn nhiều. | L | - | Nước vòi bếp có cặn trắng.
+Đường ống cứu hỏa ở hành lang tầng 6 bị rỉ nước ở khớp nối. | H | - | Đường ống cứu hỏa hành lang tầng 6 rỉ nước ở khớp nối.
+dau phun chua chay tren tran bi ri nuoc nho giot xuong giuong | H | - | Đầu phun chữa cháy trên trần rỉ nước nhỏ xuống giường.
+Tôi đi công tác về thấy sàn bếp ngập nước, chưa biết rò từ đâu. | H | - | Sàn bếp ngập nước, chưa rõ nguồn rò.
+Vòi nước ngoài sân chơi trẻ em bị gãy, nước phun thành tia. | M | - | Vòi nước ở sân chơi trẻ em gãy, nước phun thành tia.
+Nắp hố ga trước sảnh bị trào nước bẩn lên sau mưa. | M | - | Hố ga trước sảnh trào nước bẩn sau mưa.
+nuoc trong nha ve sinh co mui cong boc len rat nang, nhat la buoi toi | M | - | Nhà vệ sinh có mùi cống bốc lên nặng, nhất là buổi tối.
+Chậu rửa ở phòng giặt bị bung khỏi tường, đường ống bên dưới bị kéo căng sắp gãy. | H | - | Chậu rửa phòng giặt bung khỏi tường, ống nước bên dưới sắp gãy.
+may bom tang ap keu lien tuc khong ngat, nuoc van yeu | M | - | Máy bơm tăng áp chạy liên tục không ngắt, nước vẫn yếu.
+Nước ngập sàn nhà tắm vì thoát sàn tắc hẳn, không tắm được. | H | - | Thoát sàn nhà tắm tắc hẳn, nước ngập sàn không tắm được.
+Vết thấm trên trần bếp đã khô nhưng để lại mảng mốc đen. | L | - | Vết thấm cũ trên trần bếp để lại mảng mốc đen.
+Ống thoát bồn rửa bị tuột ra, rửa chén là nước chảy thẳng xuống tủ. | M | - | Ống thoát bồn rửa tuột, nước chảy thẳng xuống tủ.
+Sàn thang máy có vũng nước rò từ trần thang, đèn thang nhấp nháy. | U | D | Sàn thang máy có vũng nước rò và đèn thang nhấp nháy.
+Khóa nước tổng của căn hộ bị rỉ ở tay vặn. | M | - | Khóa nước tổng của căn hộ rỉ ở tay vặn.
+mat nuoc tu 3h chieu, be 6 thang can pha sua tam rua | H | - | Căn hộ mất nước từ 3 giờ chiều, nhà có em bé 6 tháng.
+Bồn cầu xả yếu, phải xả 2-3 lần mới trôi. | L | - | Bồn cầu xả yếu, phải xả nhiều lần.
+Sau trận mưa đêm qua nước thấm qua chân cửa ban công làm ướt sàn gỗ phòng khách. | M | - | Nước mưa thấm qua chân cửa ban công làm ướt sàn gỗ phòng khách.
+Nước từ căn bên cạnh tràn qua khe cửa ra hành lang, gõ cửa không ai mở. | U | - | Nước từ căn bên cạnh tràn ra hành lang, không có người ở nhà.
+voi sen tu dong chay nuoc du da tat, phai khoa van tong moi het | M | - | Vòi sen tự chảy nước dù đã tắt, phải khóa van tổng.
+Nước nhỏ từ trần xuống đúng ổ cắm đầu giường, có tiếng xẹt xẹt. | U | D | Nước từ trần nhỏ xuống ổ cắm đầu giường, có tiếng xẹt.
+Thoát sàn lô gia bị bít, nước giặt đồ chảy ngược vào bếp. | M | - | Thoát sàn lô gia bị bít, nước chảy ngược vào bếp.
+Cần thay dây cấp nước bồn cầu, dây cũ đã gỉ nhưng chưa rò. | L | - | Dây cấp nước bồn cầu gỉ, cần thay.

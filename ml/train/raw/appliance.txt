@@ -1,0 +1,95 @@
+# text | priority(L/M/H/U) | D=nguy hiểm, -=không | summary | câu hỏi lại (nếu mơ hồ)
+Điều hòa phòng khách bật lên chỉ ra gió, không lạnh chút nào. | M | - | Điều hòa phòng khách chỉ ra gió, không lạnh.
+may lanh phong ngu keu to nhu may cay, ko ngu duoc | M | - | Máy lạnh phòng ngủ kêu rất to.
+Máy lạnh bật được 10 phút là tự tắt, đèn báo nháy đỏ. | M | - | Máy lạnh tự tắt sau 10 phút, đèn báo nháy đỏ.
+Điều hòa có mùi hôi ẩm mốc mỗi khi bật. | L | - | Điều hòa có mùi ẩm mốc khi bật.
+dieu hoa chay nuoc xuong dau giuong, uot het nem | M | - | Điều hòa chảy nước xuống đầu giường.
+Remote máy lạnh bấm không ăn, đã thay pin rồi. | L | - | Remote máy lạnh không hoạt động dù đã thay pin.
+Cục nóng điều hòa ngoài ban công bốc khói và có mùi khét. | U | D | Cục nóng điều hòa ngoài ban công bốc khói, có mùi khét.
+Giá đỡ cục nóng bị gỉ, cục nóng nghiêng hẳn ra ngoài như sắp rơi xuống sân. | U | D | Giá đỡ cục nóng gỉ, cục nóng nghiêng sắp rơi xuống sân.
+Máy giặt không vắt, quần áo lấy ra còn sũng nước. | M | - | Máy giặt không vắt, quần áo còn sũng nước.
+may giat bao loi E4, khong cap nuoc | M | - | Máy giặt báo lỗi E4, không cấp nước.
+Máy giặt cửa ngang bị kẹt cửa, không lấy được đồ ra. | M | - | Máy giặt cửa ngang kẹt cửa, không lấy được đồ.
+Máy giặt chạy là rò điện, chạm vào vỏ máy bị giật. | U | D | Máy giặt rò điện, chạm vào vỏ bị giật.
+Máy sấy quần áo chạy nhưng không nóng, sấy 2 tiếng đồ vẫn ướt. | M | - | Máy sấy quần áo không nóng.
+tu lanh keu u u rat to ve dem | L | - | Tủ lạnh kêu ù to về đêm.
+Tủ lạnh ngăn mát không lạnh, ngăn đá vẫn đông bình thường. | M | - | Ngăn mát tủ lạnh không lạnh, ngăn đá bình thường.
+Tủ lạnh chết hẳn, đèn trong không sáng, đồ ăn sắp hỏng hết. | H | - | Tủ lạnh ngừng hoạt động hoàn toàn, đồ ăn sắp hỏng.
+tu lanh chay nuoc ra san bep moi sang | M | - | Tủ lạnh chảy nước ra sàn bếp mỗi sáng.
+Gioăng cửa tủ lạnh bị hở, cửa không đóng kín. | L | - | Gioăng cửa tủ lạnh hở, cửa không kín.
+Bếp từ bật không lên nguồn, cả hai vùng nấu đều không dùng được. | H | - | Bếp từ không lên nguồn, không nấu được.
+bep tu bao loi E0 khi dat noi len | M | - | Bếp từ báo lỗi E0 khi đặt nồi.
+Mặt kính bếp từ bị nứt một đường dài sau khi làm rơi nồi. | H | D | Mặt kính bếp từ nứt một đường dài.
+Bếp gas đánh lửa không lên, chỉ nghe tiếng tạch tạch. | M | - | Bếp gas đánh lửa không lên.
+Bếp gas có mùi gas rò nhẹ ở chỗ nối dây với bình. | U | D | Có mùi gas rò ở chỗ nối dây với bình gas.
+day gas bi chuot can, ngui thay mui gas khi mo van | U | D | Dây gas bị chuột cắn, có mùi gas khi mở van.
+Lửa bếp gas cháy đỏ và bám muội đen đáy nồi. | L | - | Lửa bếp gas cháy đỏ, bám muội đen.
+Máy hút mùi không hút, bật lên chỉ kêu ù ù. | L | - | Máy hút mùi không hút, chỉ kêu ù.
+Đèn máy hút mùi bị cháy. | L | - | Đèn máy hút mùi bị cháy.
+may hut mui nho dau xuong bep | L | - | Máy hút mùi nhỏ dầu xuống bếp.
+Lò vi sóng quay nhưng không nóng thức ăn. | L | - | Lò vi sóng quay nhưng không làm nóng.
+Lò vi sóng tóe lửa bên trong khi đang hâm đồ, em rút điện ngay rồi. | U | D | Lò vi sóng tóe lửa bên trong khi đang hâm đồ.
+Lò nướng âm tủ không lên nhiệt, quạt vẫn chạy. | L | - | Lò nướng âm tủ không lên nhiệt.
+Bình nóng lạnh không nóng, đèn báo vẫn sáng. | M | - | Bình nóng lạnh không nóng dù đèn báo sáng.
+binh nong lanh keu soi suc suc rat to, so no | H | D | Bình nóng lạnh kêu sôi sùng sục rất to.
+Bình nước nóng bị rò điện ra nước, tắm thấy tê tê. | U | D | Bình nước nóng rò điện ra nước, tắm bị tê.
+Bình nóng lạnh treo tường bị lỏng vít, bình nghiêng hẳn một bên. | H | D | Bình nóng lạnh treo tường lỏng vít, nghiêng một bên.
+Máy nước nóng trực tiếp lúc nóng lúc lạnh thất thường. | M | - | Máy nước nóng trực tiếp lúc nóng lúc lạnh.
+may rua bat khong xa nuoc, nuoc ban dong day day may | M | - | Máy rửa bát không xả nước, nước bẩn đọng đáy máy.
+Máy rửa bát rò nước ra sàn mỗi lần chạy. | M | - | Máy rửa bát rò nước ra sàn khi chạy.
+Máy lọc nước RO không ra nước, đèn báo thay lõi sáng. | M | - | Máy lọc nước RO không ra nước, đèn báo thay lõi.
+Máy lọc nước chảy liên tục không ngắt, nước thải ra nhiều. | L | - | Máy lọc nước chảy liên tục không ngắt.
+Quạt trần phòng khách lắc mạnh khi quay số to, sợ rơi. | H | D | Quạt trần phòng khách lắc mạnh khi quay nhanh.
+quat tran ko quay, chi keu e e | L | - | Quạt trần không quay, chỉ kêu.
+Tivi gắn tường do chủ nhà trang bị không lên hình, chỉ có tiếng. | L | - | Tivi gắn tường có tiếng nhưng không lên hình.
+Giá treo tivi bị bung một bên vít, tivi treo lệch sắp rơi. | H | D | Giá treo tivi bung vít một bên, tivi sắp rơi.
+Điều hòa âm trần văn phòng tầng 2 nhỏ nước xuống bàn làm việc. | M | - | Điều hòa âm trần tầng 2 nhỏ nước xuống bàn làm việc.
+may lanh ko len nguon, bam remote ko co tieng bip | M | - | Máy lạnh không lên nguồn.
+Điều hòa phòng trẻ em hỏng giữa đợt nắng nóng 39 độ, bé bị sốt. | H | - | Điều hòa phòng trẻ em hỏng giữa đợt nắng nóng, bé đang sốt.
+Máy lạnh thổi ra đá vụn và nước, dàn lạnh đóng tuyết trắng. | M | - | Dàn lạnh đóng tuyết, máy thổi ra đá vụn và nước.
+Cánh đảo gió điều hòa bị gãy, gió thổi thẳng xuống một chỗ. | L | - | Cánh đảo gió điều hòa bị gãy.
+may giat rung lac di chuyen ca may khi vat | M | - | Máy giặt rung lắc, xê dịch khi vắt.
+Máy giặt có mùi khét cao su khi đang quay. | H | D | Máy giặt có mùi khét cao su khi quay.
+Máy giặt chung ở phòng giặt tầng 3 nuốt xu nhưng không chạy. | L | - | Máy giặt chung tầng 3 nhận xu nhưng không chạy.
+Tủ lạnh bị đóng tuyết dày ở ngăn đá, không đóng được cửa ngăn. | L | - | Ngăn đá tủ lạnh đóng tuyết dày, không đóng được cửa.
+tu lanh co mui kho chiu du da lau sach | L | - | Tủ lạnh có mùi khó chịu dù đã lau sạch.
+Phía sau tủ lạnh nóng bỏng tay và có mùi khét nhựa. | U | D | Phía sau tủ lạnh nóng bỏng và có mùi khét nhựa.
+Bếp từ đang nấu thì tắt đột ngột, sau đó có mùi khét từ dưới bếp. | H | D | Bếp từ tắt đột ngột, có mùi khét từ dưới bếp.
+Một vùng nấu của bếp từ đôi không nhận nồi. | L | - | Một vùng nấu bếp từ không nhận nồi.
+bep hong ngoai nong rat cham, nau mai khong soi | L | - | Bếp hồng ngoại nóng rất chậm.
+Van bình gas bị kẹt không khóa được, bếp vẫn đang rò lửa nhỏ. | U | D | Van bình gas kẹt không khóa được, bếp còn lửa nhỏ.
+Đầu báo rò gas trong bếp kêu liên tục. | U | D | Đầu báo rò gas trong bếp kêu liên tục.
+Bình nóng lạnh nhỏ nước từ van an toàn, mỗi ngày đầy một ca. | L | - | Bình nóng lạnh nhỏ nước từ van an toàn.
+may nuoc nong bat len la nghe mui khet | U | D | Máy nước nóng có mùi khét khi bật.
+Thang máy số 1 bị dừng đột ngột giữa chừng rồi mới chạy tiếp, rất sợ. | H | D | Thang máy số 1 dừng đột ngột giữa chừng rồi mới chạy tiếp.
+Thang máy block A kẹt cửa, cửa đóng mở liên tục không chạy. | H | - | Thang máy block A kẹt cửa, không chạy.
+thang may bi roi tu do 1 doan roi dung lai, trong thang co 5 nguoi | U | D | Thang máy rơi tự do một đoạn rồi dừng, trong thang có 5 người.
+Có người bị kẹt trong thang máy số 3, nút gọi khẩn không ai nghe. | U | D | Có người kẹt trong thang máy số 3, nút gọi khẩn không ai trả lời.
+Nút bấm tầng 9 trong thang máy bị liệt. | L | - | Nút tầng 9 trong thang máy bị liệt.
+Thang máy chở hàng hỏng 2 ngày nay, tôi cần chuyển nhà cuối tuần. | M | - | Thang máy chở hàng hỏng 2 ngày nay.
+cua thang may dong nhanh qua, kep vao tay be nha em | H | D | Cửa thang máy đóng quá nhanh, kẹp vào tay trẻ em.
+Barie cổng hầm xe không nhận thẻ, xe ùn một hàng dài. | M | - | Barie cổng hầm xe không nhận thẻ.
+Máy bán nước ở sảnh nuốt tiền không ra hàng. | L | - | Máy bán nước ở sảnh nuốt tiền không ra hàng.
+Camera chuông hình trước cửa không lên hình, chỉ nghe tiếng. | L | - | Chuông hình trước cửa không lên hình.
+khoa cua van tay het pin, ko mo duoc cua vao nha | H | - | Khóa vân tay hết pin, không vào được nhà.
+Khóa điện tử kêu bíp liên tục và không nhận vân tay của ai trong nhà. | H | - | Khóa điện tử kêu bíp liên tục, không nhận vân tay.
+Rèm tự động phòng khách bị kẹt giữa chừng, motor kêu rè rè. | L | - | Rèm tự động phòng khách kẹt, motor kêu rè.
+Quạt thông gió nhà bếp chung của tòa nhà ngừng chạy, mùi nấu ăn bay khắp hành lang. | M | - | Quạt thông gió bếp của tòa nhà ngừng chạy.
+may lam mat khong khi o phong gym keu to va chay nuoc | L | - | Máy làm mát phòng gym kêu to và chảy nước.
+Máy chạy bộ ở phòng gym chung bị giật băng tải, tôi suýt ngã. | H | D | Máy chạy bộ phòng gym giật băng tải, dễ gây ngã.
+Bếp nướng điện ở khu BBQ chung không nóng. | L | - | Bếp nướng điện khu BBQ chung không nóng.
+Cây nước nóng lạnh ở sảnh rò nước nóng ra sàn. | M | D | Cây nước nóng lạnh ở sảnh rò nước nóng ra sàn.
+dieu hoa hu | M | - | Cư dân báo điều hòa hư nhưng chưa nêu hiện tượng. | Anh/chị cho biết điều hòa đang bị hiện tượng gì ạ: không lạnh, chảy nước hay không lên nguồn?
+Máy giặt nhà em bị sao ấy ạ. | M | - | Cư dân báo máy giặt có vấn đề nhưng chưa nêu rõ. | Anh/chị mô tả giúp máy giặt đang gặp hiện tượng gì ạ?
+bep ko dung dc | H | - | Cư dân báo bếp không dùng được nhưng chưa nêu rõ. | Anh/chị cho biết bếp gas hay bếp điện, và hiện tượng cụ thể là gì ạ?
+Thiết bị trong nhà bị hỏng, nhờ thợ qua. | M | - | Cư dân báo thiết bị hỏng nhưng chưa nêu thiết bị nào. | Anh/chị cho biết thiết bị nào bị hỏng ạ?
+cai may no keu to lam | L | - | Cư dân báo có máy kêu to nhưng chưa nêu máy nào. | Anh/chị cho biết máy nào đang kêu to ạ?
+Điều hòa nhà em 2 chiều nhưng chiều sưởi không ấm. | L | - | Điều hòa hai chiều không sưởi ấm được.
+Máy lạnh mới vệ sinh hôm qua, hôm nay chảy nước ròng ròng. | M | - | Máy lạnh chảy nước nhiều sau khi vệ sinh hôm qua.
+may giat xa nuoc lien tuc, vua cap vua xa khong giat duoc | M | - | Máy giặt vừa cấp vừa xả nước, không giặt được.
+Tủ lạnh mini trong phòng không lạnh, sờ vào thành tủ thấy rất nóng. | M | - | Tủ lạnh mini không lạnh, thành tủ rất nóng.
+Nồi cơm điện chủ nhà cấp bị chập, cắm vào là nhảy aptomat. | M | D | Nồi cơm điện bị chập, cắm vào là nhảy aptomat.
+Ấm siêu tốc của căn hộ dịch vụ không tự ngắt khi sôi. | M | D | Ấm siêu tốc không tự ngắt khi sôi.
+quat hut mui nha ve sinh keu rat to | L | - | Quạt hút mùi nhà vệ sinh kêu rất to.
+Bàn là hơi nước trong phòng giặt chung phun nước sôi ra ngoài. | M | D | Bàn là hơi nước phòng giặt chung phun nước sôi ra ngoài.
+Máy hút ẩm chạy nhưng bình nước không có giọt nào. | L | - | Máy hút ẩm chạy nhưng không hút được nước.

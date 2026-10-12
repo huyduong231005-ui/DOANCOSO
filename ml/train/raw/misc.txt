@@ -1,0 +1,184 @@
+# text | priority(L/M/H/U) | D=nguy hiểm, -=không | summary | câu hỏi lại (nếu mơ hồ)
+## cleaning
+Thùng rác tầng 9 đầy tràn ra ngoài 2 ngày rồi chưa ai thu. | M | - | Thùng rác tầng 9 đầy tràn 2 ngày chưa thu.
+phong rac tang 3 hoi qua, ruoi bay day | M | - | Phòng rác tầng 3 hôi và nhiều ruồi.
+Thang máy có vũng nước tiểu chó, mùi khai nồng. | M | - | Thang máy có nước tiểu chó, mùi khai.
+Hành lang tầng 12 có vết nôn chưa dọn từ tối qua. | M | - | Hành lang tầng 12 có vết nôn chưa dọn.
+Sảnh chính bẩn, lá cây và bụi đầy sàn sau cơn gió. | L | - | Sảnh chính nhiều lá cây và bụi.
+Kính sảnh nhiều vết tay bẩn, lâu chưa lau. | L | - | Kính sảnh bẩn, lâu chưa lau.
+cau thang bo co mui khai, hinh nhu co nguoi di ve sinh bay | M | - | Cầu thang bộ có mùi khai.
+Hầm xe có mùi xăng nồng nặc ở khu B, hình như có xe bị rò. | U | D | Hầm xe khu B có mùi xăng nồng, nghi xe rò xăng.
+Có vũng nhớt xe ở đoạn dốc hầm, trơn trượt lắm. | H | D | Vũng nhớt ở dốc hầm xe, trơn trượt.
+Sàn sảnh vừa lau còn ướt mà không đặt biển cảnh báo, mẹ tôi bị trượt ngã. | H | D | Sàn sảnh ướt không có biển cảnh báo, đã có người ngã.
+rac xay dung nha ai de day hanh lang tang 7 ca tuan | M | - | Rác xây dựng để ở hành lang tầng 7 cả tuần.
+Hàng xóm để giày dép và túi rác trước cửa, bốc mùi sang nhà tôi. | L | - | Hàng xóm để giày dép và túi rác trước cửa gây mùi.
+Bể bơi nước đục và có váng xanh. | M | - | Nước bể bơi đục, có váng xanh.
+Nhà vệ sinh khu bể bơi hết giấy và xà phòng, sàn bẩn. | L | - | Nhà vệ sinh khu bể bơi hết giấy, xà phòng, sàn bẩn.
+Sân chơi trẻ em có mảnh chai vỡ trên bãi cát. | H | D | Sân chơi trẻ em có mảnh chai vỡ trên bãi cát.
+co phan cho o loi di bo san vuon, khong ai don | L | - | Lối đi sân vườn có phân chó chưa dọn.
+Mùi cống hôi bốc lên ở sảnh thang máy tầng 1 mỗi buổi chiều. | M | - | Sảnh thang máy tầng 1 có mùi cống mỗi chiều.
+Ống đổ rác tầng 14 bị kẹt, rác ùn lên tận cửa xả. | M | - | Ống đổ rác tầng 14 kẹt, rác ùn lên cửa xả.
+Xe đẩy rác rò nước rỉ rác dọc hành lang, hôi thối. | M | - | Xe đẩy rác rò nước rỉ dọc hành lang.
+Khu để xe đạp bụi bặm, mạng nhện giăng đầy. | L | - | Khu để xe đạp bụi và nhiều mạng nhện.
+tuong hanh lang bi ve bay bang but sap | L | - | Tường hành lang bị vẽ bậy.
+Thang máy dán đầy tờ rơi quảng cáo. | L | - | Thang máy bị dán nhiều tờ rơi quảng cáo.
+Hồ cá cảnh ở sảnh nước đen ngòm, cá chết nổi lên. | L | - | Hồ cá sảnh nước đen, cá chết.
+Bãi cỏ sân sau lâu không cắt, cỏ cao quá đầu gối. | L | - | Cỏ sân sau lâu không cắt.
+Có xác chuột chết ở cầu thang thoát hiểm tầng 2, mùi rất nặng. | M | - | Có xác chuột chết ở cầu thang thoát hiểm tầng 2.
+nuoc dong o san thuong lau ngay, co lang quang | M | - | Nước đọng lâu ngày ở sân thượng, có lăng quăng.
+Khu giặt phơi chung bẩn, xơ vải bám đầy máy sấy. | L | - | Khu giặt phơi chung bẩn, xơ vải bám máy sấy.
+Phòng sinh hoạt cộng đồng sau tiệc tối qua chưa được dọn. | L | - | Phòng sinh hoạt cộng đồng chưa dọn sau tiệc.
+Thảm sảnh thang máy bị ướt và bốc mùi ẩm mốc. | L | - | Thảm sảnh thang máy ướt, có mùi mốc.
+Có người đốt vàng mã ở hành lang, tro bay khắp nơi và khói vào nhà. | H | D | Có người đốt vàng mã ở hành lang, khói bay vào nhà.
+Ban công nhà trên giũ thảm, bụi bay hết xuống nhà tôi. | L | - | Tầng trên giũ thảm làm bụi bay xuống.
+mui thuoc la tu hanh lang bay vao nha suot ngay | L | - | Mùi thuốc lá từ hành lang bay vào nhà.
+Nhà vệ sinh công cộng tầng trệt bị tràn nước bẩn ra sàn, không ai dọn. | M | - | Nhà vệ sinh công cộng tầng trệt tràn nước bẩn.
+Rác cồng kềnh (nệm cũ, tủ hỏng) bị vứt ở lối thoát hiểm, chắn hết đường. | H | D | Rác cồng kềnh chắn lối thoát hiểm.
+Xe máy cũ bỏ hoang phủ bụi chiếm chỗ ở hầm mấy tháng nay. | L | - | Xe máy bỏ hoang chiếm chỗ ở hầm mấy tháng.
+Dầu ăn đổ ra sàn hành lang trước cửa thang máy, chưa ai lau. | H | D | Dầu ăn đổ trước cửa thang máy, sàn trơn.
+tang 5 hoi mui gi do nhu do an thiu | M | - | Tầng 5 có mùi như đồ ăn thiu.
+Cửa kính thang máy có vết máu khô. | M | - | Cửa kính thang máy có vết máu khô.
+Mương thoát nước sau nhà tắc rác, nước đen đọng hôi. | M | - | Mương thoát nước sau nhà tắc rác, nước đọng hôi.
+Thùng rác tái chế không được phân loại, bị đổ lẫn hết. | L | - | Thùng rác tái chế bị đổ lẫn.
+do ban qua | L | - | Cư dân phản ánh bẩn nhưng chưa nêu khu vực. | Anh/chị cho biết khu vực nào đang bẩn ạ?
+Hôi lắm, nhờ BQL xử lý. | M | - | Cư dân phản ánh có mùi hôi nhưng chưa nêu vị trí. | Anh/chị cho biết mùi hôi ở khu vực nào ạ?
+rac | L | - | Cư dân phản ánh về rác nhưng chưa nêu cụ thể. | Anh/chị cho biết rác ở đâu và vấn đề cụ thể là gì ạ?
+Lối đi bộ quanh hồ rêu bám trơn trượt, đã có người ngã. | H | D | Lối đi quanh hồ rêu trơn, đã có người ngã.
+Bồn hoa trước sảnh thành chỗ vứt tàn thuốc. | L | - | Bồn hoa trước sảnh bị vứt tàn thuốc.
+Gầm cầu thang tầng trệt chất đầy thùng carton dễ cháy. | H | D | Gầm cầu thang tầng trệt chất đầy thùng carton dễ cháy.
+## pest
+Nhà em có gián chui ra từ ống thoát nước nhà tắm mỗi tối. | L | - | Gián chui ra từ ống thoát nước nhà tắm mỗi tối.
+gian bay vao nha tu hop ky thuat ngoai hanh lang | L | - | Gián bay vào nhà từ hộp kỹ thuật hành lang.
+Kiến lửa làm tổ trong ổ điện phòng ngủ. | M | D | Kiến lửa làm tổ trong ổ điện phòng ngủ.
+Bếp nhà tôi kiến bò thành hàng dài quanh bồn rửa. | L | - | Kiến bò thành hàng quanh bồn rửa bếp.
+Có chuột trong bếp, cắn thủng túi gạo và để lại phân. | M | - | Chuột vào bếp cắn túi gạo, để lại phân.
+chuot chay ngoai hanh lang tang 2, to nhu con meo | M | - | Chuột to chạy ngoài hành lang tầng 2.
+Chuột cắn đứt dây điện máy giặt ở lô gia. | M | D | Chuột cắn đứt dây điện máy giặt ở lô gia.
+Phát hiện mối ăn chân tủ quần áo và lan sang sàn gỗ. | H | - | Mối ăn chân tủ quần áo và lan sang sàn gỗ.
+moi bay day nha moi toi sau mua | L | - | Mối cánh bay đầy nhà mỗi tối sau mưa.
+Giường nhà em có rệp, cả nhà bị đốt ngứa không ngủ được. | M | - | Giường có rệp, cả nhà bị đốt.
+Muỗi nhiều bất thường ở tầng 3, nhà có trẻ sơ sinh, khu này đang có dịch sốt xuất huyết. | H | D | Muỗi nhiều ở tầng 3 trong lúc có dịch sốt xuất huyết.
+Có tổ ong vò vẽ to bằng quả bóng ở ban công, ong bay vào nhà. | U | D | Tổ ong vò vẽ lớn ở ban công, ong bay vào nhà.
+to ong o mai hien san choi tre em | U | D | Tổ ong ở mái hiên sân chơi trẻ em.
+Có rắn bò vào hầm xe, bảo vệ chưa bắt được. | U | D | Có rắn bò vào hầm xe, chưa bắt được.
+Con rắn xanh nằm ở bụi cây ngay cửa sảnh. | U | D | Có rắn ở bụi cây ngay cửa sảnh.
+Chim bồ câu làm tổ ở cục nóng điều hòa, phân chim đầy ban công. | L | - | Bồ câu làm tổ ở cục nóng, phân chim đầy ban công.
+Dơi bay vào hành lang tầng thượng mỗi tối. | L | - | Dơi bay vào hành lang tầng thượng mỗi tối.
+ruoi nhieu o khu phong rac tang ham | L | - | Ruồi nhiều ở phòng rác tầng hầm.
+Bọ chét từ mèo hoang ở hầm xe nhảy lên người. | M | - | Bọ chét từ mèo hoang ở hầm xe.
+Mèo hoang đẻ con trong hộp kỹ thuật tầng 5, kêu suốt đêm. | L | - | Mèo hoang đẻ con trong hộp kỹ thuật tầng 5.
+Chó thả rông ở sân, hôm qua cắn một bé trai. | U | D | Chó thả rông ở sân đã cắn một bé trai.
+co con ret to bo trong nha tam | M | D | Có rết to trong nhà tắm.
+Bọ cạp xuất hiện trong phòng ngủ tầng trệt. | H | D | Bọ cạp xuất hiện trong phòng ngủ tầng trệt.
+Mọt gỗ đục cửa phòng, bột gỗ rơi đầy sàn mỗi sáng. | L | - | Mọt đục cửa phòng, bột gỗ rơi đầy sàn.
+Nhện giăng tơ đầy trần hành lang tầng 10. | L | - | Nhện giăng tơ đầy trần hành lang tầng 10.
+Gián Đức nhiều vô kể trong tủ bếp, phun thuốc rồi không hết. | M | - | Gián Đức nhiều trong tủ bếp, phun thuốc không hết.
+nha moi phun thuoc muoi hom qua ma nay van day muoi | L | - | Muỗi vẫn nhiều sau khi phun thuốc hôm qua.
+Xin lịch phun thuốc diệt côn trùng định kỳ của tòa nhà. | L | - | Cư dân hỏi lịch phun thuốc diệt côn trùng định kỳ.
+Chuột chết trong trần thạch cao, mùi hôi thối khắp nhà. | M | - | Chuột chết trong trần thạch cao, mùi hôi khắp nhà.
+Ban đêm nghe tiếng cào trong tường phòng ngủ, nghi có chuột. | L | - | Có tiếng cào trong tường phòng ngủ, nghi chuột.
+kien ba khoang xuat hien nhieu o phong ngu, be bi phong rop da | H | D | Kiến ba khoang nhiều ở phòng ngủ, bé bị phồng rộp da.
+Sâu róm rơi từ cây ở sân xuống ghế đá, mấy bé bị ngứa. | M | D | Sâu róm rơi từ cây xuống ghế đá, trẻ bị ngứa.
+Ốc sên bò đầy tường ban công sau mưa. | L | - | Ốc sên bò đầy tường ban công sau mưa.
+Thằn lằn nhiều quá, phân rơi đầy bàn bếp. | L | - | Thằn lằn nhiều, phân rơi trên bàn bếp.
+co con gi trong nha | M | - | Cư dân báo có con vật trong nhà nhưng chưa nêu con gì. | Anh/chị cho biết là con gì và ở khu vực nào trong nhà ạ?
+Nhà có côn trùng, nhờ xử lý. | L | - | Cư dân báo có côn trùng nhưng chưa nêu loại. | Anh/chị cho biết loại côn trùng gì và xuất hiện ở đâu ạ?
+bi can ngua qua ma ko biet con gi | M | - | Cư dân bị côn trùng cắn ngứa, chưa rõ loại. | Anh/chị bị cắn ở phòng nào và có thấy con gì không ạ?
+Chuột làm tổ trong khoang máy xe ô tô ở hầm, cắn dây điện xe. | M | - | Chuột làm tổ trong khoang máy ô tô ở hầm.
+Khỉ từ khu đồi bên cạnh vào ban công lục đồ. | M | D | Khỉ vào ban công lục đồ.
+## network
+Wifi nhà em mất kết nối từ tối qua, đèn modem vẫn xanh. | M | - | Wifi mất kết nối từ tối qua dù đèn modem xanh.
+mang cham nhu rua, xem youtube cung giat | L | - | Mạng rất chậm, xem video bị giật.
+Internet rớt liên tục mỗi khi trời mưa. | M | - | Internet rớt liên tục khi trời mưa.
+Mất mạng hoàn toàn từ sáng, tôi có cuộc họp online với khách lúc 2 giờ chiều. | H | - | Mất mạng hoàn toàn, cư dân có họp online lúc 2 giờ chiều.
+ca tang 6 mat mang tu hom qua | H | - | Cả tầng 6 mất mạng từ hôm qua.
+Đèn LOS trên modem nháy đỏ, không vào được mạng. | H | - | Đèn LOS modem nháy đỏ, không vào được mạng.
+Dây cáp quang vào nhà bị đứt do thợ khoan tường. | H | - | Cáp quang vào nhà bị đứt do khoan tường.
+Wifi phòng ngủ sóng yếu chỉ 1 vạch, phòng khách thì bình thường. | L | - | Wifi phòng ngủ sóng yếu.
+Truyền hình cáp mất tín hiệu, màn hình báo No Signal. | L | - | Truyền hình cáp mất tín hiệu.
+tivi bi mat may kenh the thao | L | - | Tivi mất một số kênh thể thao.
+Hộp giải mã truyền hình treo ở logo, không vào được. | L | - | Đầu thu truyền hình treo ở logo.
+Wifi sảnh và phòng gym không kết nối được mấy hôm nay. | L | - | Wifi sảnh và phòng gym không kết nối được.
+Mạng chập chờn làm con tôi rớt giữa bài thi online, cần sửa trước thứ hai. | H | - | Mạng chập chờn làm rớt bài thi online.
+Ổ cắm mạng LAN âm tường phòng làm việc không có tín hiệu. | L | - | Ổ mạng LAN âm tường phòng làm việc không có tín hiệu.
+modem nong ran va tu khoi dong lai lien tuc | M | - | Modem nóng và tự khởi động lại liên tục.
+Bộ phát wifi bốc mùi khét, em đã rút điện. | H | D | Bộ phát wifi bốc mùi khét, đã rút điện.
+Hệ thống intercom gọi xuống lễ tân không nghe được tiếng. | L | - | Intercom gọi lễ tân không có tiếng.
+Chuông hình không kết nối được với app trên điện thoại. | L | - | Chuông hình không kết nối được với app.
+App cư dân không đăng nhập được, báo lỗi máy chủ. | L | - | App cư dân không đăng nhập được.
+camera hanh lang tang 4 bi mat hinh | M | - | Camera hành lang tầng 4 mất hình.
+Camera hầm xe không ghi hình hôm xe tôi bị trầy, nhờ kiểm tra hệ thống. | M | - | Camera hầm xe không ghi hình.
+Sóng điện thoại trong thang máy và hầm B2 mất hẳn. | L | - | Mất sóng điện thoại trong thang máy và hầm B2.
+Thẻ từ thang máy của tôi không quẹt được, phải đi nhờ. | M | - | Thẻ từ thang máy không quẹt được.
+Mạng dùng chung của tòa nhà bị ai đó chiếm băng thông, tối nào cũng lag. | L | - | Mạng dùng chung lag vào buổi tối.
+internet mat tu 9h, e ban hang online dang livestream thi rot | H | - | Mất internet từ 9 giờ, cư dân đang livestream bán hàng.
+Tủ mạng tầng 8 mở toang cửa, dây nhợ lòng thòng. | M | - | Tủ mạng tầng 8 mở cửa, dây lòng thòng.
+Tủ mạng ở tầng kỹ thuật có đèn nháy đỏ và kêu bíp. | M | - | Tủ mạng tầng kỹ thuật nháy đỏ và kêu bíp.
+Dây mạng chạy ngoài hành lang bị chuột cắn đứt. | M | - | Dây mạng hành lang bị chuột cắn đứt.
+Đổi mật khẩu wifi xong không thiết bị nào vào được nữa. | L | - | Không thiết bị nào vào được wifi sau khi đổi mật khẩu.
+wifi co song ma ko vao dc mang, bao khong co internet | M | - | Wifi có sóng nhưng không có internet.
+Tốc độ mạng đo được chỉ 5Mbps trong khi gói đăng ký 100Mbps. | L | - | Tốc độ mạng chỉ 5Mbps so với gói 100Mbps.
+Truyền hình internet giật đứng hình mỗi tối giờ cao điểm. | L | - | Truyền hình internet giật vào giờ cao điểm.
+Điện thoại bàn nội bộ không có tín hiệu. | L | - | Điện thoại bàn nội bộ không có tín hiệu.
+Máy làm việc ở nhà mất kết nối VPN do mạng tòa nhà chặn cổng. | L | - | Mạng tòa nhà chặn kết nối VPN.
+mang lag | L | - | Cư dân báo mạng lag. | Anh/chị cho biết mạng chậm ở tất cả thiết bị hay chỉ một thiết bị ạ?
+Mạng nhà em bị sao ấy. | M | - | Cư dân báo mạng có vấn đề nhưng chưa nêu rõ. | Anh/chị cho biết mạng đang mất hẳn, chậm hay chập chờn ạ?
+tivi ko xem dc | L | - | Cư dân báo tivi không xem được nhưng chưa nêu rõ. | Anh/chị cho biết tivi không lên hình hay mất tín hiệu truyền hình ạ?
+Màn hình thông báo ở sảnh bị đơ, hiện sai lịch cắt nước. | L | - | Màn hình thông báo ở sảnh đơ, hiện sai lịch.
+Loa thông báo tầng 11 rè, không nghe rõ thông báo PCCC. | M | - | Loa thông báo tầng 11 rè, không nghe rõ.
+Mất mạng 3 ngày chưa ai xử lý, tôi đã báo 2 lần. | H | - | Mất mạng 3 ngày, đã báo 2 lần chưa xử lý.
+## other
+Hàng xóm tầng trên khoan tường lúc 10 giờ đêm. | L | - | Tầng trên khoan tường lúc 10 giờ đêm.
+nha ben canh hat karaoke toi 1h sang | L | - | Nhà bên cạnh hát karaoke tới 1 giờ sáng.
+Có người lạ lảng vảng ở hành lang tầng 7, thử mở cửa từng nhà. | U | D | Người lạ ở hành lang tầng 7 thử mở cửa từng nhà.
+Xe tôi bị trầy ở hầm, nhờ BQL trích camera. | M | - | Xe bị trầy ở hầm, cư dân nhờ trích camera.
+Xe máy bị mất ở hầm B1 đêm qua. | H | - | Xe máy bị mất ở hầm B1 đêm qua.
+Có ô tô đỗ chắn lối ra hầm, xe khác không ra được. | H | - | Ô tô đỗ chắn lối ra hầm.
+xe la do vao cho dau cua toi | L | - | Xe lạ đỗ vào chỗ đậu của cư dân.
+Bảo vệ ngủ gật ở chốt cổng sau lúc nửa đêm. | L | - | Bảo vệ ngủ gật ở chốt cổng sau.
+Có đám cháy ở căn hộ tầng 14, khói ra hành lang rất nhiều. | U | D | Cháy ở căn hộ tầng 14, khói ra hành lang.
+chay o phong rac tang ham, khoi len ca thang bo | U | D | Cháy ở phòng rác tầng hầm, khói lên thang bộ.
+Có cụ ông ngất xỉu ở sảnh, cần hỗ trợ gấp. | U | D | Cụ ông ngất xỉu ở sảnh, cần hỗ trợ gấp.
+Một bé bị kẹt đầu vào song lan can cầu thang tầng 3. | U | D | Trẻ em kẹt đầu vào song lan can cầu thang tầng 3.
+Nghe tiếng kêu cứu từ căn hộ bên cạnh, gõ cửa không ai trả lời. | U | D | Có tiếng kêu cứu từ căn hộ bên cạnh, không ai mở cửa.
+Hai nhà tầng 9 đang đánh nhau ngoài hành lang. | U | D | Hai hộ tầng 9 đang đánh nhau ngoài hành lang.
+Tôi muốn đăng ký thẻ xe cho ô tô thứ hai. | L | - | Cư dân muốn đăng ký thẻ xe cho ô tô thứ hai.
+cho e hoi phi quan ly thang nay sao tang | L | - | Cư dân hỏi vì sao phí quản lý tháng này tăng.
+Xin cấp lại thẻ cư dân bị mất. | L | - | Cư dân xin cấp lại thẻ bị mất.
+Đăng ký chuyển đồ vào ngày chủ nhật, cần dùng thang hàng. | L | - | Cư dân đăng ký chuyển đồ chủ nhật, cần thang hàng.
+Nhà tôi sắp sửa chữa, cần xin giấy phép thi công. | L | - | Cư dân xin giấy phép thi công sửa nhà.
+Bưu kiện của tôi gửi ở lễ tân bị thất lạc. | M | - | Bưu kiện gửi ở lễ tân bị thất lạc.
+Trẻ con chơi bóng ở hành lang ồn ào, đá trúng cửa nhà tôi. | L | - | Trẻ con chơi bóng ở hành lang gây ồn.
+Căn bên cạnh nuôi chó sủa suốt đêm. | L | - | Chó nhà bên cạnh sủa suốt đêm.
+nha tren nem tan thuoc xuong ban cong nha e, chay thung ca ao | M | D | Tầng trên ném tàn thuốc xuống ban công làm cháy thủng áo.
+Có người ném chai lọ từ tầng cao xuống sân chơi. | U | D | Có người ném chai lọ từ tầng cao xuống sân chơi.
+Chậu cây nhà tầng 12 đặt trên lan can, gió to là rơi xuống đầu người. | H | D | Chậu cây đặt trên lan can tầng 12, có nguy cơ rơi.
+Bình chữa cháy ở hành lang tầng 5 hết hạn kiểm định. | M | - | Bình chữa cháy hành lang tầng 5 hết hạn kiểm định.
+Tủ vòi chữa cháy tầng 10 bị mất cuộn vòi. | H | - | Tủ chữa cháy tầng 10 mất cuộn vòi.
+Lối thoát hiểm tầng 2 bị hàng quán chiếm để đồ. | H | D | Lối thoát hiểm tầng 2 bị chiếm để đồ.
+Bể bơi không có cứu hộ trực vào buổi tối, trẻ con vẫn xuống bơi. | H | D | Bể bơi không có cứu hộ buổi tối, trẻ vẫn bơi.
+Cây to ở sân bị nghiêng sau bão, sắp đổ vào bãi xe. | U | D | Cây to ở sân nghiêng sau bão, sắp đổ vào bãi xe.
+canh cay gay treo lo lung tren loi di bo | H | D | Cành cây gãy treo lơ lửng trên lối đi bộ.
+Phòng gym mở nhạc quá to lúc 6 giờ sáng. | L | - | Phòng gym mở nhạc to lúc 6 giờ sáng.
+Tôi bị tính sai tiền nước tháng này, nhờ kiểm tra lại. | L | - | Cư dân phản ánh tiền nước tháng này tính sai.
+Shipper không được lên nhà, phải xuống nhận rất bất tiện. | L | - | Cư dân phản ánh shipper không được lên nhà.
+Góp ý: nên lắp thêm gương cầu lồi ở khúc cua hầm xe. | L | - | Góp ý lắp gương cầu lồi ở khúc cua hầm xe.
+Hầm xe có xe máy đang cháy, khói đen bốc lên. | U | D | Xe máy đang cháy ở hầm xe, khói đen bốc lên.
+Có mùi khét không rõ nguồn ở hành lang tầng 13. | U | D | Hành lang tầng 13 có mùi khét không rõ nguồn.
+co mui gas o hanh lang tang 6, khong biet nha nao | U | D | Có mùi gas ở hành lang tầng 6, chưa rõ căn nào.
+Căn hộ đối diện để cửa mở toang 2 ngày nay, không thấy ai, nhờ kiểm tra. | M | - | Căn hộ đối diện mở cửa 2 ngày không thấy người.
+Người già sống một mình ở căn bên 3 ngày không thấy ra ngoài, gọi không trả lời. | U | D | Người già sống một mình 3 ngày không ra ngoài, gọi không trả lời.
+giup em voi | M | - | Cư dân cần giúp đỡ nhưng chưa nêu vấn đề. | Anh/chị cho biết đang gặp vấn đề gì và ở đâu ạ?
+Có chuyện rồi, BQL lên nhà em ngay. | H | - | Cư dân yêu cầu lên nhà ngay nhưng chưa nêu sự việc. | Anh/chị cho biết đang xảy ra việc gì ạ, có ai gặp nguy hiểm không?
+hu roi | M | - | Cư dân báo hư hỏng nhưng chưa nêu cái gì. | Anh/chị cho biết cái gì bị hư và ở vị trí nào ạ?
+Nhà em có vấn đề cần sửa. | M | - | Cư dân báo cần sửa nhưng chưa nêu vấn đề. | Anh/chị mô tả giúp vấn đề cần sửa là gì ạ?
+Cái đó lại bị nữa rồi. | M | - | Cư dân báo sự cố tái diễn nhưng chưa nêu là gì. | Anh/chị cho biết sự cố nào đang bị lại ạ?
+alo | L | - | Cư dân gửi tin nhắn chưa có nội dung sự cố. | Anh/chị cần báo sự cố gì ạ?
+kiem tra giup | M | - | Cư dân nhờ kiểm tra nhưng chưa nêu kiểm tra gì. | Anh/chị cần kiểm tra thiết bị hay khu vực nào ạ?
+Ồn quá. | L | - | Cư dân phản ánh tiếng ồn nhưng chưa nêu nguồn. | Anh/chị cho biết tiếng ồn phát ra từ đâu và vào lúc nào ạ?
+Có mùi lạ trong nhà. | M | - | Cư dân báo có mùi lạ trong nhà nhưng chưa nêu rõ. | Anh/chị cho biết mùi giống mùi gì (khét, gas, cống) và ở phòng nào ạ?
+nguy hiem lam, len ngay di | H | - | Cư dân báo nguy hiểm nhưng chưa nêu sự việc. | Anh/chị cho biết đang có nguy hiểm gì và ở đâu ạ?
+Tầng dưới phàn nàn nhà tôi gây ồn, nhờ BQL làm việc giúp. | L | - | Cư dân nhờ BQL làm việc về phàn nàn tiếng ồn.
+Xin hỏi giờ hoạt động của bể bơi dịp lễ. | L | - | Cư dân hỏi giờ hoạt động bể bơi dịp lễ.
+Đèn giao thông tự chế ở lối ra hầm bị hỏng, xe ra vào suýt đâm nhau. | H | D | Đèn tín hiệu lối ra hầm hỏng, xe suýt va chạm.
+Drone của ai đó bay sát cửa sổ các tầng cao quay phim. | M | - | Drone bay sát cửa sổ tầng cao quay phim.

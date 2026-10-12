@@ -1,0 +1,80 @@
+# text | priority(L/M/H/U) | D=nguy hiểm, -=không | summary | câu hỏi lại (nếu mơ hồ)
+Cửa phòng ngủ bị xệ, đóng vào bị cạ xuống sàn. | L | - | Cửa phòng ngủ xệ, cạ sàn khi đóng.
+cua nha tam bi ket, be nha em bi nhot ben trong khong ra duoc | U | D | Cửa nhà tắm kẹt, trẻ em bị nhốt bên trong.
+Ổ khóa cửa chính bị gãy chìa bên trong, không mở được cửa vào nhà. | H | - | Chìa gãy trong ổ khóa cửa chính, không vào được nhà.
+Cửa chính không khóa được, chốt không ăn vào khung. | H | - | Cửa chính không khóa được, chốt không ăn vào khung.
+tay nam cua phong bi long, sap roi ra | L | - | Tay nắm cửa phòng lỏng, sắp rơi.
+Bản lề cửa tủ bếp bị gãy, cánh tủ treo lủng lẳng một bên. | L | - | Bản lề cửa tủ bếp gãy, cánh tủ treo một bên.
+Cánh tủ bếp trên rơi xuống suýt trúng đầu, giờ còn một cánh nữa cũng lỏng. | H | D | Cánh tủ bếp trên rơi, cánh còn lại cũng lỏng.
+Cửa kính ban công bị nứt một đường dài từ góc. | H | D | Cửa kính ban công nứt một đường dài.
+kinh cua so phong khach bi vo, manh kinh roi day san | H | D | Kính cửa sổ phòng khách vỡ, mảnh kính rơi đầy sàn.
+Cửa sổ phòng ngủ không đóng kín được, mưa hắt và gió lùa. | M | - | Cửa sổ phòng ngủ không đóng kín, mưa hắt và gió lùa.
+Cửa lùa ban công bị trật ray, kéo không nổi. | M | - | Cửa lùa ban công trật ray.
+Lan can ban công tầng 11 bị lung lay, mối hàn chân trụ gỉ đứt. | U | D | Lan can ban công tầng 11 lung lay, mối hàn chân trụ đứt.
+lan can cau thang bo tang 4 bi gay 1 doan | U | D | Lan can cầu thang bộ tầng 4 gãy một đoạn.
+Kính lan can ban công bị nứt rạn chân chim. | U | D | Kính lan can ban công nứt rạn.
+Trần thạch cao phòng khách bị nứt dọc theo mối nối. | L | - | Trần thạch cao phòng khách nứt theo mối nối.
+Một mảng trần thạch cao phòng bếp bị sập xuống sáng nay, may không ai ở đó. | U | D | Một mảng trần thạch cao phòng bếp sập xuống.
+tran phong ngu vong xuong ro ret o giua | U | D | Trần phòng ngủ võng xuống rõ ở giữa.
+Vữa trần hành lang tầng 6 bong ra rơi xuống từng mảng. | U | D | Vữa trần hành lang tầng 6 bong rơi từng mảng.
+Tường phòng ngủ có vết nứt chân chim nhỏ sau lớp sơn. | L | - | Tường phòng ngủ có vết nứt chân chim nhỏ.
+Vết nứt ngang trên tường chịu lực phòng khách, nhét vừa đồng xu. | H | D | Vết nứt ngang lớn trên tường chịu lực phòng khách.
+tuong bi moc den o goc phong ngu, lau roi lai moc | M | - | Tường góc phòng ngủ mốc đen, lau rồi lại mốc.
+Sơn tường phòng khách bị ố vàng loang lổ. | L | - | Sơn tường phòng khách ố vàng loang lổ.
+Giấy dán tường phòng ngủ bị bong mép. | L | - | Giấy dán tường phòng ngủ bong mép.
+Gạch ốp tường nhà tắm bị bong 3 viên, sắp rơi. | M | D | Gạch ốp tường nhà tắm bong 3 viên, sắp rơi.
+gach lat san phong khach bi phong rop, no vo may vien | M | - | Gạch lát sàn phòng khách phồng rộp, vỡ mấy viên.
+Sàn gỗ phòng ngủ bị phồng lên ở mép, đi vấp chân. | M | - | Sàn gỗ phòng ngủ phồng ở mép.
+Sàn gỗ kêu cọt kẹt khắp phòng khách. | L | - | Sàn gỗ phòng khách kêu cọt kẹt.
+Gạch sàn nhà tắm bị vỡ một viên, cạnh sắc cứa vào chân. | M | D | Gạch sàn nhà tắm vỡ, cạnh sắc cứa chân.
+Len chân tường bị bung ra một đoạn dài. | L | - | Len chân tường bung một đoạn dài.
+cua thoat hiem tang 8 bi khoa trai, ko mo duoc | U | D | Cửa thoát hiểm tầng 8 bị khóa trái, không mở được.
+Cửa chống cháy hành lang không tự đóng, bản lề thủy lực hỏng. | H | - | Cửa chống cháy hành lang không tự đóng.
+Cửa kính sảnh chính bị lệch, đóng lại va vào nhau kêu rầm. | M | - | Cửa kính sảnh chính lệch, va nhau khi đóng.
+Cửa cuốn ki-ốt tầng trệt bị tuột, sập xuống đột ngột. | U | D | Cửa cuốn ki-ốt tầng trệt tuột, sập xuống đột ngột.
+Nắp cống ở lối đi sân sau bị mất, có cái hố sâu không rào chắn. | U | D | Nắp cống lối đi sân sau bị mất, hố sâu không rào chắn.
+bac tam cap truoc sanh bi vo canh, nguoi gia hay vap | M | D | Bậc tam cấp trước sảnh vỡ cạnh, người già hay vấp.
+Gạch lát vỉa hè lối vào bị bong, xe lăn không qua được. | M | - | Gạch lát lối vào bong, xe lăn không qua được.
+Mái che nhà xe bị tốc một tấm tôn, đang đập phành phạch trong gió. | U | D | Mái che nhà xe tốc một tấm tôn, đập mạnh trong gió.
+Tấm ốp mặt tiền tầng 5 bị bung, treo lơ lửng phía trên lối đi. | U | D | Tấm ốp mặt tiền tầng 5 bung, treo trên lối đi.
+bien hieu tren mai toa nha bi long, gio to la lac lu | U | D | Biển hiệu trên mái tòa nhà lỏng, lắc khi gió to.
+Cửa tủ quần áo âm tường bị trật ray trượt. | L | - | Cửa tủ quần áo âm tường trật ray.
+Ngăn kéo tủ bếp bị hỏng ray, kéo ra là rơi. | L | - | Ngăn kéo tủ bếp hỏng ray.
+Mặt đá bàn bếp bị nứt gần bồn rửa. | L | - | Mặt đá bàn bếp nứt gần bồn rửa.
+Vách kính nhà tắm bị lỏng kẹp giữ, lắc qua lắc lại. | H | D | Vách kính nhà tắm lỏng kẹp giữ.
+vach kinh tam tu nhien no vo tung toe, may khong ai trong nha tam | H | D | Vách kính tắm tự nổ vỡ.
+Gương nhà tắm bị bong keo, nghiêng ra khỏi tường. | M | D | Gương nhà tắm bong keo, nghiêng khỏi tường.
+Cửa sổ tầng 20 bị bung chốt an toàn, mở toang ra được, nhà có trẻ nhỏ. | U | D | Cửa sổ tầng 20 bung chốt an toàn, nhà có trẻ nhỏ.
+Lưới an toàn ban công bị rách một lỗ to. | H | D | Lưới an toàn ban công rách một lỗ to.
+luoi chong muoi cua so bi rach | L | - | Lưới chống muỗi cửa sổ bị rách.
+Khung cửa gỗ bị mối ăn rỗng, ấn vào lún. | M | - | Khung cửa gỗ bị mối ăn rỗng.
+Cửa phòng kêu cót két mỗi lần mở. | L | - | Cửa phòng kêu cót két khi mở.
+Cửa chính bị ai đó cạy, ổ khóa có vết xước và lỏng hẳn. | H | - | Cửa chính có dấu hiệu bị cạy, ổ khóa lỏng.
+Mắt thần cửa chính bị rơi mất, để lại cái lỗ. | L | - | Mắt thần cửa chính bị rơi mất.
+chot cua so phong be bi hong, cua tu mo khi gio manh | H | D | Chốt cửa sổ phòng bé hỏng, cửa tự mở khi gió mạnh.
+Ron cửa ban công bị lão hóa, mưa là nước chảy vào. | M | - | Ron cửa ban công lão hóa, nước mưa chảy vào.
+Trần ban công bị bong sơn và lộ sắt gỉ. | M | - | Trần ban công bong sơn, lộ sắt gỉ.
+Cột bê tông hầm B1 bị xe tông vỡ một góc, lộ cốt thép. | H | D | Cột bê tông hầm B1 vỡ góc, lộ cốt thép.
+Sàn hầm xe có vết nứt dài và đang rỉ nước. | M | - | Sàn hầm xe nứt dài và rỉ nước.
+tuong rao khu vuon bi nghieng ra phia duong di | H | D | Tường rào khu vườn nghiêng ra phía đường đi.
+Cầu trượt ở sân chơi trẻ em bị gãy bậc thang. | H | D | Cầu trượt sân chơi trẻ em gãy bậc thang.
+Xích đu khu vui chơi bị đứt một bên dây. | H | D | Xích đu khu vui chơi đứt một bên dây.
+Ghế đá ở sân vườn bị gãy chân. | L | - | Ghế đá sân vườn gãy chân.
+Tay vịn cho người khuyết tật ở dốc sảnh bị bung khỏi tường. | H | D | Tay vịn dốc sảnh bung khỏi tường.
+Cửa hộp kỹ thuật ngoài hành lang rơi bản lề, dựa tạm vào tường. | M | D | Cửa hộp kỹ thuật hành lang rơi bản lề.
+hop thu tang tret bi cay hong khoa | L | - | Hộp thư tầng trệt bị cạy hỏng khóa.
+Thanh treo rèm phòng khách bị sập, kéo theo một mảng vữa. | L | - | Thanh treo rèm phòng khách sập, kéo theo mảng vữa.
+Kệ treo tường trong bếp bị bung vít, nghiêng hẳn xuống. | M | D | Kệ treo tường bếp bung vít, nghiêng xuống.
+Giàn phơi thông minh bị đứt cáp, rơi một đầu xuống. | M | - | Giàn phơi đứt cáp, rơi một đầu.
+Tường nhà hàng xóm khoan đục làm nứt tường phòng ngủ nhà tôi. | M | - | Tường phòng ngủ nứt do nhà bên khoan đục.
+Sau trận động đất nhẹ hôm qua, cầu thang bộ xuất hiện vết nứt ở chiếu nghỉ. | H | D | Chiếu nghỉ cầu thang bộ xuất hiện vết nứt sau rung chấn.
+cua bi hu | M | - | Cư dân báo cửa bị hư nhưng chưa nêu cửa nào. | Anh/chị cho biết cửa nào bị hư và hư như thế nào ạ?
+Tường nhà em có vấn đề, nhờ BQL xem. | M | - | Cư dân báo tường có vấn đề nhưng chưa nêu rõ. | Anh/chị cho biết tường ở phòng nào và đang bị hiện tượng gì ạ?
+bi nut | M | - | Cư dân báo bị nứt nhưng chưa nêu vị trí. | Anh/chị cho biết chỗ nào bị nứt và vết nứt dài khoảng bao nhiêu ạ?
+Khóa hỏng rồi. | H | - | Cư dân báo khóa hỏng nhưng chưa nêu khóa nào. | Anh/chị cho biết khóa cửa nào bị hỏng và hiện có vào được nhà không ạ?
+Trần nhà bị sao ấy ạ, em thấy lạ lắm. | M | - | Cư dân báo trần nhà bất thường nhưng chưa nêu rõ. | Anh/chị mô tả giúp trần nhà đang bị hiện tượng gì ạ: nứt, võng hay thấm?
+Sơn cửa chính bị tróc do nắng. | L | - | Sơn cửa chính tróc.
+Nẹp inox bậc cầu thang bị bong, vấp ngã mấy lần. | M | D | Nẹp inox bậc cầu thang bong, dễ vấp ngã.
+tam tran nhua nha ve sinh bi roi 1 tam | L | - | Trần nhựa nhà vệ sinh rơi một tấm.
+Cửa phòng tắm bằng nhôm bị móp, khóa trong không chốt được. | L | - | Cửa phòng tắm móp, không chốt được bên trong.
+Cổng sắt phụ sau tòa nhà bị bung bản lề, đổ nghiêng. | H | D | Cổng sắt phụ sau tòa nhà bung bản lề, đổ nghiêng.

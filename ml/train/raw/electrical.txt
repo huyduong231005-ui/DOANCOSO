@@ -1,0 +1,95 @@
+# text | priority(L/M/H/U) | D=nguy hiểm, -=không | summary | câu hỏi lại (nếu mơ hồ)
+Cầu dao tổng nhà em cứ bật lên là nhảy xuống ngay, cả nhà không có điện. | H | - | Cầu dao tổng bật lên là nhảy, cả nhà mất điện.
+aptomat phong bep nhay lien tuc moi khi bat bep tu | M | - | Aptomat phòng bếp nhảy mỗi khi bật bếp từ.
+Ổ cắm cạnh giường bị lỏng, cắm sạc vào là rơi ra. | L | - | Ổ cắm cạnh giường bị lỏng, phích cắm dễ rơi.
+Ổ cắm trong bếp nóng ran và có mùi nhựa cháy khi cắm ấm siêu tốc. | U | D | Ổ cắm bếp nóng ran và có mùi nhựa cháy khi cắm ấm siêu tốc.
+o cam phong ngu bi chay xem, co vet den quanh lo cam | U | D | Ổ cắm phòng ngủ bị cháy xém, có vết đen quanh lỗ cắm.
+Đèn phòng khách nhấp nháy liên tục, thay bóng mới rồi vẫn bị. | M | - | Đèn phòng khách nhấp nháy dù đã thay bóng mới.
+Bóng đèn nhà tắm bị cháy, tối phải dùng đèn pin điện thoại. | L | - | Bóng đèn nhà tắm bị cháy.
+đèn hành lang tầng 7 tắt hết cả dãy, tối om đi lại ko thấy gì | M | - | Đèn hành lang tầng 7 tắt cả dãy.
+Công tắc đèn phòng ngủ bị kẹt, bấm không ăn. | L | - | Công tắc đèn phòng ngủ bị kẹt.
+Chạm vào vỏ tủ lạnh bị tê tay, nghi rò điện. | U | D | Chạm vào vỏ tủ lạnh bị tê tay, nghi rò điện.
+vua bi dien giat khi cham vao cong tac den nha tam, tay van con te | U | D | Bị điện giật khi chạm công tắc đèn nhà tắm.
+Dây điện ngoài ban công bị hở lõi đồng, trẻ con hay chơi gần đó. | U | D | Dây điện ban công hở lõi đồng, gần chỗ trẻ con chơi.
+Tủ điện tầng 4 có tiếng nổ lách tách và mùi khét. | U | D | Tủ điện tầng 4 có tiếng nổ lách tách và mùi khét.
+Mất điện một nửa nhà: phòng khách và bếp có điện, hai phòng ngủ thì không. | H | - | Mất điện ở hai phòng ngủ, phòng khách và bếp vẫn có điện.
+mat dien ca toa nha tu 6h sang, thang may cung ko chay | H | - | Mất điện cả tòa nhà từ 6 giờ sáng, thang máy không chạy.
+Điện chập chờn, lúc mạnh lúc yếu, đèn sáng tối liên tục cả buổi tối. | H | - | Điện chập chờn, đèn sáng tối liên tục cả buổi tối.
+Ổ cắm phòng làm việc không có điện, các ổ khác vẫn bình thường. | M | - | Ổ cắm phòng làm việc không có điện.
+Đèn ốp trần bị rơi chụp, dây điện lòi ra ngoài lủng lẳng. | H | D | Đèn ốp trần rơi chụp, dây điện lòi ra lủng lẳng.
+quat tran phong khach quay la den nhay theo, co khi nhay ca aptomat | M | - | Bật quạt trần phòng khách thì đèn nháy và có lúc nhảy aptomat.
+Chuông cửa không kêu nữa, khách đến phải gọi điện. | L | - | Chuông cửa không kêu.
+Đèn cầu thang bộ thoát hiểm tầng 10 đến 12 không sáng. | M | - | Đèn cầu thang thoát hiểm tầng 10 đến 12 không sáng.
+Có tia lửa lóe lên trong ổ cắm khi tôi rút phích tivi, giờ ổ có mùi khét. | U | D | Ổ cắm lóe tia lửa khi rút phích tivi, có mùi khét.
+day dien tren tran thach cao bi chuot can, hom qua thay khoi nhe | U | D | Dây điện trên trần thạch cao bị chuột cắn, hôm qua có khói nhẹ.
+Công tắc đèn bếp bật lên có tiếng xẹt xẹt bên trong. | H | D | Công tắc đèn bếp có tiếng xẹt bên trong khi bật.
+Đèn ban công không sáng, em thay bóng rồi mà vẫn thế. | L | - | Đèn ban công không sáng dù đã thay bóng.
+Aptomat chống giật cứ nhảy mỗi khi trời mưa. | H | D | Aptomat chống giật nhảy mỗi khi trời mưa.
+o cam ngoai hanh lang bi vo mat, thay ro ca loi dong ben trong | H | D | Ổ cắm ngoài hành lang vỡ mặt, hở lõi đồng bên trong.
+Điện nhà em yếu lắm, bật điều hòa là đèn mờ hẳn đi. | M | - | Điện yếu, bật điều hòa thì đèn mờ hẳn.
+Đèn LED âm trần phòng khách chết 3 trong 8 bóng. | L | - | Đèn LED âm trần phòng khách hỏng 3 trên 8 bóng.
+Đồng hồ điện ngoài hành lang kêu rè rè rất to, sờ vào thấy nóng. | H | D | Đồng hồ điện ngoài hành lang kêu rè và nóng.
+cot den san choi bi nghieng, day dien tri xuong sat dat | U | D | Cột đèn sân chơi nghiêng, dây điện trĩ xuống sát đất.
+Hầm xe khu C mất điện chiếu sáng, tối không thấy đường lấy xe. | M | - | Hầm xe khu C mất điện chiếu sáng.
+Mặt công tắc phòng tắm bị nứt, tay ướt chạm vào thấy giật nhẹ. | U | D | Công tắc phòng tắm nứt mặt, tay ướt chạm vào bị giật nhẹ.
+Ổ cắm âm sàn phòng khách bị nước lau nhà chảy vào, chưa dám dùng. | H | D | Ổ cắm âm sàn phòng khách bị nước lau nhà chảy vào.
+den phong ngu tu bat tu tat luc nua dem | L | - | Đèn phòng ngủ tự bật tắt lúc nửa đêm.
+Cầu chì tủ điện căn hộ bị đứt, đã thay mà một lúc lại đứt tiếp. | H | - | Cầu chì tủ điện căn hộ liên tục đứt.
+Khói đen bốc ra từ phòng kỹ thuật điện tầng hầm, chuông báo cháy đang kêu. | U | D | Khói đen bốc ra từ phòng kỹ thuật điện tầng hầm, chuông báo cháy kêu.
+Thẻ từ cắm vào hộp lấy điện không nhận, cả phòng không có điện. | H | - | Hộp thẻ từ không nhận, cả phòng không có điện.
+dien bi sut ap, may tinh cu tu khoi dong lai | M | - | Điện sụt áp, máy tính tự khởi động lại.
+Đèn exit ở lối thoát hiểm tầng 5 bị tắt. | M | - | Đèn exit lối thoát hiểm tầng 5 bị tắt.
+Ổ cắm có nguồn nhưng cắm vào lỏng lẻo, hay đánh lửa nhỏ. | H | D | Ổ cắm lỏng, hay đánh lửa nhỏ khi cắm.
+Dây nguồn chạy dọc tường phòng khách bị bong nẹp, dây lòi ra ngoài. | L | - | Nẹp dây điện tường phòng khách bong, dây lòi ra.
+Nhà mới nhận, ổ cắm bếp không có dây tiếp đất nên chạm vào lò vi sóng bị tê. | H | D | Ổ cắm bếp không tiếp đất, chạm lò vi sóng bị tê.
+den san vuon truoc sanh sang ca ngay khong tat | L | - | Đèn sân vườn trước sảnh sáng cả ngày không tắt.
+Có mùi khét điện trong phòng ngủ nhưng tìm không ra chỗ nào. | U | D | Phòng ngủ có mùi khét điện, chưa tìm ra nguồn.
+Aptomat nhánh điều hòa bị nóng, vỏ nhựa hơi chảy. | U | D | Aptomat nhánh điều hòa nóng, vỏ nhựa hơi chảy.
+Cả tầng 15 mất điện, tầng khác vẫn có. | H | - | Cả tầng 15 mất điện.
+bong den tuyp o bep keu u u va sang mo | L | - | Đèn tuýp bếp kêu ù và sáng mờ.
+Dimmer đèn phòng khách hỏng, chỉ còn sáng một mức. | L | - | Dimmer đèn phòng khách hỏng, chỉ sáng một mức.
+Tủ điện ngoài hành lang không đóng cửa được, bên trong toàn dây và cầu dao. | H | D | Tủ điện hành lang không đóng được cửa, hở dây và cầu dao.
+Ổ cắm ban công bị nước mưa tạt vào, nhảy aptomat cả nhà. | H | D | Ổ cắm ban công bị nước mưa tạt, nhảy aptomat cả nhà.
+mat dien phong ngu con, be dang on thi | M | - | Mất điện phòng ngủ của con.
+Sau khi sửa điện hôm qua thì công tắc đèn và quạt bị đấu ngược. | L | - | Công tắc đèn và quạt bị đấu ngược sau khi sửa.
+Đèn cảm biến hành lang không tự bật khi có người đi qua. | L | - | Đèn cảm biến hành lang không tự bật.
+Dây điện từ cột vào tòa nhà bị cành cây đè, đang tóe lửa. | U | D | Dây điện vào tòa nhà bị cành cây đè, đang tóe lửa.
+tu dien tong bi nuoc mua tat vao, co tieng no nho | U | D | Tủ điện tổng bị nước mưa tạt, có tiếng nổ nhỏ.
+Nhà em bị cắt điện dù đã đóng tiền, nhờ kiểm tra lại. | H | - | Căn hộ bị cắt điện dù đã đóng tiền.
+Ổ cắm USB trên tường không sạc được nữa. | L | - | Ổ cắm USB trên tường không sạc được.
+Đèn trong thang máy số 2 bị tắt, đi thang tối om. | M | - | Đèn trong thang máy số 2 bị tắt.
+quat hut nha tam khong chay, bat cong tac khong thay gi | L | - | Quạt hút nhà tắm không chạy.
+Máy phát điện dự phòng không tự khởi động khi mất điện tối qua. | H | - | Máy phát điện dự phòng không tự khởi động khi mất điện.
+Đầu báo khói trong phòng khách kêu bíp bíp cách quãng suốt đêm. | M | - | Đầu báo khói phòng khách kêu bíp cách quãng suốt đêm.
+Chuông báo cháy tầng 9 kêu liên tục nhưng không thấy khói hay lửa. | H | - | Chuông báo cháy tầng 9 kêu liên tục, không thấy khói lửa.
+Dây điện nồi cơm bị chảy nhựa dính vào ổ cắm, ổ cắm đen sì. | U | D | Dây nồi cơm chảy nhựa dính vào ổ cắm, ổ cắm cháy đen.
+cong tac bi lun vao trong tuong, ko bat duoc den | L | - | Công tắc bị lún vào tường, không bật được đèn.
+Điện giật nhẹ khi mở vòi nước inox ở bếp. | U | D | Bị điện giật nhẹ khi mở vòi nước inox ở bếp.
+Bảng điện phòng khách có kiến làm tổ, thỉnh thoảng chập nhảy aptomat. | H | D | Bảng điện phòng khách có kiến làm tổ, thỉnh thoảng chập.
+Đèn chùm phòng khách bị lỏng móc treo, đung đưa như sắp rơi. | U | D | Đèn chùm phòng khách lỏng móc treo, sắp rơi.
+den nha xe may nhap nhay nhuc mat qua | L | - | Đèn nhà xe máy nhấp nháy.
+Tôi cắm máy sấy tóc là cả nhà mất điện, phải bật lại cầu dao. | M | - | Cắm máy sấy tóc thì nhảy cầu dao cả nhà.
+Ổ cắm phòng khách có tiếng kêu rè rè dù không cắm gì. | H | D | Ổ cắm phòng khách kêu rè dù không cắm thiết bị.
+Hộp nối dây trên trần nhà tắm bị hở, hơi nước bám vào dây. | H | D | Hộp nối dây trên trần nhà tắm hở, hơi nước bám vào dây.
+mat dien roi | H | - | Cư dân báo mất điện nhưng chưa nêu phạm vi. | Anh/chị cho biết mất điện cả căn hộ hay chỉ một khu vực ạ?
+Điện nhà em có vấn đề. | M | - | Cư dân báo điện có vấn đề nhưng chưa nêu cụ thể. | Anh/chị mô tả giúp điện đang gặp vấn đề gì ạ?
+den hu | L | - | Cư dân báo đèn hư nhưng chưa nêu vị trí. | Anh/chị cho biết đèn ở vị trí nào bị hư ạ?
+Ổ cắm bị sao ấy, nhờ kiểm tra. | M | - | Cư dân báo ổ cắm có vấn đề nhưng chưa nêu rõ. | Anh/chị cho biết ổ cắm ở đâu và đang bị hiện tượng gì ạ?
+nhay aptomat hoai | M | - | Aptomat nhảy liên tục, chưa rõ nhánh nào. | Anh/chị cho biết aptomat nhảy khi dùng thiết bị nào ạ?
+Đèn ngủ gắn tường đầu giường không sáng. | L | - | Đèn ngủ gắn tường đầu giường không sáng.
+Đèn pha chiếu sáng sân bóng chung bị cháy 2 bóng. | L | - | Đèn pha sân bóng chung cháy 2 bóng.
+Cáp điện ở hầm B1 bị xe quẹt đứt lớp vỏ, lộ dây bên trong. | U | D | Cáp điện hầm B1 bị xe quẹt rách vỏ, lộ dây.
+o dien trong phong tre em khong co nap che, be hay choc tay vao | H | D | Ổ điện phòng trẻ em không có nắp che, bé hay chọc tay vào.
+Điện mất chập chờn 3-4 lần mỗi tối trong tuần này. | M | - | Điện mất chập chờn 3-4 lần mỗi tối trong tuần.
+Công tơ điện nhà tôi chạy nhanh bất thường, tháng này tiền điện gấp đôi. | M | - | Công tơ điện chạy nhanh bất thường, tiền điện gấp đôi.
+Đèn tường hành lang bị vỡ chụp thủy tinh, mảnh vỡ còn trên sàn. | M | D | Đèn tường hành lang vỡ chụp, mảnh thủy tinh trên sàn.
+Bật bình nóng lạnh là nhảy chống giật ngay lập tức. | H | D | Bật bình nóng lạnh là nhảy chống giật ngay.
+tu dien can ho co tieng keu o o lien tuc | H | D | Tủ điện căn hộ kêu o o liên tục.
+Trạm sạc xe điện ở hầm B2 bị cháy đen đầu sạc. | U | D | Trạm sạc xe điện hầm B2 cháy đen đầu sạc.
+Xe đạp điện đang sạc ở nhà xe bốc khói. | U | D | Xe đạp điện đang sạc ở nhà xe bốc khói.
+Ổ cắm kép chỉ dùng được một bên. | L | - | Ổ cắm kép chỉ dùng được một bên.
+den phong khach sang yeu han di tu hom qua, cac phong khac binh thuong | L | - | Đèn phòng khách sáng yếu từ hôm qua.
+Cửa cuốn hầm xe không lên được do mất điện motor, xe kẹt bên trong. | H | - | Cửa cuốn hầm xe không mở được, xe kẹt bên trong.
+Bảng điều khiển đèn sảnh bị chập, đèn sảnh nháy như đèn sân khấu. | M | - | Đèn sảnh nháy liên tục do bảng điều khiển chập.
+Dây điện tạm của thợ sửa nhà bên cạnh kéo ngang hành lang, người già hay vấp. | M | D | Dây điện tạm kéo ngang hành lang, người già hay vấp.
+Phòng ngủ chính có 1 ổ cắm bị chết từ khi nhận nhà. | L | - | Một ổ cắm phòng ngủ chính không có điện từ khi nhận nhà.

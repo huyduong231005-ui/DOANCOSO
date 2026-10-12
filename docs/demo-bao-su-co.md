@@ -1,7 +1,7 @@
 # Kịch bản demo: báo sự cố, AI phân loại, tự giao thợ và gửi email
 
 Kịch bản này chạy toàn bộ luồng trên máy cá nhân, không cần deploy. Mười sự cố được gửi lần lượt bằng
-một tài khoản cư dân mẫu; sau mỗi lần gửi, hộp thư demo nhận email thật cho thợ và quản lý.
+một tài khoản cư dân mẫu; sau mỗi lần gửi, hộp thư demo nhận email thật theo đúng vai trò (thợ, quản lý, quản trị viên).
 
 Thời lượng: khoảng 15 phút. Kết quả ở cột "Mô hình trả về" là kết quả thật của `qwen3-suco3` khi chạy
 thử các câu này; mô hình chạy ở nhiệt độ 0 nên lặp lại được.
@@ -45,9 +45,19 @@ App tự tạo các tài khoản này khi khởi động.
 
 Đăng nhập bằng tài khoản cư dân, vào **Báo sự cố → Tạo yêu cầu**. Với mỗi dòng dưới đây: nhập tiêu đề
 ngắn tùy ý, dán mô tả, **để nguyên loại "Khác" và mức ưu tiên "Trung bình"** (trừ bước 10), rồi gửi.
-Mỗi lần gửi mất khoảng 4 giây để mô hình phân loại.
+Mỗi lần gửi mất khoảng 10 giây: mô hình phân loại khoảng 4 giây, phần còn lại là gửi email qua Gmail.
 
-Mỗi sự cố có thợ nhận sẽ tạo 3 email (thợ, quản lý, quản trị); sự cố không có thợ tạo 2 email.
+Mỗi vai trò chỉ nhận loại thư của mình:
+
+| Tình huống | Thợ | Quản lý | Quản trị viên |
+|---|---|---|---|
+| Giao được thợ, mức thường | Thư "Giao việc" | không | không |
+| Giao được thợ, khẩn cấp | Thư "KHẨN CẤP - Giao việc" | Thư "Cần theo dõi" | không |
+| Không có thợ phù hợp | không | Thư "Cần phân công" | không |
+| Mô tả mơ hồ | không | Thư "Cần hỏi lại cư dân" | không |
+| Mô hình AI không phản hồi | như các dòng trên | như các dòng trên | Thư "Mô hình phân loại sự cố không phản hồi" (tối đa 30 phút một thư) |
+
+Quản trị viên nhận thay quản lý nếu hệ thống chưa có tài khoản quản lý nào.
 
 | # | Mô tả dán vào | Mô hình trả về | Kết quả trong app |
 |---|---|---|---|
@@ -68,8 +78,11 @@ Mỗi sự cố có thợ nhận sẽ tạo 3 email (thợ, quản lý, quản t
 2. Danh sách có 10 yêu cầu vừa gửi kèm loại, mức ưu tiên và người phụ trách đã được điền sẵn.
 3. Mở yêu cầu ở bước 6 (thang máy), chọn người phụ trách khác rồi bấm phân công. Đây là cách xử lý khi
    mô hình giao nhầm.
-4. Mở hộp thư demo: tổng cộng 27 email (7 sự cố có thợ × 3, cộng 3 sự cố không có thợ × 2), tiêu đề cho
-   biết mỗi email vốn gửi cho ai.
+4. Mở hộp thư demo: 12 email. Bảy thư giao việc cho thợ (bước 1, 2, 3, 4, 5, 6, 8), hai thư "Cần theo dõi"
+   cho quản lý (bước 1, 8), ba thư cho quản lý ở các bước không giao thợ (7, 9, 10). Tiêu đề cho biết mỗi thư
+   vốn gửi cho ai.
+5. Muốn trình bày thư của quản trị viên: tắt Ollama rồi gửi thêm một sự cố. Yêu cầu vẫn được lưu theo lựa
+   chọn của cư dân, và quản trị viên nhận thư báo mô hình không phản hồi.
 
 ## 5. Các điểm nên nêu khi trình bày
 

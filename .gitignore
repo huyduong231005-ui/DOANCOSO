@@ -73,3 +73,6 @@ Migrations.sqlserver.bak/
 
 ## Local dev scripts (verify Neon, ad-hoc test...)
 verify_neon.csx
+
+## Cấu hình bí mật trên máy dev
+.env

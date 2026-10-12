@@ -26,41 +26,67 @@ public class MaintenanceDispatcherTests
     }
 
     [Fact]
-    public async Task Dispatch_assigns_the_technician_with_fewest_active_requests_and_emails_them_and_managers()
+    public async Task Routine_request_goes_only_to_the_technician_with_fewest_active_requests()
     {
         await using var db = NewDb();
         var busy = AddUser(db, "busy", SeedData.RoleElectrician);
         var free = AddUser(db, "free", SeedData.RoleElectrician);
         AddUser(db, "manager", SeedData.RoleManager);
+        AddUser(db, "admin", SeedData.RoleAdmin);
         db.MaintenanceRequests.Add(new MaintenanceRequest { RequestNumber = "OLD", ApartmentId = 1, AssignedToId = busy.Id });
         var req = AddRequest(db, MaintenanceCategory.Electrical, MaintenancePriority.Medium);
         await db.SaveChangesAsync();
         var sender = new RecordingSender();
 
-        await new MaintenanceDispatcher(db, sender, NullLogger<MaintenanceDispatcher>.Instance).DispatchAsync(req, null);
+        await Dispatcher(db, sender).DispatchAsync(req, null);
 
         Assert.Equal(free.Id, req.AssignedToId);
-        Assert.Equal(new[] { "free@test.local", "manager@test.local" }, sender.Recipients.OrderBy(x => x));
+        var mail = Assert.Single(sender.Mails);
+        Assert.Equal("free@test.local", mail.To);
+        Assert.Contains("Giao việc", mail.Subject);
     }
 
     [Fact]
-    public async Task Dispatch_leaves_request_unassigned_and_emails_managers_when_no_technician_covers_the_category()
+    public async Task Urgent_request_sends_the_job_to_the_technician_and_a_follow_up_notice_to_managers()
     {
         await using var db = NewDb();
         AddUser(db, "plumber", SeedData.RolePlumber);
         AddUser(db, "manager", SeedData.RoleManager);
+        AddUser(db, "admin", SeedData.RoleAdmin);
+        var req = AddRequest(db, MaintenanceCategory.Plumbing, MaintenancePriority.Urgent);
+        await db.SaveChangesAsync();
+        var sender = new RecordingSender();
+
+        await Dispatcher(db, sender).DispatchAsync(req, null);
+
+        Assert.Equal(2, sender.Mails.Count);
+        Assert.Contains("KHẨN CẤP - Giao việc", sender.MailTo("plumber@test.local").Subject);
+        Assert.Contains("KHẨN CẤP - Cần theo dõi", sender.MailTo("manager@test.local").Subject);
+    }
+
+    [Fact]
+    public async Task Request_without_a_matching_technician_goes_to_all_managers_in_one_mail()
+    {
+        await using var db = NewDb();
+        AddUser(db, "plumber", SeedData.RolePlumber);
+        AddUser(db, "manager", SeedData.RoleManager);
+        AddUser(db, "manager2", SeedData.RoleManager);
+        AddUser(db, "admin", SeedData.RoleAdmin);
         var req = AddRequest(db, MaintenanceCategory.Pest, MaintenancePriority.Low);
         await db.SaveChangesAsync();
         var sender = new RecordingSender();
 
-        await new MaintenanceDispatcher(db, sender, NullLogger<MaintenanceDispatcher>.Instance).DispatchAsync(req, null);
+        await Dispatcher(db, sender).DispatchAsync(req, null);
 
         Assert.Null(req.AssignedToId);
-        Assert.Equal(new[] { "manager@test.local" }, sender.Recipients);
+        var mail = Assert.Single(sender.Mails);
+        Assert.Equal("manager@test.local, manager2@test.local", mail.To);
+        Assert.Contains("Cần phân công", mail.Subject);
+        Assert.Equal(2, new System.Net.Mail.MailMessage("from@test.local", mail.To).To.Count);
     }
 
     [Fact]
-    public async Task Dispatch_sends_vague_reports_to_managers_instead_of_a_technician()
+    public async Task Vague_report_asks_managers_to_follow_up_instead_of_assigning_a_technician()
     {
         await using var db = NewDb();
         AddUser(db, "plumber", SeedData.RolePlumber);
@@ -71,11 +97,47 @@ public class MaintenanceDispatcherTests
         var triage = new MaintenanceTriage(MaintenanceCategory.Plumbing, MaintenancePriority.Medium, false, "{}",
             "Anh/chị cho biết chỗ nào bị chảy nước ạ?");
 
-        await new MaintenanceDispatcher(db, sender, NullLogger<MaintenanceDispatcher>.Instance).DispatchAsync(req, triage);
+        await Dispatcher(db, sender).DispatchAsync(req, triage);
 
         Assert.Null(req.AssignedToId);
-        Assert.Equal(new[] { "manager@test.local" }, sender.Recipients);
-        Assert.Contains("chỗ nào bị chảy nước", System.Net.WebUtility.HtmlDecode(sender.Bodies.Single()));
+        var mail = Assert.Single(sender.Mails);
+        Assert.Equal("manager@test.local", mail.To);
+        Assert.Contains("Cần hỏi lại cư dân", mail.Subject);
+        Assert.Contains("chỗ nào bị chảy nước", System.Net.WebUtility.HtmlDecode(mail.Body));
+    }
+
+    [Fact]
+    public async Task Admins_receive_manager_mail_only_when_no_manager_exists()
+    {
+        await using var db = NewDb();
+        AddUser(db, "admin", SeedData.RoleAdmin);
+        var req = AddRequest(db, MaintenanceCategory.Other, MaintenancePriority.Medium);
+        await db.SaveChangesAsync();
+        var sender = new RecordingSender();
+
+        await Dispatcher(db, sender).DispatchAsync(req, null);
+
+        Assert.Equal("admin@test.local", Assert.Single(sender.Mails).To);
+    }
+
+    [Fact]
+    public async Task Admins_get_one_system_alert_when_the_model_is_unavailable()
+    {
+        await using var db = NewDb();
+        AddUser(db, "plumber", SeedData.RolePlumber);
+        AddUser(db, "manager", SeedData.RoleManager);
+        AddUser(db, "admin", SeedData.RoleAdmin);
+        var first = AddRequest(db, MaintenanceCategory.Plumbing, MaintenancePriority.Medium);
+        var second = AddRequest(db, MaintenanceCategory.Plumbing, MaintenancePriority.Medium);
+        await db.SaveChangesAsync();
+        var sender = new RecordingSender();
+
+        await Dispatcher(db, sender).DispatchAsync(first, null, aiUnavailable: true);
+        await Dispatcher(db, sender).DispatchAsync(second, null, aiUnavailable: true);
+
+        var alert = Assert.Single(sender.Mails, m => m.To == "admin@test.local");
+        Assert.Contains("không phản hồi", alert.Subject);
+        Assert.Equal(2, sender.Mails.Count(m => m.To == "plumber@test.local"));
     }
 
     [Fact]
@@ -88,10 +150,10 @@ public class MaintenanceDispatcherTests
         await db.SaveChangesAsync();
         var sender = new RecordingSender { Fail = true };
 
-        await new MaintenanceDispatcher(db, sender, NullLogger<MaintenanceDispatcher>.Instance).DispatchAsync(req, null);
+        await Dispatcher(db, sender).DispatchAsync(req, null);
 
         Assert.NotNull(req.AssignedToId);
-        Assert.DoesNotContain("<script>", sender.Bodies.Single());
+        Assert.DoesNotContain("<script>", Assert.Single(sender.Mails).Body);
     }
 
     [Fact]
@@ -101,6 +163,9 @@ public class MaintenanceDispatcherTests
             SmtpEmailSender.Redirect("demo@test.local", "tho.dien@luxehaven.vn", "Sự cố"));
         Assert.Equal(("tho.dien@luxehaven.vn", "Sự cố"), SmtpEmailSender.Redirect("", "tho.dien@luxehaven.vn", "Sự cố"));
     }
+
+    private static MaintenanceDispatcher Dispatcher(AppDbContext db, IEmailSender sender) =>
+        new(db, sender, NullLogger<MaintenanceDispatcher>.Instance);
 
     private static AppDbContext NewDb() => new(new DbContextOptionsBuilder<AppDbContext>()
         .UseInMemoryDatabase($"dispatch-{Guid.NewGuid():N}").Options);
@@ -134,13 +199,13 @@ public class MaintenanceDispatcherTests
     private sealed class RecordingSender : IEmailSender
     {
         public bool Fail { get; init; }
-        public List<string> Recipients { get; } = new();
-        public List<string> Bodies { get; } = new();
+        public List<(string To, string Subject, string Body)> Mails { get; } = new();
+
+        public (string To, string Subject, string Body) MailTo(string to) => Mails.Single(m => m.To == to);
 
         public Task SendAsync(string to, string subject, string htmlBody, CancellationToken ct = default)
         {
-            Recipients.Add(to);
-            Bodies.Add(htmlBody);
+            Mails.Add((to, subject, htmlBody));
             return Fail ? Task.FromException(new InvalidOperationException("smtp down")) : Task.CompletedTask;
         }
     }

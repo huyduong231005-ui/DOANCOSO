@@ -12,7 +12,7 @@ public record MaintenanceTriage(
 
 /// <summary>
 /// Hỏi mô hình chạy trên Ollama để phân loại mô tả sự cố của cư dân.
-/// Tắt hẳn khi <c>Ollama:BaseUrl</c> để trống (ví dụ trên Render, nơi không có GPU).
+/// Tắt hẳn khi <c>Ollama:BaseUrl</c> để trống (máy không chạy Ollama).
 /// Mọi lỗi đều trả về null để việc báo sự cố không phụ thuộc vào mô hình.
 /// </summary>
 public class MaintenanceTriageService

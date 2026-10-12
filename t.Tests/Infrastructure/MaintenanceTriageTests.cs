@@ -110,7 +110,7 @@ public class MaintenanceTriageTests
     }
 
     [Theory]
-    [InlineData("")]                       // tính năng tắt (Render)
+    [InlineData("")]                       // tính năng tắt
     [InlineData("http://127.0.0.1:1")]     // Ollama không chạy
     public async Task TriageAsync_returns_null_instead_of_throwing_when_model_is_unreachable(string baseUrl)
     {

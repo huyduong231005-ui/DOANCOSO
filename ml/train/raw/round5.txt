@@ -1,0 +1,194 @@
+# Vong 5: bo sung theo cac nhom loi tim duoc khi chay qwen3-suco4 tren 200 cau do (probe_cases.jsonl).
+# - nguy hiem duoc ke nhe di ("chac khong sao", "van dung duoc", "chua roi") bi coi la binh thuong
+# - nguy hiem viet khong dau / tieng long bi sot
+# - thiet bi khu vuc chung (thang may, cong tu dong, bom) bi gan cho tho trong can ho
+# - tin nhieu viec: mo hinh chon viec dau tien thay vi viec nang nhat
+# - nhac toi tu khoa nhung khong phai su co (cam on, huy yeu cau, hoi lich)
+# - viec ngoai pham vi (do ca nhan, ngoai toa nha) bi ep vao loai gan nghia
+# - "chay nuoc" cua may lanh bi xep vao cap thoat nuoc; loi chinh ta; tieng Anh
+# Kem cac mau "trong giong nguy hiem nhung khong" de mo hinh khong bao dong gia.
+# text | priority(L/M/H/U) | D=nguy hiểm, -=không | summary | câu hỏi lại (nếu mơ hồ)
+
+## electrical
+Công tắc đèn phòng ngủ sờ vào thấy ấm ấm, thỉnh thoảng nghe tiếng rè rè nhỏ, chắc chưa sao nhưng em báo trước. | H | D | Công tắc đèn phòng ngủ ấm và có tiếng rè.
+Phích cắm tủ lạnh bị chảy nhựa một chút ở chân cắm, tủ vẫn chạy bình thường. | U | D | Phích cắm tủ lạnh chảy nhựa ở chân cắm.
+Ổ điện cạnh giường hay kêu lách tách khi cắm sạc điện thoại, em thấy cũng bình thường thôi. | U | D | Ổ điện cạnh giường kêu lách tách khi cắm sạc.
+Dây nguồn bếp từ bị nứt vỏ lòi dây đồng, em dán băng dính đen lại dùng tạm. | U | D | Dây nguồn bếp từ nứt vỏ, lòi dây đồng.
+Bóng đèn nhà tắm thỉnh thoảng lóe sáng rồi tắt, vỏ đui đèn bị ám đen, lúc nào tiện thì xem giúp. | H | D | Đui đèn nhà tắm ám đen, đèn lóe sáng rồi tắt.
+Rửa tay ở bồn bếp thấy hơi tê tê đầu ngón tay khi máy rửa chén đang chạy, không đau gì. | U | D | Bị tê tay ở bồn bếp khi máy rửa chén chạy, nghi rò điện.
+Mặt ổ cắm phòng khách bị vàng sém một góc từ bao giờ không rõ, vẫn dùng được. | H | D | Mặt ổ cắm phòng khách bị sém vàng.
+tu dien trong nha co mui khet nhe moi lan bat may nuoc nong, chua thay gi khac | U | D | Tủ điện có mùi khét khi bật máy nước nóng.
+o cam nha bep bi long, cam am sieu toc vao thay toe lua nho | U | D | Ổ cắm bếp lỏng, tóe lửa khi cắm ấm siêu tốc.
+day dien ngoai ban cong bi ho, mua xuong la nhay cau dao | U | D | Dây điện ban công hở, mưa là nhảy cầu dao.
+cham vao vo may giat thay giat nhe, chan dang uot | U | D | Vỏ máy giặt rò điện, chạm vào bị giật.
+den tran phong khach chop lien tuc, co tieng xet xet tren tran | U | D | Đèn trần chớp liên tục, có tiếng xẹt trên trần.
+ổ cắm nhà e nó nổ cái bụp r khét lẹt lun á, sợ quá trời | U | D | Ổ cắm nổ và có mùi khét.
+cầu dao cứ nhảy hoài à, bật lên là xẹt lửa xanh xanh, e ko dám đụng nữa | U | D | Cầu dao nhảy liên tục, xẹt lửa khi bật.
+Em xin báo mấy việc ạ: cửa tủ quần áo bị lệch, vòi sen yếu nước, và ổ cắm chỗ bàn ủi hôm qua xẹt lửa làm đen cả mặt ổ. | U | D | Ổ cắm chỗ bàn ủi xẹt lửa, đen mặt ổ.
+Chào anh chị, nhà em có vài chỗ cần xem: sơn tường phòng ngủ bong, máy giặt kêu to, còn điều em lo nhất là dây điện máy nước nóng bị chuột cắn lòi lõi đồng. | U | D | Dây điện máy nước nóng bị chuột cắn lòi lõi đồng.
+BQL ơi, wifi nhà em chậm mấy hôm nay, tiện thể báo luôn là cầu dao phòng bếp sáng nay bốc khói nhẹ khi em bật lò nướng. | U | D | Cầu dao phòng bếp bốc khói khi bật lò nướng.
+Công tắc đèn hành lang trong nhà bấm hơi cứng, vẫn bật tắt được. | L | - | Công tắc đèn hành lang bấm cứng.
+Ổ cắm phòng ngủ bị lỏng, cắm sạc hay tuột ra, không có mùi hay tiếng gì lạ. | M | - | Ổ cắm phòng ngủ lỏng, hay tuột phích.
+Hôm qua ổ cắm bếp có mùi khét, thợ đã thay ổ mới rồi, hôm nay dùng bình thường, em báo để biết. | L | - | Ổ cắm bếp đã được thay, hiện dùng bình thường.
+den ngu bi chay bong, thay bong moi la sang lai | L | - | Đèn ngủ cháy bóng, đã thay bóng mới.
+Một bóng đèn led âm trần phòng khách sáng yếu hơn mấy bóng còn lại. | L | - | Một bóng led âm trần sáng yếu.
+Mất điện ổ cắm bàn làm việc, các ổ khác vẫn có điện. | M | - | Ổ cắm bàn làm việc mất điện.
+
+## appliance
+Vòi nước bồn rửa bát chạm vào thấy tê tê nhẹ mỗi khi bật bình nước nóng trong bếp, chắc do tay em ướt. | U | D | Chạm vòi nước thấy tê khi bật bình nước nóng, nghi rò điện.
+Bếp gas âm đánh lửa xong vẫn nghe tiếng xì nhỏ dù đã tắt, một lúc thì hết. | U | D | Bếp gas vẫn xì sau khi tắt.
+Nồi chiên không dầu đang chạy thì bốc khói trắng và có mùi nhựa cháy, em rút điện rồi. | U | D | Nồi chiên không dầu bốc khói, có mùi nhựa cháy.
+Máy sưởi dầu để trong phòng ngủ bị rò dầu ra sàn và nóng bất thường. | U | D | Máy sưởi dầu rò dầu và nóng bất thường.
+lo nuong bat len la co tia lua o thanh nhiet, kem mui khet | U | D | Lò nướng có tia lửa ở thanh nhiệt và mùi khét.
+may nuoc nong bi ro dien, tam thay te tay | U | D | Máy nước nóng rò điện, tắm bị tê tay.
+binh gas trong bep bi xi o van, nghe tieng xi xi | U | D | Bình gas xì ở van.
+am sieu toc dun nuoc thi day nong chay, co khoi | U | D | Dây ấm siêu tốc nóng chảy, có khói.
+Dạ em báo: bồn rửa thoát nước hơi chậm, đèn hành lang chập chờn, và quan trọng là bếp gas nhà em có mùi gas rò từ tối qua tới giờ. | U | D | Bếp gas có mùi gas rò từ tối qua.
+The stove smells like gas even when it is turned off. | U | D | Bếp có mùi gas ngay cả khi đã tắt.
+Máy lạnh phòng ngủ chảy nước xuống đầu giường mỗi đêm. | M | - | Máy lạnh phòng ngủ chảy nước xuống giường.
+mái lạnh phòng khách chảy nươc xuống sàn, lau hoài ko hết | M | - | Máy lạnh phòng khách chảy nước xuống sàn.
+Dàn lạnh máy lạnh nhỏ nước tong tong xuống kệ tivi. | M | - | Dàn lạnh nhỏ nước xuống kệ tivi.
+may lanh nho nuoc xuong ban hoc cua con, uot het sach vo | M | - | Máy lạnh nhỏ nước xuống bàn học.
+Tủ lạnh rỉ nước ở ngăn dưới ra sàn bếp, mỗi sáng có một vũng nhỏ. | M | - | Tủ lạnh rỉ nước ra sàn bếp.
+Máy giặt xả nước xong vẫn đọng một ít trong lồng, quần áo ướt sũng. | M | - | Máy giặt không vắt khô, còn đọng nước.
+The washing machine stops in the middle of the cycle and shows an error. | M | - | Máy giặt dừng giữa chu trình và báo lỗi.
+The water heater is not working, there is no hot water at all. | M | - | Máy nước nóng không hoạt động.
+Aircon bị leak nước, chảy xuống wall luôn. | M | - | Máy lạnh rò nước chảy xuống tường.
+Tủ lạnh nhà e nó tèo r, đồ đông đá chảy hết trơn | H | - | Tủ lạnh hỏng, đồ đông đá chảy hết.
+Máy lạnh nhà tui bật hoài hổng lạnh, chỉ thổi gió nóng ra. | M | - | Máy lạnh không lạnh, chỉ thổi gió nóng.
+Nhà có một máy lạnh duy nhất bị hỏng, bé nhà em đang sốt, trời nóng 38 độ. | H | - | Máy lạnh duy nhất hỏng khi nhà có trẻ đang sốt.
+Bếp từ hỏng cả hai vùng nấu từ hôm qua, nhà em không nấu ăn được. | H | - | Bếp từ hỏng hoàn toàn, không nấu ăn được.
+
+## structural
+Cánh cửa tủ bếp treo bị bung một bản lề, treo nghiêng ngay trên bếp, chưa rơi. | H | D | Cánh tủ bếp treo bung bản lề, có thể rơi.
+Kính cửa nhà tắm có vết nứt nhỏ ở góc, vẫn đóng mở bình thường, lúc nào rảnh xem giúp. | H | D | Kính cửa nhà tắm nứt ở góc.
+Đèn chùm phòng khách bị lỏng móc treo, đung đưa mỗi khi có gió, chắc chưa rớt đâu. | H | D | Đèn chùm phòng khách lỏng móc treo.
+Thanh chắn cửa sổ phòng trẻ con bị lung lay, đẩy nhẹ là xê dịch, nhà ở tầng 18. | U | D | Thanh chắn cửa sổ phòng trẻ lung lay, nhà ở tầng 18.
+Tấm ốp trần ban công bị bung một đầu, phất phơ khi gió to, ở dưới là lối đi chung. | U | D | Tấm ốp trần ban công bung, có thể rơi xuống lối đi.
+Kệ treo tường phòng bếp bị lỏng vít, trên kệ để lò vi sóng. | H | D | Kệ treo tường để lò vi sóng bị lỏng vít.
+kinh ban cong bi nut mot duong dai, gio manh thay rung | U | D | Kính ban công nứt dài, rung khi gió mạnh.
+gach op tuong ngoai ban cong bi bong, roi xuong duoi san | U | D | Gạch ốp ban công bong, rơi xuống dưới.
+tran thach cao phong ngu bi nut va xe xuong mot goc | H | D | Trần thạch cao phòng ngủ nứt và xệ một góc.
+lan can cau thang trong nha bi long, vin vao la lung lay | H | D | Lan can cầu thang lỏng, lung lay khi vịn.
+Không ai bị sao cả, nhưng cái quạt trần phòng khách vừa rơi một cánh xuống sàn. | U | D | Quạt trần rơi một cánh xuống sàn.
+May chưa trúng ai, mảng trần nhà tắm vừa sập xuống một góc. | U | D | Trần nhà tắm sập một góc.
+The glass panel of my balcony door is cracked and getting worse. | H | D | Kính cửa ban công nứt và đang lan rộng.
+Tường ban công nứt một đường chạy dài từ trên xuống, mấy tháng nay không rộng thêm. | M | - | Tường ban công nứt một đường dài, không rộng thêm.
+ban cong bi nut san, nuoc mua tham xuong tang duoi | M | - | Sàn ban công nứt, nước mưa thấm xuống tầng dưới.
+tuong phong khach bi nut chan chim, son bong tung mang nho | L | - | Tường phòng khách nứt chân chim, bong sơn.
+Cửa lùa ban công hơi rít, đẩy nặng tay nhưng vẫn đóng mở được. | L | - | Cửa lùa ban công rít, đẩy nặng.
+Khóa điện tử cửa chính hết pin, bấm không phản hồi, em không vào nhà được. | H | - | Khóa điện tử cửa chính hết pin, không vào được nhà.
+The bedroom window does not close properly and rain comes in. | M | - | Cửa sổ phòng ngủ không đóng kín, mưa tạt vào.
+cửa phòng tắm nhà e bị xệ r, đóng hok khít, kéo mạnh mới đc | M | - | Cửa phòng tắm xệ, đóng không khít.
+
+## plumbing
+Chào BQL, hôm nay em có hai việc: vòi rửa bát hơi rỉ, không gấp. Nhưng việc chính là ống nước dưới bồn rửa mặt vừa bung ra, nước đang phun khắp nhà tắm, em chưa tìm được van khóa. | U | - | Ống nước dưới bồn rửa mặt bung, nước phun khắp nhà tắm.
+Em có ba việc: bóng đèn ban công cháy, cửa tủ kêu, và trần phòng khách đang nhỏ nước từng giọt xuống tivi từ tầng trên. | H | - | Trần phòng khách nhỏ nước xuống tivi từ tầng trên.
+nha tam bi ngap, nuoc khong thoat, tran ra phong ngu | H | - | Nhà tắm ngập, nước tràn ra phòng ngủ.
+nha ve sinh duy nhat bi tac, xa nuoc la dang len | H | - | Nhà vệ sinh duy nhất bị tắc.
+voi nuoc bon rua mat bi gay, nuoc chay khong khoa duoc | H | - | Vòi nước bồn rửa mặt gãy, không khóa được nước.
+nc trong nhà tắm ko rút, đọng tới mắt cá chân lun | M | - | Nước nhà tắm không rút, đọng cao.
+Bồn rửa chén nhà tui bị nghẹt cứng, nước hổng xuống chút nào. | M | - | Bồn rửa chén nghẹt hoàn toàn.
+The toilet keeps running and will not stop flushing. | M | - | Bồn cầu chảy nước liên tục không ngắt.
+Water is leaking from the ceiling of my bathroom. | H | - | Nước rò từ trần nhà tắm.
+Nhà em mất nước hoàn toàn từ tối qua, sáng nay không có nước đánh răng rửa mặt. | H | - | Căn hộ mất nước hoàn toàn từ tối qua.
+vòi nươc bêp bị rĩ ở cỗ vòi, nươc nhỏ giọt | M | - | Vòi nước bếp rỉ ở cổ vòi.
+bồn câu bị nghẹc, xã nước ko trôi | M | - | Bồn cầu nghẹt, xả không trôi.
+
+## pest
+co ran bo vao ban cong nha em, dang nam trong chau cay | H | D | Rắn bò vào ban công, nằm trong chậu cây.
+co to ong ve to o goc tran hanh lang, ong bay ra dot tre con | H | D | Tổ ong vò vẽ ở trần hành lang, đốt trẻ con.
+Có con bọ cạp trong nhà tắm, em chưa dám vào. | H | D | Có bọ cạp trong nhà tắm.
+Thấy một con rết to trong phòng ngủ của bé. | M | D | Có rết to trong phòng ngủ của bé.
+kien nho bo thanh hang trong bep, khong can ai | L | - | Kiến bò thành hàng trong bếp.
+There are rats in the garbage room on my floor. | M | - | Có chuột trong phòng rác của tầng.
+
+## network
+The internet has been down since this morning and I work from home. | H | - | Internet mất từ sáng, cư dân làm việc tại nhà.
+wifi nhà e rớt hoài, họp onl cứ out ra miết | M | - | Wifi rớt liên tục khi họp trực tuyến.
+mang internet nha toi cham nhu rua tu hom qua | M | - | Internet chậm từ hôm qua.
+Camera an ninh trong nhà em không vào được mạng wifi của tòa nhà. | L | - | Camera trong nhà không kết nối được wifi tòa nhà.
+
+## cleaning
+The hallway on my floor is very dirty and smells bad. | M | - | Hành lang tầng bẩn và có mùi hôi.
+hành lang tầng e dơ quá trời, rác vứt tùm lum mấy bữa r | M | - | Hành lang tầng bẩn, rác vứt bừa bãi mấy ngày.
+Sàn thang máy dính nước ngọt đổ, đi vào dính chân. | L | - | Sàn thang máy dính nước ngọt.
+
+## other:building_engineering
+thang may so 2 bi ket giua tang, ben trong co hai nguoi | U | D | Thang máy số 2 kẹt giữa tầng, có hai người bên trong.
+thang may dung im, em bi nhot ben trong, bam chuong khong ai tra loi | U | D | Người bị kẹt trong thang máy, bấm chuông không ai trả lời.
+e đang kẹt trong thang máy block A nè, đèn tắt hết r, cứu e vs | U | D | Cư dân kẹt trong thang máy block A, đèn tắt.
+We are trapped in the lift on the way down, the alarm button does nothing. | U | D | Có người kẹt trong thang máy, nút báo động không hoạt động.
+The lift door closed on my arm, the sensor is not working. | H | D | Cửa thang máy kẹp tay, cảm biến không hoạt động.
+Bảng hiển thị số tầng ở sảnh thang máy tầng 1 bị tắt. | L | - | Bảng hiển thị tầng ở sảnh thang máy tầng 1 bị tắt.
+Nút bấm tầng 14 trong thang máy số 1 bị kẹt, bấm không ăn. | M | - | Nút tầng 14 trong thang máy số 1 bị kẹt.
+Thang máy số 3 hiện chữ lỗi trên màn hình và không nhận lệnh gọi. | H | - | Thang máy số 3 báo lỗi, không nhận lệnh gọi.
+man hinh trong thang may bi den, khong hien so tang | L | - | Màn hình trong thang máy bị đen, không hiện số tầng.
+Barie lối ra hầm B2 nâng lên rất chậm, mỗi xe phải chờ gần một phút. | M | - | Barie lối ra hầm B2 nâng chậm.
+Cửa xoay ở sảnh chính bị kẹt, khách phải đi vòng qua cửa phụ. | M | - | Cửa xoay sảnh chính bị kẹt.
+Tháp giải nhiệt trên mái phát tiếng ồn lớn mỗi khi chạy, các căn tầng trên cùng nghe rất rõ. | M | - | Tháp giải nhiệt trên mái gây ồn lớn.
+Máy phát điện của tòa nhà chạy thử lúc 6 giờ sáng, khói bay vào các căn tầng thấp. | M | - | Khói máy phát điện bay vào các căn tầng thấp.
+Quạt hút khói cầu thang thoát hiểm không chạy khi diễn tập hôm qua. | H | - | Quạt hút khói cầu thang thoát hiểm không chạy.
+Đầu báo khói hành lang tầng 9 nháy đèn đỏ liên tục và kêu bíp. | M | - | Đầu báo khói hành lang tầng 9 nháy đỏ, kêu bíp.
+Vòi tưới sân vườn bị vỡ, nước phun lên lối đi bộ. | M | - | Vòi tưới sân vườn vỡ, nước phun lên lối đi.
+Đèn sân chơi trẻ em không sáng, tối các bé chơi rất tối. | L | - | Đèn sân chơi trẻ em không sáng.
+Cửa chống cháy tầng 6 không tự đóng lại, mở toang cả ngày. | M | - | Cửa chống cháy tầng 6 không tự đóng.
+Bé nhà em bị kẹt chân vào khe hở sàn gỗ khu vui chơi, em đã gỡ ra được, khe hở rất rộng. | H | D | Khe hở sàn khu vui chơi làm kẹt chân trẻ.
+Thanh xà đu ở sân tập thể dục bị gãy mối hàn, có người suýt ngã. | H | D | Xà đu sân tập gãy mối hàn.
+Gờ giảm tốc trong hầm bị bong, xe máy cán qua dễ trượt. | M | D | Gờ giảm tốc trong hầm bong, xe máy dễ trượt.
+cua cuon ham xe bi ket, xe khong ra vao duoc | H | - | Cửa cuốn hầm xe kẹt, xe không ra vào được.
+Chìa khóa xe của em rơi xuống hố thang máy lúc bước vào, nhờ kỹ thuật lấy giúp. | M | - | Chìa khóa xe rơi xuống hố thang máy.
+The automatic gate of the parking basement is stuck open. | M | - | Cổng tự động hầm xe kẹt ở trạng thái mở.
+
+## other:security
+Có một bé khoảng 3 tuổi đứng một mình trên bệ cửa sổ tầng 10 căn đối diện. | U | D | Trẻ nhỏ đứng trên bệ cửa sổ tầng 10.
+Bà cụ căn bên cạnh bị ngã ở hành lang, không tự đứng dậy được. | U | D | Người già ngã ở hành lang, không tự đứng dậy được.
+co nguoi la dang cay cua can ho doi dien | U | D | Người lạ đang cạy cửa căn hộ đối diện.
+co danh nhau o sanh tang tret, co nguoi cam dao | U | D | Đánh nhau ở sảnh tầng trệt, có người cầm dao.
+Someone is trying to open my door, I am alone at home. | U | D | Có người đang cố mở cửa căn hộ khi cư dân ở nhà một mình.
+Áo mưa em treo ở xe dưới hầm bị ai lấy mất. | L | - | Áo mưa treo ở xe dưới hầm bị lấy mất.
+Đôi giày em để trước cửa bị ai lấy mất, nhờ xem camera giúp. | L | - | Mất giày để trước cửa, nhờ xem camera.
+Xe máy em để dưới hầm hết bình, nhờ bảo vệ hỗ trợ kích bình. | L | - | Xe máy hết bình ở hầm, nhờ bảo vệ hỗ trợ.
+Em để quên chìa khóa trong nhà, cửa đóng sập rồi, giờ không vào được. | H | - | Quên chìa khóa trong nhà, không vào được.
+Hàng xóm đốt vàng mã ngay hành lang, khói bay vào nhà em mù mịt. | M | - | Hàng xóm đốt vàng mã ở hành lang, khói bay vào nhà.
+hx nhậu la hét tới 2h sáng, nói ko nghe lun á | M | - | Hàng xóm nhậu la hét đến 2 giờ sáng.
+Nhà kế bên tui mở nhạc ầm ầm suốt, nhắc hoài hổng chịu vặn nhỏ. | M | - | Hàng xóm mở nhạc to, nhắc không nghe.
+My neighbor is playing loud music after midnight. | M | - | Hàng xóm mở nhạc to sau nửa đêm.
+
+## other:management
+Cảm ơn anh thợ điện hôm qua đã sửa ổ cắm rất nhanh và cẩn thận. | L | - | Cư dân cảm ơn thợ điện đã sửa ổ cắm.
+Hôm trước em báo trần nhà tắm thấm, thợ xử lý rồi, giờ khô ráo, cảm ơn BQL. | L | - | Cư dân báo trần nhà tắm đã được xử lý xong.
+Em báo máy lạnh hỏng hôm qua nhưng giờ nó chạy lại rồi, anh chị hủy yêu cầu giúp em. | L | - | Xin hủy yêu cầu sửa máy lạnh vì đã chạy lại.
+Tuần sau tòa nhà có cắt điện bảo trì không ạ? | L | - | Hỏi lịch cắt điện bảo trì tuần sau.
+Chiều nay tòa nhà có tạm ngưng cấp nước để sửa bể không ạ? | L | - | Hỏi chiều nay có tạm ngưng cấp nước không.
+Thợ sửa ống nước bên ngoài em thuê có được mang đồ nghề lên bằng thang máy thường không? | L | - | Hỏi thợ thuê ngoài có được dùng thang máy thường.
+Em thuê thợ ngoài vào lắp máy lạnh thì cần đăng ký trước với BQL bao lâu? | L | - | Hỏi thủ tục đăng ký thợ ngoài vào lắp máy lạnh.
+Thợ giao tủ lạnh của em bị giữ ở sảnh vì chưa có giấy đăng ký chuyển đồ. | M | - | Thợ giao tủ lạnh bị giữ ở sảnh vì thiếu giấy đăng ký.
+Cho em xin số điện thoại thợ điện của tòa nhà để tiện liên hệ. | L | - | Xin số điện thoại thợ điện của tòa nhà.
+Em gửi nhầm tin lúc nãy, nhà em không bị gì cả, xin lỗi BQL. | L | - | Cư dân báo gửi nhầm tin, không có sự cố.
+Chúc ban quản lý và các anh chị kỹ thuật cuối tuần vui vẻ. | L | - | Lời chúc gửi ban quản lý.
+ok cảm ơn ạ | L | - | Cư dân cảm ơn.
+alo alo | L | - | Tin nhắn không có nội dung sự cố. | Anh/chị cần ban quản lý hỗ trợ việc gì ạ?
+... | L | - | Tin nhắn không có nội dung. | Anh/chị cần ban quản lý hỗ trợ việc gì ạ?
+😭😭 | L | - | Tin nhắn chỉ có biểu tượng cảm xúc. | Anh/chị cho biết đang gặp sự cố gì ạ?
+Máy in nhà em bị kẹt giấy, tòa nhà có hỗ trợ sửa không ạ? | L | - | Hỏi tòa nhà có hỗ trợ sửa máy in cá nhân.
+Điện thoại em bị rơi vỡ màn hình, gần đây có chỗ nào sửa không? | L | - | Hỏi chỗ sửa điện thoại gần tòa nhà.
+Đường trước cổng chung cư bị ngập sau mưa, xe máy khó vào. | M | - | Đường trước cổng chung cư ngập sau mưa.
+Đèn đường ngoài cổng chính không sáng mấy hôm nay. | L | - | Đèn đường ngoài cổng chính không sáng.
+Con chó nhà em bị lạc từ chiều, ai thấy báo giúp. | L | - | Cư dân báo chó nhà bị lạc.
+Kính bơi của em bỏ quên ở hồ bơi hôm qua, có ai nhặt được không? | L | - | Bỏ quên kính bơi ở hồ bơi.
+Em đặt hàng online giao tới lễ tân ba ngày rồi chưa nhận được. | L | - | Hàng gửi lễ tân ba ngày chưa nhận được.
+Xe ô tô của em bị xẹp lốp trong hầm, có dịch vụ vá lốp nào vào được không? | L | - | Xe xẹp lốp trong hầm, hỏi dịch vụ vá lốp.
+I would like to book the community room for Saturday evening. | L | - | Đăng ký phòng sinh hoạt cộng đồng tối thứ bảy.
+What time does the swimming pool open on weekends? | L | - | Hỏi giờ mở cửa bể bơi cuối tuần.
+thẻ cư dân của e bị lỗi, quẹt cổng ko nhận, làm lại ở đâu ạ | M | - | Thẻ cư dân lỗi, hỏi nơi làm lại.
+
+## other:accounting
+App báo em còn nợ phí dịch vụ tháng 8 trong khi em có biên lai đã đóng. | M | - | App báo nợ phí dịch vụ tháng 8 dù đã có biên lai.
+Đóng phí gửi xe theo quý thì có rẻ hơn đóng theo tháng không ạ? | L | - | Hỏi đóng phí gửi xe theo quý có rẻ hơn không.
+Cho em hỏi phí gửi ô tô tháng thứ hai tính thế nào. | L | - | Hỏi cách tính phí gửi ô tô.
+phi quan ly thang nay em chua nhan duoc thong bao, bao nhieu vay a | L | - | Hỏi số tiền phí quản lý tháng này.
+hoa don tien dien ghi sai chi so cong to, nho kiem tra | M | - | Hóa đơn tiền điện ghi sai chỉ số công tơ.
+tiền nc tháng này sao cao z, nhà e có 2 ng à | M | - | Thắc mắc tiền nước tháng này cao bất thường.
+I was charged twice for the management fee this month. | M | - | Bị thu phí quản lý hai lần trong tháng.
+Can I get an invoice for the parking fee? | L | - | Xin hóa đơn phí gửi xe.

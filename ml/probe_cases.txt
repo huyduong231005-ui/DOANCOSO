@@ -1,0 +1,203 @@
+# 200 cau do loi: cac tinh huong nam ngoai du lieu train, chia theo nhom de thong ke.
+# KHONG chep cac cau nay vao train/raw: chung dung de do mo hinh truoc va sau moi vong train.
+# nhom | mo ta | loai chap nhan | priority | nguy hiem T/F/N(khong cham) | V=mo ho, -=ro | nhom xu ly chap nhan hoac -
+danger_casual | Ổ cắm chỗ bàn học hơi âm ấm với có mùi khen khét nhẹ, chắc không sao đâu nhưng em báo cho biết. | electrical | urgent | T | - | -
+danger_casual | Bình nóng lạnh tắm thấy tê tê tay chút xíu thôi, vẫn dùng được. | electrical,appliance | urgent | T | - | -
+danger_casual | Bếp gas nhà em dạo này hay có mùi gas thoang thoảng lúc không nấu, mở cửa sổ là hết. | appliance,plumbing,other | urgent | T | - | -
+danger_casual | Dây điện máy giặt bị chuột cắn hở một đoạn, em quấn băng keo tạm rồi. | electrical,appliance | high | T | - | -
+danger_casual | Trần phòng khách có miếng thạch cao bị võng xuống ngay trên sofa, chưa rơi. | structural | high | T | - | -
+danger_casual | Kính lan can ban công nứt chân chim nhưng vẫn đứng vững, khi nào rảnh qua xem giúp. | structural | urgent | T | - | -
+danger_casual | Cầu dao tổng hay nóng lên khi bật máy lạnh với bếp từ cùng lúc, sờ vào thấy nóng tay. | electrical | high | T | - | -
+danger_casual | Con em nghịch cắm đũa vào ổ điện thấy tóe lửa một cái, may không sao, ổ giờ bị đen. | electrical | urgent | T | - | -
+danger_casual | Nước từ máy lạnh nhỏ xuống ngay cái ổ cắm kéo dài để dưới sàn. | appliance,electrical | urgent | T | - | -
+danger_casual | Quạt trần phòng ngủ lắc lư mạnh khi bật số to, ốc trên trần hình như lỏng. | appliance,structural,electrical | high | T | - | -
+danger_casual | Cửa sổ phòng con em không cài chốt được, nhà ở tầng 20, bé hay trèo lên bệ cửa. | structural | urgent | T | - | -
+danger_casual | Thang máy lúc nãy đang đi thì tắt đèn và dừng khoảng nửa phút rồi chạy lại, trong thang chỉ có mình em. | other,appliance | high | N | - | building_engineering
+danger_casual | Bình gas mini để gần bếp bị phồng đáy, em để tạm ra ban công. | appliance,other | urgent | T | - | -
+danger_casual | Tủ điện tầng 8 cửa mở toang, dây điện lòi ra ngoài, trẻ con hay chơi gần đó. | electrical | urgent | T | - | -
+danger_casual | Lò vi sóng quay được một lúc thì có tiếng nổ lép bép và mùi khét. | appliance,electrical | urgent | T | - | -
+danger_casual | Vòi nước nóng chảy ra nước sôi bỏng tay dù em vặn mức thấp nhất. | appliance,plumbing | high | T | - | -
+danger_casual | Sàn nhà tắm bị điện giật nhẹ khi đi chân trần lúc bật máy nước nóng. | electrical,appliance | urgent | T | - | -
+danger_casual | Mảng vữa ngoài mặt tiền tầng 5 bong ra, lơ lửng trên lối đi bộ bên dưới. | structural | urgent | T | - | -
+danger_casual | Ống khói bếp nhà dưới xả thẳng lên ban công nhà em, tối ngủ thấy ngột ngạt khó thở. | other,appliance | high | N | - | -
+danger_casual | Đèn ngủ cắm vào là bóng nổ bụp, thay hai bóng rồi đều vậy. | electrical | high | N | - | -
+no_diacritics | o cam phong khach bi chay den, cam vao la nhay cau dao | electrical | urgent | T | - | -
+no_diacritics | nuoc tu tran nha tam nho xuong lien tuc tu toi qua | plumbing | high | F | - | -
+no_diacritics | may giat khong vat duoc, nuoc van con day long | appliance | medium | F | - | -
+no_diacritics | cua phong ngu bi xe ban le, dong khong duoc | structural | medium | F | - | -
+no_diacritics | bep tu bat len la bao loi roi tat | appliance | medium | F | - | -
+no_diacritics | nha ve sinh bi tac, nuoc dang len gan tran, nha chi co 1 cai | plumbing | high | F | - | -
+no_diacritics | mui gas nong nac trong bep, em da mo het cua | appliance,plumbing,other | urgent | T | - | -
+no_diacritics | thang may bi ket, co nguoi ben trong dang keu cuu | other,appliance | urgent | T | - | building_engineering,security
+no_diacritics | hang xom dot vang ma ngoai hanh lang khoi bay vao nha | other | medium | N | - | security
+no_diacritics | wifi toa nha mat tu sang toi gio | network | medium | F | - | network_provider
+no_diacritics | co con ran trong nha kho tang ham | pest,other | high | T | - | -
+no_diacritics | binh nong lanh bi ro dien, cham vao voi sen bi giat | electrical,appliance | urgent | T | - | -
+no_diacritics | kinh cua so bi vo, manh kinh roi xuong san choi ben duoi | structural | urgent | T | - | -
+no_diacritics | tien dien thang nay tinh sai, nho kiem tra lai | other | medium | F | - | accounting
+no_diacritics | den hanh lang tang 9 tat het, toi om | electrical | medium | N | - | -
+no_diacritics | lo nuong dang nuong thi tu tat, khong len nguon lai | appliance | medium | F | - | -
+no_diacritics | xe may cua em bi mat guong o ham xe | other | medium | F | - | security
+no_diacritics | rac o cau thang bo tang 4 may ngay khong ai don | cleaning | medium | F | - | cleaning_team
+no_diacritics | dien nha em chap chon, den luc sang luc toi, o cam co tieng xet xet | electrical | urgent | T | - | -
+no_diacritics | san go phong khach bi phong len sau khi lau nha | structural | medium | F | - | -
+slang | ad ơi máy lạnh nhà e nó die r, bật ko lên lun á | appliance | medium | F | - | -
+slang | bồn cầu nhà e bị nghẹt r mn ơi, xả ko trôi, hôi kinh khủng | plumbing | medium | F | - | -
+slang | ổ điện nhà mk bị j mà cắm sạc vô nó xẹt lửa z trời, sợ quá | electrical | urgent | T | - | -
+slang | nc nóng ko có, tắm lạnh teo lun, check giùm e vs | appliance,plumbing | medium | F | - | -
+slang | cửa nhà e bị kẹt hok mở đc, e đang đứng ngoài nè | structural | high | F | - | -
+slang | wifi lag vl, load ko nổi cái gì hết á | network | medium | F | - | network_provider
+slang | hx bật nhạc xập xình tới 2h sáng, chịu hết nổi r | other | medium | F | - | security
+slang | trần nhà tắm nó thấm nước nhỏ tong tỏng nè, hứng đc nửa xô r | plumbing,structural | high | F | - | -
+slang | gián bay tùm lum trong bếp, ghê quá à, xử lý giúp e ik | pest | medium | F | - | pest_control
+slang | máy giặt nó kêu ầm ầm như máy cày í, rung muốn sập nhà | appliance | medium | F | - | -
+slang | khói bay ra từ tủ điện tầng e kìa, lẹ lẹ giùm | electrical | urgent | T | - | -
+slang | thẻ xe e quẹt hoài k đc, bảo vệ k cho vô | other | medium | F | - | management,security
+slang | tủ bếp bị sập 1 bên r, chén dĩa đổ hết trơn | structural | high | N | - | -
+slang | mất nc từ sáng tới h lun, ko nấu nướng j đc | plumbing | high | F | - | -
+slang | thang máy đứng hình giữa chừng, e bị nhốt trong này nè cứu | other,appliance | urgent | T | - | building_engineering,security
+dialect | Cái vòi nước trong buồng tắm nhà tui hắn rỉ nước miết, chừ ướt hết sàn. | plumbing | medium | F | - | -
+dialect | Mô rứa, điện nhà tui cúp từ bữa qua tới chừ mà nhà khác vẫn có. | electrical | high | F | - | -
+dialect | Cái lavabo nhà tui bị nghẹt, nước hổng rút, dơ dữ lắm. | plumbing | medium | F | - | -
+dialect | Máy lạnh nhà tui chạy mà hổng mát chi hết trơn, nóng muốn xỉu. | appliance | medium | F | - | -
+dialect | Cái bồn rửa chén bị xì nước ở dưới, ướt nhẹp cái tủ. | plumbing | medium | F | - | -
+dialect | Ổ điện trong bếp bị chạm, xẹt lửa cái đùng, tui hết hồn. | electrical | urgent | T | - | -
+dialect | Bữa ni cửa sổ nhà tui đóng không khít, gió lùa vô lạnh ghê. | structural | low | F | - | -
+dialect | Mấy con chuột cống chạy tùm lum dưới hầm xe, to chà bá. | pest | medium | F | - | pest_control
+dialect | Cái bóng đèn ngoài hàng ba bị đứt bóng rồi, tối thui. | electrical | low | F | - | -
+dialect | Nước trên lầu thấm xuống trần nhà tui, loang một vệt bự chảng. | plumbing,structural | medium | F | - | -
+dialect | Tủ lạnh nhà tui hư rồi, đồ ăn thiu hết ráo. | appliance | high | F | - | -
+dialect | Thằng nhỏ nhà kế bên quậy rầm rầm cả đêm, ngủ không vô. | other | medium | F | - | security
+long_multi | Chào BQL, em ở căn 9.03. Em có mấy việc nhờ ạ: thứ nhất là vòi sen nhà tắm chính bị rò nhẹ, thứ hai là cửa tủ giày bị lệch, và thứ ba là từ hôm qua aptomat nhánh bếp cứ khoảng một tiếng lại nhảy một lần, mỗi lần nhảy em ngửi thấy mùi khét ở tủ điện. | electrical | urgent | T | - | -
+long_multi | Dạ em mới chuyển về được một tuần. Hôm nhận nhà em chưa để ý, giờ mới thấy trần phòng ngủ nhỏ có vệt ố vàng, sờ vào thấy ẩm, mấy hôm mưa thì vệt lan rộng ra. Chưa nhỏ nước xuống nhưng em sợ để lâu hỏng trần. | plumbing,structural | medium | F | - | -
+long_multi | Kính gửi ban quản lý, tôi đã phản ánh hai lần về việc máy lạnh âm trần phòng khách chảy nước nhưng thợ đến chỉ thông ống rồi về, được ba ngày lại chảy như cũ, giờ nước nhỏ xuống sàn gỗ làm phồng hai tấm ván. Đề nghị xử lý dứt điểm. | appliance | high | F | - | -
+long_multi | Em chào anh chị. Tối qua khoảng 11 giờ em nghe tiếng nước chảy róc rách trong tường nhà tắm dù đã khóa hết vòi. Sáng nay kiểm tra đồng hồ nước thì thấy quay đều dù không dùng. Em nghĩ là ống trong tường bị rò, chưa thấy thấm ra ngoài. | plumbing | high | F | - | -
+long_multi | BQL cho em hỏi, nhà em đi công tác hai tuần mới về, mở cửa ra thấy có mùi hôi rất nặng, kiểm tra thì tủ lạnh bị mất điện không biết từ khi nào, đồ ăn hỏng hết, nước chảy ra sàn. Cầu dao tủ lạnh bị nhảy, em bật lại thì vài phút sau nhảy tiếp. | appliance,electrical | high | N | - | -
+long_multi | Tôi ở tầng 3, ban công nhà tôi nhìn xuống khu để rác của tòa nhà. Khoảng một tuần nay rác không được chuyển đi đúng giờ, chất đống tới chiều, ruồi nhặng bay lên tận nhà, mùi rất nặng vào buổi trưa. Nhà có trẻ sơ sinh nên tôi rất lo. | cleaning | medium | F | - | cleaning_team
+long_multi | Em xin báo sự cố ở hầm B1: chỗ đậu xe của em ngay dưới một đường ống, mấy hôm nay ống nhỏ nước xuống nóc xe, nước màu nâu đục để lại vết ố không lau được. Em đã dời xe tạm sang chỗ trống khác nhưng bảo vệ nhắc không được đậu ở đó. | plumbing,other | medium | F | - | -
+long_multi | Chào ban quản lý, mẹ tôi lớn tuổi đi lại khó khăn. Tay vịn inox ở nhà tắm nhà tôi bị lỏng vít, hôm qua mẹ tôi vịn vào thì tay vịn bung ra một đầu, may có người đỡ kịp. Nhờ cho thợ bắt lại chắc chắn giúp, càng sớm càng tốt. | structural | high | T | - | -
+long_multi | Em báo giúp: internet nhà em mấy hôm nay ban ngày bình thường nhưng cứ tối là chậm, em nghĩ do nhiều người dùng. Ngoài ra đèn hành lang trước cửa nhà em nhấp nháy. Còn việc gấp hơn là khóa cửa chính bị kẹt lưỡi gà, sáng nay em phải đẩy mạnh mới khóa được. | structural,network,electrical | medium | F | - | -
+long_multi | Anh chị ơi em ở căn góc tầng 16. Mỗi khi mưa to kèm gió là nước tạt vào qua khe cửa sổ phòng khách, chảy thành dòng xuống tường, ổ điện ngay dưới cửa sổ bị ướt. Lần trước đã có lần ổ điện đó xẹt lửa. Em đang dán băng keo tạm. | structural,electrical | urgent | T | - | -
+long_multi | Tôi muốn phản ánh việc nhà trên lầu sửa nhà không báo trước, khoan cắt từ 7 giờ sáng tới tối suốt ba ngày nay, bụi rơi xuống ban công nhà tôi, hôm qua còn có mẩu gạch vỡ rơi xuống suýt trúng chậu cây. | other | medium | N | - | security,management
+long_multi | Em mới nhận hóa đơn tháng 10. Phí quản lý tăng so với tháng trước mà em không nhận được thông báo nào. Ngoài ra tiền nước tính 28 khối trong khi nhà em chỉ có hai người và đi làm cả ngày. Nhờ BQL kiểm tra lại đồng hồ và giải thích giúp. | other | medium | F | - | accounting
+long_multi | Chào BQL, con trai tôi 6 tuổi chiều qua chơi ở sân chơi tầng trệt, bị đứt tay vì mép sắt của cầu trượt bị bong ra sắc như dao. Tôi đã đưa cháu đi khâu ba mũi. Đề nghị rào khu cầu trượt lại và sửa ngay trước khi có bé khác bị. | other,structural | high | T | - | building_engineering
+long_multi | Dạ em là khách thuê mới ở căn 5.11. Em không biết bật bình nước nóng thế nào, bấm nút đỏ thì đèn sáng nhưng đợi 20 phút nước vẫn lạnh. Em cũng không rõ cầu dao nào là của bình. Nhờ anh chị hướng dẫn hoặc cho người qua xem. | appliance | medium | F | - | -
+long_multi | Kính gửi BQL, khoảng 2 giờ sáng nay tôi nghe tiếng nổ lớn ở phòng kỹ thuật điện tầng tôi, sau đó cả tầng mất điện khoảng mười phút rồi có lại. Sáng ra thấy cửa phòng kỹ thuật ám khói đen và vẫn còn mùi khét. | electrical | urgent | T | - | -
+non_incident | Cảm ơn BQL đã xử lý nhanh vụ rò nước hôm qua. | other | low | F | - | management
+non_incident | Cho em hỏi giờ làm việc của văn phòng ban quản lý ngày thứ bảy. | other | low | F | - | management
+non_incident | test | other | low | F | V | management
+non_incident | . | other | low | F | V | management
+non_incident | 😡😡😡 | other | low | F | V | management
+non_incident | Mai có cúp nước không vậy BQL? | other,plumbing | low | F | - | management
+non_incident | Em muốn đăng ký lớp yoga ở phòng sinh hoạt chung. | other | low | F | - | management
+non_incident | Cho hỏi tòa nhà có chỗ sạc xe điện không ạ? | other | low | F | - | management
+non_incident | Hôm qua em báo vòi nước rò, hôm nay nó tự hết rồi, không cần thợ qua nữa ạ. | plumbing,other | low | F | - | management,technician
+non_incident | Em gửi nhầm, anh chị bỏ qua tin trước giúp em. | other | low | F | - | management
+non_incident | Chúc mừng năm mới ban quản lý và các anh chị bảo vệ. | other | low | F | - | management
+non_incident | Tôi muốn góp ý nên trồng thêm cây xanh ở sân sau. | other | low | F | - | management
+non_incident | Số điện thoại bảo vệ ca đêm là số nào ạ? | other | low | F | - | management,security
+non_incident | Khi nào thì bể bơi mở cửa lại sau bảo trì? | other | low | F | - | management
+non_incident | Em cần mượn thang nhôm của tòa nhà để thay bóng đèn. | other | low | F | - | management
+non_incident | Nhà em vừa sinh em bé, nhờ BQL nhắc tầng trên đi lại nhẹ nhàng giúp. | other | low | F | - | management,security
+non_incident | hello | other | low | F | V | management
+non_incident | Cho em xin lịch phun thuốc muỗi tháng này. | other,pest | low | F | - | management,pest_control
+out_of_scope | Điện thoại em rơi xuống khe thang máy, nhờ BQL lấy giúp. | other | medium | F | - | building_engineering,management
+out_of_scope | Laptop của em tự nhiên không lên nguồn, có ai sửa được không? | other,appliance | low | F | - | management
+out_of_scope | Xe máy em hết bình không đề được ở hầm, bảo vệ có dây câu bình không? | other | low | F | - | security
+out_of_scope | Con mèo nhà em chạy mất, có ai thấy mèo tam thể ở khu B không? | other | low | F | - | security,management
+out_of_scope | Tôi để quên chìa khóa trong nhà, cửa tự khóa, giờ không vào được. | other,structural | high | F | - | security,management,technician
+out_of_scope | Ngoài đường trước cổng chung cư có ổ gà to, xe ra vào rất nguy hiểm. | other | medium | N | - | management
+out_of_scope | Nhẫn cưới em rơi xuống ống thoát bồn rửa mặt rồi, cứu em với. | plumbing | medium | F | - | -
+out_of_scope | Tivi nhà em bị sọc màn hình, mới mua năm ngoái. | appliance,network,other | low | F | - | -
+out_of_scope | Quán cà phê tầng trệt mở nhạc to làm em không học được. | other | medium | F | - | security,management
+out_of_scope | Em đặt đồ ăn mà shipper giao nhầm sang căn khác, nhờ BQL hỏi giúp. | other | low | F | - | management,security
+out_of_scope | Chim bồ câu bị kẹt trong lưới ban công nhà em, còn sống. | other,pest | low | F | - | management,pest_control,security
+out_of_scope | Cây cảnh em để ở hành lang bị ai lấy mất. | other | low | F | - | security
+out_of_scope | Bạn em đến chơi bị bảo vệ giữ căn cước, giờ họ đổi ca không biết tìm ai lấy lại. | other | medium | F | - | security,management
+out_of_scope | Em bị kẹt ngoài ban công, cửa lùa tự khóa bên trong, điện thoại sắp hết pin. | structural,other | urgent | T | - | security,technician
+out_of_scope | Máy tính bảng của con em rơi xuống hồ bơi. | other | low | F | - | management,building_engineering
+handler | Có người lạ ngủ ở cầu thang bộ tầng 15. | other | medium | N | - | security
+handler | Xe ô tô của tôi bị cạy cửa trong hầm, mất túi đồ. | other | high | F | - | security
+handler | Hai thanh niên chạy xe lên vỉa hè sảnh, suýt đụng trẻ em. | other | medium | N | - | security
+handler | Tầng 7 có nhà cho thuê theo giờ, khách lạ ra vào liên tục. | other | medium | F | - | security,management
+handler | Có người thả diều ở sân thượng, dây vướng vào cột thu lôi. | other | medium | N | - | security
+handler | Hàng xóm để giày dép và tủ giày chiếm hết hành lang chung. | other | low | F | - | security,management
+handler | Bảo vệ không cho thợ lắp máy lạnh của em lên dù em đã đăng ký. | other | medium | F | - | management,security
+handler | Bơm tăng áp trên sân thượng kêu rất to mỗi lần chạy. | other,plumbing,appliance | medium | F | - | building_engineering,technician
+handler | Cửa tự động hầm xe mở rất chậm, giờ cao điểm xe xếp hàng dài. | other | medium | F | - | building_engineering
+handler | Đèn báo tầng trong thang máy số 2 hiển thị sai tầng. | other | low | F | - | building_engineering
+handler | Hệ thống tưới cây tự động phun cả vào lối đi bộ. | other | low | F | - | building_engineering
+handler | Bồn nước sân thượng bị tràn, nước chảy xuống theo tường ngoài. | plumbing,other | high | F | - | building_engineering,technician
+handler | Còi báo cháy tầng hầm kêu vài giây rồi tắt, lặp lại cả buổi sáng. | other,electrical | high | N | - | building_engineering
+handler | Máy lạnh sảnh chính không mát, sảnh rất bí. | appliance,other | medium | F | - | technician,building_engineering
+handler | Em đóng tiền điện rồi mà vẫn bị nhắc nợ. | other | medium | F | - | accounting
+handler | Cho em xin bảng kê chi tiết phí dịch vụ 6 tháng đầu năm. | other | low | F | - | accounting
+handler | Phí gửi xe đạp điện là bao nhiêu một tháng? | other | low | F | - | accounting,management
+handler | Hóa đơn nước ghi sai số căn hộ của em. | other | medium | F | - | accounting
+handler | Em muốn đóng phí quản lý cả năm thì có được giảm không? | other | low | F | - | accounting
+handler | Kính thang máy đầy vết bẩn, sàn thang dính nước ngọt. | cleaning | low | F | - | cleaning_team
+handler | Thùng rác tái chế ở sảnh bị đổ, rác vương ra lối đi. | cleaning | low | F | - | cleaning_team
+handler | Kiến lửa làm tổ ở chân tường hành lang tầng 2, cắn trẻ con. | pest | medium | N | - | pest_control
+handler | Dơi bay vào hầm xe làm tổ, phân rơi đầy xe. | pest | medium | F | - | pest_control
+handler | Camera chuông cửa nhà em không kết nối được wifi tòa nhà. | network,appliance | low | F | - | network_provider,technician
+handler | Truyền hình cáp cả tầng mất tín hiệu từ tối qua. | network | medium | F | - | network_provider
+negation | Ổ cắm không còn tóe lửa nữa sau khi em thay phích, nhưng vẫn hơi lỏng. | electrical | medium | F | - | -
+negation | Không phải cháy đâu ạ, chỉ là khói do em nướng thịt, chuông báo khói kêu thôi. | other,appliance | low | F | - | management,building_engineering,security
+negation | Vòi nước hết rò rồi nhưng giờ lại không ra nước nóng. | plumbing,appliance | medium | F | - | -
+negation | Nếu mưa to thì trần nhà em mới thấm, còn bình thường thì khô. | plumbing,structural | medium | F | - | -
+negation | Hôm qua mất điện cả đêm, giờ có lại rồi, em chỉ báo để BQL biết. | electrical | low | F | - | -
+negation | Em tưởng mùi gas nhưng kiểm tra lại thì là mùi sơn nhà bên cạnh. | other | low | F | - | management,security
+negation | Thang máy không bị kẹt, chỉ là cửa đóng hơi chậm. | other,appliance | low | F | - | building_engineering
+negation | Chưa có gì hỏng nhưng em thấy dây điện ngoài ban công bị bong lớp vỏ. | electrical | high | T | - | -
+negation | Không có ai bị thương, nhưng cánh cửa kính sảnh vừa rơi khỏi bản lề. | structural,other | high | T | - | building_engineering,technician
+negation | Máy giặt vẫn chạy được nhưng mỗi lần xả nước là tràn ngược lên sàn. | plumbing,appliance | medium | F | - | -
+negation | Không gấp đâu ạ, nhưng tay nắm cửa tủ bếp bị lỏng. | structural | low | F | - | -
+negation | Đừng cho thợ qua buổi sáng nhé, em chỉ ở nhà sau 5 giờ, bồn rửa bị tắc. | plumbing | medium | F | - | -
+typos | May lạnh phòng ngũ khong mat, co tiếng kêu lạch cach | appliance | medium | F | - | -
+typos | voi nươc bi rò rỉ ơ phong tăm | plumbing | medium | F | - | -
+typos | ô căm bi cháy xem, co mui khet | electrical | urgent | T | - | -
+typos | bồn câu bị nghẹc, nươc ko xuống | plumbing | medium | F | - | -
+typos | cửa xổ bị kẹc không đóng dc | structural | medium | F | - | -
+typos | mái lạnh chãy nước xuống dường | appliance | medium | F | - | -
+typos | đèn phòng khách bị chập trờn | electrical | medium | F | - | -
+typos | tủ lạnh ko lạn nửa | appliance | high | F | - | -
+typos | nước nống ko có | appliance,plumbing | medium | F | - | -
+typos | internet bi mat ket noi tu chieu, mo dem den do | network | medium | F | - | network_provider
+typos | Trần nhà bị thắm nước ố dàng | plumbing,structural | medium | F | - | -
+typos | có mùi ga trong bép | appliance,plumbing,other | urgent | T | - | -
+typos | khoá cửa chinh bị hõng không mỡ được | structural | high | F | - | -
+typos | Sàn nhà tấm bị đọng nước ko thoát | plumbing | medium | F | - | -
+typos | ban cong bi nuc tuong mot duong dai | structural | medium | N | - | -
+mixed_language | The air conditioner in my bedroom is dripping water onto the bed. | appliance | medium | F | - | -
+mixed_language | There is smoke coming from the electrical panel on floor 9! | electrical | urgent | T | - | -
+mixed_language | Toilet bị clogged rồi, flush không được. | plumbing | medium | F | - | -
+mixed_language | Wifi unstable quá, meeting online bị disconnect hoài. | network | medium | F | - | network_provider
+mixed_language | My door lock is broken, I cannot lock the door when I leave. | structural | high | F | - | -
+mixed_language | Máy giặt báo error code E21, không drain nước. | appliance | medium | F | - | -
+mixed_language | I smell gas in the kitchen, what should I do? | appliance,plumbing,other | urgent | T | - | -
+mixed_language | Elevator stuck between floors, 3 people inside. | other,appliance | urgent | T | - | building_engineering,security
+mixed_language | Cockroaches everywhere in the kitchen, please help. | pest | medium | F | - | pest_control
+mixed_language | Hot water không work, shower chỉ có nước lạnh. | appliance,plumbing | medium | F | - | -
+boundary | Đèn trong tủ lạnh không sáng nhưng tủ vẫn lạnh. | appliance | low | F | - | -
+boundary | Ổ cắm máy giặt bị lỏng, máy lúc chạy lúc không. | electrical,appliance | medium | F | - | -
+boundary | Nước rò ra từ đáy máy nước nóng. | appliance,plumbing | medium | N | - | -
+boundary | Cửa nhà tắm bằng kính bị kẹt ray trượt. | structural | medium | F | - | -
+boundary | Vách ngăn thạch cao giữa hai phòng bị mốc đen do ẩm. | structural,plumbing,cleaning | medium | F | - | -
+boundary | Quạt hút nhà vệ sinh không chạy. | appliance,electrical | medium | F | - | -
+boundary | Ống thoát nước máy lạnh bị tắc, nước chảy ngược vào phòng. | appliance,plumbing | medium | F | - | -
+boundary | Chuông cửa có hình không lên màn hình. | appliance,electrical,network,other | low | F | - | -
+boundary | Khóa vân tay báo pin yếu rồi không mở được nữa. | structural,appliance,other | high | F | - | -
+boundary | Bếp từ âm bị nứt mặt kính. | appliance | medium | N | - | -
+boundary | Rèm cuốn tự động phòng khách không kéo lên được. | appliance,structural,other | low | F | - | -
+boundary | Tủ âm tường bị mối ăn rỗng một góc. | pest,structural | medium | F | - | -
+boundary | Sàn ban công đọng nước vì dốc ngược về phía cửa. | structural,plumbing | medium | F | - | -
+boundary | Mùi cống bốc lên từ lỗ thoát sàn nhà tắm. | plumbing | medium | F | - | -
+boundary | Tường phòng ngủ giáp nhà tắm bị bong sơn, sờ thấy ẩm. | plumbing,structural | medium | F | - | -
+boundary | Máy rửa chén xả nước không hết, đọng ở đáy. | appliance,plumbing | medium | F | - | -
+boundary | Đèn led dây trang trí trần phòng khách chớp tắt. | electrical | low | F | - | -
+boundary | Cục nóng máy lạnh ngoài ban công kêu to và nóng hơn bình thường. | appliance | medium | N | - | -
+boundary | Bệ cửa sổ bị nứt, nước mưa thấm vào trong. | structural | medium | F | - | -
+boundary | Bồn tắm bị nứt đáy, nước rò xuống dưới. | plumbing,structural | high | F | - | -
+boundary | Hộp kỹ thuật trong nhà tắm có tiếng nước chảy liên tục. | plumbing | medium | F | - | -
+boundary | Ổ cắm ngoài ban công bị nước mưa tạt vào. | electrical | high | T | - | -
+boundary | Mặt đá bàn bếp bị nứt một đường. | structural | low | F | - | -

@@ -75,8 +75,10 @@ def main():
     rows, errors = load()
 
     # Bo test khong duoc lot vao du lieu train.
-    test_path = HERE.parent / "test_cases.jsonl"
-    test_texts = {norm(json.loads(l)["text"]) for l in test_path.read_text(encoding="utf-8").splitlines() if l.strip()}
+    # Ca bo test lan bo cau do loi (probe) deu khong duoc nam trong train.
+    test_texts = {norm(json.loads(l)["text"])
+                  for name in ("test_cases.jsonl", "probe_cases.jsonl")
+                  for l in (HERE.parent / name).read_text(encoding="utf-8").splitlines() if l.strip()}
     seen = set()
     for r in rows:
         key = norm(r["text"])

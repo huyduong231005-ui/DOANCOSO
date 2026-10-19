@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using t.Infrastructure.Maintenance;
 using t.Models.Entities;
 
@@ -83,6 +84,28 @@ public class MaintenanceWorkflowTests
     {
         var next = MaintenanceWorkflow.NextStatuses(Req(MaintenanceStatus.Resolved), WorkflowActor.Resident, "resident");
         Assert.Equal(new[] { MaintenanceStatus.Closed, MaintenanceStatus.InProgress }.OrderBy(s => s), next.OrderBy(s => s));
+    }
+
+    [Fact]
+    public async Task OnHoldTime_IsAddedToDueDate_WhenWorkResumes()
+    {
+        await using var db = new t.Data.AppDbContext(new DbContextOptionsBuilder<t.Data.AppDbContext>()
+            .UseInMemoryDatabase($"workflow-{Guid.NewGuid():N}").Options);
+        var due = DateTime.UtcNow.AddHours(4);
+        var r = new MaintenanceRequest { RequestNumber = "MR-T", ApartmentId = 1, Status = MaintenanceStatus.OnHold, AssignedToId = Tech, DueAt = due };
+        db.MaintenanceRequests.Add(r);
+        await db.SaveChangesAsync();
+        db.MaintenanceStatusChanges.Add(new MaintenanceStatusChange
+        {
+            MaintenanceRequestId = r.Id, FromStatus = MaintenanceStatus.InProgress, ToStatus = MaintenanceStatus.OnHold,
+            ChangedAt = DateTime.UtcNow.AddHours(-2), Note = "Chờ vật tư"
+        });
+        await db.SaveChangesAsync();
+
+        var error = await new MaintenanceWorkflow(db).TransitionAsync(r, MaintenanceStatus.InProgress, WorkflowActor.Technician, Tech);
+
+        Assert.Null(error);
+        Assert.InRange(r.DueAt!.Value - due, TimeSpan.FromMinutes(119), TimeSpan.FromMinutes(121)); // dời hạn ~2 giờ đã dừng
     }
 
     [Fact]

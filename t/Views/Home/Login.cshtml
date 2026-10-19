@@ -43,6 +43,8 @@
 
             <form asp-action="Login" asp-route-returnUrl="@(ViewData["ReturnUrl"] as string)" method="post" class="auth-form" novalidate>
                 @Html.AntiForgeryToken()
+                @if (TempData["AuthInfo"] is string info) { <div class="auth-success">@info</div> }
+                @if (TempData["AuthError"] is string err) { <div class="auth-validation-summary">@err</div> }
                 <div asp-validation-summary="ModelOnly" class="auth-validation-summary"></div>
 
                 <div class="auth-field">

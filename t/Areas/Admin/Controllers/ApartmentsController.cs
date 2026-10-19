@@ -5,6 +5,7 @@ using t.Areas.Admin.Models;
 using t.Data;
 using t.Infrastructure.Billing;
 using t.Infrastructure.Localization;
+using t.Infrastructure.Residents;
 using t.Infrastructure.Time;
 using t.Models.Entities;
 
@@ -14,11 +15,13 @@ public class ApartmentsController : AdminBaseController
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly InvoiceGenerator _invoiceGen;
+    private readonly ResidentInvites _invites;
 
-    public ApartmentsController(AppDbContext db, UserManager<AppUser> userManager, InvoiceGenerator invoiceGen) : base(db)
+    public ApartmentsController(AppDbContext db, UserManager<AppUser> userManager, InvoiceGenerator invoiceGen, ResidentInvites invites) : base(db)
     {
         _userManager = userManager;
         _invoiceGen = invoiceGen;
+        _invites = invites;
     }
 
     public async Task<IActionResult> Index(string? q, ApartmentOccupancy? occupancy, int? projectId, int? buildingId, bool debt = false, int page = 1)
@@ -285,9 +288,32 @@ public class ApartmentsController : AdminBaseController
             await _userManager.AddToRoleAsync(user, SeedData.RoleTenant);
 
         await Db.SaveChangesAsync();
+
+        // Chưa có tài khoản nhưng có email: gửi thư mời tạo tài khoản, đăng ký qua thư là tự gắn vào căn.
+        var invited = user == null && email != null && await SendInviteAsync(resident, apt.UnitCode);
         TempData["Success"] = $"Đã thêm {resident.FullName} vào căn {apt.UnitCode}"
-            + (user != null ? " (đã liên kết tài khoản cổng cư dân)." : ".");
+            + (user != null ? " (đã liên kết tài khoản cổng cư dân)."
+               : invited ? $" và gửi thư mời tạo tài khoản tới {email}." : ".");
         return RedirectToAction(nameof(Details), new { id = apt.Id });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResendInvite(int residentId)
+    {
+        var r = await Db.ApartmentResidents.Include(x => x.Apartment)
+            .FirstOrDefaultAsync(x => x.Id == residentId && x.MoveOutDate == null && x.UserId == null && x.Email != null);
+        if (r == null) return NotFound();
+        if (await SendInviteAsync(r, r.Apartment.UnitCode))
+            TempData["Success"] = $"Đã gửi lại thư mời tới {r.Email}.";
+        else
+            TempData["Danger"] = $"Không gửi được thư tới {r.Email}. Kiểm tra cấu hình email rồi thử lại.";
+        return RedirectToAction(nameof(Details), new { id = r.ApartmentId });
+    }
+
+    private Task<bool> SendInviteAsync(ApartmentResident r, string unitCode)
+    {
+        var url = Url.Action("Invite", "Home", new { area = "", token = _invites.CreateToken(r) }, Request.Scheme)!;
+        return _invites.SendAsync(r, unitCode, url);
     }
 
     [HttpPost, ValidateAntiForgeryToken]

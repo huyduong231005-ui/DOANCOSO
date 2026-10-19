@@ -30,6 +30,7 @@
     <div>
         <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:16px;">door_front</span>@a.Building.Name · Tầng @a.Floor.Number</span>
         <h1>Căn @a.UnitCode</h1>
+        <p class="subtitle">@a.Area.ToString("0.#") m² · @a.Bedrooms PN · @a.Bathrooms WC · hướng @(a.HouseDirection?.Vi() ?? "—")</p>
         <div class="hstack" style="margin-top:.45rem;flex-wrap:wrap;">
             <span class="@Pill(a.Occupancy)">@a.Occupancy.Vi()</span>
             @if (rented) { <span class="pill pill-info">Cho thuê</span> }
@@ -55,21 +56,13 @@
     </div>
 </section>
 
-<section class="stat-strip">
-    <div class="stat"><div class="stat-label">Diện tích</div><div class="stat-value">@a.Area.ToString("0.#") m²</div><div class="stat-sub">@a.Bedrooms PN · @a.Bathrooms WC · hướng @(a.HouseDirection?.Vi() ?? "—")</div></div>
-    <div class="stat"><div class="stat-label">Phí quản lý/tháng</div><div class="stat-value">@Money(Model.ManagementFee)</div><div class="stat-sub">@Money(a.Building.ManagementFeePerM2) đ/m²</div></div>
-    <div class="stat"><div class="stat-label">Tổng phí cố định/tháng</div><div class="stat-value">@Money(Model.MonthlyFixed)</div><div class="stat-sub">chưa gồm điện nước</div></div>
-    <div class="stat"><div class="stat-label"><span class="dot" style="background:var(--st-debt)"></span>Còn phải thu</div><div class="stat-value" style="@(Model.Balance > 0 ? "color:var(--st-debt)" : "")">@Money(Model.Balance)</div><div class="stat-sub">đồng</div></div>
-    <div class="stat"><div class="stat-label">Cư dân</div><div class="stat-value">@living.Count</div></div>
-</section>
-
 <div class="detail-grid">
     <div class="vstack" style="gap:1.2rem;">
-        <div class="card">
-            <div class="card-header">
-                <h2>Cư dân</h2>
+        <details class="card fold" data-fold="residents" open>
+            <summary class="card-header">
+                <h2>Cư dân <span class="text-muted" style="font-weight:500;">(@living.Count)</span></h2>
                 <span class="text-muted" style="font-size:13px;">Người đại diện nhận thông báo phí và email nhắc nợ</span>
-            </div>
+            </summary>
             <div class="card-body vstack" style="gap:.8rem;">
                 @if (!living.Any())
                 {
@@ -90,6 +83,14 @@
                             </div>
                             @if (r.IsPrimary) { <span class="tag primary">Đại diện</span> }
                             <span class="tag">@r.Role.Vi()</span>
+                            @if (r.UserId == null && r.Email != null)
+                            {
+                                <form asp-action="ResendInvite" method="post" style="margin:0;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="residentId" value="@r.Id" />
+                                    <button type="submit" class="btn btn-ghost btn-sm" title="Chưa có tài khoản: gửi (lại) thư mời tạo tài khoản tới @r.Email"><span class="material-symbols-outlined">forward_to_inbox</span></button>
+                                </form>
+                            }
                             @if (!r.IsPrimary)
                             {
                                 <form asp-action="SetPrimary" method="post" style="margin:0;">
@@ -107,7 +108,7 @@
                     }
                 </div>
 
-                <details class="reveal" @(living.Any() ? "" : "open")>
+                <details class="reveal">
                     <summary class="btn btn-outline btn-sm"><span class="material-symbols-outlined">person_add</span>Thêm cư dân</summary>
                     <form asp-action="AddResident" method="post" class="inline-form">
                         @Html.AntiForgeryToken()
@@ -122,7 +123,7 @@
                             </select>
                         </label>
                         <label>Số điện thoại<input name="Phone" maxlength="30" /></label>
-                        <label>Email<input name="Email" type="email" maxlength="200" placeholder="Trùng email tài khoản → tự liên kết" /></label>
+                        <label>Email<input name="Email" type="email" maxlength="200" placeholder="Có tài khoản → tự liên kết, chưa có → gửi thư mời" /></label>
                         <label>CCCD / hộ chiếu<input name="IdNumber" maxlength="30" /></label>
                         <label>Ngày vào ở<input name="MoveInDate" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" /></label>
                         <label class="full">Ghi chú<input name="Note" maxlength="1000" /></label>
@@ -147,16 +148,18 @@
                     </details>
                 }
             </div>
-        </div>
+        </details>
 
-        <div class="card">
-            <div class="card-header">
-                <h2>Hoá đơn</h2>
+        <details class="card fold" data-fold="invoices" open>
+            <summary class="card-header">
+                <h2>Hoá đơn
+                    @if (Model.Balance > 0) { <span style="color:var(--st-debt);font-size:14px;font-weight:600;">· còn nợ @Money(Model.Balance) đ</span> }
+                </h2>
                 <div class="hstack">
                     <a class="btn btn-ghost btn-sm" asp-controller="Invoices" asp-action="Index" asp-route-q="@a.UnitCode">Tất cả</a>
                     <a class="btn btn-outline btn-sm" asp-controller="Invoices" asp-action="CreateOneOff" asp-route-apartmentId="@a.Id"><span class="material-symbols-outlined">add</span>Phát sinh</a>
                 </div>
-            </div>
+            </summary>
             <div class="table-wrap">
                 <table class="data-table nowrap">
                     <thead><tr><th>Số HĐ</th><th>Loại</th><th>Kỳ</th><th>Hạn</th><th class="num">Tổng</th><th class="num">Còn lại</th><th>Trạng thái</th></tr></thead>
@@ -180,13 +183,13 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+        </details>
 
-        <div class="card">
-            <div class="card-header">
-                <h2>Chỉ số điện / nước</h2>
+        <details class="card fold" data-fold="readings">
+            <summary class="card-header">
+                <h2>Chỉ số điện / nước <span class="text-muted" style="font-weight:500;">(@Model.Readings.Count)</span></h2>
                 <a class="btn btn-outline btn-sm" asp-controller="Utilities" asp-action="CreateReading" asp-route-apartmentId="@a.Id"><span class="material-symbols-outlined">add</span>Nhập chỉ số</a>
-            </div>
+            </summary>
             <div class="table-wrap">
                 <table class="data-table nowrap">
                     <thead><tr><th>Kỳ</th><th>Loại</th><th class="num">Cũ</th><th class="num">Mới</th><th class="num">Tiêu thụ</th><th class="num">Thành tiền</th><th></th></tr></thead>
@@ -210,12 +213,12 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+        </details>
     </div>
 
     <div class="vstack" style="gap:1.2rem;">
-        <div class="card">
-            <div class="card-header"><h2>Phí cố định hằng tháng</h2></div>
+        <details class="card fold" data-fold="charges" open>
+            <summary class="card-header"><h2>Phí cố định hằng tháng</h2></summary>
             <div class="card-body vstack" style="gap:.6rem;">
                 <div class="mini-list">
                     <div class="row"><span>Phí quản lý (@a.Area.ToString("0.#") m² × @Money(a.Building.ManagementFeePerM2))</span><b>@Money(Model.ManagementFee)</b></div>
@@ -239,6 +242,11 @@
                         </div>
                     }
                 </div>
+                <div class="mini-list">
+                    <div class="row"><span>Tổng/tháng <small class="muted">(chưa gồm điện nước)</small></span><b>@Money(Model.MonthlyFixed)</b></div>
+                </div>
+                <details class="reveal">
+                <summary class="btn btn-outline btn-sm"><span class="material-symbols-outlined">add</span>Thêm khoản phí</summary>
                 <form asp-action="AddCharge" method="post" class="inline-form">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="ApartmentId" value="@a.Id" />
@@ -252,16 +260,17 @@
                         <option value="Gửi xe đạp"></option>
                         <option value="Internet"></option>
                     </datalist>
-                    <div class="full"><button type="submit" class="btn btn-outline btn-sm"><span class="material-symbols-outlined">add</span>Thêm khoản phí</button></div>
+                    <div class="full"><button type="submit" class="btn btn-primary btn-sm">Lưu khoản phí</button></div>
                 </form>
+                </details>
             </div>
-        </div>
+        </details>
 
-        <div class="card">
-            <div class="card-header">
-                <h2>Sự cố</h2>
+        <details class="card fold" data-fold="maintenance" open>
+            <summary class="card-header">
+                <h2>Sự cố <span class="text-muted" style="font-weight:500;">(@Model.Maintenance.Count)</span></h2>
                 <a class="btn btn-outline btn-sm" asp-controller="Maintenance" asp-action="Create" asp-route-apartmentId="@a.Id"><span class="material-symbols-outlined">add</span>Ghi sự cố</a>
-            </div>
+            </summary>
             <div class="card-body">
                 @if (!Model.Maintenance.Any())
                 {
@@ -277,7 +286,7 @@
                     }
                 </div>
             </div>
-        </div>
+        </details>
 
         @if (!string.IsNullOrWhiteSpace(a.Note))
         {

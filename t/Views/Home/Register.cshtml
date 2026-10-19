@@ -21,9 +21,17 @@
         <div class="auth-panel auth-fx-up">
             <div class="auth-mobile-brand">Luxe Haven</div>
 
+            @{ var invite = ViewData["Invite"] as string; }
             <header class="auth-header">
                 <h2>Tạo tài khoản mới</h2>
-                <p>Sau khi tạo, Ban quản lý sẽ liên kết tài khoản với căn hộ của bạn.</p>
+                @if (invite != null)
+                {
+                    <p>Ban quản lý đã mời bạn với tư cách cư dân căn <strong>@ViewData["InviteUnit"]</strong>. Tạo tài khoản xong là xem được căn hộ ngay.</p>
+                }
+                else
+                {
+                    <p>Sau khi tạo, Ban quản lý sẽ liên kết tài khoản với căn hộ của bạn.</p>
+                }
             </header>
 
             <div class="auth-social-grid">
@@ -43,6 +51,7 @@
 
             <form asp-action="Register" method="post" class="auth-form" novalidate>
                 @Html.AntiForgeryToken()
+                @if (invite != null) { <input type="hidden" name="invite" value="@invite" /> }
                 <div asp-validation-summary="ModelOnly" class="auth-validation-summary"></div>
 
                 <div class="auth-field">
@@ -54,7 +63,7 @@
 
                 <div class="auth-field">
                     <label asp-for="Email">Địa chỉ email</label>
-                    <input asp-for="Email" class="auth-input" placeholder="ten@domain.com" />
+                    <input asp-for="Email" class="auth-input" placeholder="ten@domain.com" readonly="@(invite != null)" />
                     <p class="auth-help">Vui lòng nhập đúng định dạng email. Ví dụ: ten@domain.com</p>
                     <span asp-validation-for="Email" class="auth-error"></span>
                 </div>

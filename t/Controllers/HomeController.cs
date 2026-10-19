@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using t.Application.Commands.Auth;
 using t.Data;
+using t.Infrastructure.Residents;
 using t.Models;
 using t.Models.Entities;
 using t.Models.ViewModels;
@@ -17,17 +18,20 @@ public class HomeController : Controller
     private readonly UserManager<AppUser> _userManager;
     private readonly SignInManager<AppUser> _signInManager;
     private readonly AuthCommandHandler _authCommandHandler;
+    private readonly ResidentInvites _invites;
 
     public HomeController(
         AppDbContext db,
         UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
-        AuthCommandHandler authCommandHandler)
+        AuthCommandHandler authCommandHandler,
+        ResidentInvites invites)
     {
         _db = db;
         _userManager = userManager;
         _signInManager = signInManager;
         _authCommandHandler = authCommandHandler;
+        _invites = invites;
     }
 
     // Trang giới thiệu Ban quản lý: các khu đang vận hành, lối vào cổng cư dân / quản trị.
@@ -98,16 +102,56 @@ public class HomeController : Controller
         return View(model);
     }
 
+    // Liên kết trong thư mời của Ban quản lý: đã có tài khoản đúng email thì gắn căn luôn rồi mời đăng nhập,
+    // chưa có thì sang trang đăng ký với email được mời.
     [HttpGet]
-    public IActionResult Register()
+    public async Task<IActionResult> Invite(string? token)
     {
-        return View();
+        var resident = await _invites.FindAsync(token);
+        if (resident == null)
+        {
+            TempData["AuthError"] = "Lời mời không hợp lệ hoặc đã hết hạn. Liên hệ Ban quản lý để được gửi lại.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        var existing = await _userManager.FindByEmailAsync(resident.Email!);
+        if (existing == null) return RedirectToAction(nameof(Register), new { invite = token });
+
+        if (await _invites.AcceptAsync(token, existing) == null)
+        {
+            TempData["AuthError"] = "Cư dân này đã được gắn với một tài khoản khác. Liên hệ Ban quản lý.";
+            return RedirectToAction(nameof(Login));
+        }
+        if (!await _userManager.IsInRoleAsync(existing, "Tenant"))
+            await _userManager.AddToRoleAsync(existing, "Tenant");
+        TempData["AuthInfo"] = $"Đã gắn căn {resident.Apartment.UnitCode} vào tài khoản {resident.Email}. Đăng nhập để xem.";
+        return RedirectToAction(nameof(Login));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Register(string? invite)
+    {
+        var resident = await _invites.FindAsync(invite);
+        if (resident == null) return View();
+        ViewData["Invite"] = invite;
+        ViewData["InviteUnit"] = resident.Apartment.UnitCode;
+        return View(new RegisterViewModel { FullName = resident.FullName, Email = resident.Email!, Phone = resident.Phone });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(RegisterViewModel model)
+    public async Task<IActionResult> Register(RegisterViewModel model, string? invite)
     {
+        // Đăng ký qua thư mời: email phải đúng email được mời (ô email bị khoá trên form, kiểm tra lại ở đây).
+        var invited = await _invites.FindAsync(invite);
+        if (invited != null)
+        {
+            ViewData["Invite"] = invite;
+            ViewData["InviteUnit"] = invited.Apartment.UnitCode;
+            model.Email = invited.Email!;
+            ModelState.Remove(nameof(model.Email));
+        }
+
         if (!ModelState.IsValid)
             return View(model);
 
@@ -128,6 +172,8 @@ public class HomeController : Controller
             // cannot access /tenant area and admin lease dropdowns won't list them.
             await _userManager.AddToRoleAsync(user, "Tenant");
             await _signInManager.SignInAsync(user, isPersistent: false);
+            if (invited != null && await _invites.AcceptAsync(invite, user) != null)
+                return LocalRedirect("/tenant");
             return RedirectToAction(nameof(Index));
         }
 

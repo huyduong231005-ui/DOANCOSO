@@ -19,6 +19,10 @@ public static class VnTime
     public static DateTime FromUtc(DateTime utc) =>
         TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), Tz);
 
+    /// <summary>Convert a Vietnam local time (e.g. a date picked in a filter) to UTC for querying stored timestamps.</summary>
+    public static DateTime ToUtc(DateTime local) =>
+        TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(local, DateTimeKind.Unspecified), Tz);
+
     private static TimeZoneInfo ResolveTimeZone()
     {
         // Linux/macOS uses IANA "Asia/Ho_Chi_Minh"; Windows uses "SE Asia Standard Time".

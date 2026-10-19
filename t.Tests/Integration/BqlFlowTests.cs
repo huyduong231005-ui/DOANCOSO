@@ -186,6 +186,8 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
     [InlineData("/Admin/Reports/Occupancy")]
     [InlineData("/Admin/Reports/Finance")]
     [InlineData("/Admin/Reports/Arrears")]
+    [InlineData("/Admin/Reports/Maintenance")]
+    [InlineData("/Admin/Maintenance?overdue=true")]
     public async Task AdminPages_Render(string path)
     {
         using var client = await AdminClientAsync();

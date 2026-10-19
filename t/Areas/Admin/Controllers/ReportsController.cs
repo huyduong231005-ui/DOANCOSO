@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using t.Areas.Admin.Models;
 using t.Data;
+using t.Infrastructure.Maintenance;
 using t.Infrastructure.Time;
 using t.Models.Entities;
 
@@ -12,6 +13,46 @@ public class ReportsController : AdminBaseController
     public ReportsController(AppDbContext db) : base(db) { }
 
     public IActionResult Index() => RedirectToAction(nameof(Occupancy));
+
+    /// <summary>
+    /// KPI quy trình sự cố (FR-09) cho các yêu cầu báo trong kỳ [from, to] theo giờ Việt Nam.
+    /// ponytail: đọc mọi yêu cầu của kỳ vào bộ nhớ rồi tính (vài nghìn dòng/tháng là nhẹ);
+    /// khi dữ liệu lên hàng trăm nghìn dòng mỗi kỳ thì chuyển các phép đếm sang GROUP BY trong SQL.
+    /// </summary>
+    public async Task<IActionResult> Maintenance(DateTime? from, DateTime? to, int? buildingId)
+    {
+        SetActiveNav("reports");
+        SetBreadcrumb(("Báo cáo", null), ("Sự cố", null));
+
+        var today = VnTime.Today;
+        var fromDate = (from ?? new DateTime(today.Year, today.Month, 1)).Date;
+        var toDate = (to ?? today).Date;
+        if (toDate < fromDate) (fromDate, toDate) = (toDate, fromDate);
+        var fromUtc = VnTime.ToUtc(fromDate);
+        var toUtc = VnTime.ToUtc(toDate.AddDays(1));
+
+        var query = Db.MaintenanceRequests.AsNoTracking().Where(r => r.ReportedAt >= fromUtc && r.ReportedAt < toUtc);
+        if (buildingId.HasValue)
+            query = query.Where(r => (r.Apartment != null && r.Apartment.BuildingId == buildingId) || r.CommonBuildingId == buildingId);
+
+        var rows = await query.Select(r => new MaintenanceKpiRow
+        {
+            Id = r.Id, Status = r.Status, Priority = r.Priority, Category = r.Category,
+            BuildingName = r.Apartment != null ? r.Apartment.Building.Name : r.CommonBuilding != null ? r.CommonBuilding.Name : null,
+            TechnicianName = r.AssignedTo != null ? r.AssignedTo.FullName : null,
+            ReportedAt = r.ReportedAt, AcknowledgedAt = r.AcknowledgedAt, ResolvedAt = r.ResolvedAt, DueAt = r.DueAt,
+            ResponseSlaMinutes = Db.SlaPolicies.Where(s => s.Priority == r.Priority).Select(s => s.ResponseMinutes).FirstOrDefault(),
+            Rating = r.Rating,
+            AutoAssigned = r.History.Any(h => h.ChangedById == null && h.Note != null && h.Note.Contains(MaintenanceDispatcher.AutoAssignNote)),
+            Reassigned = r.History.Any(h => h.FromStatus == h.ToStatus && h.ChangedById != null),
+        }).ToListAsync();
+
+        ViewBag.From = fromDate;
+        ViewBag.To = toDate;
+        ViewBag.BuildingId = buildingId;
+        ViewBag.Buildings = await Db.Buildings.AsNoTracking().OrderBy(b => b.Name).ToListAsync();
+        return View(MaintenanceKpi.Compute(rows, DateTime.UtcNow));
+    }
 
     public async Task<IActionResult> Occupancy()
     {

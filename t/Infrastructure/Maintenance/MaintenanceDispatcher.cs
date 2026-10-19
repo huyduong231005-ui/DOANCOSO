@@ -19,6 +19,9 @@ namespace t.Infrastructure.Maintenance;
 /// </summary>
 public class MaintenanceDispatcher
 {
+    /// <summary>Ghi chú lịch sử khi hệ thống tự giao việc; báo cáo KPI dùng chuỗi này để nhận ra việc do AI giao.</summary>
+    public const string AutoAssignNote = "Hệ thống điều phối theo loại sự cố";
+
     // ponytail: mô hình chỉ có một loại "structural" nên tách thợ mộc / nhôm kính bằng từ khóa.
     // Sai khi mô tả không dấu dùng "kinh" theo nghĩa khác ("kinh khung"); muốn chắc thì thêm
     // loại riêng vào prompt và train lại.
@@ -88,8 +91,7 @@ public class MaintenanceDispatcher
             if (assignee != null)
             {
                 // Giao qua workflow để có mốc tiếp nhận và dòng lịch sử "hệ thống điều phối" (đo được tỉ lệ AI giao đúng).
-                var error = await _workflow.AssignAsync(req, assignee, WorkflowActor.System, null,
-                    "Hệ thống điều phối theo loại sự cố", ct);
+                var error = await _workflow.AssignAsync(req, assignee, WorkflowActor.System, null, AutoAssignNote, ct);
                 if (error != null)
                 {
                     _log.LogWarning("Auto-assign skipped for {RequestNumber}: {Error}", req.RequestNumber, error);

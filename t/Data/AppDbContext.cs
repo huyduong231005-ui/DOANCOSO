@@ -312,6 +312,10 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.HasOne(x => x.CommonBuilding).WithMany()
              .HasForeignKey(x => x.CommonBuildingId).OnDelete(DeleteBehavior.Restrict);
 
+            // Mức ưu tiên phải là một mức có trong bảng SLA (không xoá được mức SLA đang được dùng).
+            e.HasOne<SlaPolicy>().WithMany()
+             .HasForeignKey(x => x.Priority).OnDelete(DeleteBehavior.Restrict);
+
             e.HasOne(x => x.Reporter).WithMany()
              .HasForeignKey(x => x.ReporterId).OnDelete(DeleteBehavior.NoAction);
 

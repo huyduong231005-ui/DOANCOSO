@@ -2126,6 +2126,12 @@ namespace t.Migrations
                         .HasForeignKey("CommonBuildingId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("t.Models.Entities.SlaPolicy", null)
+                        .WithMany()
+                        .HasForeignKey("Priority")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("t.Models.Entities.AppUser", "Reporter")
                         .WithMany()
                         .HasForeignKey("ReporterId")

@@ -39,9 +39,6 @@ public class MaintenanceRequest : BaseEntity
     public int ApartmentId { get; set; }
     public Apartment Apartment { get; set; } = null!;
 
-    public int? LeaseId { get; set; }
-    public Lease? Lease { get; set; }
-
     public string? ReporterId { get; set; }
     public AppUser? Reporter { get; set; }
 

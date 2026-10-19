@@ -76,7 +76,7 @@
             <dl class="dl-pairs">
                 <dt>Loại</dt><dd>@Model.Category.Vi()</dd>
                 <dt>Mức độ</dt><dd>@Model.Priority.Vi()</dd>
-                <dt>Căn hộ</dt><dd>@Model.Apartment.Title</dd>
+                <dt>Căn hộ</dt><dd>@Model.Apartment.UnitCode</dd>
                 @if (Model.Apartment.Building != null) { <dt>Toà</dt><dd>@Model.Apartment.Building.Name</dd> }
                 <dt>Phụ trách</dt><dd>@(Model.AssignedTo?.FullName ?? "Chưa phân công")</dd>
             </dl>

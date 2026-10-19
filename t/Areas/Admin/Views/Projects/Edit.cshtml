@@ -1,16 +1,16 @@
 @model t.Areas.Admin.Models.ProjectEditVm
 @using t.Models.Entities
 @{
-    ViewData["Title"] = Model.Id == 0 ? "Thêm dự án" : Model.Name;
+    ViewData["Title"] = Model.Id == 0 ? "Thêm khu" : Model.Name;
 }
 
 <section class="page-header">
     <div>
-        <h1>@(Model.Id == 0 ? "Thêm dự án" : Model.Name)</h1>
-        <p class="subtitle">@(Model.Id == 0 ? "Tạo dự án bất động sản mới." : "Cập nhật thông tin dự án.")</p>
+        <h1>@(Model.Id == 0 ? "Thêm khu" : Model.Name)</h1>
+        <p class="subtitle">@(Model.Id == 0 ? "Khu gồm nhiều toà, quản lý chung một Ban quản lý." : "Cập nhật thông tin khu.")</p>
     </div>
     <div class="actions">
-        <a class="btn btn-ghost" asp-action="Index">Quay lại</a>
+        <a class="btn btn-ghost" href="@(Model.Id == 0 ? Url.Action("Index") : Url.Action("Details", new { id = Model.Id }))">Quay lại</a>
     </div>
 </section>
 
@@ -21,12 +21,12 @@
     <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
 
     <div class="card">
-        <div class="card-header"><h2>Thông tin dự án</h2></div>
+        <div class="card-header"><h2>Thông tin khu</h2></div>
         <div class="card-body">
             <div class="form-grid">
                 <div class="form-field span-8">
-                    <label asp-for="Name">Tên dự án</label>
-                    <input asp-for="Name" />
+                    <label asp-for="Name">Tên khu</label>
+                    <input asp-for="Name" placeholder="VD: Luxe Haven Grand Park" />
                     <span class="err" asp-validation-for="Name"></span>
                 </div>
                 <div class="form-field span-4">
@@ -40,16 +40,6 @@
                         @foreach (var r in Model.Regions) { <option value="@r.Id">@r.Name</option> }
                     </select>
                 </div>
-                <div class="form-field span-4">
-                    <label asp-for="PriceFrom">Giá từ (VND)</label>
-                    <input asp-for="PriceFrom" type="number" step="100000" />
-                </div>
-                <div class="form-field span-4">
-                    <label asp-for="Status">Trạng thái</label>
-                    <select asp-for="Status">
-                        @foreach (var s in Enum.GetValues<ProjectStatus>()) { <option value="@((int)s)">@s.Vi()</option> }
-                    </select>
-                </div>
 
                 <div class="form-field span-12">
                     <label asp-for="Address">Địa chỉ</label>
@@ -60,19 +50,15 @@
                     <input asp-for="ThumbnailUrl" placeholder="/img/..." />
                 </div>
                 <div class="form-field span-12">
-                    <label asp-for="ShortDescription">Mô tả ngắn</label>
+                    <label asp-for="ShortDescription">Giới thiệu ngắn</label>
                     <input asp-for="ShortDescription" />
-                </div>
-                <div class="form-field span-12">
-                    <label asp-for="FullDescription">Mô tả đầy đủ</label>
-                    <textarea asp-for="FullDescription" rows="4"></textarea>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="hstack mt-3" style="justify-content:flex-end;">
-        <a class="btn btn-ghost" asp-action="Index">Huỷ</a>
+        <a class="btn btn-ghost" href="@(Model.Id == 0 ? Url.Action("Index") : Url.Action("Details", new { id = Model.Id }))">Huỷ</a>
         <button type="submit" class="btn btn-primary">Lưu</button>
     </div>
 </form>

@@ -4,8 +4,8 @@ namespace t.Models.Entities;
 
 public class UtilityReading : BaseEntity
 {
-    public int LeaseId { get; set; }
-    public Lease Lease { get; set; } = null!;
+    public int ApartmentId { get; set; }
+    public Apartment Apartment { get; set; } = null!;
 
     public int UtilityTypeId { get; set; }
     public UtilityType UtilityType { get; set; } = null!;

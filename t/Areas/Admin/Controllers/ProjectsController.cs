@@ -2,76 +2,91 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using t.Areas.Admin.Models;
 using t.Data;
-using t.Infrastructure.Localization;
 using t.Models.Entities;
 
 namespace t.Areas.Admin.Controllers;
 
+/// <summary>Khu căn hộ — cấp cao nhất của cây Khu → Toà → Tầng → Căn.</summary>
 public class ProjectsController : AdminBaseController
 {
     public ProjectsController(AppDbContext db) : base(db) { }
 
-    public async Task<IActionResult> Index(string? q, ProjectStatus? status, int page = 1)
+    public async Task<IActionResult> Index(string? q)
     {
         SetActiveNav("projects");
-        SetBreadcrumb(("Dự án", null));
+        SetBreadcrumb(("Khu & toà nhà", null));
 
-        const int pageSize = 15;
-        var query = Db.Projects.Include(p => p.Region).AsQueryable();
+        var query = Db.Projects.AsQueryable();
         if (!string.IsNullOrWhiteSpace(q))
-            query = query.Where(p => p.Name.Contains(q) || p.Slug.Contains(q));
-        if (status.HasValue)
-            query = query.Where(p => p.Status == status.Value);
+            query = query.Where(p => p.Name.Contains(q) || p.Address.Contains(q));
 
-        var total = await query.CountAsync();
         var rows = await query
-            .OrderByDescending(p => p.CreatedAt)
-            .Skip((page - 1) * pageSize).Take(pageSize)
+            .OrderBy(p => p.Name)
             .Select(p => new ProjectListVm
             {
                 Id = p.Id, Name = p.Name, Slug = p.Slug,
-                RegionName = p.Region.Name, Status = p.Status,
-                PriceFrom = p.PriceFrom,
-                ApartmentCount = p.Apartments.Count(),
-                CreatedAt = p.CreatedAt
-            }).ToListAsync();
+                RegionName = p.Region.Name, Address = p.Address, ThumbnailUrl = p.ThumbnailUrl,
+                BuildingCount = p.Buildings.Count(),
+                ApartmentCount = p.Buildings.SelectMany(b => b.Apartments).Count(),
+                OccupiedCount = p.Buildings.SelectMany(b => b.Apartments).Count(a => a.Occupancy == ApartmentOccupancy.Occupied),
+                ResidentCount = p.Buildings.SelectMany(b => b.Apartments).SelectMany(a => a.Residents).Count(r => r.MoveOutDate == null),
+                Outstanding = p.Buildings.SelectMany(b => b.Apartments).SelectMany(a => a.Invoices)
+                    .Where(i => i.Status != InvoiceStatus.Cancelled && i.Status != InvoiceStatus.Draft)
+                    .Sum(i => (decimal?)i.Balance) ?? 0
+            })
+            .ToListAsync();
 
-        ViewBag.Q = q; ViewBag.Status = status;
-        ViewBag.Pager = new PageInfo
-        {
-            Page = page, PageSize = pageSize, TotalCount = total,
-            Url = pp => Url.Action(nameof(Index), new { q, status, page = pp }) ?? "#"
-        };
+        ViewBag.Q = q;
+        ViewBag.UnassignedBuildings = await Db.Buildings.CountAsync(b => b.ProjectId == null);
         return View(rows);
     }
 
-    public async Task<IActionResult> Suggest(string? q, int limit = 8)
+    public async Task<IActionResult> Details(int id)
     {
-        if (string.IsNullOrWhiteSpace(q)) return Json(Array.Empty<object>());
-        q = q.Trim();
-        var raw = await Db.Projects
-            .Include(p => p.Region)
-            .Where(p => p.Name.Contains(q) || p.Slug.Contains(q))
-            .OrderByDescending(p => p.CreatedAt)
-            .Take(limit)
-            .Select(p => new { p.Id, p.Name, p.ThumbnailUrl, RegionName = p.Region.Name, p.Status })
-            .ToListAsync();
-        return Json(raw.Select(p => new
-        {
-            title = p.Name,
-            subtitle = p.RegionName + " · " + p.Status.Vi(),
-            url = Url.Action(nameof(Edit), new { id = p.Id }) ?? "#",
-            thumb = p.ThumbnailUrl,
-            icon = "location_city"
-        }));
+        SetActiveNav("projects");
+        var project = await Db.Projects.Include(p => p.Region).FirstOrDefaultAsync(p => p.Id == id);
+        if (project == null) return NotFound();
+        SetBreadcrumb(("Khu & toà nhà", Url.Action(nameof(Index))), (project.Name, null));
+
+        ViewBag.Buildings = await BuildingCardsAsync(Db.Buildings.Where(b => b.ProjectId == id));
+        return View(project);
     }
+
+    /// <summary>Toà chưa gán vào khu nào (dữ liệu cũ hoặc tạo thiếu khu).</summary>
+    public async Task<IActionResult> Unassigned()
+    {
+        SetActiveNav("projects");
+        SetBreadcrumb(("Khu & toà nhà", Url.Action(nameof(Index))), ("Toà chưa thuộc khu", null));
+        ViewBag.Buildings = await BuildingCardsAsync(Db.Buildings.Where(b => b.ProjectId == null));
+        return View("Details", new Project { Name = "Toà chưa thuộc khu", Address = "Gán khu cho toà trong trang sửa toà nhà." });
+    }
+
+    private static Task<List<BuildingListVm>> BuildingCardsAsync(IQueryable<Building> buildings) =>
+        buildings
+            .OrderBy(b => b.Code).ThenBy(b => b.Name)
+            .Select(b => new BuildingListVm
+            {
+                Id = b.Id, Name = b.Name, Code = b.Code,
+                ThumbnailUrl = b.ThumbnailUrl,
+                FloorCount = b.Floors.Count(),
+                ManagerName = b.Manager != null ? b.Manager.FullName : null,
+                Status = b.Status,
+                UnitsTotal = b.Apartments.Count(),
+                UnitsOccupied = b.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.Occupied),
+                UnitsVacant = b.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.Vacant),
+                Outstanding = b.Apartments.SelectMany(a => a.Invoices)
+                    .Where(i => i.Status != InvoiceStatus.Cancelled && i.Status != InvoiceStatus.Draft)
+                    .Sum(i => (decimal?)i.Balance) ?? 0,
+                OpenMaintenance = b.Apartments.SelectMany(a => a.MaintenanceRequests)
+                    .Count(m => m.Status == MaintenanceStatus.Open || m.Status == MaintenanceStatus.Acknowledged || m.Status == MaintenanceStatus.InProgress)
+            })
+            .ToListAsync();
 
     public async Task<IActionResult> Create()
     {
         SetActiveNav("projects");
-        SetBreadcrumb(("Dự án", Url.Action(nameof(Index))), ("Thêm mới", null));
-        var vm = new ProjectEditVm { Status = ProjectStatus.OpenForRent };
-        vm.Regions = await Db.Regions.OrderBy(r => r.Name).ToListAsync();
+        SetBreadcrumb(("Khu & toà nhà", Url.Action(nameof(Index))), ("Thêm khu", null));
+        var vm = new ProjectEditVm { Regions = await Db.Regions.OrderBy(r => r.Name).ToListAsync() };
         return View("Edit", vm);
     }
 
@@ -80,13 +95,12 @@ public class ProjectsController : AdminBaseController
         SetActiveNav("projects");
         var p = await Db.Projects.FirstOrDefaultAsync(x => x.Id == id);
         if (p == null) return NotFound();
-        SetBreadcrumb(("Dự án", Url.Action(nameof(Index))), (p.Name, null));
+        SetBreadcrumb(("Khu & toà nhà", Url.Action(nameof(Index))), (p.Name, Url.Action(nameof(Details), new { id })), ("Sửa", null));
 
         var vm = new ProjectEditVm
         {
             Id = p.Id, Name = p.Name, Slug = p.Slug, RegionId = p.RegionId,
-            Address = p.Address, ThumbnailUrl = p.ThumbnailUrl, PriceFrom = p.PriceFrom,
-            Status = p.Status, ShortDescription = p.ShortDescription, FullDescription = p.FullDescription,
+            Address = p.Address, ThumbnailUrl = p.ThumbnailUrl, ShortDescription = p.ShortDescription,
             Regions = await Db.Regions.OrderBy(r => r.Name).ToListAsync()
         };
         return View(vm);
@@ -95,17 +109,12 @@ public class ProjectsController : AdminBaseController
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(ProjectEditVm input)
     {
+        if (string.IsNullOrWhiteSpace(input.Slug)) input.Slug = Slugify(input.Name);
+        ModelState.Remove(nameof(input.Slug));
+        if (ModelState.IsValid && await Db.Projects.AnyAsync(p => p.Slug == input.Slug && p.Id != input.Id))
+            ModelState.AddModelError(nameof(input.Slug), "Slug đã tồn tại.");
         if (!ModelState.IsValid)
         {
-            input.Regions = await Db.Regions.OrderBy(r => r.Name).ToListAsync();
-            return View(input);
-        }
-
-        if (string.IsNullOrWhiteSpace(input.Slug)) input.Slug = Slugify(input.Name);
-
-        if (await Db.Projects.AnyAsync(p => p.Slug == input.Slug && p.Id != input.Id))
-        {
-            ModelState.AddModelError(nameof(input.Slug), "Slug đã tồn tại.");
             input.Regions = await Db.Regions.OrderBy(r => r.Name).ToListAsync();
             return View(input);
         }
@@ -122,28 +131,27 @@ public class ProjectsController : AdminBaseController
         }
 
         p.Name = input.Name; p.Slug = input.Slug; p.RegionId = input.RegionId;
-        p.Address = input.Address; p.ThumbnailUrl = input.ThumbnailUrl;
-        p.PriceFrom = input.PriceFrom; p.Status = input.Status;
-        p.ShortDescription = input.ShortDescription; p.FullDescription = input.FullDescription;
+        p.Address = input.Address; p.ThumbnailUrl = input.ThumbnailUrl ?? string.Empty;
+        p.ShortDescription = input.ShortDescription ?? string.Empty;
 
         await Db.SaveChangesAsync();
-        TempData["Success"] = input.Id == 0 ? "Đã tạo dự án." : "Đã cập nhật dự án.";
-        return RedirectToAction(nameof(Index));
+        TempData["Success"] = input.Id == 0 ? "Đã tạo khu." : "Đã cập nhật khu.";
+        return RedirectToAction(nameof(Details), new { id = p.Id });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
-        var p = await Db.Projects.Include(x => x.Apartments).FirstOrDefaultAsync(x => x.Id == id);
+        var p = await Db.Projects.Include(x => x.Buildings).FirstOrDefaultAsync(x => x.Id == id);
         if (p == null) return NotFound();
-        if (p.Apartments.Any())
+        if (p.Buildings.Any())
         {
-            TempData["Danger"] = "Không thể xoá dự án còn căn hộ liên kết.";
-            return RedirectToAction(nameof(Index));
+            TempData["Danger"] = "Không thể xoá khu còn toà nhà.";
+            return RedirectToAction(nameof(Details), new { id });
         }
         Db.Projects.Remove(p);
         await Db.SaveChangesAsync();
-        TempData["Success"] = "Đã xoá dự án.";
+        TempData["Success"] = "Đã xoá khu.";
         return RedirectToAction(nameof(Index));
     }
 }

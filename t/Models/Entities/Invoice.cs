@@ -15,8 +15,7 @@ public enum InvoiceStatus
 
 public enum InvoiceKind
 {
-    MonthlyRent = 0,
-    Deposit = 1,
+    Monthly = 0,
     LateFee = 2,
     OneOff = 3
 }
@@ -25,10 +24,10 @@ public class Invoice : BaseEntity
 {
     public string InvoiceNumber { get; set; } = string.Empty;
 
-    public int LeaseId { get; set; }
-    public Lease Lease { get; set; } = null!;
+    public int ApartmentId { get; set; }
+    public Apartment Apartment { get; set; } = null!;
 
-    public InvoiceKind Kind { get; set; } = InvoiceKind.MonthlyRent;
+    public InvoiceKind Kind { get; set; } = InvoiceKind.Monthly;
     public int BillingMonth { get; set; }
     public bool IsRecurring { get; set; }
 

@@ -160,77 +160,6 @@ namespace t.Migrations
                     b.ToTable("NguoiDung_Token", (string)null);
                 });
 
-            modelBuilder.Entity("t.Models.Entities.Amenity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("Id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTao");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiTao");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayXoa");
-
-                    b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiXoa");
-
-                    b.Property<string>("Icon")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("Icon");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("DaXoa");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)")
-                        .HasColumnName("Ten");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
-
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasMaxLength(160)
-                        .HasColumnType("character varying(160)")
-                        .HasColumnName("Slug");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayCapNhat");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiCapNhat");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Slug")
-                        .IsUnique();
-
-                    b.ToTable("TienIch", (string)null);
-                });
-
             modelBuilder.Entity("t.Models.Entities.Apartment", b =>
                 {
                     b.Property<int>("Id")
@@ -240,35 +169,9 @@ namespace t.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("DiaChi");
-
-                    b.Property<bool>("AllowsPets")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("ChoPhepThuCung");
-
-                    b.Property<DateTime?>("ApprovedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayDuyet");
-
-                    b.Property<string>("ApprovedBy")
-                        .HasColumnType("text")
-                        .HasColumnName("NguoiDuyet");
-
                     b.Property<double>("Area")
                         .HasColumnType("double precision")
                         .HasColumnName("DienTich");
-
-                    b.Property<DateOnly>("AvailableFrom")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("date")
-                        .HasColumnName("NgayCoTheVaoO")
-                        .HasDefaultValueSql("CURRENT_DATE");
 
                     b.Property<int>("Bathrooms")
                         .HasColumnType("integer")
@@ -278,13 +181,9 @@ namespace t.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("SoPhongNgu");
 
-                    b.Property<int?>("BuildingId")
+                    b.Property<int>("BuildingId")
                         .HasColumnType("integer")
                         .HasColumnName("ToaNhaId");
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("integer")
-                        .HasColumnName("DanhMucId");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -295,10 +194,6 @@ namespace t.Migrations
                         .HasColumnType("character varying(450)")
                         .HasColumnName("NguoiTao");
 
-                    b.Property<decimal?>("DefaultDeposit")
-                        .HasColumnType("decimal(18,0)")
-                        .HasColumnName("TienDatCocMacDinh");
-
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayXoa");
@@ -308,36 +203,9 @@ namespace t.Migrations
                         .HasColumnType("character varying(450)")
                         .HasColumnName("NguoiXoa");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("MoTa");
-
-                    b.Property<string>("DescriptionExtra")
-                        .HasColumnType("text")
-                        .HasColumnName("MoTaThem");
-
-                    b.Property<string>("FeeNote")
-                        .HasColumnType("text")
-                        .HasColumnName("GhiChuPhi");
-
-                    b.Property<int?>("FloorId")
+                    b.Property<int>("FloorId")
                         .HasColumnType("integer")
                         .HasColumnName("TangId");
-
-                    b.Property<int?>("FloorNumber")
-                        .HasColumnType("integer")
-                        .HasColumnName("SoTang");
-
-                    b.Property<int>("FurnishingLevel")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("MucNoiThat");
-
-                    b.Property<string>("HostId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("ChuNhaId");
 
                     b.Property<int?>("HouseDirection")
                         .HasColumnType("integer")
@@ -347,55 +215,13 @@ namespace t.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
 
-                    b.Property<bool>("IsFeatured")
-                        .HasColumnType("boolean")
-                        .HasColumnName("NoiBat");
-
-                    b.Property<double?>("Latitude")
-                        .HasColumnType("double precision")
-                        .HasColumnName("ViDo");
-
-                    b.Property<double?>("Longitude")
-                        .HasColumnType("double precision")
-                        .HasColumnName("KinhDo");
-
-                    b.Property<int>("MaxLeaseMonths")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(12)
-                        .HasColumnName("SoThangThueToiDa");
-
-                    b.Property<int>("MinLeaseMonths")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(1)
-                        .HasColumnName("SoThangThueToiThieu");
-
-                    b.Property<string>("ModerationNote")
+                    b.Property<string>("Note")
                         .HasColumnType("text")
-                        .HasColumnName("GhiChuKiemDuyet");
+                        .HasColumnName("MoTa");
 
                     b.Property<int>("Occupancy")
                         .HasColumnType("integer")
                         .HasColumnName("TinhTrangThue");
-
-                    b.Property<int>("ParkingType")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("LoaiChoDauXe");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,0)")
-                        .HasColumnName("Gia");
-
-                    b.Property<int?>("ProjectId")
-                        .HasColumnType("integer")
-                        .HasColumnName("DuAnId");
-
-                    b.Property<int>("RegionId")
-                        .HasColumnType("integer")
-                        .HasColumnName("KhuVucId");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -403,23 +229,8 @@ namespace t.Migrations
                         .HasColumnType("bytea")
                         .HasColumnName("PhienBan");
 
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasMaxLength(280)
-                        .HasColumnType("character varying(280)")
-                        .HasColumnName("Slug");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer")
-                        .HasColumnName("TrangThai");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)")
-                        .HasColumnName("TieuDe");
-
                     b.Property<string>("UnitCode")
+                        .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)")
                         .HasColumnName("MaCanHo");
@@ -433,84 +244,20 @@ namespace t.Migrations
                         .HasColumnType("character varying(450)")
                         .HasColumnName("NguoiCapNhat");
 
-                    b.Property<int>("ViewCount")
-                        .HasColumnType("integer")
-                        .HasColumnName("LuotXem");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("AvailableFrom");
-
-                    b.HasIndex("BuildingId");
-
-                    b.HasIndex("CategoryId");
 
                     b.HasIndex("FloorId");
 
-                    b.HasIndex("FurnishingLevel");
-
-                    b.HasIndex("HostId");
-
-                    b.HasIndex("IsFeatured");
-
                     b.HasIndex("Occupancy");
-
-                    b.HasIndex("ParkingType");
-
-                    b.HasIndex("Price");
-
-                    b.HasIndex("ProjectId");
-
-                    b.HasIndex("RegionId");
-
-                    b.HasIndex("Slug")
-                        .IsUnique();
-
-                    b.HasIndex("Status");
 
                     b.HasIndex("BuildingId", "UnitCode")
                         .IsUnique()
-                        .HasFilter("\"ToaNhaId\" IS NOT NULL AND \"MaCanHo\" IS NOT NULL");
+                        .HasFilter("\"DaXoa\" = false");
 
                     b.ToTable("CanHo", (string)null);
                 });
 
-            modelBuilder.Entity("t.Models.Entities.ApartmentAmenity", b =>
-                {
-                    b.Property<int>("ApartmentId")
-                        .HasColumnType("integer")
-                        .HasColumnName("CanHoId");
-
-                    b.Property<int>("AmenityId")
-                        .HasColumnType("integer")
-                        .HasColumnName("TienIchId");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTao");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiTao");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayCapNhat");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiCapNhat");
-
-                    b.HasKey("ApartmentId", "AmenityId");
-
-                    b.HasIndex("AmenityId");
-
-                    b.ToTable("CanHo_TienIch", (string)null);
-                });
-
-            modelBuilder.Entity("t.Models.Entities.ApartmentImage", b =>
+            modelBuilder.Entity("t.Models.Entities.ApartmentResident", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -522,10 +269,6 @@ namespace t.Migrations
                     b.Property<int>("ApartmentId")
                         .HasColumnType("integer")
                         .HasColumnName("CanHoId");
-
-                    b.Property<string>("Caption")
-                        .HasColumnType("text")
-                        .HasColumnName("ChuThich");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -545,23 +288,57 @@ namespace t.Migrations
                         .HasColumnType("character varying(450)")
                         .HasColumnName("NguoiXoa");
 
-                    b.Property<bool>("IsCover")
-                        .HasColumnType("boolean")
-                        .HasColumnName("AnhBia");
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("Email");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("HoTen");
+
+                    b.Property<string>("IdNumber")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("SoGiayTo");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("boolean")
+                        .HasColumnName("DaiDienCanHo");
+
+                    b.Property<DateTime>("MoveInDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("NgayVaoO");
+
+                    b.Property<DateTime?>("MoveOutDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("NgayChuyenDi");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("GhiChu");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("SoDienThoai");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("VaiTro");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("PhienBan");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("ThuTu");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -572,17 +349,17 @@ namespace t.Migrations
                         .HasColumnType("character varying(450)")
                         .HasColumnName("NguoiCapNhat");
 
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("Url");
+                    b.Property<string>("UserId")
+                        .HasColumnType("text")
+                        .HasColumnName("NguoiDungId");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ApartmentId");
 
-                    b.ToTable("AnhCanHo", (string)null);
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CuDan", (string)null);
                 });
 
             modelBuilder.Entity("t.Models.Entities.AppUser", b =>
@@ -631,17 +408,9 @@ namespace t.Migrations
                         .HasColumnType("text")
                         .HasColumnName("HoTen");
 
-                    b.Property<string>("HostTitle")
-                        .HasColumnType("text")
-                        .HasColumnName("DanhXungChuNha");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
-
-                    b.Property<bool>("IsHost")
-                        .HasColumnType("boolean")
-                        .HasColumnName("LaChuNha");
 
                     b.Property<DateTime?>("LastLoginAt")
                         .HasColumnType("timestamp without time zone")
@@ -848,6 +617,10 @@ namespace t.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
 
+                    b.Property<decimal>("ManagementFeePerM2")
+                        .HasColumnType("decimal(18,0)")
+                        .HasColumnName("DonGiaPhiQuanLy");
+
                     b.Property<string>("ManagerId")
                         .HasColumnType("text")
                         .HasColumnName("QuanLyId");
@@ -909,236 +682,6 @@ namespace t.Migrations
                     b.HasIndex("Status");
 
                     b.ToTable("ToaNha", (string)null);
-                });
-
-            modelBuilder.Entity("t.Models.Entities.Category", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("Id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTao");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiTao");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayXoa");
-
-                    b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiXoa");
-
-                    b.Property<string>("Icon")
-                        .HasColumnType("text")
-                        .HasColumnName("Icon");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("DaXoa");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)")
-                        .HasColumnName("Ten");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
-
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasMaxLength(160)
-                        .HasColumnType("character varying(160)")
-                        .HasColumnName("Slug");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayCapNhat");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiCapNhat");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Slug")
-                        .IsUnique();
-
-                    b.ToTable("DanhMuc", (string)null);
-                });
-
-            modelBuilder.Entity("t.Models.Entities.DepositTransaction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("Id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,0)")
-                        .HasColumnName("SoTien");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTao");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiTao");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayXoa");
-
-                    b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiXoa");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("DaXoa");
-
-                    b.Property<int>("LeaseId")
-                        .HasColumnType("integer")
-                        .HasColumnName("HopDongId");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("LyDo");
-
-                    b.Property<DateTime>("RecordedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayGhiNhan");
-
-                    b.Property<string>("RecordedBy")
-                        .HasColumnType("text")
-                        .HasColumnName("NguoiGhiNhan");
-
-                    b.Property<int?>("RelatedInspectionId")
-                        .HasColumnType("integer")
-                        .HasColumnName("KiemKeLienQuanId");
-
-                    b.Property<int?>("RelatedRequestId")
-                        .HasColumnType("integer")
-                        .HasColumnName("YeuCauLienQuanId");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer")
-                        .HasColumnName("Loai");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayCapNhat");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiCapNhat");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LeaseId");
-
-                    b.HasIndex("RecordedAt");
-
-                    b.HasIndex("RelatedInspectionId");
-
-                    b.HasIndex("RelatedRequestId");
-
-                    b.HasIndex("Type");
-
-                    b.ToTable("GiaoDichDatCoc", (string)null);
-                });
-
-            modelBuilder.Entity("t.Models.Entities.Favorite", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("Id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ApartmentId")
-                        .HasColumnType("integer")
-                        .HasColumnName("CanHoId");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTao");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiTao");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayXoa");
-
-                    b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiXoa");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("DaXoa");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayCapNhat");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiCapNhat");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("NguoiDungId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApartmentId");
-
-                    b.HasIndex("UserId", "ApartmentId")
-                        .IsUnique();
-
-                    b.ToTable("YeuThich", (string)null);
                 });
 
             modelBuilder.Entity("t.Models.Entities.Floor", b =>
@@ -1222,6 +765,10 @@ namespace t.Migrations
                         .HasColumnType("decimal(18,0)")
                         .HasColumnName("DaThanhToan");
 
+                    b.Property<int>("ApartmentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("CanHoId");
+
                     b.Property<decimal>("Balance")
                         .HasColumnType("decimal(18,0)")
                         .HasColumnName("ConLai");
@@ -1288,10 +835,6 @@ namespace t.Migrations
                         .HasColumnType("decimal(18,0)")
                         .HasColumnName("PhiTreHan");
 
-                    b.Property<int>("LeaseId")
-                        .HasColumnType("integer")
-                        .HasColumnName("HopDongId");
-
                     b.Property<string>("Note")
                         .HasColumnType("text")
                         .HasColumnName("GhiChu");
@@ -1334,11 +877,9 @@ namespace t.Migrations
                     b.HasIndex("InvoiceNumber")
                         .IsUnique();
 
-                    b.HasIndex("LeaseId");
-
                     b.HasIndex("Status");
 
-                    b.HasIndex("LeaseId", "BillingMonth", "Kind");
+                    b.HasIndex("ApartmentId", "BillingMonth", "Kind");
 
                     b.ToTable("HoaDon", (string)null);
                 });
@@ -1422,284 +963,6 @@ namespace t.Migrations
                     b.ToTable("ChiTietHoaDon", (string)null);
                 });
 
-            modelBuilder.Entity("t.Models.Entities.Lease", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("Id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("ActivatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayKichHoat");
-
-                    b.Property<int>("ApartmentId")
-                        .HasColumnType("integer")
-                        .HasColumnName("CanHoId");
-
-                    b.Property<int>("BillingDay")
-                        .HasColumnType("integer")
-                        .HasColumnName("NgayChotKy");
-
-                    b.Property<string>("ContractUrl")
-                        .HasColumnType("text")
-                        .HasColumnName("UrlHopDong");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTao");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiTao");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayXoa");
-
-                    b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiXoa");
-
-                    b.Property<decimal>("Deposit")
-                        .HasColumnType("decimal(18,0)")
-                        .HasColumnName("TienDatCoc");
-
-                    b.Property<decimal>("DepositHeld")
-                        .HasColumnType("decimal(18,0)")
-                        .HasColumnName("TienDatCocDangGiu");
-
-                    b.Property<decimal>("DepositRefunded")
-                        .HasColumnType("decimal(18,0)")
-                        .HasColumnName("TienDatCocDaHoanTra");
-
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayKetThuc");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("DaXoa");
-
-                    b.Property<int>("LateFeeAfterDays")
-                        .HasColumnType("integer")
-                        .HasColumnName("SoNgayTreHan");
-
-                    b.Property<int>("LateFeePercent")
-                        .HasColumnType("integer")
-                        .HasColumnName("PhanTramPhiTre");
-
-                    b.Property<string>("LeaseNumber")
-                        .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("character varying(40)")
-                        .HasColumnName("SoHopDong");
-
-                    b.Property<decimal>("MonthlyRent")
-                        .HasColumnType("decimal(18,0)")
-                        .HasColumnName("TienThueThang");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("GhiChu");
-
-                    b.Property<string>("PrimaryTenantId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("NguoiThueChinhId");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayBatDau");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer")
-                        .HasColumnName("TrangThai");
-
-                    b.Property<DateTime?>("TerminatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayChamDut");
-
-                    b.Property<string>("TerminationReason")
-                        .HasColumnType("text")
-                        .HasColumnName("LyDoChamDut");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayCapNhat");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiCapNhat");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApartmentId");
-
-                    b.HasIndex("LeaseNumber")
-                        .IsUnique();
-
-                    b.HasIndex("PrimaryTenantId");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("StartDate", "EndDate");
-
-                    b.ToTable("HopDongThue", (string)null);
-                });
-
-            modelBuilder.Entity("t.Models.Entities.LeaseInspection", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("Id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTao");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiTao");
-
-                    b.Property<string>("DamageNotes")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("GhiChuHuHong");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayXoa");
-
-                    b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiXoa");
-
-                    b.Property<decimal>("DepositDeduction")
-                        .HasColumnType("decimal(18,0)")
-                        .HasColumnName("KhauTruDatCoc");
-
-                    b.Property<DateTime>("InspectedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayKiemKe");
-
-                    b.Property<string>("InspectorId")
-                        .HasColumnType("text")
-                        .HasColumnName("NguoiKiemTraId");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("DaXoa");
-
-                    b.Property<int>("LeaseId")
-                        .HasColumnType("integer")
-                        .HasColumnName("HopDongId");
-
-                    b.Property<int>("OverallCondition")
-                        .HasColumnType("integer")
-                        .HasColumnName("TinhTrangChung");
-
-                    b.Property<string>("PhotoUrls")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("DanhSachAnh");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
-
-                    b.Property<string>("Summary")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("TomTat");
-
-                    b.Property<bool>("TenantSigned")
-                        .HasColumnType("boolean")
-                        .HasColumnName("KhachThueDaKy");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer")
-                        .HasColumnName("Loai");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayCapNhat");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiCapNhat");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InspectorId");
-
-                    b.HasIndex("LeaseId");
-
-                    b.HasIndex("LeaseId", "Type");
-
-                    b.ToTable("KiemKeCanHo", (string)null);
-                });
-
-            modelBuilder.Entity("t.Models.Entities.LeaseTenant", b =>
-                {
-                    b.Property<int>("LeaseId")
-                        .HasColumnType("integer")
-                        .HasColumnName("HopDongId");
-
-                    b.Property<string>("TenantId")
-                        .HasColumnType("text")
-                        .HasColumnName("NguoiThueId");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTao");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiTao");
-
-                    b.Property<string>("Relationship")
-                        .HasMaxLength(60)
-                        .HasColumnType("character varying(60)")
-                        .HasColumnName("MoiQuanHe");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayCapNhat");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiCapNhat");
-
-                    b.HasKey("LeaseId", "TenantId");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("HopDong_NguoiThue", (string)null);
-                });
-
             modelBuilder.Entity("t.Models.Entities.MaintenanceRequest", b =>
                 {
                     b.Property<int>("Id")
@@ -1772,10 +1035,6 @@ namespace t.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
 
-                    b.Property<int?>("LeaseId")
-                        .HasColumnType("integer")
-                        .HasColumnName("HopDongId");
-
                     b.Property<string>("PhotoUrls")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)")
@@ -1838,8 +1097,6 @@ namespace t.Migrations
                     b.HasIndex("ApartmentId");
 
                     b.HasIndex("AssignedToId");
-
-                    b.HasIndex("LeaseId");
 
                     b.HasIndex("Priority");
 
@@ -2077,11 +1334,6 @@ namespace t.Migrations
                         .HasColumnType("character varying(450)")
                         .HasColumnName("NguoiXoa");
 
-                    b.Property<string>("FullDescription")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("MoTaDayDu");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
@@ -2091,10 +1343,6 @@ namespace t.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("Ten");
-
-                    b.Property<decimal>("PriceFrom")
-                        .HasColumnType("decimal(18,0)")
-                        .HasColumnName("GiaTu");
 
                     b.Property<int>("RegionId")
                         .HasColumnType("integer")
@@ -2117,10 +1365,6 @@ namespace t.Migrations
                         .HasColumnType("character varying(220)")
                         .HasColumnName("Slug");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer")
-                        .HasColumnName("TrangThai");
-
                     b.Property<string>("ThumbnailUrl")
                         .IsRequired()
                         .HasColumnType("text")
@@ -2142,84 +1386,7 @@ namespace t.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.HasIndex("Status");
-
                     b.ToTable("DuAn", (string)null);
-                });
-
-            modelBuilder.Entity("t.Models.Entities.ProjectImage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("Id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Caption")
-                        .HasColumnType("text")
-                        .HasColumnName("ChuThich");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTao");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiTao");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayXoa");
-
-                    b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiXoa");
-
-                    b.Property<bool>("IsCover")
-                        .HasColumnType("boolean")
-                        .HasColumnName("AnhBia");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("DaXoa");
-
-                    b.Property<int>("ProjectId")
-                        .HasColumnType("integer")
-                        .HasColumnName("DuAnId");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("ThuTu");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayCapNhat");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiCapNhat");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("Url");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProjectId");
-
-                    b.ToTable("AnhDuAn", (string)null);
                 });
 
             modelBuilder.Entity("t.Models.Entities.RecurringCharge", b =>
@@ -2234,6 +1401,10 @@ namespace t.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,0)")
                         .HasColumnName("SoTien");
+
+                    b.Property<int>("ApartmentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("CanHoId");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -2267,10 +1438,6 @@ namespace t.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
 
-                    b.Property<int>("LeaseId")
-                        .HasColumnType("integer")
-                        .HasColumnName("HopDongId");
-
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -2292,7 +1459,7 @@ namespace t.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LeaseId");
+                    b.HasIndex("ApartmentId");
 
                     b.ToTable("PhiDinhKy", (string)null);
                 });
@@ -2367,362 +1534,6 @@ namespace t.Migrations
                     b.ToTable("KhuVuc", (string)null);
                 });
 
-            modelBuilder.Entity("t.Models.Entities.RentalPreferenceAmenity", b =>
-                {
-                    b.Property<int>("ProfileId")
-                        .HasColumnType("integer")
-                        .HasColumnName("HoSoNhuCauThueId");
-
-                    b.Property<int>("AmenityId")
-                        .HasColumnType("integer")
-                        .HasColumnName("TienIchId");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTao");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiTao");
-
-                    b.Property<bool>("IsRequired")
-                        .HasColumnType("boolean")
-                        .HasColumnName("BatBuoc");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayCapNhat");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiCapNhat");
-
-                    b.HasKey("ProfileId", "AmenityId");
-
-                    b.HasIndex("AmenityId");
-
-                    b.ToTable("HoSoNhuCauThue_TienIch", (string)null);
-                });
-
-            modelBuilder.Entity("t.Models.Entities.RentalPreferenceCategory", b =>
-                {
-                    b.Property<int>("ProfileId")
-                        .HasColumnType("integer")
-                        .HasColumnName("HoSoNhuCauThueId");
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("integer")
-                        .HasColumnName("DanhMucId");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTao");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiTao");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayCapNhat");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiCapNhat");
-
-                    b.HasKey("ProfileId", "CategoryId");
-
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("HoSoNhuCauThue_DanhMuc", (string)null);
-                });
-
-            modelBuilder.Entity("t.Models.Entities.RentalPreferenceProfile", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("Id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<bool?>("AllowsPets")
-                        .HasColumnType("boolean")
-                        .HasColumnName("CanChoPhepThuCung");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTao");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiTao");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayXoa");
-
-                    b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiXoa");
-
-                    b.Property<int?>("FurnishingLevel")
-                        .HasColumnType("integer")
-                        .HasColumnName("MucNoiThat");
-
-                    b.Property<int?>("HouseDirection")
-                        .HasColumnType("integer")
-                        .HasColumnName("HuongNha");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("DaXoa");
-
-                    b.Property<double?>("MaxArea")
-                        .HasColumnType("double precision")
-                        .HasColumnName("DienTichToiDa");
-
-                    b.Property<double?>("MaxDistanceKm")
-                        .HasColumnType("double precision")
-                        .HasColumnName("BanKinhToiDaKm");
-
-                    b.Property<int?>("MaxFloor")
-                        .HasColumnType("integer")
-                        .HasColumnName("TangToiDa");
-
-                    b.Property<int?>("MaxLeaseMonths")
-                        .HasColumnType("integer")
-                        .HasColumnName("SoThangThueToiDa");
-
-                    b.Property<decimal?>("MaxPrice")
-                        .HasColumnType("decimal(18,0)")
-                        .HasColumnName("GiaToiDa");
-
-                    b.Property<double?>("MinArea")
-                        .HasColumnType("double precision")
-                        .HasColumnName("DienTichToiThieu");
-
-                    b.Property<int?>("MinBedrooms")
-                        .HasColumnType("integer")
-                        .HasColumnName("SoPhongNguToiThieu");
-
-                    b.Property<int?>("MinFloor")
-                        .HasColumnType("integer")
-                        .HasColumnName("TangToiThieu");
-
-                    b.Property<int?>("MinLeaseMonths")
-                        .HasColumnType("integer")
-                        .HasColumnName("SoThangThueToiThieu");
-
-                    b.Property<decimal?>("MinPrice")
-                        .HasColumnType("decimal(18,0)")
-                        .HasColumnName("GiaToiThieu");
-
-                    b.Property<DateOnly?>("MoveInDate")
-                        .HasColumnType("date")
-                        .HasColumnName("NgayDuKienVaoO");
-
-                    b.Property<int?>("ParkingType")
-                        .HasColumnType("integer")
-                        .HasColumnName("LoaiChoDauXe");
-
-                    b.Property<string>("PreferredAddress")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("DiaChiUuTien");
-
-                    b.Property<double?>("PreferredLatitude")
-                        .HasColumnType("double precision")
-                        .HasColumnName("ViDoUuTien");
-
-                    b.Property<double?>("PreferredLongitude")
-                        .HasColumnType("double precision")
-                        .HasColumnName("KinhDoUuTien");
-
-                    b.Property<int?>("RegionId")
-                        .HasColumnType("integer")
-                        .HasColumnName("KhuVucId");
-
-                    b.Property<bool>("RequireAreaRange")
-                        .HasColumnType("boolean")
-                        .HasColumnName("BatBuocDienTich");
-
-                    b.Property<bool>("RequireBedrooms")
-                        .HasColumnType("boolean")
-                        .HasColumnName("BatBuocPhongNgu");
-
-                    b.Property<bool>("RequireCategoryMatch")
-                        .HasColumnType("boolean")
-                        .HasColumnName("BatBuocLoaiHinh");
-
-                    b.Property<bool>("RequireDirection")
-                        .HasColumnType("boolean")
-                        .HasColumnName("BatBuocHuongNha");
-
-                    b.Property<bool>("RequireFloorRange")
-                        .HasColumnType("boolean")
-                        .HasColumnName("BatBuocKhoangTang");
-
-                    b.Property<bool>("RequireFurnishing")
-                        .HasColumnType("boolean")
-                        .HasColumnName("BatBuocNoiThat");
-
-                    b.Property<bool>("RequireLeaseRange")
-                        .HasColumnType("boolean")
-                        .HasColumnName("BatBuocThoiHanThue");
-
-                    b.Property<bool>("RequireMaxDistance")
-                        .HasColumnType("boolean")
-                        .HasColumnName("BatBuocKhoangCach");
-
-                    b.Property<bool>("RequireMoveInDate")
-                        .HasColumnType("boolean")
-                        .HasColumnName("BatBuocNgayVaoO");
-
-                    b.Property<bool>("RequireParking")
-                        .HasColumnType("boolean")
-                        .HasColumnName("BatBuocDauXe");
-
-                    b.Property<bool>("RequirePets")
-                        .HasColumnType("boolean")
-                        .HasColumnName("BatBuocThuCung");
-
-                    b.Property<bool>("RequirePriceRange")
-                        .HasColumnType("boolean")
-                        .HasColumnName("BatBuocKhoangGia");
-
-                    b.Property<bool>("RequireRegion")
-                        .HasColumnType("boolean")
-                        .HasColumnName("BatBuocKhuVuc");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayCapNhat");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiCapNhat");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("NguoiDungId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RegionId");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("HoSoNhuCauThue", (string)null);
-                });
-
-            modelBuilder.Entity("t.Models.Entities.Review", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("Id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ApartmentId")
-                        .HasColumnType("integer")
-                        .HasColumnName("CanHoId");
-
-                    b.Property<DateTime?>("ApprovedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayDuyet");
-
-                    b.Property<string>("ApprovedBy")
-                        .HasColumnType("text")
-                        .HasColumnName("NguoiDuyet");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("NoiDung");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTao");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiTao");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayXoa");
-
-                    b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiXoa");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("DaXoa");
-
-                    b.Property<int>("Rating")
-                        .HasColumnType("integer")
-                        .HasColumnName("DiemSao");
-
-                    b.Property<string>("RenterNote")
-                        .HasColumnType("text")
-                        .HasColumnName("GhiChuNguoiThue");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer")
-                        .HasColumnName("TrangThai");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayCapNhat");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiCapNhat");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("NguoiDungId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApartmentId");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("DanhGia", (string)null);
-                });
-
             modelBuilder.Entity("t.Models.Entities.RolePermission", b =>
                 {
                     b.Property<string>("RoleId")
@@ -2771,6 +1582,10 @@ namespace t.Migrations
                         .HasColumnType("decimal(18,0)")
                         .HasColumnName("ThanhTien");
 
+                    b.Property<int>("ApartmentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("CanHoId");
+
                     b.Property<bool>("Billed")
                         .HasColumnType("boolean")
                         .HasColumnName("DaXuatHoaDon");
@@ -2808,10 +1623,6 @@ namespace t.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
-
-                    b.Property<int>("LeaseId")
-                        .HasColumnType("integer")
-                        .HasColumnName("HopDongId");
 
                     b.Property<string>("Note")
                         .HasColumnType("text")
@@ -2854,8 +1665,9 @@ namespace t.Migrations
 
                     b.HasIndex("UtilityTypeId");
 
-                    b.HasIndex("LeaseId", "UtilityTypeId", "BillingMonth")
-                        .IsUnique();
+                    b.HasIndex("ApartmentId", "UtilityTypeId", "BillingMonth")
+                        .IsUnique()
+                        .HasFilter("\"DaXoa\" = false");
 
                     b.ToTable("ChiSoDichVu", (string)null);
                 });
@@ -2944,128 +1756,6 @@ namespace t.Migrations
                     b.ToTable("LoaiDichVu", (string)null);
                 });
 
-            modelBuilder.Entity("t.Models.Entities.ViewingAppointment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("Id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ApartmentId")
-                        .HasColumnType("integer")
-                        .HasColumnName("CanHoId");
-
-                    b.Property<string>("CancellationReason")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("LyDoHuy");
-
-                    b.Property<DateTime?>("CancelledAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayHuy");
-
-                    b.Property<string>("CancelledBy")
-                        .HasColumnType("text")
-                        .HasColumnName("NguoiHuy");
-
-                    b.Property<DateTime?>("ConfirmedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayXacNhan");
-
-                    b.Property<string>("ConfirmedBy")
-                        .HasColumnType("text")
-                        .HasColumnName("NguoiXacNhan");
-
-                    b.Property<string>("ContactEmail")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("EmailLienHe");
-
-                    b.Property<string>("ContactName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("TenLienHe");
-
-                    b.Property<string>("ContactPhone")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("SoDienThoaiLienHe");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTao");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiTao");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayXoa");
-
-                    b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiXoa");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("DaXoa");
-
-                    b.Property<string>("Note")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
-                        .HasColumnName("GhiChu");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
-
-                    b.Property<DateTime>("ScheduledDate")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayHen");
-
-                    b.Property<int>("SlotHour")
-                        .HasColumnType("integer")
-                        .HasColumnName("GioHen");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer")
-                        .HasColumnName("TrangThai");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayCapNhat");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiCapNhat");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("text")
-                        .HasColumnName("NguoiDungId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApartmentId");
-
-                    b.HasIndex("ScheduledDate");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("LichXemNha", (string)null);
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -3122,77 +1812,36 @@ namespace t.Migrations
                     b.HasOne("t.Models.Entities.Building", "Building")
                         .WithMany("Apartments")
                         .HasForeignKey("BuildingId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("t.Models.Entities.Category", "Category")
-                        .WithMany("Apartments")
-                        .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("t.Models.Entities.Floor", "Floor")
                         .WithMany("Apartments")
                         .HasForeignKey("FloorId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("t.Models.Entities.AppUser", "Host")
-                        .WithMany("Apartments")
-                        .HasForeignKey("HostId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("t.Models.Entities.Project", "Project")
-                        .WithMany("Apartments")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("t.Models.Entities.Region", "Region")
-                        .WithMany("Apartments")
-                        .HasForeignKey("RegionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Building");
 
-                    b.Navigation("Category");
-
                     b.Navigation("Floor");
-
-                    b.Navigation("Host");
-
-                    b.Navigation("Project");
-
-                    b.Navigation("Region");
                 });
 
-            modelBuilder.Entity("t.Models.Entities.ApartmentAmenity", b =>
+            modelBuilder.Entity("t.Models.Entities.ApartmentResident", b =>
                 {
-                    b.HasOne("t.Models.Entities.Amenity", "Amenity")
-                        .WithMany("ApartmentAmenities")
-                        .HasForeignKey("AmenityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("t.Models.Entities.Apartment", "Apartment")
-                        .WithMany("ApartmentAmenities")
+                        .WithMany("Residents")
                         .HasForeignKey("ApartmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Amenity");
+                    b.HasOne("t.Models.Entities.AppUser", "User")
+                        .WithMany("Residencies")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Apartment");
-                });
 
-            modelBuilder.Entity("t.Models.Entities.ApartmentImage", b =>
-                {
-                    b.HasOne("t.Models.Entities.Apartment", "Apartment")
-                        .WithMany("Images")
-                        .HasForeignKey("ApartmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Apartment");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("t.Models.Entities.Building", b =>
@@ -3203,7 +1852,7 @@ namespace t.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("t.Models.Entities.Project", "Project")
-                        .WithMany()
+                        .WithMany("Buildings")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.SetNull);
 
@@ -3220,50 +1869,6 @@ namespace t.Migrations
                     b.Navigation("Region");
                 });
 
-            modelBuilder.Entity("t.Models.Entities.DepositTransaction", b =>
-                {
-                    b.HasOne("t.Models.Entities.Lease", "Lease")
-                        .WithMany("DepositTransactions")
-                        .HasForeignKey("LeaseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("t.Models.Entities.LeaseInspection", "RelatedInspection")
-                        .WithMany()
-                        .HasForeignKey("RelatedInspectionId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("t.Models.Entities.MaintenanceRequest", "RelatedRequest")
-                        .WithMany()
-                        .HasForeignKey("RelatedRequestId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("Lease");
-
-                    b.Navigation("RelatedInspection");
-
-                    b.Navigation("RelatedRequest");
-                });
-
-            modelBuilder.Entity("t.Models.Entities.Favorite", b =>
-                {
-                    b.HasOne("t.Models.Entities.Apartment", "Apartment")
-                        .WithMany("Favorites")
-                        .HasForeignKey("ApartmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("t.Models.Entities.AppUser", "User")
-                        .WithMany("Favorites")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Apartment");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("t.Models.Entities.Floor", b =>
                 {
                     b.HasOne("t.Models.Entities.Building", "Building")
@@ -3277,13 +1882,13 @@ namespace t.Migrations
 
             modelBuilder.Entity("t.Models.Entities.Invoice", b =>
                 {
-                    b.HasOne("t.Models.Entities.Lease", "Lease")
+                    b.HasOne("t.Models.Entities.Apartment", "Apartment")
                         .WithMany("Invoices")
-                        .HasForeignKey("LeaseId")
+                        .HasForeignKey("ApartmentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Lease");
+                    b.Navigation("Apartment");
                 });
 
             modelBuilder.Entity("t.Models.Entities.InvoiceItem", b =>
@@ -3297,66 +1902,10 @@ namespace t.Migrations
                     b.Navigation("Invoice");
                 });
 
-            modelBuilder.Entity("t.Models.Entities.Lease", b =>
-                {
-                    b.HasOne("t.Models.Entities.Apartment", "Apartment")
-                        .WithMany("Leases")
-                        .HasForeignKey("ApartmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("t.Models.Entities.AppUser", "PrimaryTenant")
-                        .WithMany("Leases")
-                        .HasForeignKey("PrimaryTenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Apartment");
-
-                    b.Navigation("PrimaryTenant");
-                });
-
-            modelBuilder.Entity("t.Models.Entities.LeaseInspection", b =>
-                {
-                    b.HasOne("t.Models.Entities.AppUser", "Inspector")
-                        .WithMany()
-                        .HasForeignKey("InspectorId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("t.Models.Entities.Lease", "Lease")
-                        .WithMany("Inspections")
-                        .HasForeignKey("LeaseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Inspector");
-
-                    b.Navigation("Lease");
-                });
-
-            modelBuilder.Entity("t.Models.Entities.LeaseTenant", b =>
-                {
-                    b.HasOne("t.Models.Entities.Lease", "Lease")
-                        .WithMany("AdditionalTenants")
-                        .HasForeignKey("LeaseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("t.Models.Entities.AppUser", "Tenant")
-                        .WithMany("CoTenancies")
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Lease");
-
-                    b.Navigation("Tenant");
-                });
-
             modelBuilder.Entity("t.Models.Entities.MaintenanceRequest", b =>
                 {
                     b.HasOne("t.Models.Entities.Apartment", "Apartment")
-                        .WithMany()
+                        .WithMany("MaintenanceRequests")
                         .HasForeignKey("ApartmentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -3366,11 +1915,6 @@ namespace t.Migrations
                         .HasForeignKey("AssignedToId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("t.Models.Entities.Lease", "Lease")
-                        .WithMany("MaintenanceRequests")
-                        .HasForeignKey("LeaseId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("t.Models.Entities.AppUser", "Reporter")
                         .WithMany()
                         .HasForeignKey("ReporterId")
@@ -3379,8 +1923,6 @@ namespace t.Migrations
                     b.Navigation("Apartment");
 
                     b.Navigation("AssignedTo");
-
-                    b.Navigation("Lease");
 
                     b.Navigation("Reporter");
                 });
@@ -3407,101 +1949,15 @@ namespace t.Migrations
                     b.Navigation("Region");
                 });
 
-            modelBuilder.Entity("t.Models.Entities.ProjectImage", b =>
-                {
-                    b.HasOne("t.Models.Entities.Project", "Project")
-                        .WithMany("Images")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Project");
-                });
-
             modelBuilder.Entity("t.Models.Entities.RecurringCharge", b =>
                 {
-                    b.HasOne("t.Models.Entities.Lease", "Lease")
-                        .WithMany("RecurringCharges")
-                        .HasForeignKey("LeaseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Lease");
-                });
-
-            modelBuilder.Entity("t.Models.Entities.RentalPreferenceAmenity", b =>
-                {
-                    b.HasOne("t.Models.Entities.Amenity", "Amenity")
-                        .WithMany()
-                        .HasForeignKey("AmenityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("t.Models.Entities.RentalPreferenceProfile", "Profile")
-                        .WithMany("Amenities")
-                        .HasForeignKey("ProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Amenity");
-
-                    b.Navigation("Profile");
-                });
-
-            modelBuilder.Entity("t.Models.Entities.RentalPreferenceCategory", b =>
-                {
-                    b.HasOne("t.Models.Entities.Category", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("t.Models.Entities.RentalPreferenceProfile", "Profile")
-                        .WithMany("Categories")
-                        .HasForeignKey("ProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-
-                    b.Navigation("Profile");
-                });
-
-            modelBuilder.Entity("t.Models.Entities.RentalPreferenceProfile", b =>
-                {
-                    b.HasOne("t.Models.Entities.Region", "Region")
-                        .WithMany()
-                        .HasForeignKey("RegionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("t.Models.Entities.AppUser", "User")
-                        .WithOne("RentalPreferenceProfile")
-                        .HasForeignKey("t.Models.Entities.RentalPreferenceProfile", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Region");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("t.Models.Entities.Review", b =>
-                {
                     b.HasOne("t.Models.Entities.Apartment", "Apartment")
-                        .WithMany("Reviews")
+                        .WithMany("RecurringCharges")
                         .HasForeignKey("ApartmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("t.Models.Entities.AppUser", "User")
-                        .WithMany("Reviews")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Apartment");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("t.Models.Entities.RolePermission", b =>
@@ -3525,9 +1981,9 @@ namespace t.Migrations
 
             modelBuilder.Entity("t.Models.Entities.UtilityReading", b =>
                 {
-                    b.HasOne("t.Models.Entities.Lease", "Lease")
+                    b.HasOne("t.Models.Entities.Apartment", "Apartment")
                         .WithMany("UtilityReadings")
-                        .HasForeignKey("LeaseId")
+                        .HasForeignKey("ApartmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -3537,62 +1993,29 @@ namespace t.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Lease");
+                    b.Navigation("Apartment");
 
                     b.Navigation("UtilityType");
                 });
 
-            modelBuilder.Entity("t.Models.Entities.ViewingAppointment", b =>
-                {
-                    b.HasOne("t.Models.Entities.Apartment", "Apartment")
-                        .WithMany()
-                        .HasForeignKey("ApartmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("t.Models.Entities.AppUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("Apartment");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("t.Models.Entities.Amenity", b =>
-                {
-                    b.Navigation("ApartmentAmenities");
-                });
-
             modelBuilder.Entity("t.Models.Entities.Apartment", b =>
                 {
-                    b.Navigation("ApartmentAmenities");
+                    b.Navigation("Invoices");
 
-                    b.Navigation("Favorites");
+                    b.Navigation("MaintenanceRequests");
 
-                    b.Navigation("Images");
+                    b.Navigation("RecurringCharges");
 
-                    b.Navigation("Leases");
+                    b.Navigation("Residents");
 
-                    b.Navigation("Reviews");
+                    b.Navigation("UtilityReadings");
                 });
 
             modelBuilder.Entity("t.Models.Entities.AppUser", b =>
                 {
-                    b.Navigation("Apartments");
-
-                    b.Navigation("CoTenancies");
-
-                    b.Navigation("Favorites");
-
-                    b.Navigation("Leases");
-
                     b.Navigation("ManagedBuildings");
 
-                    b.Navigation("RentalPreferenceProfile");
-
-                    b.Navigation("Reviews");
+                    b.Navigation("Residencies");
                 });
 
             modelBuilder.Entity("t.Models.Entities.Building", b =>
@@ -3600,11 +2023,6 @@ namespace t.Migrations
                     b.Navigation("Apartments");
 
                     b.Navigation("Floors");
-                });
-
-            modelBuilder.Entity("t.Models.Entities.Category", b =>
-                {
-                    b.Navigation("Apartments");
                 });
 
             modelBuilder.Entity("t.Models.Entities.Floor", b =>
@@ -3619,23 +2037,6 @@ namespace t.Migrations
                     b.Navigation("Payments");
                 });
 
-            modelBuilder.Entity("t.Models.Entities.Lease", b =>
-                {
-                    b.Navigation("AdditionalTenants");
-
-                    b.Navigation("DepositTransactions");
-
-                    b.Navigation("Inspections");
-
-                    b.Navigation("Invoices");
-
-                    b.Navigation("MaintenanceRequests");
-
-                    b.Navigation("RecurringCharges");
-
-                    b.Navigation("UtilityReadings");
-                });
-
             modelBuilder.Entity("t.Models.Entities.Permission", b =>
                 {
                     b.Navigation("RolePermissions");
@@ -3643,23 +2044,12 @@ namespace t.Migrations
 
             modelBuilder.Entity("t.Models.Entities.Project", b =>
                 {
-                    b.Navigation("Apartments");
-
-                    b.Navigation("Images");
+                    b.Navigation("Buildings");
                 });
 
             modelBuilder.Entity("t.Models.Entities.Region", b =>
                 {
-                    b.Navigation("Apartments");
-
                     b.Navigation("Projects");
-                });
-
-            modelBuilder.Entity("t.Models.Entities.RentalPreferenceProfile", b =>
-                {
-                    b.Navigation("Amenities");
-
-                    b.Navigation("Categories");
                 });
 
             modelBuilder.Entity("t.Models.Entities.UtilityType", b =>

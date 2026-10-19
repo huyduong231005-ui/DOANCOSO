@@ -76,3 +76,4 @@ verify_neon.csx
 
 ## Cấu hình bí mật trên máy dev
 .env
+.gstack/

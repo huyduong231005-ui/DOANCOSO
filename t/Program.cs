@@ -4,12 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.WebEncoders;
 using t.Application.Commands.Auth;
-using t.Application.Commands.Favorites;
-using t.Application.Commands.Listings;
-using t.Application.Commands.RentalPreferences;
 using t.Application.Queries.Auth;
-using t.Application.Queries.Projects;
-using t.Application.Queries.Rentals;
 using t.Data;
 using t.Infrastructure.Audit;
 using t.Infrastructure.Billing;
@@ -80,6 +75,7 @@ builder.Services.AddSingleton<Microsoft.AspNetCore.Mvc.DataAnnotations.IValidati
 builder.Services.AddControllersWithViews(options =>
 {
     options.ModelMetadataDetailsProviders.Add(new t.Infrastructure.Localization.VietnameseValidationMessagesProvider());
+    options.ModelBinderProviders.Insert(0, new t.Infrastructure.ModelBinding.InvariantNumberModelBinderProvider());
 
     var msg = options.ModelBindingMessageProvider;
     msg.SetMissingBindRequiredValueAccessor(name => $"Thiếu giá trị cho '{name}'.");
@@ -94,25 +90,16 @@ builder.Services.AddControllersWithViews(options =>
     msg.SetNonPropertyUnknownValueIsInvalidAccessor(() => "Giá trị không hợp lệ.");
     msg.SetNonPropertyValueMustBeANumberAccessor(() => "Giá trị phải là số.");
 });
-builder.Services.AddScoped<CreateListingCommandHandler>();
 builder.Services.AddScoped<AuthCommandHandler>();
-builder.Services.AddScoped<SetFavoriteCommandHandler>();
 builder.Services.AddScoped<AuthQueryHandler>();
-builder.Services.AddScoped<ProjectsQueryHandler>();
-builder.Services.AddScoped<RentalsQueryHandler>();
-builder.Services.AddScoped<NearbyApartmentRecommendationsQueryHandler>();
-builder.Services.AddScoped<RentalPreferenceProfileQueryHandler>();
-builder.Services.AddScoped<SaveRentalPreferenceCommandHandler>();
 builder.Services.AddSingleton<IDevResetTokenStore, InMemoryDevResetTokenStore>();
 builder.Services.AddScoped<InvoiceGenerator>();
 builder.Services.AddHostedService<InvoiceGenerationService>();
-builder.Services.AddHostedService<LeaseLifecycleService>();
 builder.Services.AddScoped<FileStorageService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<t.Infrastructure.Payments.VietQrService>();
 builder.Services.AddScoped<t.Infrastructure.Ai.MaintenanceTriageService>();
 builder.Services.AddScoped<InvoicePdfGenerator>();
-builder.Services.AddScoped<LeaseContractPdfGenerator>();
 builder.Services.AddScoped<t.Infrastructure.Maintenance.MaintenanceDispatcher>();
 // Chưa cấu hình đủ Smtp:Host và Smtp:Password thì email chỉ ghi log và lưu vào wwwroot/dev-emails.
 if (string.IsNullOrWhiteSpace(builder.Configuration["Smtp:Host"]) || string.IsNullOrWhiteSpace(builder.Configuration["Smtp:Password"]))

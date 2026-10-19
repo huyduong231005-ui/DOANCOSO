@@ -18,13 +18,12 @@ public class InvoicesController : TenantBaseController
     {
         var uid = CurrentUserId;
         var inv = await Db.Invoices
-            .Include(i => i.Lease).ThenInclude(l => l.PrimaryTenant)
-            .Include(i => i.Lease).ThenInclude(l => l.Apartment)
+            .Include(i => i.Apartment).ThenInclude(a => a.Building)
+            .Include(i => i.Apartment).ThenInclude(a => a.Residents)
             .Include(i => i.Items)
             .Include(i => i.Payments)
             .AsSplitQuery()
-            .FirstOrDefaultAsync(i => i.Id == id &&
-                (i.Lease.PrimaryTenantId == uid || i.Lease.AdditionalTenants.Any(t => t.TenantId == uid)));
+            .FirstOrDefaultAsync(i => i.Id == id && (MyApartmentIds().Contains(i.ApartmentId)));
         if (inv == null) return NotFound();
         if (inv.Status == InvoiceStatus.Draft) return BadRequest("Hoá đơn chưa phát hành.");
         var bytes = _pdfGen.Generate(inv);
@@ -38,17 +37,13 @@ public class InvoicesController : TenantBaseController
 
         const int pageSize = 20;
         var uid = CurrentUserId;
-        var query = Db.Invoices.Where(i =>
-            i.Lease.PrimaryTenantId == uid ||
-            i.Lease.AdditionalTenants.Any(t => t.TenantId == uid));
+        var query = Db.Invoices.Where(i => (MyApartmentIds().Contains(i.ApartmentId)) && i.Status != InvoiceStatus.Draft);
 
         if (status.HasValue) query = query.Where(i => i.Status == status.Value);
         if (!string.IsNullOrWhiteSpace(q))
         {
             var keyword = q.Trim();
-            query = query.Where(i => i.InvoiceNumber.Contains(keyword) ||
-                                      i.Lease.LeaseNumber.Contains(keyword) ||
-                                      i.Lease.Apartment.Title.Contains(keyword));
+            query = query.Where(i => i.InvoiceNumber.Contains(keyword));
         }
 
         var total = await query.CountAsync();
@@ -82,12 +77,11 @@ public class InvoicesController : TenantBaseController
         SetActiveNav("invoices");
         var uid = CurrentUserId;
         var inv = await Db.Invoices
-            .Include(i => i.Lease).ThenInclude(l => l.Apartment)
+            .Include(i => i.Apartment).ThenInclude(a => a.Building)
             .Include(i => i.Items)
             .Include(i => i.Payments)
             .AsSplitQuery()
-            .FirstOrDefaultAsync(i => i.Id == id &&
-                (i.Lease.PrimaryTenantId == uid || i.Lease.AdditionalTenants.Any(t => t.TenantId == uid)));
+            .FirstOrDefaultAsync(i => i.Id == id && (MyApartmentIds().Contains(i.ApartmentId)) && i.Status != InvoiceStatus.Draft);
         if (inv == null) return NotFound();
         SetBreadcrumb(("Hoá đơn", Url.Action(nameof(Index))), (inv.InvoiceNumber, null));
         return View(inv);
@@ -99,9 +93,7 @@ public class InvoicesController : TenantBaseController
         var uid = CurrentUserId;
         var inv = await Db.Invoices
             .Include(i => i.Payments)
-            .Include(i => i.Lease)
-            .FirstOrDefaultAsync(i => i.Id == input.InvoiceId &&
-                (i.Lease.PrimaryTenantId == uid || i.Lease.AdditionalTenants.Any(t => t.TenantId == uid)));
+            .FirstOrDefaultAsync(i => i.Id == input.InvoiceId && (MyApartmentIds().Contains(i.ApartmentId)));
         if (inv == null) return NotFound();
 
         if (inv.Status is InvoiceStatus.Cancelled or InvoiceStatus.Paid or InvoiceStatus.Refunded or InvoiceStatus.Draft)

@@ -48,7 +48,7 @@
 </section>
 
 <form method="get" class="filter-bar">
-    <input type="search" name="q" value="@q" placeholder="Số hoá đơn, hợp đồng, tên khách..."
+    <input type="search" name="q" value="@q" placeholder="Số hoá đơn hoặc mã căn…"
        data-suggest-url="@Url.Action("Suggest")" data-suggest-icon="receipt_long" />
     <select name="status">
         <option value="">— Trạng thái —</option>
@@ -79,7 +79,7 @@
                 <thead>
                     <tr>
                         <th style="width:30px;"><input type="checkbox" id="chkAll" /></th>
-                        <th>Số hoá đơn</th><th>Hợp đồng</th><th>Khách / Căn</th>
+                        <th>Số hoá đơn</th><th>Căn</th>
                         <th>Phát hành</th><th>Đến hạn</th>
                         <th class="num">Tổng</th><th class="num">Đã trả</th><th class="num">Còn lại</th>
                         <th>Trạng thái</th>
@@ -98,8 +98,7 @@
                         <tr data-href="@Url.Action("Details", new { id = i.Id })" title="Bấm để xem chi tiết">
                             <td class="no-row-click">@(canBulk ? Html.Raw($"<input type=\"checkbox\" name=\"ids\" value=\"{i.Id}\" class=\"chkRow\" />") : Html.Raw(""))</td>
                             <td><a class="row-title" asp-action="Details" asp-route-id="@i.Id">@i.InvoiceNumber</a><div class="row-meta">@i.Kind.Vi() · @(i.BillingMonth > 0 ? $"{i.BillingMonth/100}/{i.BillingMonth%100:00}" : "")</div></td>
-                            <td>@i.LeaseNumber</td>
-                            <td><div>@i.TenantName</div><div class="row-meta">@i.UnitTitle</div></td>
+                            <td><div class="row-title">@i.UnitCode</div><div class="row-meta">@i.BuildingName</div></td>
                             <td>@i.IssueDate.ToString("dd/MM/yyyy")</td>
                             <td>@i.DueDate.ToString("dd/MM/yyyy")</td>
                             <td class="num">@Money(i.Total)</td>

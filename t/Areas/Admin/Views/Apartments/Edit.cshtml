@@ -1,226 +1,113 @@
 @model t.Areas.Admin.Models.ApartmentEditVm
-@using t.Models.Entities
-@using t.Infrastructure.Localization
 @{
-    ViewData["Title"] = Model.Id == 0 ? "Thêm căn hộ" : $"Sửa căn hộ #{Model.Id}";
+    var isNew = Model.Id == 0;
+    ViewData["Title"] = isNew ? "Thêm căn hộ" : "Sửa căn " + Model.UnitCode;
 }
 
 <section class="page-header">
     <div>
-        <h1>@(Model.Id == 0 ? "Thêm căn hộ" : Model.Title)</h1>
-        <p class="subtitle">@(Model.Id == 0 ? "Nhập thông tin để tạo căn hộ mới." : "Cập nhật thông tin căn hộ.")</p>
+        <h1>@(isNew ? "Thêm căn hộ" : "Căn " + Model.UnitCode)</h1>
+        <p class="subtitle">Mã căn theo quy ước {Mã toà}-{Tầng}.{Số căn}, ví dụ A-12.05.</p>
     </div>
     <div class="actions">
-        <a class="btn btn-ghost" asp-action="Index">Quay lại</a>
+        <a class="btn btn-ghost" href="@(isNew ? Url.Action("Index") : Url.Action("Details", new { id = Model.Id }))">Quay lại</a>
     </div>
 </section>
 
 <form asp-action="Edit" method="post">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
-
     <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
 
     <div class="card">
-        <div class="card-header"><h2>Thông tin chính</h2></div>
-        <div class="card-body">
-            <div class="form-grid">
-                <div class="form-field span-6">
-                    <label asp-for="Title">Tiêu đề</label>
-                    <input asp-for="Title" />
-                    <span class="err" asp-validation-for="Title"></span>
-                </div>
-                <div class="form-field span-3">
-                    <label asp-for="UnitCode">Mã căn (Unit code)</label>
-                    <input asp-for="UnitCode" placeholder="A-501" />
-                </div>
-                <div class="form-field span-3">
-                    <label asp-for="Slug">Slug</label>
-                    <input asp-for="Slug" placeholder="auto" />
-                    <span class="err" asp-validation-for="Slug"></span>
-                </div>
-                <div class="form-field span-12">
-                    <label asp-for="Description">Mô tả</label>
-                    <textarea asp-for="Description" rows="3"></textarea>
-                </div>
-                <div class="form-field span-12">
-                    <label asp-for="DescriptionExtra">Mô tả mở rộng</label>
-                    <textarea asp-for="DescriptionExtra" rows="2"></textarea>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card mt-3">
-        <div class="card-header"><h2>Thông số &amp; giá</h2></div>
-        <div class="card-body">
-            <div class="form-grid">
-                <div class="form-field span-3">
-                    <label asp-for="Price">Giá / tháng (VND)</label>
-                    <input asp-for="Price" type="number" step="100000" />
-                </div>
-                <div class="form-field span-3">
-                    <label asp-for="DefaultDeposit">Cọc mặc định (VND)</label>
-                    <input asp-for="DefaultDeposit" type="number" step="100000" />
-                </div>
-                <div class="form-field span-2">
-                    <label asp-for="Area">Diện tích (m²)</label>
-                    <input asp-for="Area" type="number" step="0.5" />
-                </div>
-                <div class="form-field span-2">
-                    <label asp-for="Bedrooms">Phòng ngủ</label>
-                    <input asp-for="Bedrooms" type="number" />
-                </div>
-                <div class="form-field span-2">
-                    <label asp-for="Bathrooms">Phòng tắm</label>
-                    <input asp-for="Bathrooms" type="number" />
-                </div>
-                <div class="form-field span-12">
-                    <label asp-for="FeeNote">Ghi chú phí</label>
-                    <input asp-for="FeeNote" />
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card mt-3">
         <div class="card-header"><h2>Vị trí</h2></div>
         <div class="card-body">
             <div class="form-grid">
-                <div class="form-field span-12">
-                    <label asp-for="Address">Địa chỉ</label>
-                    <input asp-for="Address" />
-                    <span class="err" asp-validation-for="Address"></span>
-                </div>
-                <div class="form-field span-3">
-                    <label asp-for="RegionId">Khu vực</label>
-                    <select asp-for="RegionId">
-                        @foreach (var r in Model.Regions) { <option value="@r.Id">@r.Name</option> }
-                    </select>
-                </div>
-                <div class="form-field span-3">
-                    <label asp-for="CategoryId">Phân loại</label>
-                    <select asp-for="CategoryId">
-                        @foreach (var c in Model.Categories) { <option value="@c.Id">@c.Name</option> }
-                    </select>
-                </div>
-                <div class="form-field span-3">
-                    <label asp-for="HostId">Host / Chủ</label>
-                    <select asp-for="HostId">
-                        @foreach (var h in Model.Hosts) { <option value="@h.Id">@h.Label</option> }
-                    </select>
-                </div>
-
                 <div class="form-field span-4">
-                    <label asp-for="ProjectId">Dự án</label>
-                    <select asp-for="ProjectId">
-                        <option value="">— không thuộc dự án —</option>
-                        @foreach (var p in Model.Projects) { <option value="@p.Id">@p.Name</option> }
-                    </select>
-                </div>
-                <div class="form-field span-4">
-                    <label asp-for="BuildingId">Toà nhà</label>
-                    <select asp-for="BuildingId">
-                        <option value="">— không gán toà —</option>
-                        @foreach (var b in Model.Buildings) { <option value="@b.Id">@b.Name</option> }
+                    <label asp-for="BuildingId">Toà</label>
+                    <select asp-for="BuildingId" data-floor-source="@Url.Action("FloorsOf")">
+                        @foreach (var b in Model.Buildings)
+                        {
+                            <option value="@b.Id">@b.Name@(b.Project != null ? " · " + b.Project.Name : "")</option>
+                        }
                     </select>
                 </div>
                 <div class="form-field span-4">
                     <label asp-for="FloorId">Tầng</label>
-                    <select asp-for="FloorId">
-                        <option value="">— chưa gán tầng —</option>
+                    <select asp-for="FloorId" data-floor-target>
                         @foreach (var f in Model.Floors) { <option value="@f.Id">@f.Label</option> }
                     </select>
+                    <span class="err" asp-validation-for="FloorId"></span>
                 </div>
-                <div class="form-field span-6">
-                    <label asp-for="Latitude">Vĩ độ</label>
-                    <input asp-for="Latitude" type="number" step="0.0001" />
-                </div>
-                <div class="form-field span-6">
-                    <label asp-for="Longitude">Kinh độ</label>
-                    <input asp-for="Longitude" type="number" step="0.0001" />
+                <div class="form-field span-4">
+                    <label asp-for="UnitCode">Mã căn</label>
+                    <input asp-for="UnitCode" placeholder="A-12.05" />
+                    <span class="err" asp-validation-for="UnitCode"></span>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card mt-3">
-        <div class="card-header"><h2>Hình ảnh</h2></div>
-        <div class="card-body">
-            <input type="file" multiple accept="image/*" data-upload="apartments" data-target="#existing-photos" />
-            <div data-upload-preview class="hstack mt-2" style="flex-wrap:wrap;"></div>
-            <p class="hint mt-2" data-upload-status></p>
-            <div class="form-field mt-3">
-                <label for="existing-photos">URL ảnh (ngăn cách dấu phẩy — thêm tự động khi upload)</label>
-                <textarea id="existing-photos" name="PhotoUrls" rows="2" placeholder="/uploads/apartments/..."></textarea>
-                <span class="hint">Lưu ý: tính năng lưu URL vào ảnh chính/Image entity sẽ được tích hợp ở bước tiếp theo. Hiện tại bạn có thể paste URL vào đây.</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="card mt-3">
-        <div class="card-header"><h2>Tiện ích</h2></div>
-        <div class="card-body">
-            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:.5rem;">
-                @foreach (var amen in Model.Amenities)
-                {
-                    var checkedAttr = Model.AmenityIds.Contains(amen.Id) ? "checked" : null;
-                    <label class="hstack" style="border:1px solid var(--admin-line);padding:.55rem .8rem;border-radius:10px;cursor:pointer;">
-                        <input type="checkbox" name="AmenityIds" value="@amen.Id" checked="@checkedAttr" />
-                        <span class="material-symbols-outlined" style="font-size:18px;">@amen.Icon</span>
-                        <span>@amen.Name</span>
-                    </label>
-                }
-            </div>
-        </div>
-    </div>
-
-    <div class="card mt-3">
-        <div class="card-header"><h2>Trạng thái</h2></div>
+    <div class="card">
+        <div class="card-header"><h2>Thông số căn</h2></div>
         <div class="card-body">
             <div class="form-grid">
-                <div class="form-field span-4">
-                    <label asp-for="Status">Trạng thái listing</label>
-                    <select asp-for="Status">
-                        @foreach (var s in Enum.GetValues<ListingStatus>()) { <option value="@((int)s)">@s.Vi()</option> }
+                <div class="form-field span-3">
+                    <label asp-for="Area">Diện tích thông thuỷ (m²)</label>
+                    <input asp-for="Area" type="number" step="0.1" min="1" />
+                    <span class="hint">Dùng để tính phí quản lý</span>
+                    <span class="err" asp-validation-for="Area"></span>
+                </div>
+                <div class="form-field span-3">
+                    <label asp-for="Bedrooms">Phòng ngủ</label>
+                    <input asp-for="Bedrooms" type="number" min="0" max="20" />
+                </div>
+                <div class="form-field span-3">
+                    <label asp-for="Bathrooms">Phòng tắm</label>
+                    <input asp-for="Bathrooms" type="number" min="0" max="20" />
+                </div>
+                <div class="form-field span-3">
+                    <label asp-for="HouseDirection">Hướng</label>
+                    <select asp-for="HouseDirection">
+                        <option value="">—</option>
+                        @foreach (var d in Enum.GetValues<HouseDirection>()) { <option value="@d">@d.Vi()</option> }
                     </select>
                 </div>
                 <div class="form-field span-4">
-                    <label asp-for="Occupancy">Tình trạng cho thuê</label>
+                    <label asp-for="Occupancy">Tình trạng</label>
                     <select asp-for="Occupancy">
-                        @foreach (var o in Enum.GetValues<ApartmentOccupancy>()) { <option value="@((int)o)">@o.Vi()</option> }
+                        @foreach (var o in Enum.GetValues<ApartmentOccupancy>()) { <option value="@o">@o.Vi()</option> }
                     </select>
+                    <span class="hint">Tự chuyển "Đang ở" khi thêm cư dân</span>
                 </div>
-                <div class="form-field span-4">
-                    <label class="hstack" style="margin-top:1.5rem;">
-                        <input asp-for="IsFeatured" type="checkbox" />
-                        <span>Đánh dấu nổi bật trên trang chủ</span>
-                    </label>
+                <div class="form-field span-8">
+                    <label asp-for="Note">Ghi chú</label>
+                    <textarea asp-for="Note" rows="2" placeholder="Hiện trạng bàn giao, lưu ý kỹ thuật…"></textarea>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="card mt-3">
-        <div class="card-header"><h2>Điều kiện thuê</h2></div>
-        <div class="card-body"><div class="form-grid">
-            <div class="form-field span-3"><label asp-for="FurnishingLevel">Nội thất</label><select asp-for="FurnishingLevel">@foreach (var item in Enum.GetValues<FurnishingLevel>()) { <option value="@((int)item)">@item.Vi()</option> }</select></div>
-            <div class="form-field span-3"><label asp-for="ParkingType">Chỗ đậu xe</label><select asp-for="ParkingType">@foreach (var item in Enum.GetValues<ParkingType>()) { <option value="@((int)item)">@item.Vi()</option> }</select></div>
-            <div class="form-field span-3"><label asp-for="AllowsPets">Thú cưng</label><select asp-for="AllowsPets"><option value="false">Không cho phép</option><option value="true">Cho phép</option></select></div>
-            <div class="form-field span-3"><label asp-for="AvailableFrom">Ngày có thể vào ở</label><input asp-for="AvailableFrom" type="date" /></div>
-            <div class="form-field span-3"><label asp-for="MinLeaseMonths">Thuê tối thiểu (tháng)</label><input asp-for="MinLeaseMonths" type="number" min="1" max="120" /></div>
-            <div class="form-field span-3"><label asp-for="MaxLeaseMonths">Thuê tối đa (tháng)</label><input asp-for="MaxLeaseMonths" type="number" min="1" max="120" /></div>
-            <div class="form-field span-3"><label asp-for="FloorNumber">Tầng</label><input asp-for="FloorNumber" type="number" min="0" max="500" /></div>
-            <div class="form-field span-3"><label asp-for="HouseDirection">Hướng nhà</label><select asp-for="HouseDirection"><option value="">Chưa xác định</option>@foreach (var item in Enum.GetValues<HouseDirection>()) { <option value="@((int)item)">@item.Vi()</option> }</select></div>
-        </div></div>
     </div>
 
     <div class="hstack mt-3" style="justify-content:flex-end;">
-        <a class="btn btn-ghost" asp-action="Index">Huỷ</a>
-        <button type="submit" class="btn btn-primary"><span class="material-symbols-outlined">check</span>Lưu</button>
+        <button type="submit" class="btn btn-primary">Lưu</button>
     </div>
 </form>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Đổi toà thì nạp lại danh sách tầng của toà đó.
+        (function () {
+            const src = document.querySelector('[data-floor-source]');
+            const target = document.querySelector('[data-floor-target]');
+            if (!src || !target) return;
+            src.addEventListener('change', async function () {
+                const res = await fetch(src.dataset.floorSource + '?buildingId=' + encodeURIComponent(src.value));
+                if (!res.ok) return;
+                const floors = await res.json();
+                target.innerHTML = '';
+                floors.forEach(f => target.add(new Option(f.label, f.id)));
+            });
+        })();
+    </script>
 }

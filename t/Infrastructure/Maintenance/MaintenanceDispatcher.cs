@@ -194,7 +194,7 @@ public class MaintenanceDispatcher
         return $@"
 <p>Yêu cầu <strong>{E(req.RequestNumber)}</strong> · {E(req.Category.Vi())} · Ưu tiên: <strong>{E(req.Priority.Vi())}</strong></p>
 {danger}
-<p>Căn hộ: <strong>{E(req.Apartment?.Title)}</strong><br/>
+<p>Căn hộ: <strong>{E(req.Apartment?.UnitCode)}</strong><br/>
 Người báo: {E(reporter?.FullName)} · {E(phone)}</p>
 <p><strong>{E(req.Title)}</strong></p>
 <p style=""white-space:pre-wrap"">{E(req.Description)}</p>

@@ -6,7 +6,7 @@
 
 <section class="page-header">
     <div><h1>@(Model.Id == 0 ? "Thêm toà nhà" : Model.Name)</h1></div>
-    <div class="actions"><a class="btn btn-ghost" asp-action="Index">Quay lại</a></div>
+    <div class="actions"><a class="btn btn-ghost" href="@(Model.Id == 0 ? Url.Action("Index", "Projects") : Url.Action("Details", new { id = Model.Id }))">Quay lại</a></div>
 </section>
 
 <form asp-action="Edit" method="post">
@@ -25,16 +25,17 @@
                 </div>
                 <div class="form-field span-4">
                     <label asp-for="Code">Mã toà</label>
-                    <input asp-for="Code" placeholder="A, B, LMA..." />
+                    <input asp-for="Code" placeholder="A, B, R1…" />
+                    <span class="hint">Dùng làm tiền tố mã căn: A-12.05</span>
                 </div>
                 <div class="form-field span-8">
                     <label asp-for="Slug">Slug</label>
-                    <input asp-for="Slug" placeholder="auto-generate" />
+                    <input asp-for="Slug" placeholder="tự sinh từ tên" />
                 </div>
                 <div class="form-field span-4">
                     <label asp-for="FloorCount">Số tầng</label>
-                    <input asp-for="FloorCount" type="number" min="1" max="100" />
-                    <span class="hint">Khi tạo mới, các tầng sẽ tự sinh</span>
+                    <input asp-for="FloorCount" type="number" min="1" max="120" />
+                    <span class="hint">Tăng số tầng sẽ tự thêm tầng mới</span>
                 </div>
 
                 <div class="form-field span-4">
@@ -44,9 +45,9 @@
                     </select>
                 </div>
                 <div class="form-field span-4">
-                    <label asp-for="ProjectId">Dự án</label>
+                    <label asp-for="ProjectId">Thuộc khu</label>
                     <select asp-for="ProjectId">
-                        <option value="">— Không thuộc dự án —</option>
+                        <option value="">— Chưa thuộc khu —</option>
                         @foreach (var p in Model.Projects) { <option value="@p.Id">@p.Name</option> }
                     </select>
                 </div>
@@ -81,12 +82,19 @@
     </div>
 
     <div class="card">
-        <div class="card-header"><h2>Chính sách thanh toán mặc định</h2></div>
+        <div class="card-header"><h2>Thu phí dịch vụ</h2></div>
         <div class="card-body">
             <p class="text-muted" style="font-size:13px;margin-top:0;">
-                Dùng để điền sẵn khi tạo hợp đồng mới cho căn hộ thuộc toà này. Mỗi hợp đồng vẫn chỉnh riêng được.
+                Hằng tháng vào ngày chốt kỳ, hệ thống tự phát hành hoá đơn cho các căn đã bàn giao:
+                phí quản lý = diện tích × đơn giá, cộng tiền nước theo chỉ số và các phí cố định (gửi xe…).
             </p>
             <div class="form-grid">
+                <div class="form-field span-12">
+                    <label asp-for="ManagementFeePerM2">Đơn giá phí quản lý (đ/m²/tháng)</label>
+                    <input asp-for="ManagementFeePerM2" type="number" min="0" step="500" />
+                    <span class="hint">Tham khảo khu căn hộ trung–cao cấp TP.HCM: 12.000 – 20.000 đ/m²</span>
+                    <span class="err" asp-validation-for="ManagementFeePerM2"></span>
+                </div>
                 <div class="form-field span-4">
                     <label asp-for="DefaultBillingDay">Ngày chốt kỳ</label>
                     <input asp-for="DefaultBillingDay" type="number" min="1" max="28" />
@@ -102,17 +110,60 @@
                 <div class="form-field span-4">
                     <label asp-for="DefaultLateFeePercent">Phí trễ (%)</label>
                     <input asp-for="DefaultLateFeePercent" type="number" min="0" max="100" />
-                    <span class="hint">Khuyến nghị ≤ 8% theo quy định</span>
+                    <span class="hint">Tính trên số tiền còn nợ</span>
                     <span class="err" asp-validation-for="DefaultLateFeePercent"></span>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="hstack mt-3" style="justify-content:flex-end;">
-        <a class="btn btn-ghost" asp-action="Index">Huỷ</a>
+    @if (Model.Id == 0)
+    {
+        <div class="card">
+            <div class="card-header"><h2>Tạo sẵn căn hộ</h2></div>
+            <div class="card-body">
+                <p class="text-muted" style="font-size:13px;margin-top:0;">
+                    Sinh sẵn căn cho mọi tầng với mã dạng <b>{Mã toà}-{Tầng}.{Số căn}</b> (vd A-12.05), trạng thái "Chưa bàn giao".
+                    Để 0 nếu muốn tự thêm từng căn.
+                </p>
+                <div class="form-grid">
+                    <div class="form-field span-6">
+                        <label asp-for="UnitsPerFloor">Số căn mỗi tầng</label>
+                        <input asp-for="UnitsPerFloor" type="number" min="0" max="60" />
+                    </div>
+                    <div class="form-field span-6">
+                        <label asp-for="DefaultUnitArea">Diện tích mặc định (m²)</label>
+                        <input asp-for="DefaultUnitArea" type="number" min="0" step="0.1" />
+                        <span class="hint">Sửa từng căn sau khi tạo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <input type="hidden" asp-for="UnitsPerFloor" value="0" />
+    }
+
+    <div class="hstack mt-3" style="justify-content:space-between;">
+        <span>
+            @if (Model.Id > 0)
+            {
+                <button type="submit" form="delete-building" class="btn btn-ghost"><span class="material-symbols-outlined">delete</span>Xoá toà</button>
+            }
+        </span>
+        <span class="hstack">
         <button type="submit" class="btn btn-primary">Lưu</button>
+        </span>
     </div>
 </form>
+
+@if (Model.Id > 0)
+{
+    <form id="delete-building" asp-action="Delete" asp-route-id="@Model.Id" method="post"
+          data-confirm="Chỉ xoá được toà không còn căn hộ. Tiếp tục?" data-confirm-title="Xoá toà" data-confirm-ok="Xoá" data-confirm-tone="danger">
+        @Html.AntiForgeryToken()
+    </form>
+}
 
 @section Scripts { <partial name="_ValidationScriptsPartial" /> }

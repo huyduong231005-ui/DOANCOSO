@@ -1,5 +1,5 @@
 @{
-    var pageTitle = (ViewData["Title"] as string) ?? "Khách thuê";
+    var pageTitle = (ViewData["Title"] as string) ?? "Cổng cư dân";
     var displayName = User?.Identity?.Name ?? string.Empty;
     var initial = string.IsNullOrEmpty(displayName) ? "T" : displayName.Substring(0, 1).ToUpperInvariant();
 }
@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="~/css/material-symbols-local.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/toast.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin-bql.css" asp-append-version="true" />
     @await RenderSectionAsync("Head", required: false)
 </head>
 <body class="admin-shell">
@@ -44,7 +45,7 @@
                     <span class="avatar">@initial</span>
                     <div class="vstack" style="gap:0;">
                         <span>@(string.IsNullOrEmpty(displayName) ? "Khách" : displayName)</span>
-                        <span class="role">Khách thuê</span>
+                        <span class="role">Cư dân</span>
                     </div>
                 </div>
                 <form asp-area="" asp-controller="Home" asp-action="Logout" method="post">

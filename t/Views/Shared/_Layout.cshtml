@@ -1,4 +1,4 @@
-﻿@{
+@{
     var pageTitle = (ViewData["Title"] as string) ?? "Luxe Haven";
     var bodyClass = (ViewData["BodyClass"] as string) ?? string.Empty;
 }
@@ -79,10 +79,7 @@
     <link rel="stylesheet" href="~/css/be-vietnam-pro.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/luxe-haven.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/rentals-page.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/apartment-detail.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/auth-pages.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/posting-page.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/toast.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/t.styles.css" asp-append-version="true" />
     @await RenderSectionAsync("Head", required: false)
@@ -119,16 +116,9 @@
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/maplibre-loader.js" asp-append-version="true"></script>
-    <script src="~/js/apartment-detail-map.js" asp-append-version="true"></script>
-    <script src="~/js/address-map-autocomplete.js" asp-append-version="true"></script>
-    <script src="~/js/post-listing.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/user-menu.js" asp-append-version="true"></script>
-    <script src="~/js/favorites.js" asp-append-version="true"></script>
     <script src="~/js/toast.js" asp-append-version="true"></script>
-    <script src="~/js/rentals-nearby.js" asp-append-version="true"></script>
-    <script src="~/js/rentals-preferences.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

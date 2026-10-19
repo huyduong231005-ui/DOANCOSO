@@ -6,13 +6,9 @@ namespace t.Data;
 
 public static class SeedData
 {
-    private static readonly DateOnly SeedAvailableFrom = new(2026, 6, 1);
-
     public const string RoleAdmin = "Admin";
     public const string RoleManager = "Manager";
-    public const string RoleHost = "Host";
     public const string RoleTenant = "Tenant";
-    public const string RoleCustomer = "Customer";
 
     // Thợ nhận sự cố theo chuyên môn (xem MaintenanceDispatcher.RoleFor).
     public const string RoleElectrician = "Electrician";
@@ -20,6 +16,11 @@ public static class SeedData
     public const string RoleAcTechnician = "AcTechnician";
     public const string RoleCarpenter = "Carpenter";
     public const string RoleGlazier = "Glazier";
+
+    // Đơn giá tham khảo khu căn hộ tại TP.HCM (2025–2026).
+    private const decimal WaterRate = 18_000m;        // đ/m³
+    private const decimal MotorbikeFee = 120_000m;    // đ/xe/tháng
+    private const decimal CarFee = 1_500_000m;        // đ/xe/tháng
 
     public static async Task InitializeAsync(IServiceProvider services)
     {
@@ -44,52 +45,293 @@ public static class SeedData
             await userMgr.AddToRoleAsync(admin, RoleAdmin);
 
         await SeedMaintenanceStaffAsync(userMgr);
-        await HideDeprecatedSampleListingsAsync(ctx);
 
         if (await ctx.Regions.AnyAsync()) return;
 
-        var (hcm, hn, dn) = SeedRegions(ctx);
-        var cats = SeedCategories(ctx);
-        var amens = SeedAmenities(ctx);
+        var hcm = new Region { Name = "TP. Hồ Chí Minh", Slug = "tp-ho-chi-minh", ImageUrl = "/img/region-hcm.jpg" };
+        ctx.Regions.AddRange(
+            new Region { Name = "Hà Nội", Slug = "ha-noi", ImageUrl = "/img/region-hanoi.jpg" },
+            new Region { Name = "Đà Nẵng", Slug = "da-nang", ImageUrl = "/img/region-danang.jpg" },
+            hcm);
+        var water = new UtilityType { Code = "WATER", Name = "Nước", Unit = "m³", BillingMode = UtilityBillingMode.Metered, DefaultRate = WaterRate, Icon = "water_drop" };
+        ctx.UtilityTypes.AddRange(water,
+            new UtilityType { Code = "ELEC", Name = "Điện", Unit = "kWh", BillingMode = UtilityBillingMode.Metered, DefaultRate = 3_500m, Icon = "bolt" });
         await ctx.SaveChangesAsync();
 
-        var (projLandmark, projThuDuc, projQuan7) = SeedProjects(ctx, hcm.Id);
+        var manager = await userMgr.FindByEmailAsync("quanly@luxehaven.vn");
+
+        var grandPark = new Project
+        {
+            Name = "Luxe Haven Grand Park", Slug = "luxe-haven-grand-park", RegionId = hcm.Id,
+            Address = "Đường Nguyễn Xiển, Long Thạnh Mỹ, TP. Thủ Đức, TP. HCM",
+            ThumbnailUrl = "/img/hero-2.jpg",
+            ShortDescription = "Khu căn hộ 3 toà A, B, C quanh công viên nội khu, Ban quản lý đặt tại sảnh toà A."
+        };
+        var riverside = new Project
+        {
+            Name = "Luxe Haven Riverside", Slug = "luxe-haven-riverside", RegionId = hcm.Id,
+            Address = "Đường Nguyễn Hữu Cảnh, P.22, Bình Thạnh, TP. HCM",
+            ThumbnailUrl = "/img/rent-2.jpg",
+            ShortDescription = "Hai toà ven sông R1, R2; căn hộ 1–3 phòng ngủ."
+        };
+        ctx.Projects.AddRange(grandPark, riverside);
         await ctx.SaveChangesAsync();
 
-        var (host, renter, renter2, renter3, renter4) = await SeedUsersAsync(userMgr);
-        await userMgr.AddToRoleAsync(host, RoleHost);
-        await userMgr.AddToRoleAsync(renter, RoleTenant);
-        await userMgr.AddToRoleAsync(renter2, RoleTenant);
-        await userMgr.AddToRoleAsync(renter3, RoleTenant);
-        await userMgr.AddToRoleAsync(renter4, RoleTenant);
-
-        var (b1, b2) = SeedBuildings(ctx, hcm.Id, projLandmark.Id, projThuDuc.Id, host.Id);
+        var buildings = new[]
+        {
+            NewBuilding(grandPark, "A", "Toà A", 20, 8, 15_000m, manager?.Id, "/img/hero-1.jpg"),
+            NewBuilding(grandPark, "B", "Toà B", 18, 8, 15_000m, manager?.Id, "/img/hero-3.jpg"),
+            NewBuilding(grandPark, "C", "Toà C", 15, 6, 15_000m, manager?.Id, "/img/hero-4.jpg"),
+            NewBuilding(riverside, "R1", "Toà R1", 12, 6, 18_000m, manager?.Id, "/img/rent-2.jpg"),
+            NewBuilding(riverside, "R2", "Toà R2", 12, 6, 18_000m, manager?.Id, "/img/rent-4.jpg"),
+        };
+        ctx.Buildings.AddRange(buildings);
         await ctx.SaveChangesAsync();
 
-        var floors = SeedFloors(ctx, b1.Id, b2.Id);
+        var rng = new Random(2026);
+        foreach (var b in buildings)
+        {
+            var floors = Enumerable.Range(1, b.FloorCount)
+                .Select(n => new Floor { BuildingId = b.Id, Number = n, Label = $"Tầng {n}" }).ToList();
+            ctx.Floors.AddRange(floors);
+            await ctx.SaveChangesAsync();
+
+            var perFloor = b.Code.StartsWith('R') || b.Code == "C" ? 6 : 8;
+            foreach (var f in floors)
+                for (var pos = 1; pos <= perFloor; pos++)
+                    ctx.Apartments.Add(NewApartment(b, f, pos, perFloor, rng));
+        }
         await ctx.SaveChangesAsync();
 
-        var (apt1, apt2, apt3, apt4) = SeedApartments(ctx, host, hcm, cats, projLandmark.Id, projThuDuc.Id, projQuan7.Id, b1.Id, b2.Id, floors);
+        var apartments = await ctx.Apartments.Include(a => a.Building).OrderBy(a => a.Id).ToListAsync();
+        SeedResidentsAndCharges(ctx, apartments, rng);
         await ctx.SaveChangesAsync();
 
-        SeedImages(ctx, apt1.Id, apt2.Id, apt3.Id, apt4.Id, projLandmark.Id, projThuDuc.Id, projQuan7.Id);
-        SeedApartmentAmenities(ctx, apt1.Id, apt2.Id, apt3.Id, apt4.Id, amens);
-        SeedReviews(ctx, apt1.Id, renter.Id, renter2.Id);
+        await SeedResidentAccountsAsync(ctx, userMgr, apartments);
+        SeedBillingHistory(ctx, apartments, water, rng);
+        SeedMaintenance(ctx, apartments);
         await ctx.SaveChangesAsync();
+    }
 
-        SampleListings.Seed(ctx, host.Id, hcm, hn, dn, cats, amens);
-        SampleHeroes.Seed(ctx, host.Id, hcm, hn, dn, cats, amens);
+    private static Building NewBuilding(Project p, string code, string name, int floors, int perFloor,
+                                        decimal feePerM2, string? managerId, string thumb) => new()
+    {
+        Name = name, Code = code, Slug = $"{p.Slug}-{code.ToLowerInvariant()}",
+        ProjectId = p.Id, RegionId = p.RegionId, Address = p.Address,
+        FloorCount = floors, ThumbnailUrl = thumb, ManagerId = managerId,
+        Description = $"{name} · {floors} tầng · {perFloor} căn/tầng.",
+        Status = BuildingStatus.Active,
+        DefaultBillingDay = 1, DefaultLateFeeAfterDays = 15, DefaultLateFeePercent = 2,
+        ManagementFeePerM2 = feePerM2
+    };
 
-        var utilTypes = SeedUtilityTypes(ctx);
+    // Vị trí căn trên tầng quyết định loại căn: 2 căn góc đầu là 3PN, 2 căn cuối 1PN/studio, giữa là 2PN.
+    private static Apartment NewApartment(Building b, Floor f, int pos, int perFloor, Random rng)
+    {
+        var (area, bed, bath) = pos <= 2 ? (95.5, 3, 2)
+            : pos > perFloor - 1 ? (35.2, 1, 1)
+            : pos > perFloor - 2 ? (52.4, 1, 1)
+            : (69.8, 2, 2);
+        var roll = rng.NextDouble();
+        var occupancy = f.Number >= b.FloorCount - 1 && roll < 0.6 ? ApartmentOccupancy.NotHandedOver
+            : roll < 0.78 ? ApartmentOccupancy.Occupied
+            : roll < 0.95 ? ApartmentOccupancy.Vacant
+            : ApartmentOccupancy.UnderMaintenance;
+        return new Apartment
+        {
+            BuildingId = b.Id, FloorId = f.Id,
+            UnitCode = $"{b.Code}-{f.Number:00}.{pos:00}",
+            Area = area, Bedrooms = bed, Bathrooms = bath,
+            HouseDirection = (HouseDirection)((pos + f.Number) % 8),
+            Occupancy = occupancy
+        };
+    }
+
+    private static readonly string[] LastNames = { "Nguyễn", "Trần", "Lê", "Phạm", "Hoàng", "Huỳnh", "Phan", "Vũ", "Võ", "Đặng", "Bùi", "Đỗ", "Ngô", "Dương", "Lý" };
+    private static readonly string[] MiddleNames = { "Văn", "Thị", "Minh", "Ngọc", "Hữu", "Thanh", "Quốc", "Gia", "Thu", "Đức", "Hoài", "Khánh" };
+    private static readonly string[] FirstNames = { "An", "Bình", "Châu", "Dũng", "Giang", "Hà", "Hải", "Hiếu", "Hùng", "Khoa", "Lan", "Linh", "Long", "Mai", "Nam", "Ngân", "Phúc", "Quân", "Sơn", "Tâm", "Thảo", "Trang", "Tuấn", "Vy", "Yến" };
+
+    private static string RandomName(Random rng) =>
+        $"{LastNames[rng.Next(LastNames.Length)]} {MiddleNames[rng.Next(MiddleNames.Length)]} {FirstNames[rng.Next(FirstNames.Length)]}";
+
+    private static string RandomPhone(Random rng) => $"09{rng.Next(0, 10)} {rng.Next(100, 1000)} {rng.Next(1000, 10000)}";
+
+    private static void SeedResidentsAndCharges(AppDbContext ctx, List<Apartment> apartments, Random rng)
+    {
+        var today = DateTime.UtcNow.Date;
+        foreach (var a in apartments.Where(a => a.Occupancy == ApartmentOccupancy.Occupied))
+        {
+            var rented = rng.NextDouble() < 0.25;
+            var moveIn = today.AddDays(-rng.Next(60, 1500));
+            var head = RandomName(rng);
+            ctx.ApartmentResidents.Add(new ApartmentResident
+            {
+                ApartmentId = a.Id, FullName = head, Phone = RandomPhone(rng),
+                Role = rented ? ResidentRole.Tenant : ResidentRole.Owner, IsPrimary = true,
+                MoveInDate = moveIn, IdNumber = $"0{rng.Next(10, 99)}0{rng.Next(10_000_000, 99_999_999)}"
+            });
+            for (var m = rng.Next(0, a.Bedrooms + 1); m > 0; m--)
+                ctx.ApartmentResidents.Add(new ApartmentResident
+                {
+                    ApartmentId = a.Id, FullName = RandomName(rng), Role = ResidentRole.Member, MoveInDate = moveIn
+                });
+
+            var bikes = rng.Next(0, 3);
+            var sort = 0;
+            for (var i = 1; i <= bikes; i++)
+                ctx.RecurringCharges.Add(new RecurringCharge { ApartmentId = a.Id, Description = $"Gửi xe máy #{i}", Amount = MotorbikeFee, SortOrder = sort++ });
+            if (a.Bedrooms >= 2 && rng.NextDouble() < 0.3)
+                ctx.RecurringCharges.Add(new RecurringCharge { ApartmentId = a.Id, Description = "Gửi ô tô", Amount = CarFee, SortOrder = sort });
+        }
+    }
+
+    // Tài khoản cổng cư dân mẫu, gắn vào căn cụ thể để đăng nhập thử.
+    private static async Task SeedResidentAccountsAsync(AppDbContext ctx, UserManager<AppUser> userMgr, List<Apartment> apartments)
+    {
+        var accounts = new (string Email, string Name, string Phone, string Unit, ResidentRole Role)[]
+        {
+            ("renter@luxehaven.vn", "Nguyễn Minh Quân", "091 234 5678", "A-12.05", ResidentRole.Owner),
+            ("renter2@luxehaven.vn", "Lê Thu Hà", "092 345 6789", "B-08.03", ResidentRole.Tenant),
+            ("renter3@luxehaven.vn", "Trần Văn Hùng", "093 456 7890", "A-15.01", ResidentRole.Owner),
+            ("renter4@luxehaven.vn", "Phạm Thị Mai", "094 567 8901", "R1-06.02", ResidentRole.Owner),
+        };
+        foreach (var (email, name, phone, unit, role) in accounts)
+        {
+            var user = new AppUser { UserName = email, Email = email, FullName = name, Phone = phone, EmailConfirmed = true };
+            if (!(await userMgr.CreateAsync(user, "Renter@123")).Succeeded) continue;
+            await userMgr.AddToRoleAsync(user, RoleTenant);
+
+            var apt = apartments.First(a => a.UnitCode == unit);
+            var existing = await ctx.ApartmentResidents.Where(r => r.ApartmentId == apt.Id).ToListAsync();
+            existing.ForEach(r => r.IsPrimary = false);
+            if (existing.Count == 0)
+                ctx.RecurringCharges.Add(new RecurringCharge { ApartmentId = apt.Id, Description = "Gửi xe máy #1", Amount = MotorbikeFee });
+            apt.Occupancy = ApartmentOccupancy.Occupied;
+            ctx.ApartmentResidents.Add(new ApartmentResident
+            {
+                ApartmentId = apt.Id, FullName = name, Phone = phone, Email = email, UserId = user.Id,
+                Role = role, IsPrimary = true, MoveInDate = DateTime.UtcNow.Date.AddMonths(-14)
+            });
+        }
         await ctx.SaveChangesAsync();
+    }
 
-        SeedRichLeaseFlow(ctx, renter, renter2, renter3, renter4, apt1, apt2, apt3, apt4, utilTypes);
-        await ctx.SaveChangesAsync();
+    /// <summary>
+    /// 3 kỳ phí gần nhất cho mọi căn đang ở: phí quản lý + nước + gửi xe.
+    /// Hai kỳ trước phần lớn đã thanh toán (một ít còn nợ quá hạn), kỳ này một phần đã nộp.
+    /// </summary>
+    private static void SeedBillingHistory(AppDbContext ctx, List<Apartment> apartments, UtilityType water, Random rng)
+    {
+        var today = DateTime.UtcNow.Date;
+        var charges = ctx.RecurringCharges.Local.Where(c => c.IsActive).ToLookup(c => c.ApartmentId);
+        var occupied = apartments.Where(a => a.Occupancy == ApartmentOccupancy.Occupied).ToList();
+        var invoiceSeq = new Dictionary<int, int>();
+        var paymentSeq = 0;
+        var meter = occupied.ToDictionary(a => a.Id, _ => (decimal)rng.Next(80, 400));
+
+        for (var offset = -2; offset <= 0; offset++)
+        {
+            var month = new DateTime(today.Year, today.Month, 1).AddMonths(offset);
+            var billingMonth = month.Year * 100 + month.Month;
+            foreach (var a in occupied)
+            {
+                var used = (decimal)rng.Next(6, 10 + a.Bedrooms * 4);
+                var reading = new UtilityReading
+                {
+                    ApartmentId = a.Id, UtilityTypeId = water.Id, BillingMonth = billingMonth,
+                    PreviousReading = meter[a.Id], CurrentReading = meter[a.Id] + used,
+                    Consumption = used, Rate = WaterRate, Amount = used * WaterRate,
+                    ReadAt = month.AddDays(-1), Billed = true
+                };
+                meter[a.Id] += used;
+                ctx.UtilityReadings.Add(reading);
+
+                var area = (decimal)a.Area;
+                var items = new List<InvoiceItem>
+                {
+                    new() { Description = $"Phí quản lý {a.UnitCode} – {month:MM/yyyy} ({area:0.##} m²)", Quantity = area,
+                            UnitPrice = a.Building.ManagementFeePerM2, LineTotal = Math.Round(area * a.Building.ManagementFeePerM2, 0), SortOrder = 0 },
+                    new() { Description = $"Nước (m³) – {used:0.##}", Quantity = used, UnitPrice = WaterRate, LineTotal = reading.Amount, SortOrder = 1 }
+                };
+                var sort = 2;
+                foreach (var c in charges[a.Id])
+                    items.Add(new InvoiceItem { Description = c.Description, Quantity = 1m, UnitPrice = c.Amount, LineTotal = c.Amount, SortOrder = sort++ });
+
+                var total = items.Sum(i => i.LineTotal);
+                invoiceSeq[billingMonth] = invoiceSeq.GetValueOrDefault(billingMonth) + 1;
+                var due = month.AddDays(a.Building.DefaultBillingDay + 6);
+                var invoice = new Invoice
+                {
+                    InvoiceNumber = $"INV-{billingMonth}-{invoiceSeq[billingMonth]:0000}",
+                    ApartmentId = a.Id, Kind = InvoiceKind.Monthly, BillingMonth = billingMonth, IsRecurring = true,
+                    IssueDate = month, DueDate = due, SubTotal = total, Total = total, Balance = total,
+                    Status = InvoiceStatus.Issued, Currency = "VND", Items = items
+                };
+
+                var roll = rng.NextDouble();
+                var paid = offset < 0 ? roll < 0.9 : roll < 0.55;
+                if (paid)
+                {
+                    var paidAt = due.AddDays(-rng.Next(0, 6));
+                    if (paidAt > today) paidAt = today;
+                    paymentSeq++;
+                    invoice.Payments.Add(new Payment
+                    {
+                        PaymentNumber = $"PMT-{paidAt:yyyyMMdd}-{paymentSeq:0000}", Amount = total,
+                        Method = rng.NextDouble() < 0.8 ? PaymentMethod.BankTransfer : PaymentMethod.Cash,
+                        Status = PaymentStatus.Succeeded, PaidAt = paidAt, Currency = "VND"
+                    });
+                    invoice.AmountPaid = total;
+                    invoice.Balance = 0;
+                    invoice.Status = InvoiceStatus.Paid;
+                }
+                else if (due < today && offset < 0)
+                {
+                    invoice.Status = InvoiceStatus.Overdue;
+                }
+                else if (due < today)
+                {
+                    // Kỳ hiện tại chưa nộp: lùi hạn để dịch vụ nền không gắn quá hạn ngay khi chạy demo.
+                    invoice.DueDate = today.AddDays(5);
+                }
+                ctx.Invoices.Add(invoice);
+            }
+        }
+    }
+
+    private static void SeedMaintenance(AppDbContext ctx, List<Apartment> apartments)
+    {
+        var now = DateTime.UtcNow;
+        var samples = new (string Unit, string Title, string Desc, MaintenanceCategory Cat, MaintenancePriority Pri, MaintenanceStatus Status, int DaysAgo)[]
+        {
+            ("A-12.05", "Vòi nước phòng tắm bị rò rỉ", "Vòi nước nóng ở phòng tắm chính rò nước, nhỏ giọt liên tục cả khi đã đóng.", MaintenanceCategory.Plumbing, MaintenancePriority.Medium, MaintenanceStatus.Open, 2),
+            ("B-08.03", "Mất điện ổ cắm phòng khách", "Hai ổ cắm phòng khách không có điện, aptomat không nhảy.", MaintenanceCategory.Electrical, MaintenancePriority.High, MaintenanceStatus.InProgress, 1),
+            ("A-07.02", "Thấm trần nhà vệ sinh", "Trần nhà vệ sinh bị ố vàng, nghi thấm từ căn tầng trên.", MaintenanceCategory.Structural, MaintenancePriority.Medium, MaintenanceStatus.Acknowledged, 4),
+            ("C-03.04", "Máy lạnh phòng ngủ chảy nước", "Dàn lạnh phòng ngủ nhỏ chảy nước xuống tường.", MaintenanceCategory.Appliance, MaintenancePriority.Low, MaintenanceStatus.Resolved, 9),
+            ("R1-06.02", "Kẹt cửa kính ban công", "Cửa lùa ban công kẹt ray, không đóng kín được.", MaintenanceCategory.Other, MaintenancePriority.Medium, MaintenanceStatus.Open, 0),
+        };
+        var seq = 0;
+        foreach (var (unit, title, desc, cat, pri, status, daysAgo) in samples)
+        {
+            var apt = apartments.FirstOrDefault(a => a.UnitCode == unit);
+            if (apt == null) continue;
+            seq++;
+            var reported = now.AddDays(-daysAgo);
+            ctx.MaintenanceRequests.Add(new MaintenanceRequest
+            {
+                RequestNumber = $"MR-{reported:yyyyMM}-{seq:0000}",
+                ApartmentId = apt.Id, Title = title, Description = desc,
+                Category = cat, Priority = pri, Status = status, ReportedAt = reported,
+                AcknowledgedAt = status == MaintenanceStatus.Open ? null : reported.AddHours(2),
+                ResolvedAt = status == MaintenanceStatus.Resolved ? reported.AddDays(1) : null,
+                EstimatedCost = 300_000m
+            });
+        }
     }
 
     private static async Task SeedRolesAndPermissionsAsync(AppDbContext ctx, RoleManager<IdentityRole> roleMgr)
     {
-        foreach (var role in new[] { RoleAdmin, RoleManager, RoleHost, RoleTenant, RoleCustomer,
+        foreach (var role in new[] { RoleAdmin, RoleManager, RoleTenant,
                      RoleElectrician, RolePlumber, RoleAcTechnician, RoleCarpenter, RoleGlazier })
         {
             if (!await roleMgr.RoleExistsAsync(role))
@@ -100,24 +342,21 @@ public static class SeedData
 
         var permissions = new (string Module, string Code, string Name)[]
         {
-            ("Apartments", "apartments.view",   "Xem danh sách căn hộ"),
-            ("Apartments", "apartments.create", "Tạo căn hộ"),
+            ("Projects",   "projects.view",     "Xem khu & toà nhà"),
+            ("Projects",   "projects.manage",   "Quản lý khu & toà nhà"),
+            ("Apartments", "apartments.view",   "Xem căn hộ"),
             ("Apartments", "apartments.update", "Cập nhật căn hộ"),
-            ("Apartments", "apartments.delete", "Xoá căn hộ"),
-            ("Projects",   "projects.view",     "Xem dự án"),
-            ("Projects",   "projects.manage",   "Quản lý dự án"),
-            ("Bookings",   "bookings.view",     "Xem booking"),
-            ("Bookings",   "bookings.confirm",  "Xác nhận booking"),
-            ("Bookings",   "bookings.cancel",   "Huỷ booking"),
+            ("Residents",  "residents.view",    "Xem cư dân"),
+            ("Residents",  "residents.manage",  "Đăng ký / chuyển đi cư dân"),
             ("Invoices",   "invoices.view",     "Xem hoá đơn"),
             ("Invoices",   "invoices.issue",    "Phát hành hoá đơn"),
             ("Payments",   "payments.view",     "Xem thanh toán"),
             ("Payments",   "payments.refund",   "Hoàn tiền"),
-            ("Reviews",    "reviews.moderate",  "Kiểm duyệt review"),
+            ("Maintenance","maintenance.manage","Xử lý sự cố"),
             ("Users",      "users.view",        "Xem người dùng"),
             ("Users",      "users.manage",      "Quản lý người dùng"),
             ("Roles",      "roles.manage",      "Quản lý phân quyền"),
-            ("Audit",      "audit.view",        "Xem audit log"),
+            ("Audit",      "audit.view",        "Xem nhật ký"),
         };
 
         foreach (var (module, code, name) in permissions)
@@ -128,7 +367,6 @@ public static class SeedData
         var allPerms = await ctx.Permissions.ToListAsync();
         var adminRole = await roleMgr.FindByNameAsync(RoleAdmin);
         var managerRole = await roleMgr.FindByNameAsync(RoleManager);
-        var hostRole = await roleMgr.FindByNameAsync(RoleHost);
 
         if (adminRole != null)
             foreach (var p in allPerms)
@@ -138,118 +376,7 @@ public static class SeedData
             foreach (var p in allPerms.Where(p => p.Code != "roles.manage" && p.Code != "users.manage"))
                 ctx.RolePermissions.Add(new RolePermission { RoleId = managerRole.Id, PermissionId = p.Id });
 
-        if (hostRole != null)
-            foreach (var p in allPerms.Where(p =>
-                p.Code is "apartments.view" or "apartments.create" or "apartments.update"
-                       or "bookings.view" or "invoices.view" or "payments.view"))
-                ctx.RolePermissions.Add(new RolePermission { RoleId = hostRole.Id, PermissionId = p.Id });
-
         await ctx.SaveChangesAsync();
-    }
-
-    private static async Task HideDeprecatedSampleListingsAsync(AppDbContext ctx)
-    {
-        var deprecatedSlugs = new[] { "ccm-tan-binh-full-do" };
-        var apartments = await ctx.Apartments
-            .IgnoreQueryFilters()
-            .Where(apartment => deprecatedSlugs.Contains(apartment.Slug) && !apartment.IsDeleted)
-            .ToListAsync();
-
-        if (apartments.Count == 0)
-        {
-            return;
-        }
-
-        foreach (var apartment in apartments)
-        {
-            apartment.IsDeleted = true;
-        }
-
-        await ctx.SaveChangesAsync();
-    }
-
-    private static (Region hcm, Region hn, Region dn) SeedRegions(AppDbContext ctx)
-    {
-        var dn = new Region { Name = "Đà Nẵng", Slug = "da-nang", ImageUrl = "/img/region-danang.jpg" };
-        var hn = new Region { Name = "Hà Nội", Slug = "ha-noi", ImageUrl = "/img/region-hanoi.jpg" };
-        var hcm = new Region { Name = "TP. Hồ Chí Minh", Slug = "tp-ho-chi-minh", ImageUrl = "/img/region-hcm.jpg" };
-        ctx.Regions.AddRange(dn, hn, hcm);
-        return (hcm, hn, dn);
-    }
-
-    private static Dictionary<string, Category> SeedCategories(AppDbContext ctx)
-    {
-        var dict = new Dictionary<string, Category>
-        {
-            ["luxury"]    = new() { Name = "Căn hộ chung cư cao cấp", Slug = "can-ho-cao-cap",   Icon = "apartment" },
-            ["house"]     = new() { Name = "Nhà nguyên căn",          Slug = "nha-nguyen-can",   Icon = "home" },
-            ["villa"]     = new() { Name = "Biệt thự sân vườn",       Slug = "biet-thu",         Icon = "villa" },
-            ["penthouse"] = new() { Name = "Penthouse / Duplex",      Slug = "penthouse",        Icon = "domain" },
-            ["room"]      = new() { Name = "Nhà trọ",                 Slug = "nha-tro",          Icon = "savings" },
-            ["mini"]      = new() { Name = "Chung cư mini",           Slug = "chung-cu-mini",    Icon = "cottage" }
-        };
-        ctx.Categories.AddRange(dict.Values);
-        return dict;
-    }
-
-    private static Dictionary<string, Amenity> SeedAmenities(AppDbContext ctx)
-    {
-        var dict = new Dictionary<string, Amenity>
-        {
-            ["wifi"]      = new() { Name = "Wi-Fi tốc độ cao", Slug = "wifi",       Icon = "wifi" },
-            ["ac"]        = new() { Name = "Máy lạnh",         Slug = "ac",         Icon = "ac_unit" },
-            ["washer"]    = new() { Name = "Máy giặt",         Slug = "washer",     Icon = "local_laundry_service" },
-            ["fridge"]    = new() { Name = "Tủ lạnh",          Slug = "fridge",     Icon = "kitchen" },
-            ["furniture"] = new() { Name = "Full nội thất",    Slug = "furniture",  Icon = "chair" },
-            ["security"]  = new() { Name = "An ninh 24/7",     Slug = "security",   Icon = "security" },
-            ["pool"]      = new() { Name = "Hồ bơi",           Slug = "pool",       Icon = "pool" },
-            ["gym"]       = new() { Name = "Phòng gym",        Slug = "gym",        Icon = "fitness_center" },
-            ["parking"]   = new() { Name = "Chỗ đậu xe",       Slug = "parking",    Icon = "garage" }
-        };
-        ctx.Amenities.AddRange(dict.Values);
-        return dict;
-    }
-
-    private static (Project landmark, Project thuDuc, Project quan7) SeedProjects(AppDbContext ctx, int hcmId)
-    {
-        var landmark = new Project
-        {
-            Name = "Landmark Riverside Collection",
-            Slug = "landmark-riverside-collection",
-            RegionId = hcmId,
-            Address = "Bình Thạnh, TP. Hồ Chí Minh",
-            ThumbnailUrl = "/img/hero-2.jpg",
-            PriceFrom = 12_500_000,
-            Status = ProjectStatus.OpenForRent,
-            ShortDescription = "Tổ hợp căn hộ cao cấp bên sông, tập trung khách thuê chuyên gia.",
-            FullDescription = "Dự án tập trung vào trải nghiệm sống cao cấp, hệ thống tiện ích hoàn chỉnh và kết nối nhanh đến trung tâm."
-        };
-        var thuDuc = new Project
-        {
-            Name = "Thu Duc Smart Living",
-            Slug = "thu-duc-smart-living",
-            RegionId = hcmId,
-            Address = "Thủ Đức, TP. Hồ Chí Minh",
-            ThumbnailUrl = "/img/rent-2.jpg",
-            PriceFrom = 3_200_000,
-            Status = ProjectStatus.OpenForRent,
-            ShortDescription = "Nhóm nhà ở tối ưu chi phí cho sinh viên và người đi làm.",
-            FullDescription = "Mục tiêu hướng đến nhu cầu ở thực tế với giá hợp lý, đề cao an ninh, vận hành ổn định và vị trí thuận tiện."
-        };
-        var quan7 = new Project
-        {
-            Name = "South Gate Residence",
-            Slug = "south-gate-residence",
-            RegionId = hcmId,
-            Address = "Quận 7, TP. Hồ Chí Minh",
-            ThumbnailUrl = "/img/rent-4.jpg",
-            PriceFrom = 4_500_000,
-            Status = ProjectStatus.Upcoming,
-            ShortDescription = "Cụm căn hộ mini đầy đủ nội thất khu Nam Sài Gòn.",
-            FullDescription = "Dự án định hướng nhu cầu ở lâu dài, tối ưu tiện ích nội khu và kết nối giao thông đến trung tâm thành phố."
-        };
-        ctx.Projects.AddRange(landmark, thuDuc, quan7);
-        return (landmark, thuDuc, quan7);
     }
 
     // Quản lý và thợ mẫu cho luồng báo sự cố. Không đặt mật khẩu: họ chỉ nhận email, không đăng nhập.
@@ -286,519 +413,4 @@ public static class SeedData
         var result = await userMgr.CreateAsync(admin, "Admin@123");
         return result.Succeeded ? admin : null;
     }
-
-    private static async Task<(AppUser host, AppUser renter, AppUser renter2, AppUser renter3, AppUser renter4)> SeedUsersAsync(UserManager<AppUser> userMgr)
-    {
-        var host = new AppUser
-        {
-            UserName = "host@luxehaven.vn", Email = "host@luxehaven.vn",
-            FullName = "Phạm Hoàng Nam", Phone = "090 123 4567",
-            IsHost = true, HostTitle = "Premium Host",
-            AvatarUrl = "/img/detail/agent.jpg", EmailConfirmed = true
-        };
-        await userMgr.CreateAsync(host, "Host@123");
-
-        var renter = new AppUser
-        {
-            UserName = "renter@luxehaven.vn", Email = "renter@luxehaven.vn",
-            FullName = "Nguyễn Minh Quân", Phone = "091 234 5678",
-            AvatarUrl = "/img/detail/user1.jpg", EmailConfirmed = true
-        };
-        await userMgr.CreateAsync(renter, "Renter@123");
-
-        var renter2 = new AppUser
-        {
-            UserName = "renter2@luxehaven.vn", Email = "renter2@luxehaven.vn",
-            FullName = "Lê Thu Hà", Phone = "092 345 6789",
-            AvatarUrl = "/img/detail/user2.jpg", EmailConfirmed = true
-        };
-        await userMgr.CreateAsync(renter2, "Renter@123");
-
-        var renter3 = new AppUser
-        {
-            UserName = "renter3@luxehaven.vn", Email = "renter3@luxehaven.vn",
-            FullName = "Trần Văn Hùng", Phone = "093 456 7890",
-            AvatarUrl = "/img/detail/user1.jpg", EmailConfirmed = true
-        };
-        await userMgr.CreateAsync(renter3, "Renter@123");
-
-        var renter4 = new AppUser
-        {
-            UserName = "renter4@luxehaven.vn", Email = "renter4@luxehaven.vn",
-            FullName = "Phạm Thị Mai", Phone = "094 567 8901",
-            AvatarUrl = "/img/detail/user2.jpg", EmailConfirmed = true
-        };
-        await userMgr.CreateAsync(renter4, "Renter@123");
-
-        return (host, renter, renter2, renter3, renter4);
-    }
-
-    private static (Building b1, Building b2) SeedBuildings(AppDbContext ctx, int regionId, int landmarkProjectId, int thuDucProjectId, string managerId)
-    {
-        var b1 = new Building
-        {
-            Name = "Landmark Tower A", Slug = "landmark-tower-a", Code = "LMA",
-            ProjectId = landmarkProjectId, RegionId = regionId,
-            Address = "Bình Thạnh, TP. Hồ Chí Minh",
-            FloorCount = 5,
-            ThumbnailUrl = "/img/hero-2.jpg",
-            Description = "Toà tháp A của tổ hợp Landmark Riverside, view sông Sài Gòn.",
-            ManagerId = managerId,
-            Status = BuildingStatus.Active
-        };
-        var b2 = new Building
-        {
-            Name = "Smart Living Block 1", Slug = "smart-living-block-1", Code = "SLB1",
-            ProjectId = thuDucProjectId, RegionId = regionId,
-            Address = "Thủ Đức, TP. Hồ Chí Minh",
-            FloorCount = 4,
-            ThumbnailUrl = "/img/rent-2.jpg",
-            Description = "Cụm nhà ở vận hành quản lí cho sinh viên / nhân viên văn phòng.",
-            ManagerId = managerId,
-            Status = BuildingStatus.Active
-        };
-        ctx.Buildings.AddRange(b1, b2);
-        return (b1, b2);
-    }
-
-    private static Dictionary<string, Floor> SeedFloors(AppDbContext ctx, int buildingAId, int buildingBId)
-    {
-        var dict = new Dictionary<string, Floor>();
-        for (int i = 1; i <= 5; i++)
-        {
-            var f = new Floor { BuildingId = buildingAId, Number = i, Label = $"Tầng {i}" };
-            dict[$"A{i}"] = f; ctx.Floors.Add(f);
-        }
-        for (int i = 1; i <= 4; i++)
-        {
-            var f = new Floor { BuildingId = buildingBId, Number = i, Label = $"Tầng {i}" };
-            dict[$"B{i}"] = f; ctx.Floors.Add(f);
-        }
-        return dict;
-    }
-
-    private static Dictionary<string, UtilityType> SeedUtilityTypes(AppDbContext ctx)
-    {
-        var dict = new Dictionary<string, UtilityType>
-        {
-            ["electricity"] = new() { Code = "ELEC", Name = "Điện", Unit = "kWh", BillingMode = UtilityBillingMode.Metered, DefaultRate = 3500m, Icon = "bolt" },
-            ["water"]       = new() { Code = "WATER", Name = "Nước", Unit = "m³", BillingMode = UtilityBillingMode.Metered, DefaultRate = 25000m, Icon = "water_drop" },
-            ["internet"]    = new() { Code = "NET", Name = "Internet", Unit = "tháng", BillingMode = UtilityBillingMode.Fixed, DefaultRate = 200000m, Icon = "wifi" },
-            ["service"]     = new() { Code = "SERVICE", Name = "Phí dịch vụ", Unit = "tháng", BillingMode = UtilityBillingMode.Fixed, DefaultRate = 500000m, Icon = "cleaning_services" }
-        };
-        ctx.UtilityTypes.AddRange(dict.Values);
-        return dict;
-    }
-
-    private static (Apartment a1, Apartment a2, Apartment a3, Apartment a4) SeedApartments(
-        AppDbContext ctx, AppUser host, Region hcm,
-        Dictionary<string, Category> cats, int landmarkId, int thuDucId, int quan7Id,
-        int buildingAId, int buildingBId, Dictionary<string, Floor> floors)
-    {
-        var apt1 = new Apartment
-        {
-            Title = "Luxe Studio Landmark 81 - View sông Sài Gòn",
-            Slug = "luxe-studio-landmark-81", UnitCode = "A-501",
-            Description = "Studio cao cấp tại Landmark 81 với thiết kế mở, ánh sáng tự nhiên lớn và tầm nhìn trực diện sông Sài Gòn.",
-            DescriptionExtra = "Nội thất hoàn thiện đồng bộ, vận hành ổn định, phù hợp khách ở lâu dài.",
-            Price = 12_500_000, DefaultDeposit = 25_000_000m, FeeNote = "Phí quản lý: Miễn phí 1 năm",
-            Area = 45, Bedrooms = 1, Bathrooms = 1,
-            Address = "Phường 22, Bình Thạnh, TP. Hồ Chí Minh",
-            Latitude = 10.7942, Longitude = 106.7219,
-            FurnishingLevel = FurnishingLevel.FullyFurnished,
-            AvailableFrom = SeedAvailableFrom,
-            MinLeaseMonths = 6,
-            MaxLeaseMonths = 24,
-            FloorNumber = 5,
-            Status = ListingStatus.Active, Occupancy = ApartmentOccupancy.Occupied, IsFeatured = true,
-            HostId = host.Id, Region = hcm, Category = cats["luxury"], ProjectId = landmarkId,
-            BuildingId = buildingAId, FloorId = floors["A5"].Id
-        };
-        var apt2 = new Apartment
-        {
-            Title = "Studio Block 1 - 102",
-            Slug = "smart-living-block1-102", UnitCode = "B-102",
-            Description = "Phòng trọ thiết kế gọn gàng, thoáng sáng, bố cục hợp lý cho sinh viên hoặc người đi làm.",
-            DescriptionExtra = "Khu vực yên tĩnh, hàng xóm văn minh.",
-            Price = 3_200_000, DefaultDeposit = 6_400_000m, FeeNote = "Điện nước tính theo đồng hồ riêng",
-            Area = 20, Bedrooms = 1, Bathrooms = 1,
-            Address = "Phường Linh Tây, Thủ Đức, TP. Hồ Chí Minh",
-            Latitude = 10.8530, Longitude = 106.7590,
-            ParkingType = ParkingType.Motorbike,
-            AvailableFrom = SeedAvailableFrom,
-            MinLeaseMonths = 3,
-            MaxLeaseMonths = 12,
-            FloorNumber = 1,
-            Status = ListingStatus.Active, Occupancy = ApartmentOccupancy.Available,
-            HostId = host.Id, Region = hcm, Category = cats["room"], ProjectId = thuDucId,
-            BuildingId = buildingBId, FloorId = floors["B1"].Id
-        };
-        var apt3 = new Apartment
-        {
-            Title = "Penthouse Landmark - 2PN view sông",
-            Slug = "penthouse-landmark-2pn", UnitCode = "A-PH1",
-            Description = "Căn hộ 2 phòng ngủ diện tích lớn, bố trí phòng khách và bếp tách rõ.",
-            DescriptionExtra = "Nằm trong khu dân cư cao cấp với hệ tiện ích trọn gói.",
-            Price = 18_000_000, DefaultDeposit = 36_000_000m, FeeNote = "Miễn phí quản lý 6 tháng đầu",
-            Area = 72, Bedrooms = 2, Bathrooms = 2,
-            Address = "Nguyễn Hữu Cảnh, Bình Thạnh, TP. Hồ Chí Minh",
-            Latitude = 10.7952, Longitude = 106.7193,
-            FurnishingLevel = FurnishingLevel.FullyFurnished,
-            AvailableFrom = SeedAvailableFrom,
-            MinLeaseMonths = 6,
-            MaxLeaseMonths = 24,
-            FloorNumber = 5,
-            Status = ListingStatus.Active, Occupancy = ApartmentOccupancy.Available,
-            HostId = host.Id, Region = hcm, Category = cats["luxury"], ProjectId = landmarkId,
-            BuildingId = buildingAId, FloorId = floors["A5"].Id
-        };
-        var apt4 = new Apartment
-        {
-            Title = "Studio Block 1 - 203",
-            Slug = "smart-living-block1-203", UnitCode = "B-203",
-            Description = "Căn hộ mini đã trang bị sẵn nội thất cơ bản, phù hợp cho người độc thân hoặc cặp đôi.",
-            DescriptionExtra = "Khu vực xung quanh đầy đủ tiện ích sinh hoạt.",
-            Price = 4_500_000, DefaultDeposit = 9_000_000m, FeeNote = "Có chỗ để xe, camera 24/7",
-            Area = 25, Bedrooms = 1, Bathrooms = 1,
-            Address = "Linh Tây, Thủ Đức, TP. Hồ Chí Minh",
-            Latitude = 10.7326, Longitude = 106.7196,
-            FurnishingLevel = FurnishingLevel.Basic,
-            ParkingType = ParkingType.Motorbike,
-            AvailableFrom = SeedAvailableFrom,
-            MinLeaseMonths = 3,
-            MaxLeaseMonths = 12,
-            FloorNumber = 2,
-            Status = ListingStatus.Active, Occupancy = ApartmentOccupancy.Available,
-            HostId = host.Id, Region = hcm, Category = cats["mini"], ProjectId = quan7Id,
-            BuildingId = buildingBId, FloorId = floors["B2"].Id
-        };
-        ctx.Apartments.AddRange(apt1, apt2, apt3, apt4);
-        return (apt1, apt2, apt3, apt4);
-    }
-
-    private static void SeedImages(AppDbContext ctx, int a1, int a2, int a3, int a4, int p1, int p2, int p3)
-    {
-        ctx.ApartmentImages.AddRange(
-            new ApartmentImage { ApartmentId = a1, Url = "/img/rent-1.jpg", IsCover = true, SortOrder = 0 },
-            new ApartmentImage { ApartmentId = a1, Url = "/img/detail/bed.jpg", SortOrder = 1 },
-            new ApartmentImage { ApartmentId = a1, Url = "/img/detail/bath.jpg", SortOrder = 2 },
-            new ApartmentImage { ApartmentId = a1, Url = "/img/detail/kitchen.jpg", SortOrder = 3 },
-
-            new ApartmentImage { ApartmentId = a2, Url = "/img/rent-2.jpg", IsCover = true, SortOrder = 0 },
-            new ApartmentImage { ApartmentId = a2, Url = "/img/detail/sim3.jpg", SortOrder = 1 },
-            new ApartmentImage { ApartmentId = a2, Url = "/img/detail/bath.jpg", SortOrder = 2 },
-            new ApartmentImage { ApartmentId = a2, Url = "/img/detail/bed.jpg", SortOrder = 3 },
-
-            new ApartmentImage { ApartmentId = a3, Url = "/img/rent-3.jpg", IsCover = true, SortOrder = 0 },
-            new ApartmentImage { ApartmentId = a3, Url = "/img/detail/kitchen.jpg", SortOrder = 1 },
-            new ApartmentImage { ApartmentId = a3, Url = "/img/detail/bed.jpg", SortOrder = 2 },
-            new ApartmentImage { ApartmentId = a3, Url = "/img/detail/sim1.jpg", SortOrder = 3 },
-
-            new ApartmentImage { ApartmentId = a4, Url = "/img/rent-4.jpg", IsCover = true, SortOrder = 0 },
-            new ApartmentImage { ApartmentId = a4, Url = "/img/detail/sim2.jpg", SortOrder = 1 },
-            new ApartmentImage { ApartmentId = a4, Url = "/img/detail/bath.jpg", SortOrder = 2 },
-            new ApartmentImage { ApartmentId = a4, Url = "/img/detail/kitchen.jpg", SortOrder = 3 }
-        );
-
-        ctx.ProjectImages.AddRange(
-            new ProjectImage { ProjectId = p1, Url = "/img/hero-2.jpg", SortOrder = 0, IsCover = true },
-            new ProjectImage { ProjectId = p1, Url = "/img/rent-1.jpg", SortOrder = 1 },
-            new ProjectImage { ProjectId = p1, Url = "/img/detail/kitchen.jpg", SortOrder = 2 },
-            new ProjectImage { ProjectId = p2, Url = "/img/rent-2.jpg", SortOrder = 0, IsCover = true },
-            new ProjectImage { ProjectId = p2, Url = "/img/detail/sim3.jpg", SortOrder = 1 },
-            new ProjectImage { ProjectId = p3, Url = "/img/rent-4.jpg", SortOrder = 0, IsCover = true },
-            new ProjectImage { ProjectId = p3, Url = "/img/detail/sim2.jpg", SortOrder = 1 }
-        );
-    }
-
-    private static void SeedApartmentAmenities(AppDbContext ctx, int a1, int a2, int a3, int a4, Dictionary<string, Amenity> am)
-    {
-        ctx.ApartmentAmenities.AddRange(
-            new ApartmentAmenity { ApartmentId = a1, AmenityId = am["wifi"].Id },
-            new ApartmentAmenity { ApartmentId = a1, AmenityId = am["ac"].Id },
-            new ApartmentAmenity { ApartmentId = a1, AmenityId = am["security"].Id },
-            new ApartmentAmenity { ApartmentId = a1, AmenityId = am["pool"].Id },
-            new ApartmentAmenity { ApartmentId = a1, AmenityId = am["gym"].Id },
-            new ApartmentAmenity { ApartmentId = a1, AmenityId = am["furniture"].Id },
-
-            new ApartmentAmenity { ApartmentId = a2, AmenityId = am["parking"].Id },
-            new ApartmentAmenity { ApartmentId = a2, AmenityId = am["wifi"].Id },
-
-            new ApartmentAmenity { ApartmentId = a3, AmenityId = am["pool"].Id },
-            new ApartmentAmenity { ApartmentId = a3, AmenityId = am["gym"].Id },
-            new ApartmentAmenity { ApartmentId = a3, AmenityId = am["wifi"].Id },
-            new ApartmentAmenity { ApartmentId = a3, AmenityId = am["ac"].Id },
-            new ApartmentAmenity { ApartmentId = a3, AmenityId = am["washer"].Id },
-            new ApartmentAmenity { ApartmentId = a3, AmenityId = am["furniture"].Id },
-
-            new ApartmentAmenity { ApartmentId = a4, AmenityId = am["fridge"].Id },
-            new ApartmentAmenity { ApartmentId = a4, AmenityId = am["furniture"].Id },
-            new ApartmentAmenity { ApartmentId = a4, AmenityId = am["parking"].Id },
-            new ApartmentAmenity { ApartmentId = a4, AmenityId = am["security"].Id }
-        );
-    }
-
-    private static void SeedReviews(AppDbContext ctx, int aptId, string renterId, string renter2Id)
-    {
-        ctx.Reviews.AddRange(
-            new Review
-            {
-                ApartmentId = aptId, UserId = renterId, Rating = 5,
-                Content = "Vị trí đẹp, bố trí phòng hợp lý và tiện ích đúng mô tả.",
-                RenterNote = "Đã thuê 6 tháng",
-                Status = ReviewStatus.Approved, ApprovedAt = DateTime.UtcNow
-            },
-            new Review
-            {
-                ApartmentId = aptId, UserId = renter2Id, Rating = 4,
-                Content = "Hình ảnh đúng với căn hộ thực tế, không gian sạch và thoáng.",
-                RenterNote = "Khách tham quan",
-                Status = ReviewStatus.Approved, ApprovedAt = DateTime.UtcNow
-            }
-        );
-    }
-
-    private static void SeedSampleMaintenanceAndInspection(AppDbContext ctx, Lease lease, Apartment apt, string reporterId)
-    {
-        var moveIn = new LeaseInspection
-        {
-            Lease = lease,
-            Type = InspectionType.MoveIn,
-            InspectedAt = lease.StartDate,
-            InspectorId = reporterId,
-            OverallCondition = OverallCondition.Good,
-            Summary = "Bàn giao đầy đủ nội thất, thiết bị hoạt động bình thường.",
-            DamageNotes = "Tường sơn còn nguyên, sàn không trầy xước.",
-            TenantSigned = true
-        };
-        ctx.LeaseInspections.Add(moveIn);
-
-        var depositTx = new DepositTransaction
-        {
-            Lease = lease, Type = DepositTransactionType.Hold,
-            Amount = lease.Deposit,
-            Reason = "Nhận tiền cọc khi ký hợp đồng",
-            RecordedAt = lease.StartDate,
-            RecordedBy = reporterId
-        };
-        ctx.DepositTransactions.Add(depositTx);
-
-        var seq = 1;
-        var mr = new MaintenanceRequest
-        {
-            RequestNumber = $"MR-{DateTime.UtcNow:yyyyMM}-{seq:0000}",
-            ApartmentId = apt.Id,
-            Lease = lease,
-            ReporterId = lease.PrimaryTenantId,
-            Title = "Vòi nước phòng tắm bị rò rỉ",
-            Description = "Vòi nước nóng ở phòng tắm chính bị rò nước, nhỏ giọt liên tục cả khi đã đóng.",
-            Category = MaintenanceCategory.Plumbing,
-            Priority = MaintenancePriority.Medium,
-            Status = MaintenanceStatus.Open,
-            EstimatedCost = 350000m,
-            ReportedAt = DateTime.UtcNow.AddDays(-2)
-        };
-        ctx.MaintenanceRequests.Add(mr);
-    }
-
-    // ──────────────────────────────────────────────────────────────────────
-    // Demo finance flow: 4 leases × 3–6 months of invoices, mixed statuses
-    // (Paid, PartiallyPaid, Overdue, Issued). Tổng AmountPaid ≈ 100 tr VND.
-    // ──────────────────────────────────────────────────────────────────────
-    private static void SeedRichLeaseFlow(
-        AppDbContext ctx,
-        AppUser renter1, AppUser renter2, AppUser renter3, AppUser renter4,
-        Apartment apt1, Apartment apt2, Apartment apt3, Apartment apt4,
-        Dictionary<string, UtilityType> utilTypes)
-    {
-        var today = DateTime.UtcNow.Date;
-        int seqInvoice = 0;
-        int seqPayment = 0;
-        int leaseCounter = 0;
-
-        // ── Lease 1: cao cấp, lịch sử 6 tháng, 5 paid + 1 issued (hiện tại) ──
-        BuildLease(renter1, apt1, monthsAgo: 5, plan: new[]
-        {
-            (offset: -5, state: PayState.Paid),
-            (offset: -4, state: PayState.Paid),
-            (offset: -3, state: PayState.Paid),
-            (offset: -2, state: PayState.Paid),
-            (offset: -1, state: PayState.Paid),
-            (offset:  0, state: PayState.Issued),
-        }, elecKwh: 220m, waterM3: 8m);
-
-        // ── Lease 2: phòng trọ, 5 tháng — 3 paid + 1 partial + 1 issued ──
-        BuildLease(renter2, apt2, monthsAgo: 4, plan: new[]
-        {
-            (offset: -4, state: PayState.Paid),
-            (offset: -3, state: PayState.Paid),
-            (offset: -2, state: PayState.Paid),
-            (offset: -1, state: PayState.PartiallyPaid),
-            (offset:  0, state: PayState.Issued),
-        }, elecKwh: 95m, waterM3: 5m);
-
-        // ── Lease 3: penthouse, 3 tháng — 1 paid + 1 overdue + 1 issued ──
-        BuildLease(renter3, apt3, monthsAgo: 2, plan: new[]
-        {
-            (offset: -2, state: PayState.Paid),
-            (offset: -1, state: PayState.Overdue),
-            (offset:  0, state: PayState.Issued),
-        }, elecKwh: 350m, waterM3: 12m);
-
-        // ── Lease 4: mini, 4 tháng — 2 paid + 1 overdue + 1 issued ──
-        BuildLease(renter4, apt4, monthsAgo: 3, plan: new[]
-        {
-            (offset: -3, state: PayState.Paid),
-            (offset: -2, state: PayState.Paid),
-            (offset: -1, state: PayState.Overdue),
-            (offset:  0, state: PayState.Issued),
-        }, elecKwh: 110m, waterM3: 5m);
-
-        // Sample maintenance/inspection chỉ cho lease 1 (apt1)
-        var firstLease = ctx.Leases.Local.OrderBy(l => l.LeaseNumber).First();
-        SeedSampleMaintenanceAndInspection(ctx, firstLease, apt1, renter1.Id);
-
-        // ────────────────────────────────────────────────────────
-        void BuildLease(AppUser tenant, Apartment apt, int monthsAgo,
-                        (int offset, PayState state)[] plan, decimal elecKwh, decimal waterM3)
-        {
-            leaseCounter++;
-            var startDate = new DateTime(today.Year, today.Month, 1).AddMonths(-monthsAgo);
-            var endDate = startDate.AddYears(1);
-
-            var lease = new Lease
-            {
-                LeaseNumber = $"LEASE-{startDate:yyyyMM}-{leaseCounter:D4}",
-                ApartmentId = apt.Id,
-                PrimaryTenantId = tenant.Id,
-                StartDate = startDate, EndDate = endDate,
-                MonthlyRent = apt.Price,
-                Deposit = apt.DefaultDeposit ?? apt.Price * 2,
-                DepositHeld = apt.DefaultDeposit ?? apt.Price * 2,
-                BillingDay = 1,
-                LateFeePercent = 5, LateFeeAfterDays = 7,
-                Status = LeaseStatus.Active,
-                ActivatedAt = startDate,
-                Notes = $"Hợp đồng mẫu — {tenant.FullName} thuê {apt.UnitCode}."
-            };
-            ctx.Leases.Add(lease);
-
-            // Phí định kỳ mẫu — để hoá đơn tự sinh các kỳ sau cũng có Internet + phí dịch vụ.
-            ctx.RecurringCharges.AddRange(
-                new RecurringCharge { Lease = lease, Description = "Internet", Amount = 200000m, SortOrder = 0, IsActive = true },
-                new RecurringCharge { Lease = lease, Description = "Phí dịch vụ", Amount = 500000m, SortOrder = 1, IsActive = true });
-
-            decimal prevElec = 1200m;
-            decimal prevWater = 45m;
-
-            foreach (var (offset, state) in plan)
-            {
-                var monthDate = new DateTime(today.Year, today.Month, 1).AddMonths(offset);
-                var billingMonth = monthDate.Year * 100 + monthDate.Month;
-                var issueDate = monthDate;
-                // Hạn thanh toán theo đúng quy tắc thật của hệ thống: NgayChotKy + 7 (tối đa ngày 28).
-                var dueDate = new DateTime(monthDate.Year, monthDate.Month, Math.Min(lease.BillingDay + 7, 28));
-                // Hoá đơn demo chưa thanh toán xong (Issued/PartiallyPaid): nếu hạn đã ở quá khứ thì
-                // lùi tới hôm nay + ân hạn để background service không lập tức gắn Quá hạn, giữ
-                // trạng thái mẫu ổn định.
-                if (state is PayState.Issued or PayState.PartiallyPaid && dueDate < today)
-                    dueDate = today.AddDays(lease.LateFeeAfterDays);
-
-                var elecAmount = elecKwh * 3500m;
-                var waterAmount = waterM3 * 25000m;
-                var elec = new UtilityReading
-                {
-                    Lease = lease, UtilityTypeId = utilTypes["electricity"].Id,
-                    BillingMonth = billingMonth,
-                    PreviousReading = prevElec, CurrentReading = prevElec + elecKwh,
-                    Consumption = elecKwh, Rate = 3500m, Amount = elecAmount,
-                    ReadAt = monthDate, Billed = true
-                };
-                var water = new UtilityReading
-                {
-                    Lease = lease, UtilityTypeId = utilTypes["water"].Id,
-                    BillingMonth = billingMonth,
-                    PreviousReading = prevWater, CurrentReading = prevWater + waterM3,
-                    Consumption = waterM3, Rate = 25000m, Amount = waterAmount,
-                    ReadAt = monthDate, Billed = true
-                };
-                ctx.UtilityReadings.AddRange(elec, water);
-                prevElec += elecKwh;
-                prevWater += waterM3;
-
-                var subTotal = lease.MonthlyRent + elecAmount + waterAmount + 200000m + 500000m;
-                seqInvoice++;
-                var invoice = new Invoice
-                {
-                    InvoiceNumber = $"INV-{billingMonth}-{seqInvoice:D4}",
-                    Lease = lease,
-                    Kind = InvoiceKind.MonthlyRent, BillingMonth = billingMonth, IsRecurring = true,
-                    IssueDate = issueDate, DueDate = dueDate,
-                    SubTotal = subTotal,
-                    Total = subTotal,
-                    Currency = "VND",
-                    Items =
-                    {
-                        new InvoiceItem { Description = $"Tiền thuê căn {apt.UnitCode ?? apt.Title} - {monthDate:MM/yyyy}", Quantity = 1m, UnitPrice = lease.MonthlyRent, LineTotal = lease.MonthlyRent, SortOrder = 0 },
-                        new InvoiceItem { Description = "Điện (kWh)", Quantity = elecKwh, UnitPrice = 3500m, LineTotal = elecAmount, SortOrder = 1 },
-                        new InvoiceItem { Description = "Nước (m³)", Quantity = waterM3, UnitPrice = 25000m, LineTotal = waterAmount, SortOrder = 2 },
-                        new InvoiceItem { Description = "Internet", Quantity = 1m, UnitPrice = 200000m, LineTotal = 200000m, SortOrder = 3 },
-                        new InvoiceItem { Description = "Phí dịch vụ", Quantity = 1m, UnitPrice = 500000m, LineTotal = 500000m, SortOrder = 4 }
-                    }
-                };
-
-                switch (state)
-                {
-                    case PayState.Paid:
-                        invoice.AmountPaid = subTotal;
-                        invoice.Balance = 0;
-                        invoice.Status = InvoiceStatus.Paid;
-                        seqPayment++;
-                        invoice.Payments.Add(new Payment
-                        {
-                            PaymentNumber = $"PAY-{monthDate:yyyyMM}-{seqPayment:D4}",
-                            Amount = subTotal,
-                            Method = PaymentMethod.BankTransfer,
-                            Status = PaymentStatus.Succeeded,
-                            PaidAt = dueDate.AddDays(-2),
-                            Currency = "VND",
-                            Note = "Khách chuyển khoản đúng hạn"
-                        });
-                        break;
-                    case PayState.PartiallyPaid:
-                        var partial = Math.Round(subTotal * 0.4m, 0);
-                        invoice.AmountPaid = partial;
-                        invoice.Balance = subTotal - partial;
-                        invoice.Status = InvoiceStatus.PartiallyPaid;
-                        seqPayment++;
-                        invoice.Payments.Add(new Payment
-                        {
-                            PaymentNumber = $"PAY-{monthDate:yyyyMM}-{seqPayment:D4}",
-                            Amount = partial,
-                            Method = PaymentMethod.Cash,
-                            Status = PaymentStatus.Succeeded,
-                            PaidAt = dueDate.AddDays(1),
-                            Currency = "VND",
-                            Note = "Khách trả trước một phần, hẹn trả nốt"
-                        });
-                        break;
-                    case PayState.Overdue:
-                        invoice.AmountPaid = 0;
-                        invoice.Balance = subTotal;
-                        invoice.Status = InvoiceStatus.Overdue;
-                        break;
-                    case PayState.Issued:
-                    default:
-                        invoice.AmountPaid = 0;
-                        invoice.Balance = subTotal;
-                        invoice.Status = InvoiceStatus.Issued;
-                        break;
-                }
-
-                ctx.Invoices.Add(invoice);
-            }
-        }
-    }
-
-    private enum PayState { Issued, PartiallyPaid, Paid, Overdue }
 }

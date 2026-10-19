@@ -44,7 +44,7 @@ public sealed class AdminSecurityHardeningTests : IClassFixture<TestWebApplicati
         using var client = CreateClient();
         await LoginAsync(client, "renter@luxehaven.vn", "Renter@123", "/tenant");
 
-        var token = await GetRequestVerificationTokenAsync(client, "/Home/Rentals");
+        var token = await GetRequestVerificationTokenAsync(client, "/Tenant/Maintenance/Create");
         using var content = new MultipartFormDataContent
         {
             { new StringContent(token), "__RequestVerificationToken" },
@@ -63,7 +63,7 @@ public sealed class AdminSecurityHardeningTests : IClassFixture<TestWebApplicati
         using var client = CreateClient();
         await LoginAsync(client, "renter@luxehaven.vn", "Renter@123", "/tenant");
 
-        var token = await GetRequestVerificationTokenAsync(client, "/Home/Rentals");
+        var token = await GetRequestVerificationTokenAsync(client, "/Tenant/Maintenance/Create");
         using var content = new MultipartFormDataContent
         {
             { new StringContent(token), "__RequestVerificationToken" },
@@ -99,7 +99,6 @@ public sealed class AdminSecurityHardeningTests : IClassFixture<TestWebApplicati
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var apartmentId = await db.Apartments
-            .Where(apartment => apartment.Status == ListingStatus.Active)
             .OrderBy(apartment => apartment.Id)
             .Select(apartment => apartment.Id)
             .FirstAsync();
@@ -109,7 +108,7 @@ public sealed class AdminSecurityHardeningTests : IClassFixture<TestWebApplicati
             $"/Admin/Apartments/ChangeStatus/{apartmentId}",
             new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["status"] = ListingStatus.Hidden.ToString(),
+                ["status"] = ApartmentOccupancy.UnderMaintenance.ToString(),
                 ["returnUrl"] = "https://evil.example/phishing",
                 ["__RequestVerificationToken"] = token
             }));

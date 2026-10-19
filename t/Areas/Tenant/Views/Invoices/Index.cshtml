@@ -43,7 +43,7 @@
 }
 
 <form method="get" class="filter-bar">
-    <input type="search" name="q" value="@q" placeholder="Số hoá đơn, mã hợp đồng, căn hộ..." />
+    <input type="search" name="q" value="@q" placeholder="Số hoá đơn..." />
     <select name="status">
         <option value="">— Tất cả trạng thái —</option>
         @foreach (var s in Enum.GetValues<InvoiceStatus>()) { <option value="@((int)s)" selected="@(status == s)">@s.Vi()</option> }
@@ -54,7 +54,7 @@
 
 <div class="card">
     <div class="table-wrap">
-        <table class="data-table">
+        <table class="data-table nowrap">
             <thead><tr><th>Số</th><th>Loại</th><th>Kỳ</th><th>Đến hạn</th><th class="num">Tổng</th><th class="num">Còn lại</th><th>Trạng thái</th></tr></thead>
             <tbody>
             @if (!Model.Any())

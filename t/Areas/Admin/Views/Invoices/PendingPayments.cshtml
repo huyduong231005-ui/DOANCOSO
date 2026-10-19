@@ -5,7 +5,7 @@
     string Money(decimal v) => v.ToString("N0");
     // Group by invoice so multiple pending submissions on the same invoice stick together.
     var groups = Model
-        .GroupBy(p => new { p.InvoiceNumber, p.TenantName })
+        .GroupBy(p => new { p.InvoiceNumber, p.UnitCode })
         .OrderByDescending(g => g.Count())
         .ThenBy(g => g.Key.InvoiceNumber)
         .ToList();
@@ -23,7 +23,7 @@
                 <tr>
                     <th>Mã thanh toán</th>
                     <th>Hoá đơn</th>
-                    <th>Khách thuê</th>
+                    <th>Căn</th>
                     <th class="num">Số tiền</th>
                     <th>Phương thức</th>
                     <th>Mã giao dịch</th>
@@ -56,7 +56,7 @@
                                     <span class="pill pill-warning" style="margin-left:.4rem;" title="Có @items.Count lần gửi cùng hoá đơn — tổng @Money(groupTotal). Tránh duyệt trùng.">@idx/@items.Count</span>
                                 }
                             </td>
-                            <td>@p.TenantName</td>
+                            <td>@p.UnitCode</td>
                             <td class="num"><strong>@Money(p.Amount)</strong></td>
                             <td>@p.Method.Vi()</td>
                             <td>@(p.TransactionRef ?? "—")</td>

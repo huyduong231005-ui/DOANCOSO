@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using t.Areas.Admin.Models;
@@ -24,8 +23,8 @@ public class InvoicesController : AdminBaseController
     public async Task<IActionResult> Pdf(int id)
     {
         var inv = await Db.Invoices
-            .Include(i => i.Lease).ThenInclude(l => l.PrimaryTenant)
-            .Include(i => i.Lease).ThenInclude(l => l.Apartment)
+            .Include(i => i.Apartment).ThenInclude(a => a.Building)
+            .Include(i => i.Apartment).ThenInclude(a => a.Residents)
             .Include(i => i.Items)
             .Include(i => i.Payments)
             .AsSplitQuery()
@@ -35,19 +34,17 @@ public class InvoicesController : AdminBaseController
         return File(bytes, "application/pdf", $"{inv.InvoiceNumber}.pdf");
     }
 
-    public async Task<IActionResult> Index(string? q, InvoiceStatus? status, InvoiceKind? kind, int? month, int page = 1)
+    public async Task<IActionResult> Index(string? q, InvoiceStatus? status, InvoiceKind? kind, int? month, int? buildingId, int page = 1)
     {
         SetActiveNav("invoices");
         SetBreadcrumb(("Hoá đơn", null));
 
         const int pageSize = 20;
-        var query = Db.Invoices.Include(i => i.Lease).ThenInclude(l => l.PrimaryTenant)
-                                .Include(i => i.Lease).ThenInclude(l => l.Apartment).AsQueryable();
+        var query = Db.Invoices.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(q))
-            query = query.Where(i => i.InvoiceNumber.Contains(q) ||
-                                     i.Lease.LeaseNumber.Contains(q) ||
-                                     i.Lease.PrimaryTenant.FullName.Contains(q));
+            query = query.Where(i => i.InvoiceNumber.Contains(q) || i.Apartment.UnitCode.Contains(q));
+        if (buildingId.HasValue) query = query.Where(i => i.Apartment.BuildingId == buildingId.Value);
         if (status.HasValue) query = query.Where(i => i.Status == status.Value);
         if (kind.HasValue) query = query.Where(i => i.Kind == kind.Value);
         if (month.HasValue) query = query.Where(i => i.BillingMonth == month.Value);
@@ -59,9 +56,9 @@ public class InvoicesController : AdminBaseController
             .Select(i => new InvoiceListVm
             {
                 Id = i.Id, InvoiceNumber = i.InvoiceNumber,
-                LeaseNumber = i.Lease.LeaseNumber,
-                TenantName = i.Lease.PrimaryTenant.FullName,
-                UnitTitle = i.Lease.Apartment.Title,
+                ApartmentId = i.ApartmentId,
+                UnitCode = i.Apartment.UnitCode,
+                BuildingName = i.Apartment.Building.Name,
                 Kind = i.Kind, BillingMonth = i.BillingMonth,
                 IssueDate = i.IssueDate, DueDate = i.DueDate,
                 Total = i.Total, AmountPaid = i.AmountPaid, Balance = i.Balance,
@@ -81,11 +78,12 @@ public class InvoicesController : AdminBaseController
         ViewBag.SumPaid = kpis?.Paid ?? 0m;
         ViewBag.SumBalance = kpis?.Balance ?? 0m;
 
-        ViewBag.Q = q; ViewBag.Status = status; ViewBag.Kind = kind; ViewBag.Month = month;
+        ViewBag.Q = q; ViewBag.Status = status; ViewBag.Kind = kind; ViewBag.Month = month; ViewBag.BuildingId = buildingId;
+        ViewBag.Buildings = await Db.Buildings.OrderBy(b => b.Code).ToListAsync();
         ViewBag.Pager = new PageInfo
         {
             Page = page, PageSize = pageSize, TotalCount = total,
-            Url = pp => Url.Action(nameof(Index), new { q, status, kind, month, page = pp }) ?? "#"
+            Url = pp => Url.Action(nameof(Index), new { q, status, kind, month, buildingId, page = pp }) ?? "#"
         };
         return View(rows);
     }
@@ -95,17 +93,14 @@ public class InvoicesController : AdminBaseController
         if (string.IsNullOrWhiteSpace(q)) return Json(Array.Empty<object>());
         q = q.Trim();
         var raw = await Db.Invoices
-            .Include(i => i.Lease).ThenInclude(l => l.PrimaryTenant)
-            .Where(i => i.InvoiceNumber.Contains(q) ||
-                        i.Lease.LeaseNumber.Contains(q) ||
-                        i.Lease.PrimaryTenant.FullName.Contains(q))
+            .Where(i => i.InvoiceNumber.Contains(q) || i.Apartment.UnitCode.Contains(q))
             .OrderByDescending(i => i.IssueDate)
             .Take(limit)
-            .Select(i => new { i.Id, i.InvoiceNumber, TenantName = i.Lease.PrimaryTenant.FullName, i.Total, i.Balance, i.Status })
+            .Select(i => new { i.Id, i.InvoiceNumber, i.Apartment.UnitCode, i.Total, i.Balance, i.Status })
             .ToListAsync();
         return Json(raw.Select(i => new
         {
-            title = i.InvoiceNumber + " · " + i.TenantName,
+            title = i.InvoiceNumber + " · " + i.UnitCode,
             subtitle = "Tổng " + i.Total.ToString("N0") + " · Còn " + i.Balance.ToString("N0") + " · " + i.Status.Vi(),
             url = Url.Action(nameof(Details), new { id = i.Id }) ?? "#",
             icon = "receipt_long"
@@ -116,8 +111,8 @@ public class InvoicesController : AdminBaseController
     {
         SetActiveNav("invoices");
         var inv = await Db.Invoices
-            .Include(i => i.Lease).ThenInclude(l => l.PrimaryTenant)
-            .Include(i => i.Lease).ThenInclude(l => l.Apartment).ThenInclude(a => a.Building)
+            .Include(i => i.Apartment).ThenInclude(a => a.Building)
+            .Include(i => i.Apartment).ThenInclude(a => a.Residents)
             .Include(i => i.Items)
             .Include(i => i.Payments)
             .AsSplitQuery()
@@ -215,7 +210,6 @@ public class InvoicesController : AdminBaseController
         Db.Payments.Add(payment);
 
         ApplyPaymentSuccess(inv, input.Amount);
-        await DepositLedger.OnPaymentAppliedAsync(Db, inv, input.Amount, User.FindFirstValue(ClaimTypes.NameIdentifier));
 
         try { await Db.SaveChangesAsync(); }
         catch (DbUpdateException ex) when (BillingNumberGenerator.IsUniqueConstraintError(ex))
@@ -254,7 +248,6 @@ public class InvoicesController : AdminBaseController
         payment.Status = PaymentStatus.Succeeded;
         payment.PaidAt = DateTime.UtcNow;
         ApplyPaymentSuccess(inv, payment.Amount);
-        await DepositLedger.OnPaymentAppliedAsync(Db, inv, payment.Amount, User.FindFirstValue(ClaimTypes.NameIdentifier));
 
         await Db.SaveChangesAsync();
         TempData["Success"] = $"Đã duyệt thanh toán {payment.PaymentNumber}.";
@@ -288,14 +281,13 @@ public class InvoicesController : AdminBaseController
         SetBreadcrumb(("Hoá đơn", Url.Action(nameof(Index))), ("Chờ duyệt", null));
 
         var rows = await Db.Payments
-            .Include(p => p.Invoice).ThenInclude(i => i.Lease).ThenInclude(l => l.PrimaryTenant)
             .Where(p => p.Status == PaymentStatus.Pending)
             .OrderBy(p => p.CreatedAt)
             .Select(p => new PaymentListVm
             {
                 Id = p.Id, PaymentNumber = p.PaymentNumber,
                 InvoiceNumber = p.Invoice.InvoiceNumber,
-                TenantName = p.Invoice.Lease.PrimaryTenant.FullName,
+                UnitCode = p.Invoice.Apartment.UnitCode,
                 Amount = p.Amount, Method = p.Method, Status = p.Status,
                 PaidAt = p.CreatedAt,
                 TransactionRef = p.TransactionRef
@@ -305,14 +297,14 @@ public class InvoicesController : AdminBaseController
     }
 
     // ── OneOff invoice ──
-    public async Task<IActionResult> CreateOneOff(int? leaseId)
+    public async Task<IActionResult> CreateOneOff(int? apartmentId)
     {
         SetActiveNav("invoices");
         SetBreadcrumb(("Hoá đơn", Url.Action(nameof(Index))), ("Tạo bổ sung", null));
 
         var vm = new OneOffInvoiceVm
         {
-            LeaseId = leaseId ?? 0,
+            ApartmentId = apartmentId ?? 0,
             DueDate = VnTime.Today.AddDays(7),
             Lines = new List<OneOffInvoiceLine> { new(), new(), new() }
         };
@@ -323,7 +315,7 @@ public class InvoicesController : AdminBaseController
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateOneOff(OneOffInvoiceVm input)
     {
-        if (input.LeaseId <= 0) ModelState.AddModelError(nameof(input.LeaseId), "Chọn hợp đồng.");
+        if (input.ApartmentId <= 0) ModelState.AddModelError(nameof(input.ApartmentId), "Chọn căn hộ.");
         var lines = (input.Lines ?? new())
             .Where(l => !string.IsNullOrWhiteSpace(l.Description) && l.Quantity > 0 && l.UnitPrice > 0)
             .Select(l => (l.Description!.Trim(), l.Quantity, l.UnitPrice))
@@ -335,7 +327,7 @@ public class InvoicesController : AdminBaseController
             return View(input);
         }
 
-        var result = await _invoiceGen.GenerateOneOffInvoiceAsync(input.LeaseId, input.Title ?? "Hoá đơn bổ sung", lines, input.DueDate, input.Note);
+        var result = await _invoiceGen.GenerateOneOffInvoiceAsync(input.ApartmentId, input.Title ?? "Hoá đơn bổ sung", lines, input.DueDate, input.Note);
         if (!result.Success)
         {
             TempData["Danger"] = result.Message;
@@ -466,16 +458,10 @@ public class InvoicesController : AdminBaseController
 
     private async Task PopulateOneOffLookupsAsync(OneOffInvoiceVm vm)
     {
-        vm.Leases = await Db.Leases
-            .Include(l => l.PrimaryTenant)
-            .Include(l => l.Apartment)
-            .Where(l => l.Status == LeaseStatus.Active || l.Status == LeaseStatus.Pending || l.Status == LeaseStatus.Renewing)
-            .OrderBy(l => l.LeaseNumber)
-            .Select(l => new LeaseOption
-            {
-                Id = l.Id,
-                Label = l.LeaseNumber + " · " + l.PrimaryTenant.FullName + " · " + l.Apartment.Title
-            })
+        vm.Apartments = await Db.Apartments
+            .Where(a => a.Occupancy != ApartmentOccupancy.NotHandedOver || a.Id == vm.ApartmentId)
+            .OrderBy(a => a.Building.Code).ThenBy(a => a.UnitCode)
+            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + a.Building.Name })
             .ToListAsync();
     }
 }

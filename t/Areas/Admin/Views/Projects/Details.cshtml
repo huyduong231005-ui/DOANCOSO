@@ -1,0 +1,88 @@
+@model t.Models.Entities.Project
+@{
+    ViewData["Title"] = Model.Name;
+    var buildings = (List<t.Areas.Admin.Models.BuildingListVm>)ViewBag.Buildings;
+    string Money(decimal v) => v.ToString("N0");
+    var isReal = Model.Id > 0;
+    var units = buildings.Sum(b => b.UnitsTotal);
+    var occupied = buildings.Sum(b => b.UnitsOccupied);
+    string Pct(double v) => v.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+}
+
+<section class="page-header">
+    <div>
+        <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:16px;">location_city</span>Khu</span>
+        <h1>@Model.Name</h1>
+        <p class="subtitle">@Model.Address</p>
+    </div>
+    @if (isReal)
+    {
+        <div class="actions">
+            <a class="btn btn-outline" asp-action="Edit" asp-route-id="@Model.Id"><span class="material-symbols-outlined">edit</span>Sửa khu</a>
+            <a class="btn btn-primary" asp-controller="Buildings" asp-action="Create" asp-route-projectId="@Model.Id"><span class="material-symbols-outlined">add</span>Thêm toà</a>
+        </div>
+    }
+</section>
+
+@if (!string.IsNullOrWhiteSpace(Model.ShortDescription))
+{
+    <p class="text-muted" style="margin:0;">@Model.ShortDescription</p>
+}
+
+<section class="stat-strip">
+    <div class="stat"><div class="stat-label">Toà nhà</div><div class="stat-value">@buildings.Count</div></div>
+    <div class="stat"><div class="stat-label">Căn hộ</div><div class="stat-value">@units</div></div>
+    <div class="stat"><div class="stat-label"><span class="dot" style="background:var(--st-occupied)"></span>Đang ở</div><div class="stat-value">@occupied</div><div class="stat-sub">@(units == 0 ? 0 : Math.Round(occupied * 100.0 / units, 1))%</div></div>
+    <div class="stat"><div class="stat-label"><span class="dot" style="background:#cbd5e1"></span>Để trống</div><div class="stat-value">@buildings.Sum(b => b.UnitsVacant)</div></div>
+    <div class="stat"><div class="stat-label"><span class="dot" style="background:var(--st-debt)"></span>Công nợ</div><div class="stat-value">@Money(buildings.Sum(b => b.Outstanding))</div><div class="stat-sub">đồng</div></div>
+    <div class="stat"><div class="stat-label">Sự cố đang xử lý</div><div class="stat-value">@buildings.Sum(b => b.OpenMaintenance)</div></div>
+</section>
+
+<div class="entity-grid">
+    @foreach (var b in buildings)
+    {
+        var occPct = b.UnitsTotal == 0 ? 0 : b.UnitsOccupied * 100.0 / b.UnitsTotal;
+        var vacPct = b.UnitsTotal == 0 ? 0 : b.UnitsVacant * 100.0 / b.UnitsTotal;
+        <a class="entity-card" asp-controller="Buildings" asp-action="Details" asp-route-id="@b.Id">
+            <div class="cover" style="background-image:url('@(string.IsNullOrEmpty(b.ThumbnailUrl) ? "/img/hero-1.jpg" : b.ThumbnailUrl)')">
+                <span class="code-badge">@(string.IsNullOrEmpty(b.Code) ? "?" : b.Code)</span>
+                <div class="cover-title">
+                    <h3>@b.Name</h3>
+                    <small>@b.FloorCount tầng · @b.UnitsTotal căn · @b.Status.Vi()</small>
+                </div>
+            </div>
+            <div class="body">
+                <div class="metrics">
+                    <div class="metric"><b>@b.UnitsOccupied</b><span>đang ở</span></div>
+                    <div class="metric @(b.Outstanding > 0 ? "warn" : "")"><b>@Money(b.Outstanding)</b><span>công nợ (đ)</span></div>
+                    <div class="metric @(b.OpenMaintenance > 0 ? "warn" : "")"><b>@b.OpenMaintenance</b><span>sự cố mở</span></div>
+                </div>
+                <div>
+                    <div class="hstack" style="justify-content:space-between;font-size:13px;margin-bottom:.35rem;">
+                        <span>Có người ở</span><b>@b.OccupancyRate%</b>
+                    </div>
+                    <div class="occ-bar"><span class="occ" style="width:@Pct(occPct)%"></span><span class="vac" style="width:@Pct(vacPct)%"></span></div>
+                </div>
+                <div class="foot">
+                    <span><span class="material-symbols-outlined" style="font-size:15px;vertical-align:-3px;">badge</span> @(b.ManagerName ?? "Chưa phân công quản lý")</span>
+                    <span style="color:var(--admin-primary);font-weight:600;">Sơ đồ toà →</span>
+                </div>
+            </div>
+        </a>
+    }
+    @if (isReal)
+    {
+        <a class="entity-card add-card" asp-controller="Buildings" asp-action="Create" asp-route-projectId="@Model.Id">
+            <span class="material-symbols-outlined">domain_add</span>
+            Thêm toà vào khu
+        </a>
+    }
+</div>
+
+@if (isReal && !buildings.Any())
+{
+    <form asp-action="Delete" asp-route-id="@Model.Id" method="post" data-confirm="Xoá khu @Model.Name?" data-confirm-title="Xoá khu" data-confirm-ok="Xoá" data-confirm-tone="danger">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-ghost"><span class="material-symbols-outlined">delete</span>Xoá khu trống này</button>
+    </form>
+}

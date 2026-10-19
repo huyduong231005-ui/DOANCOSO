@@ -25,7 +25,7 @@
 <section class="page-header">
     <div>
         <h1>@Model.InvoiceNumber</h1>
-        <p class="subtitle">Hợp đồng @Model.Lease.LeaseNumber · @Model.Lease.PrimaryTenant.FullName</p>
+        <p class="subtitle">Căn @Model.Apartment.UnitCode · @Model.Apartment.Building.Name · @(Model.Apartment.PrimaryResident?.FullName ?? "chưa có người đại diện")</p>
     </div>
     <div class="actions">
         <span class="@Pill(Model.Status)">@Model.Status.Vi()</span>
@@ -146,9 +146,8 @@
             <div class="card-header"><h2>Thông tin</h2></div>
             <div class="card-body">
                 <dl class="dl-pairs">
-                    <dt>Hợp đồng</dt><dd><a asp-controller="Leases" asp-action="Details" asp-route-id="@Model.LeaseId">@Model.Lease.LeaseNumber</a></dd>
-                    <dt>Khách thuê</dt><dd>@Model.Lease.PrimaryTenant.FullName</dd>
-                    <dt>Căn hộ</dt><dd>@Model.Lease.Apartment.Title @(Model.Lease.Apartment.Building != null ? "· " + Model.Lease.Apartment.Building.Name : "")</dd>
+                    <dt>Căn hộ</dt><dd><a asp-controller="Apartments" asp-action="Details" asp-route-id="@Model.ApartmentId">@Model.Apartment.UnitCode</a> · @Model.Apartment.Building.Name</dd>
+                    <dt>Đại diện</dt><dd>@(Model.Apartment.PrimaryResident?.FullName ?? "—")</dd>
                     <dt>Loại</dt><dd>@Model.Kind.Vi()</dd>
                     @if (Model.BillingMonth > 0) { <dt>Kỳ</dt><dd>@(Model.BillingMonth/100)/@((Model.BillingMonth%100).ToString("00"))</dd> }
                     <dt>Phát hành</dt><dd>@Model.IssueDate.ToString("dd/MM/yyyy")</dd>

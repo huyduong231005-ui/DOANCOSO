@@ -28,13 +28,12 @@ public class MaintenanceController : TenantBaseController
 
         const int pageSize = 20;
         var uid = CurrentUserId;
-        var leaseIds = await MyLeasesQuery().Select(l => l.Id).ToListAsync();
+        var aptIds = await MyApartmentIds().ToListAsync();
 
-        // Tenant sees: requests they reported themselves OR any request tied to their leases
-        // (primary or co-tenant). This way co-tenants see each other's reports too.
+        // Cư dân thấy: yêu cầu tự gửi HOẶC mọi yêu cầu của căn mình đang ở
+        // (các thành viên cùng hộ thấy báo cáo của nhau).
         var query = Db.MaintenanceRequests.Where(m =>
-            m.ReporterId == uid ||
-            (m.LeaseId.HasValue && leaseIds.Contains(m.LeaseId.Value)));
+            m.ReporterId == uid || aptIds.Contains(m.ApartmentId));
         if (status.HasValue) query = query.Where(m => m.Status == status.Value);
 
         var total = await query.CountAsync();
@@ -61,12 +60,12 @@ public class MaintenanceController : TenantBaseController
     {
         SetActiveNav("maintenance");
         var uid = CurrentUserId;
-        var leaseIds = await MyLeasesQuery().Select(l => l.Id).ToListAsync();
+        var aptIds = await MyApartmentIds().ToListAsync();
         var r = await Db.MaintenanceRequests
             .Include(x => x.Apartment).ThenInclude(a => a.Building)
             .Include(x => x.AssignedTo)
             .FirstOrDefaultAsync(x => x.Id == id &&
-                (x.ReporterId == uid || (x.LeaseId.HasValue && leaseIds.Contains(x.LeaseId.Value))));
+                (x.ReporterId == uid || aptIds.Contains(x.ApartmentId)));
         if (r == null) return NotFound();
         SetBreadcrumb(("Báo sự cố", Url.Action(nameof(Index))), (r.RequestNumber, null));
         return View(r);
@@ -77,32 +76,29 @@ public class MaintenanceController : TenantBaseController
         SetActiveNav("maintenance");
         SetBreadcrumb(("Báo sự cố", Url.Action(nameof(Index))), ("Tạo yêu cầu", null));
 
-        var lease = await GetActiveLeaseAsync();
-        if (lease == null)
+        var apartment = await GetMyApartmentAsync();
+        if (apartment == null)
         {
-            TempData["Danger"] = "Bạn cần có hợp đồng đang hoạt động để báo sự cố.";
+            TempData["Danger"] = "Tài khoản chưa được Ban quản lý gắn với căn hộ nào nên chưa báo sự cố được.";
             return RedirectToAction(nameof(Index));
         }
-        ViewBag.Lease = await Db.Leases.Include(l => l.Apartment).FirstAsync(l => l.Id == lease.Id);
+        ViewBag.Apartment = apartment;
         return View(new CreateMaintenanceVm());
     }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateMaintenanceVm input)
     {
-        var lease = await MyLeasesQuery()
-            .Include(l => l.Apartment)
-            .Where(l => l.Status == LeaseStatus.Active)
-            .FirstOrDefaultAsync();
-        if (lease == null)
+        var apartment = await GetMyApartmentAsync();
+        if (apartment == null)
         {
-            TempData["Danger"] = "Bạn cần có hợp đồng đang hoạt động.";
+            TempData["Danger"] = "Tài khoản chưa được Ban quản lý gắn với căn hộ nào.";
             return RedirectToAction(nameof(Index));
         }
 
         if (!ModelState.IsValid)
         {
-            ViewBag.Lease = lease;
+            ViewBag.Apartment = apartment;
             return View(input);
         }
 
@@ -112,8 +108,7 @@ public class MaintenanceController : TenantBaseController
         var req = new MaintenanceRequest
         {
             RequestNumber = await BillingNumberGenerator.NextMaintenanceNumberAsync(Db),
-            ApartmentId = lease.ApartmentId,
-            LeaseId = lease.Id,
+            ApartmentId = apartment.Id,
             ReporterId = CurrentUserId,
             Title = input.Title,
             Description = input.Description,

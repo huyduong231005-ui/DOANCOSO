@@ -17,10 +17,10 @@
         <div class="card-body">
             <div class="form-grid">
                 <div class="form-field span-6">
-                    <label asp-for="LeaseId">Hợp đồng</label>
-                    <select asp-for="LeaseId">
-                        <option value="0">— Chọn hợp đồng —</option>
-                        @foreach (var l in Model.Leases) { <option value="@l.Id">@l.Label</option> }
+                    <label asp-for="ApartmentId">Căn hộ</label>
+                    <select asp-for="ApartmentId">
+                        <option value="0">— Chọn căn —</option>
+                        @foreach (var a in Model.Apartments) { <option value="@a.Id">@a.Label</option> }
                     </select>
                 </div>
                 <div class="form-field span-4">

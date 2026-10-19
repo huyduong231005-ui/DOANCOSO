@@ -29,6 +29,7 @@ public class InvoiceGenerationService : BackgroundService
                     using var scope = _services.CreateScope();
                     var gen = scope.ServiceProvider.GetRequiredService<InvoiceGenerator>();
                     await gen.GenerateForBillingDayAsync(today, stoppingToken);
+                    await gen.MarkOverdueInvoicesAsync(today, stoppingToken);
                     await gen.ApplyLateFeesAsync(today, stoppingToken);
                     lastRunDay = today;
                 }

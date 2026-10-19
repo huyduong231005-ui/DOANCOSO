@@ -12,32 +12,30 @@ public class UtilitiesController : AdminBaseController
     public UtilitiesController(AppDbContext db) : base(db) { }
 
     // ── Readings ──
-    public async Task<IActionResult> Index(int? leaseId, int? utilityTypeId, int? billingMonth, int page = 1)
+    public async Task<IActionResult> Index(int? apartmentId, int? buildingId, int? utilityTypeId, int? billingMonth, int page = 1)
     {
         SetActiveNav("utilities");
         SetBreadcrumb(("Điện / Nước", null));
 
         const int pageSize = 30;
         var query = Db.UtilityReadings
-            .Include(r => r.Lease).ThenInclude(l => l.PrimaryTenant)
-            .Include(r => r.Lease).ThenInclude(l => l.Apartment)
             .Include(r => r.UtilityType)
             .AsQueryable();
 
-        if (leaseId.HasValue) query = query.Where(r => r.LeaseId == leaseId.Value);
+        if (apartmentId.HasValue) query = query.Where(r => r.ApartmentId == apartmentId.Value);
+        if (buildingId.HasValue) query = query.Where(r => r.Apartment.BuildingId == buildingId.Value);
         if (utilityTypeId.HasValue) query = query.Where(r => r.UtilityTypeId == utilityTypeId.Value);
         if (billingMonth.HasValue) query = query.Where(r => r.BillingMonth == billingMonth.Value);
 
         var total = await query.CountAsync();
         var rows = await query
-            .OrderByDescending(r => r.BillingMonth).ThenBy(r => r.UtilityType.Name)
+            .OrderByDescending(r => r.BillingMonth).ThenBy(r => r.Apartment.UnitCode).ThenBy(r => r.UtilityType.Name)
             .Skip((page - 1) * pageSize).Take(pageSize)
             .Select(r => new UtilityReadingListVm
             {
-                Id = r.Id, LeaseId = r.LeaseId,
-                LeaseNumber = r.Lease.LeaseNumber,
-                TenantName = r.Lease.PrimaryTenant.FullName,
-                UnitTitle = r.Lease.Apartment.Title,
+                Id = r.Id, ApartmentId = r.ApartmentId,
+                UnitCode = r.Apartment.UnitCode,
+                BuildingName = r.Apartment.Building.Name,
                 UtilityName = r.UtilityType.Name,
                 UtilityIcon = r.UtilityType.Icon ?? string.Empty,
                 BillingMonth = r.BillingMonth,
@@ -49,14 +47,16 @@ public class UtilitiesController : AdminBaseController
         ViewBag.Pager = new PageInfo
         {
             Page = page, PageSize = pageSize, TotalCount = total,
-            Url = pp => Url.Action(nameof(Index), new { leaseId, utilityTypeId, billingMonth, page = pp }) ?? "#"
+            Url = pp => Url.Action(nameof(Index), new { apartmentId, buildingId, utilityTypeId, billingMonth, page = pp }) ?? "#"
         };
-        ViewBag.LeaseId = leaseId; ViewBag.UtilityTypeId = utilityTypeId; ViewBag.BillingMonth = billingMonth;
+        ViewBag.ApartmentId = apartmentId; ViewBag.BuildingId = buildingId;
+        ViewBag.UtilityTypeId = utilityTypeId; ViewBag.BillingMonth = billingMonth;
+        ViewBag.Buildings = await Db.Buildings.OrderBy(b => b.Code).ToListAsync();
         ViewBag.UtilityTypes = await Db.UtilityTypes.OrderBy(x => x.Name).ToListAsync();
         return View(rows);
     }
 
-    public async Task<IActionResult> CreateReading(int? leaseId, int? utilityTypeId)
+    public async Task<IActionResult> CreateReading(int? apartmentId, int? utilityTypeId)
     {
         SetActiveNav("utilities");
         SetBreadcrumb(("Điện / Nước", Url.Action(nameof(Index))), ("Nhập chỉ số", null));
@@ -65,10 +65,10 @@ public class UtilitiesController : AdminBaseController
         var vm = new UtilityReadingEditVm
         {
             BillingMonth = now.Year * 100 + now.Month,
-            LeaseId = leaseId ?? 0,
+            ApartmentId = apartmentId ?? 0,
             UtilityTypeId = utilityTypeId ?? 0
         };
-        if (vm.LeaseId > 0 && vm.UtilityTypeId > 0)
+        if (vm.ApartmentId > 0 && vm.UtilityTypeId > 0)
             await PrefillFromPreviousAsync(vm);
         await PopulateReadingLookupsAsync(vm);
         return View("EditReading", vm);
@@ -88,7 +88,7 @@ public class UtilitiesController : AdminBaseController
 
         var vm = new UtilityReadingEditVm
         {
-            Id = r.Id, LeaseId = r.LeaseId, UtilityTypeId = r.UtilityTypeId,
+            Id = r.Id, ApartmentId = r.ApartmentId, UtilityTypeId = r.UtilityTypeId,
             BillingMonth = r.BillingMonth,
             PreviousReading = r.PreviousReading, CurrentReading = r.CurrentReading,
             Rate = r.Rate, Note = r.Note
@@ -122,15 +122,15 @@ public class UtilitiesController : AdminBaseController
             return View(input);
         }
 
-        // Pre-check unique (LeaseId, UtilityTypeId, BillingMonth) before letting the DB error.
+        // Pre-check unique (ApartmentId, UtilityTypeId, BillingMonth) before letting the DB error.
         var duplicate = await Db.UtilityReadings.AnyAsync(x =>
             x.Id != input.Id &&
-            x.LeaseId == input.LeaseId &&
+            x.ApartmentId == input.ApartmentId &&
             x.UtilityTypeId == input.UtilityTypeId &&
             x.BillingMonth == input.BillingMonth);
         if (duplicate)
         {
-            ModelState.AddModelError(nameof(input.BillingMonth), "Đã có chỉ số cho hợp đồng + loại + kỳ này. Hãy sửa bản ghi cũ thay vì tạo mới.");
+            ModelState.AddModelError(nameof(input.BillingMonth), "Đã có chỉ số cho căn + loại + kỳ này. Hãy sửa bản ghi cũ thay vì tạo mới.");
             await PopulateReadingLookupsAsync(input);
             return View(input);
         }
@@ -151,7 +151,7 @@ public class UtilitiesController : AdminBaseController
             }
         }
 
-        r.LeaseId = input.LeaseId;
+        r.ApartmentId = input.ApartmentId;
         r.UtilityTypeId = input.UtilityTypeId;
         r.BillingMonth = input.BillingMonth;
         r.Rate = input.Rate;
@@ -176,14 +176,14 @@ public class UtilitiesController : AdminBaseController
 
         await Db.SaveChangesAsync();
         TempData["Success"] = "Đã lưu chỉ số.";
-        return RedirectToAction(nameof(Index), new { leaseId = input.LeaseId, billingMonth = input.BillingMonth });
+        return RedirectToAction(nameof(Index), new { apartmentId = input.ApartmentId, billingMonth = input.BillingMonth });
     }
 
-    /// <summary>Fill PreviousReading from the most recent reading on the same lease+type.</summary>
+    /// <summary>Fill PreviousReading from the most recent reading on the same apartment+type.</summary>
     private async Task PrefillFromPreviousAsync(UtilityReadingEditVm vm)
     {
         var prev = await Db.UtilityReadings
-            .Where(r => r.LeaseId == vm.LeaseId && r.UtilityTypeId == vm.UtilityTypeId && r.BillingMonth < vm.BillingMonth)
+            .Where(r => r.ApartmentId == vm.ApartmentId && r.UtilityTypeId == vm.UtilityTypeId && r.BillingMonth < vm.BillingMonth)
             .OrderByDescending(r => r.BillingMonth)
             .Select(r => new { r.CurrentReading, r.Rate })
             .FirstOrDefaultAsync();
@@ -192,6 +192,90 @@ public class UtilitiesController : AdminBaseController
             vm.PreviousReading = prev.CurrentReading;
             if (vm.Rate == 0) vm.Rate = prev.Rate;
         }
+    }
+
+    // ── Ghi chỉ số hàng loạt: một toà, một loại đồng hồ, một kỳ ──
+    public async Task<IActionResult> Bulk(int? buildingId, int? utilityTypeId, int? billingMonth)
+    {
+        SetActiveNav("utilities");
+        SetBreadcrumb(("Điện / Nước", Url.Action(nameof(Index))), ("Ghi chỉ số theo toà", null));
+
+        var now = VnTime.Now;
+        var vm = new BulkReadingVm
+        {
+            BuildingId = buildingId ?? await Db.Buildings.OrderBy(b => b.Code).Select(b => b.Id).FirstOrDefaultAsync(),
+            UtilityTypeId = utilityTypeId ?? await Db.UtilityTypes.Where(t => t.BillingMode == UtilityBillingMode.Metered)
+                .OrderBy(t => t.Id).Select(t => t.Id).FirstOrDefaultAsync(),
+            BillingMonth = billingMonth ?? now.Year * 100 + now.Month,
+            Buildings = await Db.Buildings.OrderBy(b => b.Code).ToListAsync(),
+            UtilityTypes = await Db.UtilityTypes.Where(t => t.BillingMode == UtilityBillingMode.Metered).OrderBy(t => t.Name).ToListAsync()
+        };
+        var type = vm.UtilityTypes.FirstOrDefault(t => t.Id == vm.UtilityTypeId);
+        vm.Rate = type?.DefaultRate ?? 0;
+
+        var apartments = await Db.Apartments
+            .Where(a => a.BuildingId == vm.BuildingId && a.Occupancy != ApartmentOccupancy.NotHandedOver)
+            .OrderBy(a => a.Floor.Number).ThenBy(a => a.UnitCode)
+            .Select(a => new { a.Id, a.UnitCode, FloorNumber = a.Floor.Number })
+            .ToListAsync();
+        var ids = apartments.Select(a => a.Id).ToList();
+        var readings = await Db.UtilityReadings
+            .Where(r => ids.Contains(r.ApartmentId) && r.UtilityTypeId == vm.UtilityTypeId && r.BillingMonth <= vm.BillingMonth)
+            .Select(r => new { r.ApartmentId, r.BillingMonth, r.CurrentReading, r.Billed })
+            .ToListAsync();
+
+        vm.Rows = apartments.Select(a =>
+        {
+            var current = readings.FirstOrDefault(r => r.ApartmentId == a.Id && r.BillingMonth == vm.BillingMonth);
+            var prev = readings.Where(r => r.ApartmentId == a.Id && r.BillingMonth < vm.BillingMonth)
+                .OrderByDescending(r => r.BillingMonth).FirstOrDefault();
+            return new BulkReadingRow
+            {
+                ApartmentId = a.Id, UnitCode = a.UnitCode, FloorNumber = a.FloorNumber,
+                PreviousReading = prev?.CurrentReading ?? 0,
+                CurrentReading = current?.CurrentReading,
+                Locked = current?.Billed == true
+            };
+        }).ToList();
+        return View(vm);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Bulk(BulkReadingVm input)
+    {
+        var type = await Db.UtilityTypes.FindAsync(input.UtilityTypeId);
+        if (type == null || input.BillingMonth < 202000 || input.BillingMonth > 209912 || input.Rate < 0) return BadRequest();
+
+        var ids = input.Rows.Select(r => r.ApartmentId).ToList();
+        var validIds = await Db.Apartments.Where(a => ids.Contains(a.Id) && a.BuildingId == input.BuildingId)
+            .Select(a => a.Id).ToListAsync();
+        var existing = await Db.UtilityReadings
+            .Where(r => validIds.Contains(r.ApartmentId) && r.UtilityTypeId == type.Id && r.BillingMonth == input.BillingMonth)
+            .ToListAsync();
+
+        int saved = 0, skipped = 0;
+        foreach (var row in input.Rows.Where(r => r.CurrentReading.HasValue && validIds.Contains(r.ApartmentId)).DistinctBy(r => r.ApartmentId))
+        {
+            if (row.CurrentReading < row.PreviousReading) { skipped++; continue; }
+            var r = existing.FirstOrDefault(x => x.ApartmentId == row.ApartmentId);
+            if (r?.Billed == true) { skipped++; continue; }
+            if (r == null)
+            {
+                r = new UtilityReading { ApartmentId = row.ApartmentId, UtilityTypeId = type.Id, BillingMonth = input.BillingMonth };
+                Db.UtilityReadings.Add(r);
+            }
+            r.PreviousReading = row.PreviousReading;
+            r.CurrentReading = row.CurrentReading!.Value;
+            r.Consumption = r.CurrentReading - r.PreviousReading;
+            r.Rate = input.Rate;
+            r.Amount = Math.Round(r.Consumption * input.Rate, 0);
+            r.ReadAt = DateTime.UtcNow;
+            saved++;
+        }
+        await Db.SaveChangesAsync();
+        TempData[skipped > 0 ? "Warning" : "Success"] = $"Đã lưu {saved} chỉ số {type.Name}."
+            + (skipped > 0 ? $" Bỏ qua {skipped} căn (chỉ số mới nhỏ hơn chỉ số cũ hoặc đã xuất hoá đơn)." : "");
+        return RedirectToAction(nameof(Bulk), new { input.BuildingId, input.UtilityTypeId, input.BillingMonth });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
@@ -276,10 +360,11 @@ public class UtilitiesController : AdminBaseController
 
     private async Task PopulateReadingLookupsAsync(UtilityReadingEditVm vm)
     {
-        vm.Leases = await Db.Leases
-            .Include(l => l.Apartment).Include(l => l.PrimaryTenant)
-            .Where(l => l.Status == LeaseStatus.Active)
-            .OrderBy(l => l.LeaseNumber).ToListAsync();
+        vm.Apartments = await Db.Apartments
+            .Where(a => a.Occupancy != ApartmentOccupancy.NotHandedOver || a.Id == vm.ApartmentId)
+            .OrderBy(a => a.Building.Code).ThenBy(a => a.UnitCode)
+            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + a.Building.Name })
+            .ToListAsync();
         vm.UtilityTypes = await Db.UtilityTypes.OrderBy(x => x.Name).ToListAsync();
     }
 }

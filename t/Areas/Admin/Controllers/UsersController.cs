@@ -38,14 +38,15 @@ public class UsersController : AdminBaseController
         {
             var roles = await _userManager.GetRolesAsync(u);
             if (!string.IsNullOrEmpty(role) && !roles.Contains(role)) continue;
-            var leases = await Db.Leases.CountAsync(l => l.PrimaryTenantId == u.Id);
+            var units = await Db.ApartmentResidents.Where(r => r.UserId == u.Id && r.MoveOutDate == null)
+                .Select(r => r.Apartment.UnitCode).ToListAsync();
             rows.Add(new UserListVm
             {
                 Id = u.Id, Email = u.Email!, FullName = u.FullName,
-                Phone = u.Phone, IsHost = u.IsHost,
+                Phone = u.Phone,
                 LockedOut = u.LockoutEnd != null && u.LockoutEnd > DateTimeOffset.UtcNow,
                 CreatedAt = u.CreatedAt, LastLoginAt = u.LastLoginAt,
-                Roles = roles.ToList(), LeasesCount = leases
+                Roles = roles.ToList(), ApartmentCodes = units.Count == 0 ? null : string.Join(", ", units)
             });
         }
 
@@ -90,7 +91,7 @@ public class UsersController : AdminBaseController
         var vm = new UserEditVm
         {
             Id = u.Id, Email = u.Email!, FullName = u.FullName,
-            Phone = u.Phone, IsHost = u.IsHost, HostTitle = u.HostTitle,
+            Phone = u.Phone,
             LockedOut = u.LockoutEnd != null && u.LockoutEnd > DateTimeOffset.UtcNow,
             SelectedRoles = roles.ToList(), AllRoles = allRoles
         };
@@ -112,8 +113,6 @@ public class UsersController : AdminBaseController
         u.FullName = input.FullName;
         u.Phone = input.Phone;
         u.PhoneNumber = input.Phone;
-        u.IsHost = input.IsHost;
-        u.HostTitle = input.HostTitle;
 
         if (!string.Equals(u.Email, input.Email, StringComparison.OrdinalIgnoreCase))
         {

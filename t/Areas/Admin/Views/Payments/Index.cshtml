@@ -55,7 +55,7 @@
 </section>
 
 <form method="get" class="filter-bar">
-    <input type="search" name="q" value="@q" placeholder="Số hoá đơn, hợp đồng, tên khách..."
+    <input type="search" name="q" value="@q" placeholder="Số hoá đơn hoặc mã căn…"
        data-suggest-url="@Url.Action("Suggest")" data-suggest-icon="payments" />
     <select name="status">
         <option value="">— Trạng thái —</option>
@@ -72,10 +72,10 @@
             <thead>
                 <tr>
                     <th>Hoá đơn</th>
-                    <th>Khách / Căn</th>
-                    <th class="num">Tiền nhà</th>
-                    <th class="num">Tiện ích</th>
-                    <th class="num">Khác</th>
+                    <th>Căn</th>
+                    <th class="num">Phí quản lý</th>
+                    <th class="num">Nước, gửi xe…</th>
+                    <th class="num">Phát sinh</th>
                     <th class="num">Tổng</th>
                     <th class="num">Đã trả</th>
                     <th class="num">Còn lại</th>
@@ -107,14 +107,13 @@
                             <div class="row-meta">
                                 @r.Kind.Vi()
                                 @if (r.BillingMonth > 0) { <text> · Kỳ @(r.BillingMonth / 100)/@((r.BillingMonth % 100).ToString("00"))</text> }
-                                · @r.LeaseNumber
                             </div>
                         </td>
                         <td>
-                            <div>@r.TenantName</div>
-                            <div class="row-meta">@r.UnitTitle</div>
+                            <div class="row-title">@r.UnitCode</div>
+                            <div class="row-meta">@r.BuildingName</div>
                         </td>
-                        <td class="num">@(r.RentAmount > 0 ? Money(r.RentAmount) : "—")</td>
+                        <td class="num">@(r.ManagementAmount > 0 ? Money(r.ManagementAmount) : "—")</td>
                         <td class="num">@(r.UtilityAmount > 0 ? Money(r.UtilityAmount) : "—")</td>
                         <td class="num">@(r.OtherAmount > 0 ? Money(r.OtherAmount) : "—")</td>
                         <td class="num">@Money(r.Total)</td>

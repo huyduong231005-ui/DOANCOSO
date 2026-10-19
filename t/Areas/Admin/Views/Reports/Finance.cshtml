@@ -12,7 +12,7 @@
     <div><h1>Tài chính</h1><p class="subtitle">Tổng quan doanh thu và công nợ</p></div>
     <div class="actions">
         <a class="btn btn-ghost" asp-action="Arrears"><span class="material-symbols-outlined">trending_down</span>Công nợ chi tiết</a>
-        <a class="btn btn-ghost" asp-action="RevenueForecast"><span class="material-symbols-outlined">timeline</span>Dự báo</a>
+        <a class="btn btn-ghost" asp-action="Occupancy"><span class="material-symbols-outlined">door_front</span>Tình trạng căn</a>
     </div>
 </section>
 
@@ -101,7 +101,7 @@
     <div class="card-header"><h2>Top khách nợ</h2></div>
     <div class="table-wrap">
         <table class="data-table">
-            <thead><tr><th>Khách thuê</th><th class="num">Số hoá đơn nợ</th><th class="num">Tổng nợ</th><th></th></tr></thead>
+            <thead><tr><th>Căn</th><th class="num">Số hoá đơn nợ</th><th class="num">Tổng nợ</th><th></th></tr></thead>
             <tbody>
             @if (!Model.TopDebtors.Any())
             {
@@ -112,11 +112,11 @@
                 foreach (var d in Model.TopDebtors)
                 {
                     <tr>
-                        <td class="row-title">@d.TenantName</td>
+                        <td><span class="row-title">@d.UnitCode</span><div class="row-meta">@d.BuildingName</div></td>
                         <td class="num">@d.InvoiceCount</td>
                         <td class="num"><strong style="color:var(--admin-danger);">@Money(d.TotalBalance)</strong></td>
                         <td class="actions-cell">
-                            <a class="btn btn-ghost btn-sm" asp-controller="Invoices" asp-action="Index" asp-route-q="@d.TenantName"><span class="material-symbols-outlined">visibility</span>Xem hoá đơn</a>
+                            <a class="btn btn-ghost btn-sm" asp-controller="Invoices" asp-action="Index" asp-route-q="@d.UnitCode"><span class="material-symbols-outlined">visibility</span>Xem hoá đơn</a>
                         </td>
                     </tr>
                 }

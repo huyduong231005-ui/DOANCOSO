@@ -10,8 +10,8 @@
 <section class="page-header">
     <div><h1>Công nợ phân tuổi</h1><p class="subtitle">@Model.Count hoá đơn còn dư · tổng @Money(grand) đ</p></div>
     <div class="actions">
-        <a class="btn btn-ghost" asp-action="Occupancy">Lấp đầy</a>
-        <a class="btn btn-ghost" asp-action="RevenueForecast">Dự báo</a>
+        <a class="btn btn-ghost" asp-action="Occupancy">Tình trạng căn</a>
+        <a class="btn btn-ghost" asp-action="Finance">Tài chính</a>
     </div>
 </section>
 
@@ -30,7 +30,7 @@
     <div class="card-header"><h2>Chi tiết hoá đơn nợ</h2></div>
     <div class="table-wrap">
         <table class="data-table">
-            <thead><tr><th>Hoá đơn</th><th>Hợp đồng</th><th>Khách</th><th>Toà</th><th>Đến hạn</th><th class="num">Trễ (ngày)</th><th class="num">Số dư</th><th>Tuổi nợ</th></tr></thead>
+            <thead><tr><th>Hoá đơn</th><th>Căn</th><th>Đại diện</th><th>Toà</th><th>Đến hạn</th><th class="num">Trễ (ngày)</th><th class="num">Số dư</th><th>Tuổi nợ</th></tr></thead>
             <tbody>
             @if (!Model.Any())
             {
@@ -43,8 +43,8 @@
                     var pillCls = r.DaysLate <= 0 ? "pill pill-info" : r.DaysLate <= 30 ? "pill pill-warning" : r.DaysLate <= 60 ? "pill pill-accent" : "pill pill-danger";
                     <tr>
                         <td><a class="row-title" asp-controller="Invoices" asp-action="Details" asp-route-id="@r.InvoiceId">@r.InvoiceNumber</a></td>
-                        <td>@r.LeaseNumber</td>
-                        <td>@r.TenantName</td>
+                        <td><a class="row-title" asp-controller="Apartments" asp-action="Details" asp-route-id="@r.ApartmentId">@r.UnitCode</a></td>
+                        <td>@(r.RepresentativeName ?? "—")</td>
                         <td>@(r.BuildingName ?? "—")</td>
                         <td>@r.DueDate.ToString("dd/MM/yyyy")</td>
                         <td class="num">@(r.DaysLate > 0 ? r.DaysLate.ToString() : "—")</td>

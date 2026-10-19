@@ -1,37 +1,32 @@
 @model t.Areas.Admin.Models.DashboardViewModel
 @{
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "Bảng điều khiển";
     string Money(decimal v) => v.ToString("N0");
-    string Pill(t.Models.Entities.LeaseStatus s) => s switch
-    {
-        t.Models.Entities.LeaseStatus.Active => "pill pill-success",
-        t.Models.Entities.LeaseStatus.Pending => "pill pill-warning",
-        t.Models.Entities.LeaseStatus.Renewing => "pill pill-info",
-        t.Models.Entities.LeaseStatus.Expired => "pill pill-neutral",
-        t.Models.Entities.LeaseStatus.Terminated => "pill pill-danger",
-        _ => "pill pill-neutral"
-    };
-    decimal maxRevenue = Model.RevenueByDay.Count == 0 ? 0 : Model.RevenueByDay.Max(r => r.Total);
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
     decimal maxMonth = Model.RevenueByMonth.Count == 0 ? 0 : Model.RevenueByMonth.Max(r => r.Total);
-    decimal sumBreakdown = Model.BreakdownRent + Model.BreakdownUtilities + Model.BreakdownServices;
+    decimal sumBreakdown = Model.BreakdownManagement + Model.BreakdownUtilities + Model.BreakdownServices;
     string MoMColor = Model.MoMGrowthPct > 0 ? "var(--admin-success)" :
-                      Model.MoMGrowthPct < 0 ? "var(--admin-danger)" : "var(--admin-text-muted)";
+                      Model.MoMGrowthPct < 0 ? "var(--admin-danger)" : "var(--admin-muted)";
     string MoMArrow = Model.MoMGrowthPct > 0 ? "trending_up" :
                       Model.MoMGrowthPct < 0 ? "trending_down" : "trending_flat";
+    string PriPill(MaintenancePriority p) => p switch
+    {
+        MaintenancePriority.Urgent => "pill pill-danger",
+        MaintenancePriority.High => "pill pill-warning",
+        MaintenancePriority.Medium => "pill pill-info",
+        _ => "pill pill-neutral"
+    };
+    string Pct(decimal part) => sumBreakdown == 0 ? "0" : (part * 100 / sumBreakdown).ToString("0.0");
 }
 
 <section class="page-header">
     <div>
         <h1>Bảng điều khiển</h1>
-        <p class="subtitle">Tổng quan vận hành toà nhà · cập nhật @DateTime.Now.ToString("HH:mm dd/MM/yyyy")</p>
+        <p class="subtitle">Tình hình vận hành các khu · cập nhật @DateTime.Now.ToString("HH:mm dd/MM/yyyy")</p>
     </div>
     <div class="actions">
-        <a class="btn btn-outline" asp-area="Admin" asp-controller="Leases" asp-action="Index">
-            <span class="material-symbols-outlined">description</span>Quản lý hợp đồng
-        </a>
-        <a class="btn btn-accent" asp-area="Admin" asp-controller="Leases" asp-action="Create">
-            <span class="material-symbols-outlined">add</span>Tạo hợp đồng
-        </a>
+        <a class="btn btn-outline" asp-controller="Projects" asp-action="Index"><span class="material-symbols-outlined">location_city</span>Sơ đồ khu &amp; toà</a>
+        <a class="btn btn-accent" asp-controller="Utilities" asp-action="Bulk"><span class="material-symbols-outlined">water_drop</span>Ghi chỉ số tháng</a>
     </div>
 </section>
 
@@ -40,23 +35,23 @@
         <div class="kpi-icon"><span class="material-symbols-outlined">domain</span></div>
         <div class="kpi-label">Toà nhà</div>
         <div class="kpi-value">@Model.BuildingsTotal</div>
-        <div class="kpi-meta">@Model.UnitsTotal căn hộ tổng</div>
+        <div class="kpi-meta">@Model.UnitsTotal căn hộ</div>
     </div>
     <div class="kpi-card">
-        <div class="kpi-icon"><span class="material-symbols-outlined">apartment</span></div>
-        <div class="kpi-label">Tỉ lệ lấp đầy</div>
+        <div class="kpi-icon"><span class="material-symbols-outlined">door_front</span></div>
+        <div class="kpi-label">Có người ở</div>
         <div class="kpi-value">@Model.OccupancyRate%</div>
-        <div class="kpi-meta">@Model.UnitsOccupied / @Model.UnitsTotal đang ở</div>
+        <div class="kpi-meta">@Model.UnitsOccupied đang ở · @Model.UnitsAvailable để trống</div>
     </div>
     <div class="kpi-card">
-        <div class="kpi-icon"><span class="material-symbols-outlined">description</span></div>
-        <div class="kpi-label">Hợp đồng đang hoạt động</div>
-        <div class="kpi-value">@Model.LeasesActive</div>
-        <div class="kpi-meta">@Model.LeasesExpiringSoon sắp hết hạn (30 ngày)</div>
+        <div class="kpi-icon"><span class="material-symbols-outlined">groups</span></div>
+        <div class="kpi-label">Cư dân</div>
+        <div class="kpi-value">@Model.ResidentsTotal</div>
+        <div class="kpi-meta">@Model.UsersTotal tài khoản trên hệ thống</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-icon"><span class="material-symbols-outlined">payments</span></div>
-        <div class="kpi-label">Doanh thu tháng này</div>
+        <div class="kpi-label">Đã thu tháng này</div>
         <div class="kpi-value">@Money(Model.RevenueThisMonth)</div>
         <div class="kpi-meta" style="color:@MoMColor;">
             <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">@MoMArrow</span>
@@ -64,202 +59,88 @@
         </div>
     </div>
     <div class="kpi-card">
-        <div class="kpi-icon"><span class="material-symbols-outlined">money_off</span></div>
-        <div class="kpi-label">Công nợ</div>
+        <div class="kpi-icon" style="color:var(--admin-danger);"><span class="material-symbols-outlined">money_off</span></div>
+        <div class="kpi-label">Công nợ phải thu</div>
         <div class="kpi-value">@Money(Model.ArrearsTotal)</div>
-        <div class="kpi-meta">@Model.InvoicesUnpaid hoá đơn chưa thanh toán</div>
+        <div class="kpi-meta"><a asp-controller="Payments" asp-action="Index" style="text-decoration:underline;">@Model.InvoicesUnpaid hoá đơn chưa thu</a></div>
     </div>
     <div class="kpi-card">
-        <div class="kpi-icon"><span class="material-symbols-outlined">group</span></div>
-        <div class="kpi-label">Người dùng</div>
-        <div class="kpi-value">@Model.UsersTotal</div>
-        <div class="kpi-meta">@Model.ReviewsPending review chờ duyệt</div>
+        <div class="kpi-icon" style="color:var(--admin-warning);"><span class="material-symbols-outlined">build</span></div>
+        <div class="kpi-label">Sự cố đang mở</div>
+        <div class="kpi-value">@Model.MaintenanceOpen</div>
+        <div class="kpi-meta"><a asp-controller="Maintenance" asp-action="Index" style="text-decoration:underline;">Xem hàng đợi xử lý</a></div>
     </div>
 </section>
 
-<section class="kpi-grid" style="margin-top:1rem;">
-    <div class="kpi-card" style="border-left:4px solid var(--admin-success);">
-        <div class="kpi-icon" style="color:var(--admin-success);"><span class="material-symbols-outlined">savings</span></div>
-        <div class="kpi-label">Tổng doanh thu cộng dồn</div>
-        <div class="kpi-value">@Money(Model.RevenueAllTime)</div>
-        <div class="kpi-meta">VNĐ · toàn thời gian</div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-icon"><span class="material-symbols-outlined">date_range</span></div>
-        <div class="kpi-label">Doanh thu 30 ngày gần nhất</div>
-        <div class="kpi-value">@Money(Model.RevenueLast30Days)</div>
-        <div class="kpi-meta">Cuốn chiếu mỗi ngày</div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-icon"><span class="material-symbols-outlined">analytics</span></div>
-        <div class="kpi-label">Trung bình / tháng</div>
-        <div class="kpi-value">@Money(Model.RevenueAvgPerMonth)</div>
-        <div class="kpi-meta">12 tháng gần nhất</div>
-    </div>
-    <div class="kpi-card" style="border-left:4px solid var(--admin-accent);">
-        <div class="kpi-icon" style="color:var(--admin-accent);"><span class="material-symbols-outlined">insights</span></div>
-        <div class="kpi-label">Dự kiến tháng tới</div>
-        <div class="kpi-value">@Money(Model.RevenueForecastNext)</div>
-        <div class="kpi-meta">Tổng tiền thuê hợp đồng đang hoạt động</div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-icon"><span class="material-symbols-outlined">verified</span></div>
-        <div class="kpi-label">Tỉ lệ thu thành công</div>
-        <div class="kpi-value">@Model.CollectionRate%</div>
-        <div class="kpi-meta">Đã thu / Tổng hoá đơn đã phát hành</div>
-    </div>
+<section class="stat-strip">
+    <div class="stat"><div class="stat-label">Phí cố định dự kiến/tháng</div><div class="stat-value">@Money(Model.RevenueForecastNext)</div><div class="stat-sub">phí quản lý + gửi xe, chưa gồm nước</div></div>
+    <div class="stat"><div class="stat-label">Tỉ lệ thu</div><div class="stat-value">@Model.CollectionRate%</div><div class="stat-sub">đã thu / tổng đã phát hành</div></div>
+    <div class="stat"><div class="stat-label">Thu 30 ngày qua</div><div class="stat-value">@Money(Model.RevenueLast30Days)</div></div>
+    <div class="stat"><div class="stat-label">Trung bình/tháng</div><div class="stat-value">@Money(Model.RevenueAvgPerMonth)</div><div class="stat-sub">12 tháng gần nhất</div></div>
+    <div class="stat"><div class="stat-label">Tổng đã thu</div><div class="stat-value">@Money(Model.RevenueAllTime)</div></div>
 </section>
 
-<section style="display:grid;grid-template-columns:2fr 1fr;gap:1.2rem;">
+<section style="display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:1.2rem;">
     <div class="card">
         <div class="card-header">
-            <h2>Doanh thu 12 tháng gần nhất</h2>
-            <span class="text-muted">Đơn vị: VNĐ · phân tích xu hướng</span>
+            <h2>Tiền thu theo tháng</h2>
+            <span class="text-muted">12 tháng gần nhất · VNĐ</span>
         </div>
         <div class="card-body">
             @if (maxMonth == 0)
             {
-                <div class="empty-state" style="padding:1.5rem;">
-                    <span class="material-symbols-outlined">show_chart</span>
-                    <h3>Chưa có doanh thu</h3>
-                </div>
+                <div class="empty-state" style="padding:1.5rem;"><span class="material-symbols-outlined">show_chart</span><h3>Chưa có khoản thu</h3></div>
             }
             else
             {
-                <div style="position:relative;height:280px;">
-                    <canvas id="revenueMonthChart"></canvas>
-                </div>
+                <div style="position:relative;height:260px;"><canvas id="revenueMonthChart"></canvas></div>
             }
         </div>
     </div>
 
     <div class="card">
-        <div class="card-header">
-            <h2>Cơ cấu doanh thu</h2>
-            <span class="text-muted">Cộng dồn</span>
-        </div>
+        <div class="card-header"><h2>Cơ cấu khoản thu</h2></div>
         <div class="card-body">
             @if (sumBreakdown == 0)
             {
-                <div class="empty-state" style="padding:1.5rem;">
-                    <span class="material-symbols-outlined">donut_large</span>
-                    <h3>Chưa có dữ liệu</h3>
-                </div>
+                <div class="empty-state" style="padding:1.5rem;"><span class="material-symbols-outlined">donut_large</span><h3>Chưa có dữ liệu</h3></div>
             }
             else
             {
-                <div style="position:relative;height:200px;">
-                    <canvas id="breakdownChart"></canvas>
-                </div>
-                <div style="margin-top:1rem;display:flex;flex-direction:column;gap:.4rem;font-size:13px;">
-                    <div style="display:flex;justify-content:space-between;"><span><span style="display:inline-block;width:10px;height:10px;background:#dc2626;border-radius:2px;margin-right:6px;"></span>Tiền thuê</span><strong>@Money(Model.BreakdownRent) (@((Model.BreakdownRent * 100 / sumBreakdown).ToString("0.0"))%)</strong></div>
-                    <div style="display:flex;justify-content:space-between;"><span><span style="display:inline-block;width:10px;height:10px;background:#f59e0b;border-radius:2px;margin-right:6px;"></span>Điện / Nước</span><strong>@Money(Model.BreakdownUtilities) (@((Model.BreakdownUtilities * 100 / sumBreakdown).ToString("0.0"))%)</strong></div>
-                    <div style="display:flex;justify-content:space-between;"><span><span style="display:inline-block;width:10px;height:10px;background:#2563eb;border-radius:2px;margin-right:6px;"></span>Dịch vụ khác</span><strong>@Money(Model.BreakdownServices) (@((Model.BreakdownServices * 100 / sumBreakdown).ToString("0.0"))%)</strong></div>
+                <div style="position:relative;height:180px;"><canvas id="breakdownChart"></canvas></div>
+                <div class="mini-list" style="margin-top:.8rem;">
+                    <div class="row"><span><span class="dot" style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#0f2a44;margin-right:6px;"></span>Phí quản lý</span><b>@Money(Model.BreakdownManagement) · @Pct(Model.BreakdownManagement)%</b></div>
+                    <div class="row"><span><span class="dot" style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#0ea5e9;margin-right:6px;"></span>Điện / nước</span><b>@Money(Model.BreakdownUtilities) · @Pct(Model.BreakdownUtilities)%</b></div>
+                    <div class="row"><span><span class="dot" style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#c8963e;margin-right:6px;"></span>Gửi xe &amp; khác</span><b>@Money(Model.BreakdownServices) · @Pct(Model.BreakdownServices)%</b></div>
                 </div>
             }
         </div>
     </div>
 </section>
 
-@section Scripts {
-    @if (maxMonth > 0 || sumBreakdown > 0)
-    {
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-        <script>
-            (function(){
-                if (!window.Chart) return;
-                var fmtVN = function(v){ return v >= 1000000 ? (v/1000000).toFixed(1)+'tr' : v >= 1000 ? (v/1000).toFixed(0)+'k' : v; };
-                var fmtVNFull = function(v){ return new Intl.NumberFormat('vi-VN').format(v) + ' đ'; };
-
-                // ── Bar chart: 12 tháng ──
-                var monthCanvas = document.getElementById('revenueMonthChart');
-                if (monthCanvas) {
-                    var labels = [@Html.Raw(string.Join(",", Model.RevenueByMonth.Select(m => $"\"{m.Label}\"")))];
-                    var data   = [@Html.Raw(string.Join(",", Model.RevenueByMonth.Select(m => m.Total.ToString(System.Globalization.CultureInfo.InvariantCulture))))];
-                    var avg    = @Model.RevenueAvgPerMonth.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                    // Tô màu đỏ cho tháng vượt TB, xám cho tháng dưới TB
-                    var colors = data.map(function(v){ return v > avg ? '#dc2626' : v > 0 ? '#94a3b8' : '#e5e7eb'; });
-                    new Chart(monthCanvas.getContext('2d'), {
-                        type: 'bar',
-                        data: {
-                            labels: labels,
-                            datasets: [
-                                { label: 'Doanh thu', data: data, backgroundColor: colors, borderRadius: 6, barThickness: 'flex', maxBarThickness: 36, order: 2 },
-                                { label: 'Trung bình', data: data.map(function(){ return avg; }), type: 'line', borderColor: '#f59e0b', borderDash: [6,4], borderWidth: 2, pointRadius: 0, fill: false, order: 1 }
-                            ]
-                        },
-                        options: {
-                            responsive: true, maintainAspectRatio: false,
-                            plugins: {
-                                legend: { display: true, position: 'bottom' },
-                                tooltip: { callbacks: { label: function(c){ return c.dataset.label + ': ' + fmtVNFull(c.parsed.y); } } }
-                            },
-                            scales: {
-                                x: { grid: { display: false } },
-                                y: { ticks: { callback: fmtVN }, grid: { color: 'rgba(15,23,42,0.06)' } }
-                            }
-                        }
-                    });
-                }
-
-                // ── Doughnut chart: cơ cấu doanh thu ──
-                var brkCanvas = document.getElementById('breakdownChart');
-                if (brkCanvas) {
-                    var rent = @Model.BreakdownRent.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                    var util = @Model.BreakdownUtilities.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                    var svc  = @Model.BreakdownServices.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                    new Chart(brkCanvas.getContext('2d'), {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Tiền thuê', 'Điện / Nước', 'Dịch vụ khác'],
-                            datasets: [{
-                                data: [rent, util, svc],
-                                backgroundColor: ['#dc2626', '#f59e0b', '#2563eb'],
-                                borderWidth: 0
-                            }]
-                        },
-                        options: {
-                            responsive: true, maintainAspectRatio: false,
-                            cutout: '60%',
-                            plugins: {
-                                legend: { display: false },
-                                tooltip: { callbacks: { label: function(c){ return c.label + ': ' + fmtVNFull(c.parsed); } } }
-                            }
-                        }
-                    });
-                }
-            })();
-        </script>
-    }
-}
-
-<section style="display:grid;grid-template-columns:1.4fr 1fr;gap:1.2rem;">
+<section style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:1.2rem;">
     <div class="card">
         <div class="card-header">
-            <h2>Hợp đồng gần đây</h2>
-            <a class="btn btn-ghost btn-sm" asp-area="Admin" asp-controller="Leases" asp-action="Index">Xem tất cả →</a>
+            <h2>Sự cố cần xử lý</h2>
+            <a class="btn btn-ghost btn-sm" asp-controller="Maintenance" asp-action="Index">Tất cả →</a>
         </div>
         <div class="table-wrap">
             <table class="data-table">
-                <thead><tr><th>Mã</th><th>Khách thuê</th><th>Căn / Toà</th><th>Thời hạn</th><th class="num">Tiền/tháng</th><th>Trạng thái</th></tr></thead>
+                <thead><tr><th>Yêu cầu</th><th>Căn</th><th>Ưu tiên</th><th>Trạng thái</th><th>Báo lúc</th></tr></thead>
                 <tbody>
-                @if (!Model.RecentLeases.Any())
+                @if (!Model.RecentMaintenance.Any())
                 {
-                    <tr><td colspan="6"><div class="empty-state"><span class="material-symbols-outlined">description</span><h3>Chưa có hợp đồng</h3></div></td></tr>
+                    <tr><td colspan="5"><div class="empty-state"><span class="material-symbols-outlined">task_alt</span><h3>Không có sự cố tồn đọng</h3></div></td></tr>
                 }
-                else
+                @foreach (var m in Model.RecentMaintenance)
                 {
-                    foreach (var l in Model.RecentLeases)
-                    {
-                        <tr>
-                            <td><a asp-area="Admin" asp-controller="Leases" asp-action="Details" asp-route-id="@l.Id" class="row-title">@l.LeaseNumber</a></td>
-                            <td>@l.TenantName</td>
-                            <td>@l.UnitTitle<div class="row-meta">@l.BuildingName</div></td>
-                            <td class="text-muted no-wrap">@l.StartDate.ToString("dd/MM/yy") – @l.EndDate.ToString("dd/MM/yy")</td>
-                            <td class="num">@Money(l.MonthlyRent)</td>
-                            <td><span class="@Pill(l.Status)">@l.Status.Vi()</span></td>
-                        </tr>
-                    }
+                    <tr data-href="@Url.Action("Details", "Maintenance", new { id = m.Id })">
+                        <td><span class="row-title">@m.Title</span><div class="row-meta">@m.RequestNumber</div></td>
+                        <td class="no-wrap">@m.UnitCode</td>
+                        <td><span class="@PriPill(m.Priority)">@m.Priority.Vi()</span></td>
+                        <td>@m.Status.Vi()</td>
+                        <td class="text-muted no-wrap">@m.ReportedAt.ToLocalTime().ToString("dd/MM HH:mm")</td>
+                    </tr>
                 }
                 </tbody>
             </table>
@@ -267,27 +148,19 @@
     </div>
 
     <div class="card">
-        <div class="card-header">
-            <h2>Sắp hết hạn</h2>
-            <span class="text-muted">trong 30 ngày</span>
-        </div>
+        <div class="card-header"><h2>Công nợ theo toà</h2></div>
         <div class="table-wrap">
             <table class="data-table">
-                <thead><tr><th>Khách / Căn</th><th class="num">Còn lại</th></tr></thead>
+                <thead><tr><th>Toà</th><th class="num">Đang ở</th><th class="num">Còn phải thu</th></tr></thead>
                 <tbody>
-                @if (!Model.ExpiringLeases.Any())
+                @foreach (var b in Model.TopBuildings)
                 {
-                    <tr><td colspan="2"><div class="empty-state"><span class="material-symbols-outlined">schedule</span><h3>Không có hợp đồng nào sắp hết hạn</h3></div></td></tr>
-                }
-                else
-                {
-                    foreach (var l in Model.ExpiringLeases)
-                    {
-                        <tr>
-                            <td><a asp-area="Admin" asp-controller="Leases" asp-action="Details" asp-route-id="@l.Id" class="row-title">@l.TenantName</a><div class="row-meta">@l.UnitTitle · @l.LeaseNumber</div></td>
-                            <td class="num"><span class="pill @(l.DaysLeft <= 7 ? "pill-danger" : l.DaysLeft <= 14 ? "pill-warning" : "pill-info")">@l.DaysLeft ngày</span></td>
-                        </tr>
-                    }
+                    var rate = b.Units == 0 ? 0 : Math.Round(b.Occupied * 100.0 / b.Units, 0);
+                    <tr data-href="@Url.Action("Details", "Buildings", new { id = b.Id })">
+                        <td><span class="row-title">@b.Name</span></td>
+                        <td class="num">@b.Occupied/@b.Units <span class="text-muted">(@rate%)</span></td>
+                        <td class="num" style="@(b.MonthlyRevenue > 0 ? "color:var(--st-debt);font-weight:600;" : "")">@Money(b.MonthlyRevenue)</td>
+                    </tr>
                 }
                 </tbody>
             </table>
@@ -297,62 +170,84 @@
 
 <section class="card">
     <div class="card-header">
-        <h2>Top 5 căn hộ — Doanh thu cao nhất</h2>
-        <span class="text-muted">Cộng dồn từ trước đến giờ</span>
+        <h2>Căn đóng phí nhiều nhất</h2>
+        <span class="text-muted">Cộng dồn từ trước đến nay</span>
     </div>
     <div class="table-wrap">
         <table class="data-table">
-            <thead><tr><th>#</th><th>Căn hộ</th><th>Toà nhà</th><th class="num">Số hoá đơn đã thu</th><th class="num">Tổng đã thu</th></tr></thead>
+            <thead><tr><th>#</th><th>Căn</th><th>Toà</th><th class="num">Hoá đơn đã thu</th><th class="num">Tổng đã thu</th></tr></thead>
             <tbody>
             @if (!Model.TopApartments.Any())
             {
-                <tr><td colspan="5"><div class="empty-state"><span class="material-symbols-outlined">apartment</span><h3>Chưa có dữ liệu thu</h3></div></td></tr>
+                <tr><td colspan="5"><div class="empty-state"><span class="material-symbols-outlined">door_front</span><h3>Chưa có dữ liệu thu</h3></div></td></tr>
             }
-            else
+            @{ var rank = 0; }
+            @foreach (var a in Model.TopApartments)
             {
-                int rank = 0;
-                foreach (var a in Model.TopApartments)
-                {
-                    rank++;
-                    <tr data-href="@Url.Action("Details", "Apartments", new { id = a.Id })" title="Bấm để xem chi tiết">
-                        <td><span class="pill @(rank == 1 ? "pill-accent" : "pill-neutral")">#@rank</span></td>
-                        <td><span class="row-title">@(a.UnitCode ?? "—") · @a.Title</span></td>
-                        <td>@(a.BuildingName ?? "—")</td>
-                        <td class="num">@a.InvoiceCount</td>
-                        <td class="num"><strong>@Money(a.TotalCollected)</strong></td>
-                    </tr>
-                }
+                rank++;
+                <tr data-href="@Url.Action("Details", "Apartments", new { id = a.Id })">
+                    <td><span class="pill @(rank == 1 ? "pill-accent" : "pill-neutral")">#@rank</span></td>
+                    <td><span class="row-title">@a.UnitCode</span></td>
+                    <td>@(a.BuildingName ?? "—")</td>
+                    <td class="num">@a.InvoiceCount</td>
+                    <td class="num"><strong>@Money(a.TotalCollected)</strong></td>
+                </tr>
             }
             </tbody>
         </table>
     </div>
 </section>
 
-<section class="card">
-    <div class="card-header"><h2>Toà nhà — doanh thu/tháng</h2></div>
-    <div class="table-wrap">
-        <table class="data-table">
-            <thead><tr><th>Toà</th><th class="num">Số căn</th><th class="num">Đang ở</th><th class="num">Tỉ lệ</th><th class="num">Doanh thu/tháng</th></tr></thead>
-            <tbody>
-            @if (!Model.TopBuildings.Any())
-            {
-                <tr><td colspan="5"><div class="empty-state"><span class="material-symbols-outlined">domain</span><h3>Chưa có toà nhà</h3></div></td></tr>
-            }
-            else
-            {
-                foreach (var b in Model.TopBuildings)
-                {
-                    var rate = b.Units == 0 ? 0 : Math.Round(b.Occupied * 100.0 / b.Units, 1);
-                    <tr>
-                        <td><a asp-area="Admin" asp-controller="Buildings" asp-action="Details" asp-route-id="@b.Id" class="row-title">@b.Name</a></td>
-                        <td class="num">@b.Units</td>
-                        <td class="num">@b.Occupied</td>
-                        <td class="num">@rate%</td>
-                        <td class="num">@Money(b.MonthlyRevenue)</td>
-                    </tr>
+@section Scripts {
+    @if (maxMonth > 0 || sumBreakdown > 0)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+        <script>
+            (function () {
+                if (!window.Chart) return;
+                var fmtVN = function (v) { return v >= 1000000 ? (v / 1000000).toFixed(1) + 'tr' : v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v; };
+                var fmtFull = function (v) { return new Intl.NumberFormat('vi-VN').format(v) + ' đ'; };
+
+                var monthCanvas = document.getElementById('revenueMonthChart');
+                if (monthCanvas) {
+                    var labels = [@Html.Raw(string.Join(",", Model.RevenueByMonth.Select(m => $"\"{m.Label}\"")))];
+                    var data = [@Html.Raw(string.Join(",", Model.RevenueByMonth.Select(m => m.Total.ToString(inv))))];
+                    var avg = @Model.RevenueAvgPerMonth.ToString(inv);
+                    new Chart(monthCanvas.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                { label: 'Đã thu', data: data, backgroundColor: data.map(function (v) { return v >= avg ? '#0f2a44' : '#94a3b8'; }), borderRadius: 6, maxBarThickness: 36, order: 2 },
+                                { label: 'Trung bình', data: data.map(function () { return avg; }), type: 'line', borderColor: '#c8963e', borderDash: [6, 4], borderWidth: 2, pointRadius: 0, fill: false, order: 1 }
+                            ]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: function (c) { return c.dataset.label + ': ' + fmtFull(c.parsed.y); } } } },
+                            scales: { x: { grid: { display: false } }, y: { ticks: { callback: fmtVN }, grid: { color: 'rgba(15,23,42,0.06)' } } }
+                        }
+                    });
                 }
-            }
-            </tbody>
-        </table>
-    </div>
-</section>
+
+                var brkCanvas = document.getElementById('breakdownChart');
+                if (brkCanvas) {
+                    new Chart(brkCanvas.getContext('2d'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Phí quản lý', 'Điện / nước', 'Gửi xe & khác'],
+                            datasets: [{
+                                data: [@Model.BreakdownManagement.ToString(inv), @Model.BreakdownUtilities.ToString(inv), @Model.BreakdownServices.ToString(inv)],
+                                backgroundColor: ['#0f2a44', '#0ea5e9', '#c8963e'], borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false, cutout: '62%',
+                            plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return c.label + ': ' + fmtFull(c.parsed); } } } }
+                        }
+                    });
+                }
+            })();
+        </script>
+    }
+}

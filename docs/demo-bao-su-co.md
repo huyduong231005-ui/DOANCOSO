@@ -24,7 +24,7 @@ thử các câu này; mô hình chạy ở nhiệt độ 0 nên lặp lại đư
 
 `Smtp__RedirectAllTo` dồn **mọi** email của app về một hộp thư và ghi người nhận gốc vào tiêu đề, ví dụ
 `[Gửi cho tho.dien@luxehaven.vn] ...`. Nhờ vậy các tài khoản mẫu `@luxehaven.vn` không bao giờ nhận thư
-thật. Lưu ý: khi SMTP bật, email nhắc hóa đơn và hợp đồng của app cũng về hộp thư này, mỗi ngày một lượt.
+thật. Lưu ý: khi SMTP bật, email nhắc hóa đơn của app cũng về hộp thư này, mỗi ngày một lượt.
 
 ## 2. Tài khoản dùng trong demo
 

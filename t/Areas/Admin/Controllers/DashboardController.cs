@@ -19,15 +19,14 @@ public class DashboardController : AdminBaseController
     public async Task<IActionResult> Index()
     {
         SetActiveNav("dashboard");
-        SetBreadcrumb(("Dashboard", null));
+        SetBreadcrumb(("Bảng điều khiển", null));
 
         var now = DateTime.UtcNow;
         var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-        var soonThreshold = now.AddDays(30);
 
         var unitsTotal = await Db.Apartments.CountAsync();
         var unitsOccupied = await Db.Apartments.CountAsync(a => a.Occupancy == ApartmentOccupancy.Occupied);
-        var unitsAvailable = await Db.Apartments.CountAsync(a => a.Occupancy == ApartmentOccupancy.Available);
+        var unitsAvailable = await Db.Apartments.CountAsync(a => a.Occupancy == ApartmentOccupancy.Vacant);
 
         var vm = new DashboardViewModel
         {
@@ -36,9 +35,9 @@ public class DashboardController : AdminBaseController
             UnitsOccupied = unitsOccupied,
             UnitsAvailable = unitsAvailable,
             OccupancyRate = unitsTotal == 0 ? 0 : Math.Round(unitsOccupied * 100.0 / unitsTotal, 1),
-            LeasesActive = await Db.Leases.CountAsync(l => l.Status == LeaseStatus.Active),
-            LeasesExpiringSoon = await Db.Leases.CountAsync(l =>
-                l.Status == LeaseStatus.Active && l.EndDate <= soonThreshold && l.EndDate >= now),
+            ResidentsTotal = await Db.ApartmentResidents.CountAsync(r => r.MoveOutDate == null),
+            MaintenanceOpen = await Db.MaintenanceRequests.CountAsync(m => m.Status == MaintenanceStatus.Open
+                || m.Status == MaintenanceStatus.Acknowledged || m.Status == MaintenanceStatus.InProgress),
             RevenueThisMonth = await Db.Payments
                 .Where(p => p.Status == PaymentStatus.Succeeded && p.PaidAt >= startOfMonth)
                 .SumAsync(p => (decimal?)p.Amount) ?? 0m,
@@ -47,35 +46,18 @@ public class DashboardController : AdminBaseController
                 .SumAsync(i => (decimal?)i.Balance) ?? 0m,
             InvoicesUnpaid = await Db.Invoices.CountAsync(i =>
                 i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue),
-            ReviewsPending = await Db.Reviews.CountAsync(r => r.Status == ReviewStatus.Pending),
             UsersTotal = await _userManager.Users.CountAsync()
         };
 
-        vm.RecentLeases = await Db.Leases
-            .OrderByDescending(l => l.CreatedAt)
+        vm.RecentMaintenance = await Db.MaintenanceRequests
+            .Where(m => m.Status == MaintenanceStatus.Open || m.Status == MaintenanceStatus.Acknowledged || m.Status == MaintenanceStatus.InProgress)
+            .OrderByDescending(m => m.Priority).ThenByDescending(m => m.ReportedAt)
             .Take(8)
-            .Select(l => new RecentLeaseRow
+            .Select(m => new RecentMaintenanceRow
             {
-                Id = l.Id, LeaseNumber = l.LeaseNumber,
-                TenantName = l.PrimaryTenant.FullName,
-                UnitTitle = l.Apartment.Title,
-                BuildingName = l.Apartment.Building != null ? l.Apartment.Building.Name : string.Empty,
-                StartDate = l.StartDate, EndDate = l.EndDate,
-                MonthlyRent = l.MonthlyRent, Status = l.Status
-            })
-            .ToListAsync();
-
-        vm.ExpiringLeases = await Db.Leases
-            .Where(l => l.Status == LeaseStatus.Active && l.EndDate >= now && l.EndDate <= soonThreshold)
-            .OrderBy(l => l.EndDate)
-            .Take(6)
-            .Select(l => new ExpiringLeaseRow
-            {
-                Id = l.Id, LeaseNumber = l.LeaseNumber,
-                TenantName = l.PrimaryTenant.FullName,
-                UnitTitle = l.Apartment.Title,
-                EndDate = l.EndDate,
-                DaysLeft = (int)(l.EndDate - now).TotalDays
+                Id = m.Id, RequestNumber = m.RequestNumber, Title = m.Title,
+                UnitCode = m.Apartment.UnitCode, Priority = m.Priority, Status = m.Status,
+                ReportedAt = m.ReportedAt
             })
             .ToListAsync();
 
@@ -85,10 +67,9 @@ public class DashboardController : AdminBaseController
                 Id = b.Id, Name = b.Name,
                 Units = b.Apartments.Count(),
                 Occupied = b.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.Occupied),
-                MonthlyRevenue = b.Apartments
-                    .SelectMany(a => a.Leases)
-                    .Where(l => l.Status == LeaseStatus.Active)
-                    .Sum(l => (decimal?)l.MonthlyRent) ?? 0m
+                MonthlyRevenue = b.Apartments.SelectMany(a => a.Invoices)
+                    .Where(i => i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
+                    .Sum(i => (decimal?)i.Balance) ?? 0m
             })
             .OrderByDescending(x => x.MonthlyRevenue)
             .Take(5)
@@ -151,10 +132,13 @@ public class DashboardController : AdminBaseController
         vm.RevenueAvgPerMonth = nonZeroMonths == 0 ? 0
             : Math.Round(vm.RevenueByMonth.Sum(r => r.Total) / nonZeroMonths, 0);
 
-        // Dự kiến tháng tới: tổng MonthlyRent của các hợp đồng đang Active
-        vm.RevenueForecastNext = await Db.Leases
-            .Where(l => l.Status == LeaseStatus.Active)
-            .SumAsync(l => (decimal?)l.MonthlyRent) ?? 0m;
+        // Phí dự kiến/tháng: phí quản lý (diện tích × đơn giá toà) + phí cố định của các căn đã bàn giao.
+        var managementFee = await Db.Apartments
+            .Where(a => a.Occupancy != ApartmentOccupancy.NotHandedOver)
+            .SumAsync(a => (decimal?)((decimal)a.Area * a.Building.ManagementFeePerM2)) ?? 0m;
+        var fixedCharges = await Db.RecurringCharges.Where(c => c.IsActive)
+            .SumAsync(c => (decimal?)c.Amount) ?? 0m;
+        vm.RevenueForecastNext = Math.Round(managementFee + fixedCharges, 0);
 
         // Tỉ lệ thu thành công: AmountPaid / Total trên toàn bộ hoá đơn đã phát hành (loại trừ Draft/Cancelled)
         var invoiceTotals = await Db.Invoices
@@ -165,10 +149,10 @@ public class DashboardController : AdminBaseController
         vm.CollectionRate = invoiceTotals == null || invoiceTotals.Total == 0 ? 0
             : Math.Round((double)(invoiceTotals.Paid * 100m / invoiceTotals.Total), 1);
 
-        // Breakdown doanh thu theo loại (dựa trên InvoiceItem.SortOrder của các hoá đơn đã có thu tiền):
-        //   SortOrder 0       → Tiền thuê
-        //   SortOrder 1..2    → Tiện ích (điện, nước)
-        //   SortOrder 3+      → Dịch vụ (internet, phí khác)
+        // Breakdown doanh thu theo nhóm phí (dựa trên mô tả dòng hoá đơn đã có thu tiền):
+        //   "Phí quản lý ..."      → Phí quản lý
+        //   dòng có số lượng ≠ 1   → Điện / nước (theo chỉ số)
+        //   còn lại                → Gửi xe, phí cố định, phát sinh
         // Tính tỉ lệ trên mỗi hoá đơn rồi nhân với AmountPaid để phân bổ đúng.
         var paidInvoiceItems = await Db.Invoices
             .Where(i => i.AmountPaid > 0)
@@ -176,10 +160,10 @@ public class DashboardController : AdminBaseController
             {
                 i.AmountPaid,
                 i.Total,
-                Items = i.Items.Select(it => new { it.SortOrder, it.LineTotal })
+                Items = i.Items.Select(it => new { it.Description, it.Quantity, it.LineTotal })
             })
             .ToListAsync();
-        decimal sumRent = 0, sumUtil = 0, sumSvc = 0;
+        decimal sumMgmt = 0, sumUtil = 0, sumSvc = 0;
         foreach (var i in paidInvoiceItems)
         {
             if (i.Total <= 0) continue;
@@ -187,19 +171,19 @@ public class DashboardController : AdminBaseController
             foreach (var it in i.Items)
             {
                 var allocated = it.LineTotal * ratio;
-                if (it.SortOrder == 0) sumRent += allocated;
-                else if (it.SortOrder <= 2) sumUtil += allocated;
+                if (it.Description.StartsWith("Phí quản lý")) sumMgmt += allocated;
+                else if (it.Quantity != 1m) sumUtil += allocated;
                 else sumSvc += allocated;
             }
         }
-        vm.BreakdownRent = Math.Round(sumRent, 0);
+        vm.BreakdownManagement = Math.Round(sumMgmt, 0);
         vm.BreakdownUtilities = Math.Round(sumUtil, 0);
         vm.BreakdownServices = Math.Round(sumSvc, 0);
 
         // Top 5 căn hộ doanh thu cao nhất (qua toàn bộ lịch sử)
         vm.TopApartments = await Db.Invoices
             .Where(i => i.AmountPaid > 0)
-            .GroupBy(i => i.Lease.ApartmentId)
+            .GroupBy(i => i.ApartmentId)
             .Select(g => new
             {
                 ApartmentId = g.Key,
@@ -214,9 +198,8 @@ public class DashboardController : AdminBaseController
                   (agg, apt) => new TopApartmentRow
                   {
                       Id = apt.Id,
-                      Title = apt.Title,
                       UnitCode = apt.UnitCode,
-                      BuildingName = apt.Building != null ? apt.Building.Name : null,
+                      BuildingName = apt.Building.Name,
                       TotalCollected = agg.Collected,
                       InvoiceCount = agg.Count
                   })

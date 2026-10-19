@@ -5,7 +5,7 @@
 <aside class="admin-sidebar">
     <a class="brand" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
         <span class="brand-mark">L</span>
-        <span class="brand-name">Luxe Admin</span>
+        <span class="brand-name">Ban quản lý</span>
     </a>
 
     <div>
@@ -18,26 +18,23 @@
     </div>
 
     <div>
-        <div class="sidebar-section">Bất động sản</div>
+        <div class="sidebar-section">Khu căn hộ</div>
         <nav>
-            <a class="@Cls("buildings")" asp-area="Admin" asp-controller="Buildings" asp-action="Index">
-                <span class="material-symbols-outlined">domain</span><span>Toà nhà</span>
+            <a class="@Cls("projects")" asp-area="Admin" asp-controller="Projects" asp-action="Index">
+                <span class="material-symbols-outlined">location_city</span><span>Khu &amp; toà nhà</span>
             </a>
             <a class="@Cls("apartments")" asp-area="Admin" asp-controller="Apartments" asp-action="Index">
-                <span class="material-symbols-outlined">apartment</span><span>Căn hộ</span>
+                <span class="material-symbols-outlined">door_front</span><span>Căn hộ</span>
             </a>
-            <a class="@Cls("projects")" asp-area="Admin" asp-controller="Projects" asp-action="Index">
-                <span class="material-symbols-outlined">location_city</span><span>Dự án</span>
+            <a class="@Cls("residents")" asp-area="Admin" asp-controller="Residents" asp-action="Index">
+                <span class="material-symbols-outlined">groups</span><span>Cư dân</span>
             </a>
         </nav>
     </div>
 
     <div>
-        <div class="sidebar-section">Vận hành</div>
+        <div class="sidebar-section">Thu phí</div>
         <nav>
-            <a class="@Cls("leases")" asp-area="Admin" asp-controller="Leases" asp-action="Index">
-                <span class="material-symbols-outlined">description</span><span>Hợp đồng</span>
-            </a>
             <a class="@Cls("invoices")" asp-area="Admin" asp-controller="Invoices" asp-action="Index">
                 <span class="material-symbols-outlined">receipt_long</span><span>Hoá đơn</span>
             </a>
@@ -45,23 +42,17 @@
                 <span class="material-symbols-outlined">payments</span><span>Công nợ</span>
             </a>
             <a class="@Cls("utilities")" asp-area="Admin" asp-controller="Utilities" asp-action="Index">
-                <span class="material-symbols-outlined">bolt</span><span>Điện / Nước</span>
-            </a>
-            <a class="@Cls("maintenance")" asp-area="Admin" asp-controller="Maintenance" asp-action="Index">
-                <span class="material-symbols-outlined">build</span><span>Bảo trì</span>
-            </a>
-            <a class="@Cls("viewings")" asp-area="Admin" asp-controller="Viewings" asp-action="Index">
-                <span class="material-symbols-outlined">event</span><span>Lịch xem phòng</span>
-            </a>
-            <a class="@Cls("reviews")" asp-area="Admin" asp-controller="Reviews" asp-action="Index">
-                <span class="material-symbols-outlined">reviews</span><span>Đánh giá</span>
+                <span class="material-symbols-outlined">water_drop</span><span>Chỉ số điện / nước</span>
             </a>
         </nav>
     </div>
 
     <div>
-        <div class="sidebar-section">Báo cáo</div>
+        <div class="sidebar-section">Vận hành</div>
         <nav>
+            <a class="@Cls("maintenance")" asp-area="Admin" asp-controller="Maintenance" asp-action="Index">
+                <span class="material-symbols-outlined">build</span><span>Sự cố &amp; bảo trì</span>
+            </a>
             <a class="@Cls("reports")" asp-area="Admin" asp-controller="Reports" asp-action="Occupancy">
                 <span class="material-symbols-outlined">analytics</span><span>Báo cáo</span>
             </a>
@@ -72,13 +63,13 @@
         <div class="sidebar-section">Quản trị</div>
         <nav>
             <a class="@Cls("users")" asp-area="Admin" asp-controller="Users" asp-action="Index">
-                <span class="material-symbols-outlined">group</span><span>Người dùng</span>
+                <span class="material-symbols-outlined">manage_accounts</span><span>Tài khoản</span>
             </a>
             <a class="@Cls("roles")" asp-area="Admin" asp-controller="Roles" asp-action="Index">
                 <span class="material-symbols-outlined">admin_panel_settings</span><span>Vai trò &amp; quyền</span>
             </a>
             <a class="@Cls("audit")" asp-area="Admin" asp-controller="AuditLogs" asp-action="Index">
-                <span class="material-symbols-outlined">history</span><span>Nhật ký kiểm tra</span>
+                <span class="material-symbols-outlined">history</span><span>Nhật ký hệ thống</span>
             </a>
         </nav>
     </div>

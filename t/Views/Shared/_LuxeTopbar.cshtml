@@ -1,11 +1,6 @@
 @{
     var activeNav = (ViewData["ActiveNav"] as string ?? string.Empty).ToLowerInvariant();
-    var activeCategorySlug = ViewData["ActiveCategorySlug"] as string;
     var isHome = activeNav == "home";
-    var isRentalsAll = activeNav == "rentals" && string.IsNullOrEmpty(activeCategorySlug);
-    var isMini = activeCategorySlug == "chung-cu-mini";
-    var isWholeHouse = activeCategorySlug == "nha-nguyen-can";
-    var isRoom = activeCategorySlug == "nha-tro";
     var isAuthenticated = User?.Identity?.IsAuthenticated == true;
     var displayName = User?.Identity?.Name;
     var isAdminOrManager = User?.IsInRole("Admin") == true || User?.IsInRole("Manager") == true;
@@ -24,10 +19,7 @@
 
         <nav class="menu" aria-label="Điều hướng chính">
             <a class="@(isHome ? "active" : string.Empty)" asp-controller="Home" asp-action="Index" data-soft-nav="true">Trang chủ</a>
-            <a class="@(isRentalsAll ? "active" : string.Empty)" asp-controller="Home" asp-action="Rentals" data-soft-nav="true">Thuê căn hộ</a>
-            <a class="@(isMini ? "active" : string.Empty)" asp-controller="Home" asp-action="Rentals" asp-route-category="chung-cu-mini" data-soft-nav="true">Chung cư mini</a>
-            <a class="@(isWholeHouse ? "active" : string.Empty)" asp-controller="Home" asp-action="Rentals" asp-route-category="nha-nguyen-can" data-soft-nav="true">Nhà nguyên căn</a>
-            <a class="@(isRoom ? "active" : string.Empty)" asp-controller="Home" asp-action="Rentals" asp-route-category="nha-tro" data-soft-nav="true">Nhà trọ</a>
+            <a href="/#khu">Các khu</a>
         </nav>
 
         <div class="nav-cta">
@@ -48,16 +40,10 @@
                         }
                         @if (isTenant)
                         {
-                            <a class="user-menu-item" href="/tenant" role="menuitem" title="Trang khách thuê">
-                                <span class="material-symbols-outlined">person</span>Khách thuê
+                            <a class="user-menu-item" href="/tenant" role="menuitem" title="Cổng cư dân">
+                                <span class="material-symbols-outlined">person</span>Cổng cư dân
                             </a>
                         }
-                        <a class="user-menu-item @(activeNav == "mylistings" ? "active" : string.Empty)" asp-controller="MyListings" asp-action="Index" data-soft-nav="true" role="menuitem">
-                            <span class="material-symbols-outlined">article</span>Tin của tôi
-                        </a>
-                        <a class="user-menu-item @(activeNav == "favorites" ? "active" : string.Empty)" asp-controller="Favorites" asp-action="Index" data-soft-nav="true" role="menuitem">
-                            <span class="material-symbols-outlined">favorite</span>Yêu thích
-                        </a>
                         <div class="user-menu-divider"></div>
                         <form asp-controller="Home" asp-action="Logout" method="post">
                             @Html.AntiForgeryToken()
@@ -73,7 +59,6 @@
                 <a class="login-link" asp-controller="Home" asp-action="Login" data-soft-nav="true">Đăng nhập</a>
             }
 
-            <a class="button-primary topbar-button no-underline" asp-controller="Home" asp-action="PostListing" data-soft-nav="true">Đăng tin</a>
         </div>
     </div>
 </header>

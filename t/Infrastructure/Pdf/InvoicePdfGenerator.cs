@@ -1,3 +1,4 @@
+using t.Infrastructure.Localization;
 using Microsoft.Extensions.Configuration;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -98,27 +99,26 @@ public class InvoicePdfGenerator
             {
                 row.RelativeItem().Background("#f3f4f7").Padding(10).Column(b =>
                 {
-                    b.Item().Text("Khách thuê").FontColor(Colors.Grey.Medium).FontSize(9);
-                    b.Item().Text(inv.Lease?.PrimaryTenant?.FullName ?? "—").Bold();
-                    b.Item().Text(inv.Lease?.PrimaryTenant?.Email ?? "").FontSize(9);
-                    b.Item().Text(inv.Lease?.PrimaryTenant?.Phone ?? "").FontSize(9);
+                    var payer = inv.Apartment?.PrimaryResident;
+                    b.Item().Text("Đại diện căn hộ").FontColor(Colors.Grey.Medium).FontSize(9);
+                    b.Item().Text(payer?.FullName ?? "—").Bold();
+                    b.Item().Text(payer?.Email ?? "").FontSize(9);
+                    b.Item().Text(payer?.Phone ?? "").FontSize(9);
                 });
                 row.ConstantItem(15);
                 row.RelativeItem().Background("#f3f4f7").Padding(10).Column(b =>
                 {
-                    b.Item().Text("Căn hộ thuê").FontColor(Colors.Grey.Medium).FontSize(9);
-                    b.Item().Text(inv.Lease?.Apartment?.Title ?? "—").Bold();
-                    b.Item().Text(inv.Lease?.Apartment?.UnitCode ?? "").FontSize(9);
-                    b.Item().Text(inv.Lease?.Apartment?.Address ?? "").FontSize(9);
+                    b.Item().Text("Căn hộ").FontColor(Colors.Grey.Medium).FontSize(9);
+                    b.Item().Text(inv.Apartment?.UnitCode ?? "—").Bold();
+                    b.Item().Text(inv.Apartment?.Building?.Name ?? "").FontSize(9);
+                    b.Item().Text(inv.Apartment?.Building?.Address ?? "").FontSize(9);
                 });
             });
 
             col.Item().PaddingTop(15).Text(t =>
             {
-                t.Span("Hợp đồng: ").FontColor(Colors.Grey.Medium);
-                t.Span(inv.Lease?.LeaseNumber ?? "").Bold();
-                t.Span("    Loại HĐ: ").FontColor(Colors.Grey.Medium);
-                t.Span(inv.Kind.ToString()).Bold();
+                t.Span("Loại hoá đơn: ").FontColor(Colors.Grey.Medium);
+                t.Span(inv.Kind.Vi()).Bold();
                 if (inv.BillingMonth > 0)
                 {
                     t.Span("    Kỳ: ").FontColor(Colors.Grey.Medium);

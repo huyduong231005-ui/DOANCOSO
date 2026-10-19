@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using t.Areas.Admin.Models;
@@ -13,7 +12,7 @@ public class PaymentsController : AdminBaseController
 {
     public PaymentsController(AppDbContext db) : base(db) { }
 
-    public async Task<IActionResult> Index(string? q, InvoiceStatus? status, int? month, int page = 1)
+    public async Task<IActionResult> Index(string? q, InvoiceStatus? status, int? month, int? buildingId, int page = 1)
     {
         SetActiveNav("payments");
         SetBreadcrumb(("Công nợ phải thu", null));
@@ -22,8 +21,7 @@ public class PaymentsController : AdminBaseController
 
         // Only invoices that still need collecting (Balance > 0, not Draft/Cancelled/Refunded/Paid).
         var query = Db.Invoices
-            .Include(i => i.Lease).ThenInclude(l => l.PrimaryTenant)
-            .Include(i => i.Lease).ThenInclude(l => l.Apartment)
+            .Include(i => i.Apartment).ThenInclude(a => a.Building)
             .Include(i => i.Items)
             .Where(i => i.Balance > 0
                         && i.Status != InvoiceStatus.Draft
@@ -33,9 +31,8 @@ public class PaymentsController : AdminBaseController
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(q))
-            query = query.Where(i => i.InvoiceNumber.Contains(q)
-                                  || i.Lease.LeaseNumber.Contains(q)
-                                  || i.Lease.PrimaryTenant.FullName.Contains(q));
+            query = query.Where(i => i.InvoiceNumber.Contains(q) || i.Apartment.UnitCode.Contains(q));
+        if (buildingId.HasValue) query = query.Where(i => i.Apartment.BuildingId == buildingId.Value);
         if (status.HasValue) query = query.Where(i => i.Status == status.Value);
         if (month.HasValue) query = query.Where(i => i.BillingMonth == month.Value);
 
@@ -67,11 +64,11 @@ public class PaymentsController : AdminBaseController
 
         var rows = invoices.Select(i =>
         {
-            decimal rent = 0, util = 0, other = 0;
-            if (i.Kind == InvoiceKind.MonthlyRent)
+            decimal management = 0, util = 0, other = 0;
+            if (i.Kind == InvoiceKind.Monthly)
             {
-                rent = i.Items.Where(x => x.SortOrder == 0).Sum(x => x.LineTotal);
-                util = i.Items.Where(x => x.SortOrder > 0).Sum(x => x.LineTotal);
+                management = i.Items.Where(x => x.Description.StartsWith("Phí quản lý")).Sum(x => x.LineTotal);
+                util = i.Items.Where(x => !x.Description.StartsWith("Phí quản lý")).Sum(x => x.LineTotal);
             }
             else
             {
@@ -81,14 +78,14 @@ public class PaymentsController : AdminBaseController
             {
                 Id = i.Id,
                 InvoiceNumber = i.InvoiceNumber,
-                LeaseNumber = i.Lease.LeaseNumber,
-                TenantName = i.Lease.PrimaryTenant.FullName,
-                UnitTitle = i.Lease.Apartment.Title,
+                ApartmentId = i.ApartmentId,
+                UnitCode = i.Apartment.UnitCode,
+                BuildingName = i.Apartment.Building.Name,
                 Kind = i.Kind,
                 BillingMonth = i.BillingMonth,
                 IssueDate = i.IssueDate,
                 DueDate = i.DueDate,
-                RentAmount = rent,
+                ManagementAmount = management,
                 UtilityAmount = util,
                 OtherAmount = other,
                 Total = i.Total,
@@ -99,11 +96,12 @@ public class PaymentsController : AdminBaseController
             };
         }).ToList();
 
-        ViewBag.Q = q; ViewBag.Status = status; ViewBag.Month = month;
+        ViewBag.Q = q; ViewBag.Status = status; ViewBag.Month = month; ViewBag.BuildingId = buildingId;
+        ViewBag.Buildings = await Db.Buildings.OrderBy(b => b.Code).ToListAsync();
         ViewBag.Pager = new PageInfo
         {
             Page = page, PageSize = pageSize, TotalCount = total,
-            Url = pp => Url.Action(nameof(Index), new { q, status, month, page = pp }) ?? "#"
+            Url = pp => Url.Action(nameof(Index), new { q, status, month, buildingId, page = pp }) ?? "#"
         };
         return View(rows);
     }
@@ -113,22 +111,19 @@ public class PaymentsController : AdminBaseController
         if (string.IsNullOrWhiteSpace(q)) return Json(Array.Empty<object>());
         q = q.Trim();
         var raw = await Db.Invoices
-            .Include(i => i.Lease).ThenInclude(l => l.PrimaryTenant)
             .Where(i => i.Balance > 0
                      && i.Status != InvoiceStatus.Draft
                      && i.Status != InvoiceStatus.Cancelled
                      && i.Status != InvoiceStatus.Refunded
                      && i.Status != InvoiceStatus.Paid)
-            .Where(i => i.InvoiceNumber.Contains(q) ||
-                        i.Lease.LeaseNumber.Contains(q) ||
-                        i.Lease.PrimaryTenant.FullName.Contains(q))
+            .Where(i => i.InvoiceNumber.Contains(q) || i.Apartment.UnitCode.Contains(q))
             .OrderBy(i => i.DueDate)
             .Take(limit)
-            .Select(i => new { i.Id, i.InvoiceNumber, TenantName = i.Lease.PrimaryTenant.FullName, i.Balance, i.DueDate, i.Status })
+            .Select(i => new { i.Id, i.InvoiceNumber, i.Apartment.UnitCode, i.Balance, i.DueDate, i.Status })
             .ToListAsync();
         return Json(raw.Select(i => new
         {
-            title = i.InvoiceNumber + " · " + i.TenantName,
+            title = i.InvoiceNumber + " · " + i.UnitCode,
             subtitle = "Còn " + i.Balance.ToString("N0") + " · Hạn " + i.DueDate.ToString("dd/MM/yyyy") + " · " + i.Status.Vi(),
             url = Url.Action("Details", "Invoices", new { id = i.Id }) ?? "#",
             icon = "payments"
@@ -160,9 +155,6 @@ public class PaymentsController : AdminBaseController
         var inv = p.Invoice;
         inv.AmountPaid = Math.Max(0, inv.AmountPaid - refundAmount);
         inv.Balance = Math.Max(0, inv.Total - inv.AmountPaid);
-
-        // Mirror to deposit ledger if this was a deposit invoice payment.
-        await DepositLedger.OnPaymentReversedAsync(Db, inv, refundAmount, User.FindFirstValue(ClaimTypes.NameIdentifier));
 
         // Re-evaluate invoice status. If invoice is now fully unpaid AND every payment is fully refunded,
         // mark as Refunded; otherwise downgrade Paid → PartiallyPaid → Issued.

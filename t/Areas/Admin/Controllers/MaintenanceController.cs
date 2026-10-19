@@ -34,7 +34,7 @@ public class MaintenanceController : AdminBaseController
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(q))
-            query = query.Where(r => r.RequestNumber.Contains(q) || r.Title.Contains(q) || r.Description.Contains(q) || r.Apartment.Title.Contains(q));
+            query = query.Where(r => r.RequestNumber.Contains(q) || r.Title.Contains(q) || r.Description.Contains(q) || r.Apartment.UnitCode.Contains(q));
         if (status.HasValue) query = query.Where(r => r.Status == status.Value);
         if (priority.HasValue) query = query.Where(r => r.Priority == priority.Value);
         if (category.HasValue) query = query.Where(r => r.Category == category.Value);
@@ -48,8 +48,8 @@ public class MaintenanceController : AdminBaseController
             {
                 Id = r.Id, RequestNumber = r.RequestNumber, Title = r.Title,
                 ApartmentId = r.ApartmentId,
-                UnitTitle = r.Apartment.Title, UnitCode = r.Apartment.UnitCode,
-                BuildingName = r.Apartment.Building != null ? r.Apartment.Building.Name : null,
+                UnitCode = r.Apartment.UnitCode,
+                BuildingName = r.Apartment.Building.Name,
                 ReporterName = r.Reporter != null ? r.Reporter.FullName : null,
                 AssignedToName = r.AssignedTo != null ? r.AssignedTo.FullName : null,
                 Category = r.Category, Priority = r.Priority, Status = r.Status,
@@ -88,10 +88,10 @@ public class MaintenanceController : AdminBaseController
         q = q.Trim();
         var raw = await Db.MaintenanceRequests
             .Include(r => r.Apartment)
-            .Where(r => r.RequestNumber.Contains(q) || r.Title.Contains(q) || r.Description.Contains(q) || r.Apartment.Title.Contains(q))
+            .Where(r => r.RequestNumber.Contains(q) || r.Title.Contains(q) || r.Description.Contains(q) || r.Apartment.UnitCode.Contains(q))
             .OrderByDescending(r => r.ReportedAt)
             .Take(limit)
-            .Select(r => new { r.Id, r.RequestNumber, r.Title, UnitTitle = r.Apartment.Title, r.Priority, r.Status })
+            .Select(r => new { r.Id, r.RequestNumber, r.Title, UnitTitle = r.Apartment.UnitCode, r.Priority, r.Status })
             .ToListAsync();
         return Json(raw.Select(r => new
         {
@@ -107,7 +107,7 @@ public class MaintenanceController : AdminBaseController
         SetActiveNav("maintenance");
         var r = await Db.MaintenanceRequests
             .Include(x => x.Apartment).ThenInclude(a => a.Building)
-            .Include(x => x.Lease).ThenInclude(l => l!.PrimaryTenant)
+            .Include(x => x.Apartment).ThenInclude(a => a.Residents)
             .Include(x => x.Reporter).Include(x => x.AssignedTo)
             .FirstOrDefaultAsync(x => x.Id == id);
         if (r == null) return NotFound();
@@ -168,14 +168,6 @@ public class MaintenanceController : AdminBaseController
         }
 
         req.ApartmentId = input.ApartmentId;
-        req.LeaseId = input.LeaseId;
-        if (req.LeaseId == null)
-        {
-            // auto-pick active lease
-            var active = await Db.Leases.Where(l => l.ApartmentId == input.ApartmentId && l.Status == LeaseStatus.Active)
-                .Select(l => l.Id).FirstOrDefaultAsync();
-            if (active > 0) req.LeaseId = active;
-        }
         req.ReporterId = input.ReporterId ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
         req.Title = input.Title;
         req.Description = input.Description;
@@ -229,7 +221,7 @@ public class MaintenanceController : AdminBaseController
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Resolve(ResolveMaintenanceVm input)
     {
-        var r = await Db.MaintenanceRequests.Include(x => x.Lease).FirstOrDefaultAsync(x => x.Id == input.Id);
+        var r = await Db.MaintenanceRequests.FirstOrDefaultAsync(x => x.Id == input.Id);
         if (r == null) return NotFound();
         if (r.Status is MaintenanceStatus.Closed or MaintenanceStatus.Rejected)
         {
@@ -243,36 +235,17 @@ public class MaintenanceController : AdminBaseController
         r.Status = MaintenanceStatus.Resolved;
         r.ResolvedAt = DateTime.UtcNow;
 
-        if (input.DeductFromDeposit && r.LeaseId.HasValue && r.Lease != null && input.ActualCost > 0)
-        {
-            var deduct = Math.Min(input.ActualCost, r.Lease.DepositHeld);
-            if (deduct > 0)
-            {
-                Db.DepositTransactions.Add(new DepositTransaction
-                {
-                    LeaseId = r.LeaseId.Value, Type = DepositTransactionType.Deduction,
-                    Amount = deduct,
-                    Reason = $"Trừ chi phí sửa chữa {r.RequestNumber}: {r.Title}",
-                    RelatedRequestId = r.Id,
-                    RecordedAt = DateTime.UtcNow,
-                    RecordedBy = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                });
-                r.Lease.DepositHeld -= deduct;
-            }
-        }
-
         await Db.SaveChangesAsync();
 
-        // ChargeToTenant && !DeductFromDeposit → auto-create a OneOff invoice so the
-        // tenant has a payable record. Otherwise the cost falls through.
-        if (input.ChargeToTenant && !input.DeductFromDeposit && r.LeaseId.HasValue && input.ActualCost > 0)
+        // ChargeToTenant → tạo hoá đơn phát sinh cho căn để cư dân có khoản phải trả.
+        if (input.ChargeToTenant && input.ActualCost > 0)
         {
             var lines = new List<(string description, decimal qty, decimal unitPrice)>
             {
                 ($"Chi phí sửa chữa {r.RequestNumber} — {r.Title}", 1m, input.ActualCost)
             };
             var result = await _invoiceGen.GenerateOneOffInvoiceAsync(
-                r.LeaseId.Value,
+                r.ApartmentId,
                 $"Bảo trì {r.RequestNumber}",
                 lines,
                 t.Infrastructure.Time.VnTime.Today.AddDays(7),
@@ -361,7 +334,10 @@ public class MaintenanceController : AdminBaseController
 
     private async Task PopulateLookupsAsync(MaintenanceEditVm vm)
     {
-        vm.Apartments = await Db.Apartments.Include(a => a.Building).OrderBy(a => a.Title).ToListAsync();
+        vm.Apartments = await Db.Apartments
+            .OrderBy(a => a.Building.Code).ThenBy(a => a.UnitCode)
+            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + a.Building.Name })
+            .ToListAsync();
         vm.Reporters = await _userManager.Users.OrderBy(u => u.FullName)
             .Select(u => new HostOption { Id = u.Id, Label = u.FullName + " · " + u.Email })
             .ToListAsync();

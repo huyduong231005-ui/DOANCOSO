@@ -113,7 +113,7 @@
                         <td><span class="row-title">@r.RequestNumber</span><div class="row-meta">@r.Title</div></td>
                         <td><span class="material-symbols-outlined" style="font-size:14px;">@CatIcon(r.Category)</span> @r.Category.Vi()</td>
                         <td><span class="@PrioPill(r.Priority)">@r.Priority.Vi()</span></td>
-                        <td>@(r.UnitCode ?? "—") · @r.UnitTitle<div class="row-meta">@(r.BuildingName ?? "—")</div></td>
+                        <td>@r.UnitCode<div class="row-meta">@(r.BuildingName ?? "—")</div></td>
                         <td>@(r.AssignedToName ?? "—")<div class="row-meta">Báo: @(r.ReporterName ?? "—")</div></td>
                         <td class="text-muted no-wrap">@r.ReportedAt.ToString("HH:mm dd/MM")</td>
                         <td><span class="@StatusPill(r.Status)">@r.Status.Vi()</span></td>

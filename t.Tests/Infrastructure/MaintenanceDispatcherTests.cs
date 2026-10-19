@@ -217,7 +217,7 @@ public class MaintenanceDispatcherTests
 
     private static MaintenanceRequest AddRequest(AppDbContext db, MaintenanceCategory category, MaintenancePriority priority)
     {
-        var apartment = new Apartment { Title = "A-0101", Slug = $"a-{Guid.NewGuid():N}", Address = "Test" };
+        var apartment = new Apartment { UnitCode = $"A-01.{Random.Shared.Next(1, 99):00}" };
         var req = new MaintenanceRequest
         {
             RequestNumber = "NEW", Apartment = apartment, Title = "Sự cố", Description = "Mô tả",

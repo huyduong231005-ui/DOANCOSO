@@ -16,32 +16,28 @@ public class DashboardController : TenantBaseController
         SetBreadcrumb(("Trang chính", null));
 
         var uid = CurrentUserId;
-        var lease = await MyLeasesQuery()
-            .Include(l => l.Apartment).ThenInclude(a => a.Building)
-            .Include(l => l.Apartment).ThenInclude(a => a.Floor)
-            .OrderByDescending(l => l.Status == LeaseStatus.Active ? 1 : 0)
-            .ThenByDescending(l => l.StartDate)
-            .FirstOrDefaultAsync();
-
-        var leaseIds = await MyLeasesQuery().Select(l => l.Id).ToListAsync();
+        var apartment = await GetMyApartmentAsync();
+        if (apartment != null)
+            await Db.Entry(apartment).Collection(a => a.Residents).LoadAsync();
+        var aptIds = await MyApartmentIds().ToListAsync();
 
         var unpaidInvoices = await Db.Invoices
-            .Where(i => leaseIds.Contains(i.LeaseId) &&
+            .Where(i => aptIds.Contains(i.ApartmentId) &&
                        (i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue))
             .ToListAsync();
 
         var vm = new TenantDashboardVm
         {
-            ActiveLease = lease,
+            Apartment = apartment,
             InvoicesUnpaidCount = unpaidInvoices.Count,
             TotalDue = unpaidInvoices.Sum(i => i.Balance),
             NextDueDate = unpaidInvoices.OrderBy(i => i.DueDate).Select(i => (DateTime?)i.DueDate).FirstOrDefault(),
             OpenMaintenanceCount = await Db.MaintenanceRequests
-                .CountAsync(m => m.ReporterId == uid && (m.Status == MaintenanceStatus.Open || m.Status == MaintenanceStatus.Acknowledged || m.Status == MaintenanceStatus.InProgress))
+                .CountAsync(m => (m.ReporterId == uid || aptIds.Contains(m.ApartmentId)) && (m.Status == MaintenanceStatus.Open || m.Status == MaintenanceStatus.Acknowledged || m.Status == MaintenanceStatus.InProgress))
         };
 
         vm.RecentInvoices = await Db.Invoices
-            .Where(i => leaseIds.Contains(i.LeaseId))
+            .Where(i => aptIds.Contains(i.ApartmentId) && i.Status != InvoiceStatus.Draft)
             .OrderByDescending(i => i.IssueDate)
             .Take(5)
             .Select(i => new TenantInvoiceRow
@@ -53,7 +49,7 @@ public class DashboardController : TenantBaseController
             .ToListAsync();
 
         vm.RecentMaintenance = await Db.MaintenanceRequests
-            .Where(m => m.ReporterId == uid)
+            .Where(m => m.ReporterId == uid || aptIds.Contains(m.ApartmentId))
             .OrderByDescending(m => m.ReportedAt)
             .Take(5)
             .Select(m => new TenantMaintenanceRow

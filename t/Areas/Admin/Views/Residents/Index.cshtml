@@ -1,0 +1,58 @@
+@model List<t.Areas.Admin.Models.ResidentListVm>
+@{
+    ViewData["Title"] = "Cư dân";
+    var pager = (t.Areas.Admin.Models.PageInfo)ViewBag.Pager;
+    var buildings = (List<Building>)ViewBag.Buildings;
+    var buildingId = (int?)ViewBag.BuildingId;
+    var role = (ResidentRole?)ViewBag.Role;
+}
+
+<section class="page-header">
+    <div>
+        <h1>Cư dân</h1>
+        <p class="subtitle">@pager.TotalCount người đang cư trú · thêm / chuyển đi trong trang chi tiết căn</p>
+    </div>
+</section>
+
+<form method="get" class="filter-bar">
+    <input type="search" name="q" value="@ViewBag.Q" placeholder="Tên, SĐT, email hoặc mã căn…" />
+    <select name="buildingId">
+        <option value="">— Tất cả toà —</option>
+        @foreach (var b in buildings) { <option value="@b.Id" selected="@(buildingId == b.Id)">@b.Name</option> }
+    </select>
+    <select name="role">
+        <option value="">— Vai trò —</option>
+        @foreach (var r in Enum.GetValues<ResidentRole>()) { <option value="@((int)r)" selected="@(role == r)">@r.Vi()</option> }
+    </select>
+    <button type="submit" class="btn btn-primary">Lọc</button>
+    <a class="btn btn-ghost" asp-action="Index">Xoá lọc</a>
+</form>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Họ tên</th><th>Căn</th><th>Vai trò</th><th>Liên hệ</th><th>Vào ở</th><th>Cổng cư dân</th></tr></thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="6"><div class="empty-state"><span class="material-symbols-outlined">groups</span><h3>Không tìm thấy cư dân</h3></div></td></tr>
+            }
+            @foreach (var r in Model)
+            {
+                <tr data-drawer-url="@Url.Action("Panel", "Apartments", new { id = r.ApartmentId })" data-href="@Url.Action("Details", "Apartments", new { id = r.ApartmentId })" style="cursor:pointer;">
+                    <td>
+                        <span class="row-title">@r.FullName</span>
+                        @if (r.IsPrimary) { <span class="pill pill-accent" style="margin-left:.35rem;">Đại diện</span> }
+                    </td>
+                    <td>@r.UnitCode<div class="row-meta">@r.BuildingName</div></td>
+                    <td>@r.Role.Vi()</td>
+                    <td>@(r.Phone ?? "—")<div class="row-meta">@r.Email</div></td>
+                    <td>@r.MoveInDate.ToString("dd/MM/yyyy")</td>
+                    <td>@(r.HasAccount ? "Đã liên kết" : "—")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    @await Html.PartialAsync("_Pagination", pager)
+</div>

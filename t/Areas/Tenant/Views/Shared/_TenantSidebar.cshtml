@@ -5,7 +5,7 @@
 <aside class="admin-sidebar">
     <a class="brand" asp-area="Tenant" asp-controller="Dashboard" asp-action="Index">
         <span class="brand-mark">L</span>
-        <span class="brand-name">Luxe Tenant</span>
+        <span class="brand-name">Cổng cư dân</span>
     </a>
 
     <div>
@@ -18,13 +18,10 @@
     </div>
 
     <div>
-        <div class="sidebar-section">Hợp đồng của tôi</div>
+        <div class="sidebar-section">Căn hộ của tôi</div>
         <nav>
-            <a class="@Cls("lease")" asp-area="Tenant" asp-controller="Lease" asp-action="Index">
-                <span class="material-symbols-outlined">description</span><span>Hợp đồng</span>
-            </a>
             <a class="@Cls("invoices")" asp-area="Tenant" asp-controller="Invoices" asp-action="Index">
-                <span class="material-symbols-outlined">receipt_long</span><span>Hoá đơn</span>
+                <span class="material-symbols-outlined">receipt_long</span><span>Phí &amp; hoá đơn</span>
             </a>
             <a class="@Cls("utilities")" asp-area="Tenant" asp-controller="Utilities" asp-action="Index">
                 <span class="material-symbols-outlined">bolt</span><span>Điện / Nước</span>
@@ -37,9 +34,6 @@
         <nav>
             <a class="@Cls("maintenance")" asp-area="Tenant" asp-controller="Maintenance" asp-action="Index">
                 <span class="material-symbols-outlined">build</span><span>Báo sự cố</span>
-            </a>
-            <a class="@Cls("viewings")" asp-area="Tenant" asp-controller="Viewings" asp-action="Index">
-                <span class="material-symbols-outlined">event</span><span>Lịch xem phòng</span>
             </a>
         </nav>
     </div>

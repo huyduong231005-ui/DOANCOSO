@@ -1,12 +1,12 @@
 @model t.Areas.Tenant.Models.CreateMaintenanceVm
 @using t.Models.Entities
 @{
-    var lease = (Lease)ViewBag.Lease;
+    var apartment = (Apartment)ViewBag.Apartment;
     ViewData["Title"] = "Báo sự cố mới";
 }
 
 <section class="page-header">
-    <div><h1>Báo sự cố mới</h1><p class="subtitle">@lease.Apartment.Title</p></div>
+    <div><h1>Báo sự cố mới</h1><p class="subtitle">Căn @apartment.UnitCode · @apartment.Building.Name</p></div>
     <div class="actions"><a class="btn btn-ghost" asp-action="Index">Quay lại</a></div>
 </section>
 

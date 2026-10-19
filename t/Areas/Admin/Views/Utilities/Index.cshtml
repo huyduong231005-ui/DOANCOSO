@@ -6,18 +6,25 @@
     var typeId = (int?)ViewBag.UtilityTypeId;
     var bmonth = (int?)ViewBag.BillingMonth;
     var types = (List<UtilityType>)ViewBag.UtilityTypes;
+    var buildings = (List<Building>)ViewBag.Buildings;
+    var buildingId = (int?)ViewBag.BuildingId;
     string Money(decimal v) => v.ToString("N0");
 }
 
 <section class="page-header">
-    <div><h1>Điện / Nước</h1><p class="subtitle">@pager.TotalCount chỉ số · @types.Count loại tiện ích</p></div>
+    <div><h1>Chỉ số điện / nước</h1><p class="subtitle">@pager.TotalCount chỉ số · ghi theo toà mỗi tháng rồi phát hành phí</p></div>
     <div class="actions">
         <a class="btn btn-outline" asp-action="Types"><span class="material-symbols-outlined">tune</span>Loại tiện ích</a>
-        <a class="btn btn-primary" asp-action="CreateReading"><span class="material-symbols-outlined">add</span>Nhập chỉ số</a>
+        <a class="btn btn-outline" asp-action="CreateReading"><span class="material-symbols-outlined">add</span>Nhập lẻ một căn</a>
+        <a class="btn btn-primary" asp-action="Bulk"><span class="material-symbols-outlined">table_edit</span>Ghi chỉ số theo toà</a>
     </div>
 </section>
 
 <form method="get" class="filter-bar">
+    <select name="buildingId">
+        <option value="">— Toà —</option>
+        @foreach (var b in buildings) { <option value="@b.Id" selected="@(buildingId == b.Id)">@b.Name</option> }
+    </select>
     <select name="utilityTypeId">
         <option value="">— Loại —</option>
         @foreach (var t in types) { <option value="@t.Id" selected="@(typeId == t.Id)">@t.Name</option> }
@@ -30,7 +37,7 @@
 <div class="card">
     <div class="table-wrap">
         <table class="data-table">
-            <thead><tr><th>Loại</th><th>Hợp đồng / Khách</th><th>Kỳ</th><th class="num">Cũ</th><th class="num">Mới</th><th class="num">Tiêu thụ</th><th class="num">Thành tiền</th><th>Trạng thái</th><th></th></tr></thead>
+            <thead><tr><th>Loại</th><th>Căn</th><th>Kỳ</th><th class="num">Cũ</th><th class="num">Mới</th><th class="num">Tiêu thụ</th><th class="num">Thành tiền</th><th>Trạng thái</th><th></th></tr></thead>
             <tbody>
             @if (!Model.Any())
             {
@@ -42,7 +49,7 @@
                 {
                     <tr>
                         <td><span class="material-symbols-outlined" style="font-size:14px;">@(string.IsNullOrEmpty(r.UtilityIcon) ? "bolt" : r.UtilityIcon)</span> @r.UtilityName</td>
-                        <td><a class="row-title" asp-controller="Leases" asp-action="Details" asp-route-id="@r.LeaseId">@r.LeaseNumber</a><div class="row-meta">@r.TenantName · @r.UnitTitle</div></td>
+                        <td><a class="row-title" asp-controller="Apartments" asp-action="Details" asp-route-id="@r.ApartmentId">@r.UnitCode</a><div class="row-meta">@r.BuildingName</div></td>
                         <td>@(r.BillingMonth/100)/@((r.BillingMonth%100).ToString("00"))</td>
                         <td class="num">@r.Previous</td>
                         <td class="num">@r.Current</td>

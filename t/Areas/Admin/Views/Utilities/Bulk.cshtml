@@ -1,0 +1,91 @@
+@model t.Areas.Admin.Models.BulkReadingVm
+@{
+    ViewData["Title"] = "Ghi chỉ số theo toà";
+    var type = Model.UtilityTypes.FirstOrDefault(t => t.Id == Model.UtilityTypeId);
+    var month = $"{Model.BillingMonth / 100}-{Model.BillingMonth % 100:00}";
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var entered = Model.Rows.Count(r => r.CurrentReading.HasValue);
+}
+
+<section class="page-header">
+    <div>
+        <h1>Ghi chỉ số @(type?.Name.ToLowerInvariant() ?? "") theo toà</h1>
+        <p class="subtitle">Nhập chỉ số mới của từng căn sau khi đi ghi đồng hồ. Chỉ số cũ lấy từ kỳ trước. Đã nhập @entered/@Model.Rows.Count căn.</p>
+    </div>
+    <div class="actions">
+        <a class="btn btn-ghost" asp-action="Index">Danh sách chỉ số</a>
+    </div>
+</section>
+
+<form method="get" class="filter-bar" id="bulk-filter">
+    <select name="buildingId">
+        @foreach (var b in Model.Buildings) { <option value="@b.Id" selected="@(b.Id == Model.BuildingId)">@b.Name</option> }
+    </select>
+    <select name="utilityTypeId">
+        @foreach (var t in Model.UtilityTypes) { <option value="@t.Id" selected="@(t.Id == Model.UtilityTypeId)">@t.Name (@t.Unit)</option> }
+    </select>
+    <input type="month" value="@month" aria-label="Kỳ" onchange="document.getElementById('bm').value = this.value.replace('-', '')" />
+    <input type="hidden" id="bm" name="billingMonth" value="@Model.BillingMonth" />
+    <button type="submit" class="btn btn-primary">Mở bảng</button>
+</form>
+
+@if (type == null)
+{
+    <div class="alert alert-warning">Chưa có loại đồng hồ đo (điện/nước). <a asp-action="Types" style="text-decoration:underline;">Thêm loại</a></div>
+}
+else
+{
+    <form asp-action="Bulk" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="BuildingId" />
+        <input type="hidden" asp-for="UtilityTypeId" />
+        <input type="hidden" asp-for="BillingMonth" />
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Kỳ @(Model.BillingMonth % 100)/@(Model.BillingMonth / 100) · @Model.Rows.Count căn đã bàn giao</h2>
+                <label class="hstack" style="font-size:14px;">
+                    Đơn giá (đ/@type.Unit)
+                    <input asp-for="Rate" type="number" min="0" step="100" style="width:120px;padding:.4rem .6rem;border:1px solid var(--admin-line);border-radius:8px;" />
+                </label>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table bulk-table">
+                    <thead><tr><th>Căn</th><th class="num">Tầng</th><th class="num">Chỉ số cũ</th><th class="num">Chỉ số mới</th><th class="num">Tiêu thụ</th><th></th></tr></thead>
+                    <tbody>
+                    @if (!Model.Rows.Any())
+                    {
+                        <tr><td colspan="6"><div class="empty-state"><span class="material-symbols-outlined">water_drop</span><h3>Toà chưa có căn đã bàn giao</h3></div></td></tr>
+                    }
+                    @for (var i = 0; i < Model.Rows.Count; i++)
+                    {
+                        var r = Model.Rows[i];
+                        <tr data-bulk-row data-prev="@r.PreviousReading.ToString(inv)" class="@(r.Locked ? "locked" : "")">
+                            <td>
+                                <span class="row-title">@r.UnitCode</span>
+                                <input type="hidden" name="Rows[@i].ApartmentId" value="@r.ApartmentId" />
+                                <input type="hidden" name="Rows[@i].UnitCode" value="@r.UnitCode" />
+                                <input type="hidden" name="Rows[@i].PreviousReading" value="@r.PreviousReading.ToString(inv)" />
+                            </td>
+                            <td class="num">@r.FloorNumber</td>
+                            <td class="num">@r.PreviousReading.ToString("0.##")</td>
+                            <td class="num">
+                                <input type="number" step="0.01" min="0" name="Rows[@i].CurrentReading"
+                                       value="@(r.CurrentReading?.ToString(inv))" disabled="@r.Locked"
+                                       aria-label="Chỉ số mới căn @r.UnitCode" />
+                            </td>
+                            <td class="num consumption">—</td>
+                            <td>@(r.Locked ? "Đã lên hoá đơn" : "")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="hstack mt-3" style="justify-content:space-between;">
+            <span class="text-muted" style="font-size:13px;">Ô để trống sẽ bỏ qua. Chỉ số đã lên hoá đơn bị khoá. Sau khi ghi xong, phát hành phí tháng ở trang sơ đồ toà.</span>
+            <button type="submit" class="btn btn-primary"><span class="material-symbols-outlined">save</span>Lưu chỉ số</button>
+        </div>
+    </form>
+}

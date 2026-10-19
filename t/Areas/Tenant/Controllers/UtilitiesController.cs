@@ -13,11 +13,10 @@ public class UtilitiesController : TenantBaseController
         SetActiveNav("utilities");
         SetBreadcrumb(("Điện / Nước", null));
 
-        var leaseIds = await MyLeasesQuery().Select(l => l.Id).ToListAsync();
         var rows = await Db.UtilityReadings
             .Include(r => r.UtilityType)
-            .Include(r => r.Lease)
-            .Where(r => leaseIds.Contains(r.LeaseId))
+            .Include(r => r.Apartment)
+            .Where(r => MyApartmentIds().Contains(r.ApartmentId))
             .OrderByDescending(r => r.BillingMonth).ThenBy(r => r.UtilityType.Name)
             .ToListAsync();
         return View(rows);

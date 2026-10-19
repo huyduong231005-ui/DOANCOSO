@@ -24,18 +24,20 @@ public abstract class TenantBaseController : Controller
 
     protected void SetActiveNav(string key) => ViewData["ActiveNav"] = key;
 
-    /// <summary>Lease where the current user is the primary tenant or co-tenant.</summary>
-    protected IQueryable<Lease> MyLeasesQuery()
+    /// <summary>Id các căn mà người dùng hiện tại đang cư trú (tài khoản được BQL liên kết).</summary>
+    protected IQueryable<int> MyApartmentIds()
     {
         var uid = CurrentUserId;
-        return Db.Leases.Where(l =>
-            l.PrimaryTenantId == uid ||
-            l.AdditionalTenants.Any(t => t.TenantId == uid));
+        return Db.ApartmentResidents
+            .Where(r => r.UserId == uid && r.MoveOutDate == null)
+            .Select(r => r.ApartmentId);
     }
 
-    protected Task<Lease?> GetActiveLeaseAsync() =>
-        MyLeasesQuery()
-            .Where(l => l.Status == LeaseStatus.Active)
-            .OrderByDescending(l => l.StartDate)
+    protected Task<Apartment?> GetMyApartmentAsync() =>
+        Db.Apartments
+            .Include(a => a.Building).ThenInclude(b => b.Project)
+            .Include(a => a.Floor)
+            .Where(a => MyApartmentIds().Contains(a.Id))
+            .OrderBy(a => a.Id)
             .FirstOrDefaultAsync();
 }

@@ -1,72 +1,81 @@
 @model List<t.Areas.Admin.Models.ProjectListVm>
-@using t.Models.Entities
 @{
-    ViewData["Title"] = "Dự án";
-    var pager = (t.Areas.Admin.Models.PageInfo)ViewBag.Pager;
+    ViewData["Title"] = "Khu & toà nhà";
     var q = (string?)ViewBag.Q;
-    var status = (ProjectStatus?)ViewBag.Status;
+    var unassigned = (int)ViewBag.UnassignedBuildings;
     string Money(decimal v) => v.ToString("N0");
-    string Pill(ProjectStatus s) => s switch
-    {
-        ProjectStatus.OpenForRent => "pill pill-success",
-        ProjectStatus.Upcoming => "pill pill-info",
-        ProjectStatus.Completed => "pill pill-neutral",
-        _ => "pill"
-    };
+    var totalUnits = Model.Sum(p => p.ApartmentCount);
+    var totalOccupied = Model.Sum(p => p.OccupiedCount);
 }
 
 <section class="page-header">
     <div>
-        <h1>Dự án</h1>
-        <p class="subtitle">@pager.TotalCount dự án bất động sản</p>
+        <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:16px;">location_city</span>Cấp 1 · Khu</span>
+        <h1>Khu &amp; toà nhà</h1>
+        <p class="subtitle">@Model.Count khu · @Model.Sum(p => p.BuildingCount) toà · @totalUnits căn hộ · @Model.Sum(p => p.ResidentCount) cư dân đang ở</p>
     </div>
     <div class="actions">
-        <a class="btn btn-primary" asp-action="Create"><span class="material-symbols-outlined">add</span>Thêm dự án</a>
+        <form method="get" class="hstack">
+            <input class="plan-search" type="search" name="q" value="@q" placeholder="Tìm khu theo tên, địa chỉ…" />
+        </form>
+        <a class="btn btn-primary" asp-action="Create"><span class="material-symbols-outlined">add</span>Thêm khu</a>
     </div>
 </section>
 
-<form method="get" class="filter-bar">
-    <input type="search" name="q" value="@q" placeholder="Tìm theo tên hoặc slug..."
-       data-suggest-url="@Url.Action("Suggest")" data-suggest-icon="location_city" />
-    <select name="status">
-        <option value="">— Trạng thái —</option>
-        @foreach (var s in Enum.GetValues<ProjectStatus>()) { <option value="@((int)s)" selected="@(status == s)">@s.Vi()</option> }
-    </select>
-    <button type="submit" class="btn btn-primary">Lọc</button>
-    <a class="btn btn-ghost" asp-action="Index">Xoá lọc</a>
-</form>
-
-<div class="card">
-    <div class="table-wrap">
-        <table class="data-table">
-            <thead><tr><th>Dự án</th><th>Khu vực</th><th class="num">Giá từ</th><th class="num">Căn hộ</th><th>Trạng thái</th><th></th></tr></thead>
-            <tbody>
-            @if (!Model.Any())
-            {
-                <tr><td colspan="6"><div class="empty-state"><span class="material-symbols-outlined">domain</span><h3>Chưa có dự án</h3></div></td></tr>
-            }
-            else
-            {
-                foreach (var p in Model)
-                {
-                    <tr data-href="@Url.Action("Edit", new { id = p.Id })" title="Bấm để sửa">
-                        <td><div class="row-title">@p.Name</div><div class="row-meta">@p.Slug</div></td>
-                        <td>@p.RegionName</td>
-                        <td class="num">@Money(p.PriceFrom)</td>
-                        <td class="num">@p.ApartmentCount</td>
-                        <td><span class="@Pill(p.Status)">@p.Status.Vi()</span></td>
-                        <td class="actions-cell">
-                            <a class="btn btn-ghost btn-sm" asp-action="Edit" asp-route-id="@p.Id"><span class="material-symbols-outlined">edit</span></a>
-                            <form asp-action="Delete" asp-route-id="@p.Id" method="post" style="display:inline;" data-confirm="Xoá dự án này?" data-confirm-title="Xoá dự án" data-confirm-ok="Xoá">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-ghost btn-sm"><span class="material-symbols-outlined">delete</span></button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-            }
-            </tbody>
-        </table>
+@if (unassigned > 0)
+{
+    <div class="alert alert-warning">
+        <span class="material-symbols-outlined">info</span>
+        <span>Có @unassigned toà chưa thuộc khu nào. <a asp-action="Unassigned" style="text-decoration:underline;">Xem và gán khu</a>.</span>
     </div>
-    @await Html.PartialAsync("_Pagination", pager)
+}
+
+<div class="entity-grid">
+    @foreach (var p in Model)
+    {
+        var occPct = p.ApartmentCount == 0 ? 0 : p.OccupiedCount * 100.0 / p.ApartmentCount;
+        <a class="entity-card" asp-action="Details" asp-route-id="@p.Id">
+            <div class="cover" style="background-image:url('@(string.IsNullOrEmpty(p.ThumbnailUrl) ? "/img/hero-2.jpg" : p.ThumbnailUrl)')">
+                <div class="cover-title">
+                    <h3>@p.Name</h3>
+                    <small><span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">location_on</span> @p.Address</small>
+                </div>
+            </div>
+            <div class="body">
+                <div class="metrics">
+                    <div class="metric"><b>@p.BuildingCount</b><span>toà</span></div>
+                    <div class="metric"><b>@p.ApartmentCount</b><span>căn hộ</span></div>
+                    <div class="metric"><b>@p.ResidentCount</b><span>cư dân</span></div>
+                </div>
+                <div>
+                    <div class="hstack" style="justify-content:space-between;font-size:13px;margin-bottom:.35rem;">
+                        <span>Tỉ lệ có người ở</span><b>@p.OccupancyRate%</b>
+                    </div>
+                    <div class="occ-bar"><span class="occ" style="width:@occPct.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></span></div>
+                </div>
+                <div class="foot">
+                    <span>@p.RegionName</span>
+                    @if (p.Outstanding > 0)
+                    {
+                        <span style="color:var(--st-debt);font-weight:600;">Còn thu @Money(p.Outstanding) đ</span>
+                    }
+                    else
+                    {
+                        <span>Không có công nợ</span>
+                    }
+                </div>
+            </div>
+        </a>
+    }
+    <a class="entity-card add-card" asp-action="Create">
+        <span class="material-symbols-outlined">add_business</span>
+        Thêm khu mới
+    </a>
 </div>
+
+@if (Model.Any())
+{
+    <div class="text-muted" style="font-size:13px;">
+        Toàn hệ thống: @totalOccupied/@totalUnits căn đang có người ở.
+    </div>
+}

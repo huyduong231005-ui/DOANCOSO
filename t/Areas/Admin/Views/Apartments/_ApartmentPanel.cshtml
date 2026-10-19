@@ -1,0 +1,111 @@
+@model t.Areas.Admin.Models.ApartmentDetailVm
+@{
+    var a = Model.Apartment;
+    string Money(decimal v) => v.ToString("N0");
+    var living = a.Residents.Where(r => r.IsActive).ToList();
+    var rented = living.Any(r => r.Role == ResidentRole.Tenant);
+    string Pill(ApartmentOccupancy o) => o switch
+    {
+        ApartmentOccupancy.Occupied => "pill pill-success",
+        ApartmentOccupancy.Vacant => "pill pill-neutral",
+        ApartmentOccupancy.NotHandedOver => "pill pill-info",
+        ApartmentOccupancy.UnderMaintenance => "pill pill-warning",
+        _ => "pill"
+    };
+    string InvPill(InvoiceStatus s) => s switch
+    {
+        InvoiceStatus.Paid => "pill pill-success",
+        InvoiceStatus.Overdue => "pill pill-danger",
+        InvoiceStatus.PartiallyPaid => "pill pill-warning",
+        InvoiceStatus.Cancelled => "pill pill-neutral",
+        _ => "pill pill-info"
+    };
+}
+
+<div class="drawer-head" style="margin:-1rem -1.2rem 0;">
+    <div>
+        <div class="sub">@a.Building.Name · Tầng @a.Floor.Number</div>
+        <h2>Căn @a.UnitCode</h2>
+        <div class="hstack" style="margin-top:.35rem;flex-wrap:wrap;">
+            <span class="@Pill(a.Occupancy)">@a.Occupancy.Vi()</span>
+            @if (rented) { <span class="pill pill-info">Cho thuê</span> }
+            @if (Model.OverdueBalance > 0) { <span class="pill pill-danger">Nợ quá hạn</span> }
+        </div>
+    </div>
+    <button type="button" class="admin-icon-btn" data-drawer-close title="Đóng (Esc)"><span class="material-symbols-outlined">close</span></button>
+</div>
+
+<div class="facts">
+    <div class="fact"><b>@a.Area.ToString("0.#") m²</b><span>Diện tích</span></div>
+    <div class="fact"><b>@a.Bedrooms PN · @a.Bathrooms WC</b><span>Loại căn</span></div>
+    <div class="fact"><b>@(a.HouseDirection?.Vi() ?? "—")</b><span>Hướng</span></div>
+    <div class="fact"><b>@Money(Model.MonthlyFixed)</b><span>Phí cố định/tháng</span></div>
+    <div class="fact @(Model.Balance > 0 ? "alert" : "")"><b>@Money(Model.Balance)</b><span>Còn phải thu</span></div>
+    <div class="fact"><b>@living.Count</b><span>Cư dân</span></div>
+</div>
+
+<div>
+    <h3 class="section-title">Cư dân đang ở</h3>
+    @if (!living.Any())
+    {
+        <p class="text-muted" style="margin:0;font-size:13.5px;">Chưa ghi nhận cư dân.</p>
+    }
+    else
+    {
+        <div class="people">
+            @foreach (var r in living)
+            {
+                <div class="person">
+                    <span class="avatar">@r.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Last()[..1]</span>
+                    <div class="who">
+                        <b>@r.FullName</b>
+                        <small>@(r.Phone ?? r.Email ?? "Chưa có liên hệ")</small>
+                    </div>
+                    @if (r.IsPrimary) { <span class="tag primary">Đại diện</span> }
+                    <span class="tag">@r.Role.Vi()</span>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<div>
+    <h3 class="section-title">Hoá đơn gần đây</h3>
+    @if (!Model.Invoices.Any())
+    {
+        <p class="text-muted" style="margin:0;font-size:13.5px;">Chưa có hoá đơn.</p>
+    }
+    else
+    {
+        <div class="mini-list">
+            @foreach (var i in Model.Invoices)
+            {
+                <a asp-controller="Invoices" asp-action="Details" asp-route-id="@i.Id">
+                    <span>@i.InvoiceNumber<br /><span class="muted">@i.Kind.Vi() · hạn @i.DueDate.ToString("dd/MM")</span></span>
+                    <span style="text-align:right;">@Money(i.Total)<br /><span class="@InvPill(i.Status)">@i.Status.Vi()</span></span>
+                </a>
+            }
+        </div>
+    }
+</div>
+
+@if (Model.Maintenance.Any())
+{
+    <div>
+        <h3 class="section-title">Sự cố</h3>
+        <div class="mini-list">
+            @foreach (var m in Model.Maintenance)
+            {
+                <a asp-controller="Maintenance" asp-action="Details" asp-route-id="@m.Id">
+                    <span>@m.Title<br /><span class="muted">@m.RequestNumber · @m.ReportedAt.ToLocalTime().ToString("dd/MM")</span></span>
+                    <span class="pill">@m.Status.Vi()</span>
+                </a>
+            }
+        </div>
+    </div>
+}
+
+<div class="hstack" style="flex-wrap:wrap;">
+    <a class="btn btn-primary" asp-action="Details" asp-route-id="@a.Id"><span class="material-symbols-outlined">open_in_full</span>Mở trang chi tiết</a>
+    <a class="btn btn-outline" asp-controller="Maintenance" asp-action="Create" asp-route-apartmentId="@a.Id"><span class="material-symbols-outlined">build</span>Ghi sự cố</a>
+</div>

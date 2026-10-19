@@ -1,114 +1,127 @@
-@model t.Models.Entities.Building
-@using t.Models.Entities
+@model t.Areas.Admin.Models.BuildingPlanVm
 @{
-    ViewData["Title"] = Model.Name;
+    var b = Model.Building;
+    ViewData["Title"] = b.Name;
     string Money(decimal v) => v.ToString("N0");
-    string Pill(BuildingStatus s) => s switch
+    var all = Model.AllUnits.ToList();
+    var total = all.Count;
+    var occupied = Model.Count(ApartmentOccupancy.Occupied);
+    var rented = all.Count(u => u.IsRented);
+    var debtCount = all.Count(u => u.HasOverdue);
+    var maintCount = all.Count(u => u.OpenMaintenance > 0);
+    var cols = Model.Floors.Select(f => f.Units.Count).DefaultIfEmpty(1).Max();
+
+    string Cls(t.Areas.Admin.Models.UnitCellVm u) => u.Occupancy switch
     {
-        BuildingStatus.Active => "pill pill-success",
-        BuildingStatus.UnderMaintenance => "pill pill-warning",
-        BuildingStatus.Closed => "pill pill-danger",
-        _ => "pill"
+        ApartmentOccupancy.Occupied => u.IsRented ? "rented" : "occupied",
+        ApartmentOccupancy.Vacant => "vacant",
+        ApartmentOccupancy.NotHandedOver => "nho",
+        ApartmentOccupancy.UnderMaintenance => "maint",
+        _ => ""
     };
-    string OccPill(ApartmentOccupancy o) => o switch
+    string Tags(t.Areas.Admin.Models.UnitCellVm u) => string.Join(' ', new[]
     {
-        ApartmentOccupancy.Occupied => "pill pill-success",
-        ApartmentOccupancy.Available => "pill pill-info",
-        ApartmentOccupancy.Reserved => "pill pill-warning",
-        ApartmentOccupancy.UnderMaintenance => "pill pill-danger",
-        _ => "pill"
-    };
-    var totalUnits = Model.Apartments.Count;
-    var occupied = Model.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.Occupied);
-    var rate = totalUnits == 0 ? 0 : Math.Round(occupied * 100.0 / totalUnits, 1);
-    var monthlyRev = Model.Apartments.SelectMany(a => a.Leases).Where(l => l.Status == LeaseStatus.Active).Sum(l => l.MonthlyRent);
+        Cls(u), u.HasOverdue ? "debt" : "", u.OpenMaintenance > 0 ? "issue" : ""
+    }.Where(x => x != ""));
+    string Tip(t.Areas.Admin.Models.UnitCellVm u) =>
+        $"{u.UnitCode} · {u.Area:0.#} m² · {u.Bedrooms}PN · {(u.IsRented ? "Cho thuê" : u.Occupancy.Vi())}"
+        + (u.RepresentativeName != null ? $" · {u.RepresentativeName}" : "")
+        + (u.HasOverdue ? $" · Nợ quá hạn {u.Balance:N0} đ" : "");
 }
 
 <section class="page-header">
     <div>
-        <h1>@Model.Name</h1>
-        <p class="subtitle">@Model.Address</p>
+        <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:16px;">domain</span>@(b.Project?.Name ?? "Chưa thuộc khu")</span>
+        <h1>@b.Name <span class="text-muted" style="font-weight:500;font-size:1.1rem;">· mã @b.Code</span></h1>
+        <p class="subtitle">
+            @Model.Floors.Count tầng · @total căn · Quản lý: @(b.Manager?.FullName ?? "chưa phân công")
+            · Phí quản lý @Money(b.ManagementFeePerM2) đ/m² · Chốt kỳ ngày @b.DefaultBillingDay
+        </p>
     </div>
     <div class="actions">
-        <span class="@Pill(Model.Status)">@Model.Status.Vi()</span>
-        <a class="btn btn-outline" asp-action="Edit" asp-route-id="@Model.Id"><span class="material-symbols-outlined">edit</span>Sửa</a>
+        <form asp-action="GenerateInvoices" asp-route-id="@b.Id" method="post"
+              data-confirm="Phát hành hoá đơn phí tháng @DateTime.Now.ToString("MM/yyyy") cho các căn đã bàn giao của @b.Name? Căn đã có hoá đơn tháng này sẽ được bỏ qua."
+              data-confirm-title="Phát hành phí tháng" data-confirm-ok="Phát hành" data-confirm-tone="info">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-accent"><span class="material-symbols-outlined">receipt_long</span>Phát hành phí tháng</button>
+        </form>
+        <a class="btn btn-outline" asp-controller="Utilities" asp-action="Bulk" asp-route-buildingId="@b.Id"><span class="material-symbols-outlined">water_drop</span>Ghi chỉ số</a>
+        <a class="btn btn-outline" asp-controller="Apartments" asp-action="Create" asp-route-buildingId="@b.Id"><span class="material-symbols-outlined">add</span>Thêm căn</a>
+        <a class="btn btn-ghost" asp-action="Edit" asp-route-id="@b.Id" title="Sửa toà"><span class="material-symbols-outlined">settings</span></a>
     </div>
 </section>
 
-<section class="kpi-grid">
-    <div class="kpi-card"><div class="kpi-label">Số tầng</div><div class="kpi-value">@Model.FloorCount</div></div>
-    <div class="kpi-card"><div class="kpi-label">Tổng units</div><div class="kpi-value">@totalUnits</div></div>
-    <div class="kpi-card"><div class="kpi-label">Đang ở</div><div class="kpi-value">@occupied</div><div class="kpi-meta">Lấp đầy @rate%</div></div>
-    <div class="kpi-card"><div class="kpi-label">Doanh thu/tháng</div><div class="kpi-value">@Money(monthlyRev)</div></div>
+<section class="stat-strip">
+    <div class="stat"><div class="stat-label">Tổng căn</div><div class="stat-value">@total</div></div>
+    <div class="stat"><div class="stat-label"><span class="dot" style="background:var(--st-occupied)"></span>Đang ở</div><div class="stat-value">@occupied</div><div class="stat-sub">@(total == 0 ? 0 : Math.Round(occupied * 100.0 / total, 1))% · @rented căn cho thuê</div></div>
+    <div class="stat"><div class="stat-label"><span class="dot" style="background:#cbd5e1"></span>Để trống</div><div class="stat-value">@Model.Count(ApartmentOccupancy.Vacant)</div></div>
+    <div class="stat"><div class="stat-label">Chưa bàn giao</div><div class="stat-value">@Model.Count(ApartmentOccupancy.NotHandedOver)</div></div>
+    <div class="stat"><div class="stat-label">Cư dân</div><div class="stat-value">@Model.ResidentCount</div></div>
+    <div class="stat"><div class="stat-label"><span class="dot" style="background:var(--st-debt)"></span>Căn nợ quá hạn</div><div class="stat-value">@debtCount</div></div>
+    <div class="stat"><div class="stat-label">Phí quản lý dự kiến/tháng</div><div class="stat-value">@Money(Model.MonthlyFeeEstimate)</div><div class="stat-sub">đồng</div></div>
 </section>
 
-<div style="display:grid;grid-template-columns:2fr 1fr;gap:1.2rem;">
-    <div class="card">
-        <div class="card-header"><h2>Danh sách căn hộ</h2></div>
-        <div class="table-wrap">
-            <table class="data-table">
-                <thead><tr><th>Mã</th><th>Tên</th><th>Tầng</th><th class="num">Diện tích</th><th class="num">Giá/tháng</th><th>Tình trạng</th></tr></thead>
-                <tbody>
-                @if (!Model.Apartments.Any())
-                {
-                    <tr><td colspan="6"><div class="empty-state"><span class="material-symbols-outlined">apartment</span><h3>Chưa có căn hộ</h3></div></td></tr>
-                }
-                else
-                {
-                    foreach (var a in Model.Apartments.OrderBy(x => x.Floor?.Number).ThenBy(x => x.UnitCode))
+<div class="card" data-plan-root>
+    <div class="card-header plan-toolbar">
+        <div class="plan-chips" role="group" aria-label="Lọc theo tình trạng">
+            <button type="button" class="chip" data-plan-filter="occupied"><span class="sw occupied"></span>Chủ ở <span class="n">@(occupied - rented)</span></button>
+            <button type="button" class="chip" data-plan-filter="rented"><span class="sw rented"></span>Cho thuê <span class="n">@rented</span></button>
+            <button type="button" class="chip" data-plan-filter="vacant"><span class="sw vacant"></span>Để trống <span class="n">@Model.Count(ApartmentOccupancy.Vacant)</span></button>
+            <button type="button" class="chip" data-plan-filter="nho"><span class="sw nho"></span>Chưa bàn giao <span class="n">@Model.Count(ApartmentOccupancy.NotHandedOver)</span></button>
+            <button type="button" class="chip" data-plan-filter="maint"><span class="sw maint"></span>Đang sửa chữa <span class="n">@Model.Count(ApartmentOccupancy.UnderMaintenance)</span></button>
+            <button type="button" class="chip" data-plan-filter="debt"><span class="sw debt"></span>Nợ quá hạn <span class="n">@debtCount</span></button>
+            <button type="button" class="chip" data-plan-filter="issue"><span class="material-symbols-outlined" style="font-size:15px;">build</span>Có sự cố <span class="n">@maintCount</span></button>
+        </div>
+        <input type="search" class="plan-search" data-plan-search placeholder="Tìm mã căn hoặc tên cư dân…" aria-label="Tìm căn" />
+    </div>
+
+    @if (!Model.Floors.Any())
+    {
+        <div class="empty-state"><span class="material-symbols-outlined">stacks</span><h3>Toà chưa có tầng</h3><p>Tăng số tầng trong phần sửa toà.</p></div>
+    }
+    else
+    {
+        <div class="plan" data-plan style="--cols:@cols">
+            @foreach (var row in Model.Floors)
+            {
+                var inUse = row.Units.Count(u => u.Occupancy == ApartmentOccupancy.Occupied);
+                <div class="plan-row">
+                    <div class="plan-floor">
+                        <b>Tầng @row.Floor.Number</b>
+                        <small>@inUse/@row.Units.Count đang ở</small>
+                    </div>
+                    @if (!row.Units.Any())
                     {
-                        <tr>
-                            <td><a class="row-title" asp-controller="Apartments" asp-action="Details" asp-route-id="@a.Id">@(a.UnitCode ?? "—")</a></td>
-                            <td>@a.Title</td>
-                            <td>@(a.Floor?.Label ?? "—")</td>
-                            <td class="num">@a.Area m²</td>
-                            <td class="num">@Money(a.Price)</td>
-                            <td><span class="@OccPill(a.Occupancy)">@a.Occupancy.Vi()</span></td>
-                        </tr>
+                        <div class="plan-empty">
+                            Chưa có căn · <a asp-controller="Apartments" asp-action="Create" asp-route-buildingId="@b.Id" asp-route-floorId="@row.Floor.Id" style="text-decoration:underline;">thêm căn</a>
+                        </div>
                     }
-                }
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="vstack">
-        <div class="card">
-            <div class="card-header"><h2>Thông tin</h2></div>
-            <div class="card-body">
-                <dl class="dl-pairs">
-                    <dt>Mã toà</dt><dd>@Model.Code</dd>
-                    <dt>Slug</dt><dd>@Model.Slug</dd>
-                    <dt>Khu vực</dt><dd>@Model.Region?.Name</dd>
-                    <dt>Dự án</dt><dd>@(Model.Project?.Name ?? "—")</dd>
-                    <dt>Quản lí</dt><dd>@(Model.Manager?.FullName ?? "—")</dd>
-                    <dt>Số tầng</dt><dd>@Model.FloorCount</dd>
-                    <dt>Tạo lúc</dt><dd>@Model.CreatedAt.ToString("dd/MM/yyyy")</dd>
-                </dl>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header"><h2>Sơ đồ tầng</h2></div>
-            <div class="card-body">
-                @foreach (var f in Model.Floors.OrderByDescending(x => x.Number))
-                {
-                    var fApts = Model.Apartments.Where(a => a.FloorId == f.Id).ToList();
-                    <div style="display:grid;grid-template-columns:60px 1fr;gap:.5rem;padding:.5rem 0;border-bottom:1px solid var(--admin-line);">
-                        <div style="font-weight:700;color:var(--admin-muted);">@f.Label</div>
-                        <div class="hstack" style="flex-wrap:wrap;">
-                            @if (!fApts.Any()) { <span class="text-muted">— trống —</span> }
-                            else
+                    else
+                    {
+                        <div class="plan-units">
+                            @foreach (var u in row.Units)
                             {
-                                foreach (var a in fApts)
-                                {
-                                    <a class="pill @OccPill(a.Occupancy)" asp-controller="Apartments" asp-action="Details" asp-route-id="@a.Id" style="text-decoration:none;">@(a.UnitCode ?? a.Title)</a>
-                                }
+                                <button type="button" class="unit @Cls(u)" title="@Tip(u)"
+                                        data-tags="@Tags(u)"
+                                        data-search="@($"{u.UnitCode} {u.RepresentativeName}".ToLowerInvariant())"
+                                        data-drawer-url="@Url.Action("Panel", "Apartments", new { id = u.Id })"
+                                        data-href="@Url.Action("Details", "Apartments", new { id = u.Id })">
+                                    <span class="u-code">@u.ShortCode</span>
+                                    <span class="u-meta">@u.Bedrooms PN · @u.Area.ToString("0") m²</span>
+                                    <span class="u-flags">
+                                        @if (u.OpenMaintenance > 0) { <span class="material-symbols-outlined" aria-label="Có sự cố">build</span> }
+                                        @if (u.HasOverdue) { <span class="debt" aria-label="Nợ quá hạn"></span> }
+                                    </span>
+                                </button>
                             }
                         </div>
-                    </div>
-                }
-            </div>
+                    }
+                </div>
+            }
         </div>
-    </div>
+    }
 </div>
+
+<p class="text-muted" style="font-size:12.5px;margin:0;">
+    Bấm vào một căn để xem nhanh cư dân, công nợ, sự cố. Ctrl + bấm để mở trang chi tiết ở tab mới.
+</p>

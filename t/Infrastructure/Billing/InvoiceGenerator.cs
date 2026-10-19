@@ -20,86 +20,56 @@ public class InvoiceGenerator
 
     public static int ToBillingMonth(DateTime d) => d.Year * 100 + d.Month;
 
-    public async Task<InvoiceResult> GenerateMonthlyInvoiceAsync(int leaseId, DateTime forDate, CancellationToken ct = default)
+    /// <summary>
+    /// Hoá đơn phí tháng của một căn: phí quản lý (diện tích × đơn giá/m² của toà),
+    /// điện/nước theo chỉ số chưa xuất và các khoản phí cố định đang áp dụng (gửi xe...).
+    /// </summary>
+    public async Task<InvoiceResult> GenerateMonthlyInvoiceAsync(int apartmentId, DateTime forDate, CancellationToken ct = default)
     {
-        var lease = await _db.Leases
-            .Include(l => l.Apartment)
-            .Include(l => l.UtilityReadings).ThenInclude(r => r.UtilityType)
-            .Include(l => l.RecurringCharges)
-            .FirstOrDefaultAsync(l => l.Id == leaseId, ct);
-        if (lease == null) return new(false, "Không tìm thấy hợp đồng.");
-        if (lease.Status != LeaseStatus.Active) return new(false, "Hợp đồng không ở trạng thái Active.");
+        var apt = await _db.Apartments
+            .Include(a => a.Building)
+            .Include(a => a.UtilityReadings).ThenInclude(r => r.UtilityType)
+            .Include(a => a.RecurringCharges)
+            .FirstOrDefaultAsync(a => a.Id == apartmentId, ct);
+        if (apt == null) return new(false, "Không tìm thấy căn hộ.");
+        if (apt.Occupancy == ApartmentOccupancy.NotHandedOver) return new(false, $"Căn {apt.UnitCode} chưa bàn giao, chưa thu phí.");
 
         var billingMonth = ToBillingMonth(forDate);
 
+        // ponytail: kiểm tra-rồi-ghi, hai lần phát hành đồng thời có thể ra 2 hoá đơn cùng kỳ;
+        // thêm partial unique index (CanHoId, ThangTinhPhi) WHERE Monthly & chưa huỷ khi dữ liệu cũ đã sạch trùng.
         var existing = await _db.Invoices.AnyAsync(i =>
-            i.LeaseId == leaseId && i.BillingMonth == billingMonth && i.Kind == InvoiceKind.MonthlyRent, ct);
-        if (existing) return new(false, $"Đã có hoá đơn tháng {billingMonth/100}/{billingMonth%100:00}.");
+            i.ApartmentId == apartmentId && i.BillingMonth == billingMonth && i.Kind == InvoiceKind.Monthly
+            && i.Status != InvoiceStatus.Cancelled, ct);
+        if (existing) return new(false, $"Căn {apt.UnitCode} đã có hoá đơn tháng {billingMonth % 100:00}/{billingMonth / 100}.");
 
-        var dueDay = Math.Min(lease.BillingDay + 7, 28);
+        var dueDay = Math.Min(apt.Building.DefaultBillingDay + 7, 28);
         var dueDate = new DateTime(forDate.Year, forDate.Month, dueDay);
 
-        var items = new List<InvoiceItem>
-        {
-            new()
-            {
-                Description = $"Tiền thuê {lease.Apartment.UnitCode ?? lease.Apartment.Title} – {forDate:MM/yyyy}",
-                Quantity = 1m, UnitPrice = lease.MonthlyRent, LineTotal = lease.MonthlyRent, SortOrder = 0
-            }
-        };
-
-        // Tự ước chỉ số điện/nước cho kỳ này nếu chưa có (theo mức tiêu thụ kỳ gần nhất),
-        // để hoá đơn luôn đủ chi phí. Admin nhập chỉ số thực sau thì sửa/tính lại.
-        var estimatedReadings = new List<UtilityReading>();
-        var typeIdsWithHistory = lease.UtilityReadings.Select(r => r.UtilityTypeId).Distinct().ToList();
-        foreach (var typeId in typeIdsWithHistory)
-        {
-            if (lease.UtilityReadings.Any(r => r.UtilityTypeId == typeId && r.BillingMonth == billingMonth))
-                continue;
-
-            var last = lease.UtilityReadings
-                .Where(r => r.UtilityTypeId == typeId && r.BillingMonth < billingMonth)
-                .OrderByDescending(r => r.BillingMonth)
-                .FirstOrDefault();
-            if (last == null) continue;
-
-            estimatedReadings.Add(new UtilityReading
-            {
-                LeaseId = lease.Id,
-                UtilityTypeId = typeId,
-                UtilityType = last.UtilityType,
-                BillingMonth = billingMonth,
-                PreviousReading = last.CurrentReading,
-                Consumption = last.Consumption,
-                CurrentReading = last.CurrentReading + last.Consumption,
-                Rate = last.Rate,
-                Amount = Math.Round(last.Consumption * last.Rate, 0),
-                Billed = false,
-                ReadAt = forDate,
-                Note = "Ước theo kỳ trước (chưa chốt chỉ số thực)"
-            });
-        }
-
-        // Gộp chỉ số chưa xuất sẵn có + chỉ số vừa ước, tránh đếm trùng do EF fixup.
-        var unbilledReadings = lease.UtilityReadings
-            .Where(r => !r.Billed && r.BillingMonth == billingMonth)
-            .Concat(estimatedReadings)
-            .OrderBy(r => r.UtilityTypeId)
-            .ToList();
-        if (estimatedReadings.Count > 0) _db.UtilityReadings.AddRange(estimatedReadings);
-        var sort = 1;
-        foreach (var r in unbilledReadings)
+        var items = new List<InvoiceItem>();
+        var sort = 0;
+        var area = (decimal)apt.Area;
+        if (apt.Building.ManagementFeePerM2 > 0 && area > 0)
         {
             items.Add(new InvoiceItem
             {
-                Description = $"{r.UtilityType.Name} ({r.UtilityType.Unit}) – {r.Consumption}",
+                Description = $"Phí quản lý {apt.UnitCode} – {forDate:MM/yyyy} ({area:0.##} m²)",
+                Quantity = area, UnitPrice = apt.Building.ManagementFeePerM2,
+                LineTotal = Math.Round(area * apt.Building.ManagementFeePerM2, 0), SortOrder = sort++
+            });
+        }
+
+        foreach (var r in apt.UtilityReadings.Where(r => !r.Billed && r.BillingMonth == billingMonth).OrderBy(r => r.UtilityTypeId))
+        {
+            items.Add(new InvoiceItem
+            {
+                Description = $"{r.UtilityType.Name} ({r.UtilityType.Unit}) – {r.Consumption:0.##}",
                 Quantity = r.Consumption, UnitPrice = r.Rate, LineTotal = r.Amount, SortOrder = sort++
             });
             r.Billed = true;
         }
 
-        // Phí cố định lặp lại hằng tháng (Internet, phí dịch vụ...) đang áp dụng cho hợp đồng.
-        foreach (var c in lease.RecurringCharges.Where(c => c.IsActive).OrderBy(c => c.SortOrder))
+        foreach (var c in apt.RecurringCharges.Where(c => c.IsActive).OrderBy(c => c.SortOrder))
         {
             items.Add(new InvoiceItem
             {
@@ -108,12 +78,14 @@ public class InvoiceGenerator
             });
         }
 
+        if (items.Count == 0) return new(false, $"Căn {apt.UnitCode} không có khoản phí nào trong kỳ.");
+
         var subTotal = items.Sum(x => x.LineTotal);
         var invoice = new Invoice
         {
             InvoiceNumber = await BillingNumberGenerator.NextInvoiceNumberAsync(_db, billingMonth, ct),
-            LeaseId = lease.Id,
-            Kind = InvoiceKind.MonthlyRent,
+            ApartmentId = apt.Id,
+            Kind = InvoiceKind.Monthly,
             BillingMonth = billingMonth,
             IsRecurring = true,
             IssueDate = forDate,
@@ -133,67 +105,40 @@ public class InvoiceGenerator
             await _db.SaveChangesAsync(ct);
         }
 
-        _log.LogInformation("Generated invoice {Number} for lease {LeaseId} ({Total} VND)", invoice.InvoiceNumber, lease.Id, subTotal);
+        _log.LogInformation("Generated invoice {Number} for apartment {ApartmentId} ({Total} VND)", invoice.InvoiceNumber, apt.Id, subTotal);
         return new(true, $"Đã tạo hoá đơn {invoice.InvoiceNumber} ({subTotal:N0} đ).", invoice.Id);
     }
 
-    /// <summary>
-    /// Create a Deposit invoice for a Pending lease, if one doesn't already exist.
-    /// Should be called when the lease is created or first activated.
-    /// </summary>
-    public async Task<InvoiceResult> GenerateDepositInvoiceAsync(int leaseId, CancellationToken ct = default)
+    /// <summary>Phát hành phí tháng cho mọi căn đã bàn giao của một toà. Trả về số hoá đơn tạo được.</summary>
+    public async Task<int> GenerateForBuildingAsync(int buildingId, DateTime forDate, CancellationToken ct = default)
     {
-        var lease = await _db.Leases
-            .Include(l => l.Apartment)
-            .FirstOrDefaultAsync(l => l.Id == leaseId, ct);
-        if (lease == null) return new(false, "Không tìm thấy hợp đồng.");
-        if (lease.Deposit <= 0) return new(false, "Hợp đồng không có khoản cọc.");
-
-        var exists = await _db.Invoices.AnyAsync(i =>
-            i.LeaseId == leaseId && i.Kind == InvoiceKind.Deposit && i.Status != InvoiceStatus.Cancelled, ct);
-        if (exists) return new(false, "Đã có hoá đơn đặt cọc.");
-
-        var now = VnTime.Now;
-        var billingMonth = ToBillingMonth(now);
-        var invoice = new Invoice
+        var ids = await _db.Apartments
+            .Where(a => a.BuildingId == buildingId && a.Occupancy != ApartmentOccupancy.NotHandedOver)
+            .Select(a => a.Id)
+            .ToListAsync(ct);
+        var generated = 0;
+        foreach (var id in ids)
         {
-            InvoiceNumber = await BillingNumberGenerator.NextInvoiceNumberAsync(_db, billingMonth, ct),
-            LeaseId = lease.Id,
-            Kind = InvoiceKind.Deposit,
-            BillingMonth = billingMonth,
-            IsRecurring = false,
-            IssueDate = now,
-            DueDate = now.AddDays(7),
-            SubTotal = lease.Deposit,
-            Total = lease.Deposit,
-            Balance = lease.Deposit,
-            Status = InvoiceStatus.Issued,
-            Currency = "VND",
-            Items = new List<InvoiceItem>
+            // Một căn lỗi không được chặn cả toà; bỏ entity lỗi khỏi context rồi làm căn tiếp theo.
+            try
             {
-                new() { Description = $"Tiền đặt cọc — {lease.Apartment.UnitCode ?? lease.Apartment.Title}",
-                        Quantity = 1m, UnitPrice = lease.Deposit, LineTotal = lease.Deposit, SortOrder = 0 }
+                if ((await GenerateMonthlyInvoiceAsync(id, forDate, ct)).Success) generated++;
             }
-        };
-        _db.Invoices.Add(invoice);
-        try { await _db.SaveChangesAsync(ct); }
-        catch (DbUpdateException ex) when (BillingNumberGenerator.IsUniqueConstraintError(ex))
-        {
-            invoice.InvoiceNumber = await BillingNumberGenerator.NextInvoiceNumberAsync(_db, billingMonth, ct);
-            await _db.SaveChangesAsync(ct);
+            catch (DbUpdateException ex)
+            {
+                _log.LogError(ex, "Monthly invoice failed for apartment {ApartmentId}", id);
+                _db.ChangeTracker.Clear();
+            }
         }
-
-        _log.LogInformation("Generated Deposit invoice {Number} for lease {LeaseId}", invoice.InvoiceNumber, lease.Id);
-        return new(true, $"Đã tạo hoá đơn đặt cọc {invoice.InvoiceNumber} ({lease.Deposit:N0} đ).", invoice.Id);
+        return generated;
     }
 
     /// <summary>
     /// Create an ad-hoc OneOff invoice with arbitrary items (e.g. cleaning fee, damage).
     /// </summary>
-    public async Task<InvoiceResult> GenerateOneOffInvoiceAsync(int leaseId, string title, IReadOnlyList<(string description, decimal qty, decimal unitPrice)> lines, DateTime dueDate, string? note = null, CancellationToken ct = default)
+    public async Task<InvoiceResult> GenerateOneOffInvoiceAsync(int apartmentId, string title, IReadOnlyList<(string description, decimal qty, decimal unitPrice)> lines, DateTime dueDate, string? note = null, CancellationToken ct = default)
     {
-        var lease = await _db.Leases.FirstOrDefaultAsync(l => l.Id == leaseId, ct);
-        if (lease == null) return new(false, "Không tìm thấy hợp đồng.");
+        if (!await _db.Apartments.AnyAsync(a => a.Id == apartmentId, ct)) return new(false, "Không tìm thấy căn hộ.");
         if (lines == null || lines.Count == 0) return new(false, "Hoá đơn phải có ít nhất một dòng.");
 
         var now = VnTime.Now;
@@ -211,7 +156,7 @@ public class InvoiceGenerator
         var invoice = new Invoice
         {
             InvoiceNumber = await BillingNumberGenerator.NextOneOffInvoiceNumberAsync(_db, ct),
-            LeaseId = lease.Id,
+            ApartmentId = apartmentId,
             Kind = InvoiceKind.OneOff,
             BillingMonth = ToBillingMonth(now),
             IsRecurring = false,
@@ -232,49 +177,41 @@ public class InvoiceGenerator
             invoice.InvoiceNumber = await BillingNumberGenerator.NextOneOffInvoiceNumberAsync(_db, ct);
             await _db.SaveChangesAsync(ct);
         }
-        _log.LogInformation("Generated OneOff invoice {Number} for lease {LeaseId} ({Total} VND, '{Title}')", invoice.InvoiceNumber, lease.Id, subTotal, title);
+        _log.LogInformation("Generated OneOff invoice {Number} for apartment {ApartmentId} ({Total} VND, '{Title}')", invoice.InvoiceNumber, apartmentId, subTotal, title);
         return new(true, $"Đã tạo hoá đơn {invoice.InvoiceNumber} ({subTotal:N0} đ).", invoice.Id);
     }
 
     public async Task<int> GenerateForBillingDayAsync(DateTime asOf, CancellationToken ct = default)
     {
-        var billingDay = asOf.Day;
-        var billingMonth = ToBillingMonth(asOf);
-
-        var leaseIds = await _db.Leases
-            .Where(l => l.Status == LeaseStatus.Active && l.BillingDay == billingDay
-                        && l.StartDate <= asOf && l.EndDate >= asOf
-                        && !l.Invoices.Any(i => i.BillingMonth == billingMonth && i.Kind == InvoiceKind.MonthlyRent))
-            .Select(l => l.Id)
+        var buildingIds = await _db.Buildings
+            .Where(b => b.DefaultBillingDay == asOf.Day && b.Status == BuildingStatus.Active)
+            .Select(b => b.Id)
             .ToListAsync(ct);
 
         var generated = 0;
-        foreach (var id in leaseIds)
-        {
-            var r = await GenerateMonthlyInvoiceAsync(id, asOf, ct);
-            if (r.Success) generated++;
-        }
-        _log.LogInformation("Auto-generated {Count} invoices for billing day {Day}", generated, billingDay);
+        foreach (var id in buildingIds)
+            generated += await GenerateForBuildingAsync(id, asOf, ct);
+        _log.LogInformation("Auto-generated {Count} invoices for billing day {Day}", generated, asOf.Day);
         return generated;
     }
 
     public async Task<int> ApplyLateFeesAsync(DateTime asOf, CancellationToken ct = default)
     {
-        var dueBefore = asOf.AddDays(-1);
         var due = await _db.Invoices
-            .Include(i => i.Lease)
-            .Where(i => (i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid)
-                        && i.DueDate < dueBefore
+            .Include(i => i.Apartment).ThenInclude(a => a.Building)
+            .Where(i => (i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
+                        && i.Balance > 0
+                        && i.DueDate < asOf
                         && i.LateFee == 0)
             .ToListAsync(ct);
 
         var applied = 0;
         foreach (var inv in due)
         {
-            var graceDays = inv.Lease.LateFeeAfterDays;
-            if ((asOf - inv.DueDate).TotalDays < graceDays) continue;
+            var building = inv.Apartment.Building;
+            if ((asOf - inv.DueDate).TotalDays < building.DefaultLateFeeAfterDays) continue;
 
-            var fee = Math.Round(inv.Balance * inv.Lease.LateFeePercent / 100m, 0);
+            var fee = Math.Round(inv.Balance * building.DefaultLateFeePercent / 100m, 0);
             // LateFee lives in its own column, not as an InvoiceItem — otherwise EditItems
             // would double-count it (SubTotal already includes the line + Total adds LateFee again).
             inv.LateFee = fee;
@@ -286,5 +223,18 @@ public class InvoiceGenerator
         if (applied > 0) await _db.SaveChangesAsync(ct);
         _log.LogInformation("Applied late fee to {Count} invoices", applied);
         return applied;
+    }
+
+    /// <summary>Hoá đơn còn nợ đã qua hạn thanh toán chuyển sang Quá hạn.</summary>
+    public async Task<int> MarkOverdueInvoicesAsync(DateTime asOf, CancellationToken ct = default)
+    {
+        var toMark = await _db.Invoices
+            .Where(i => (i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid)
+                        && i.Balance > 0
+                        && i.DueDate < asOf)
+            .ToListAsync(ct);
+        foreach (var inv in toMark) inv.Status = InvoiceStatus.Overdue;
+        if (toMark.Count > 0) await _db.SaveChangesAsync(ct);
+        return toMark.Count;
     }
 }

@@ -5,26 +5,13 @@ namespace t.Areas.Tenant.Models;
 
 public class TenantDashboardVm
 {
-    public Lease? ActiveLease { get; set; }
+    public Apartment? Apartment { get; set; }
     public int InvoicesUnpaidCount { get; set; }
     public decimal TotalDue { get; set; }
     public DateTime? NextDueDate { get; set; }
     public int OpenMaintenanceCount { get; set; }
     public List<TenantInvoiceRow> RecentInvoices { get; set; } = new();
     public List<TenantMaintenanceRow> RecentMaintenance { get; set; } = new();
-}
-
-public class TenantLeaseHistoryRow
-{
-    public int Id { get; set; }
-    public string LeaseNumber { get; set; } = string.Empty;
-    public string ApartmentTitle { get; set; } = string.Empty;
-    public string? BuildingName { get; set; }
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
-    public decimal MonthlyRent { get; set; }
-    public LeaseStatus Status { get; set; }
-    public bool IsCoTenant { get; set; }
 }
 
 public class TenantInvoiceRow

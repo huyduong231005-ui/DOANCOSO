@@ -4,19 +4,20 @@
     var initial = string.IsNullOrEmpty(displayName) ? "A" : displayName.Substring(0, 1).ToUpperInvariant();
     var roleLabel = User?.IsInRole("Admin") == true ? "Quản trị viên" :
                     User?.IsInRole("Manager") == true ? "Quản lí" :
-                    User?.IsInRole("Host") == true ? "Chủ căn" : "Người dùng";
+                    "Người dùng";
 }
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@pageTitle · Luxe Haven Admin</title>
+    <title>@pageTitle · Ban quản lý Luxe Haven</title>
     <link rel="stylesheet" href="~/css/material-symbols-local.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/be-vietnam-pro.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/toast.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin-ux.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin-bql.css" asp-append-version="true" />
     @await RenderSectionAsync("Head", required: false)
 </head>
 <body class="admin-shell">
@@ -50,7 +51,7 @@
             <div class="topbar-actions">
                 <a class="btn btn-ghost btn-sm" href="/" target="_blank" rel="noopener">
                     <span class="material-symbols-outlined">open_in_new</span>
-                    Xem website
+                    Trang cư dân
                 </a>
                 <button type="button" class="admin-icon-btn" title="Thông báo">
                     <span class="material-symbols-outlined">notifications</span>
@@ -76,6 +77,12 @@
         </main>
     </div>
 </div>
+
+@* Ngăn trượt dùng chung: phần tử có data-drawer-url sẽ nạp nội dung vào đây. *@
+<div class="drawer-backdrop" data-drawer-close></div>
+<aside class="drawer" id="admin-drawer" aria-hidden="true" role="dialog" aria-label="Chi tiết">
+    <div class="drawer-body" data-drawer-content></div>
+</aside>
 
 @{
     var _toastSuccess = TempData["Success"] as string;
@@ -103,6 +110,7 @@
 <script src="~/js/admin-uploads.js" asp-append-version="true"></script>
 <script src="~/js/toast.js" asp-append-version="true"></script>
 <script src="~/js/admin-ux.js" asp-append-version="true"></script>
+<script src="~/js/admin-bql.js" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

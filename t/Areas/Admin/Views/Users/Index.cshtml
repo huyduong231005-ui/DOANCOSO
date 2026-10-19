@@ -25,7 +25,7 @@
 <div class="card">
     <div class="table-wrap">
         <table class="data-table">
-            <thead><tr><th>Tài khoản</th><th>Vai trò</th><th>SĐT</th><th class="num">Hợp đồng</th><th>Đăng nhập gần nhất</th><th>Trạng thái</th><th></th></tr></thead>
+            <thead><tr><th>Tài khoản</th><th>Vai trò</th><th>SĐT</th><th>Căn đang ở</th><th>Đăng nhập gần nhất</th><th>Trạng thái</th><th></th></tr></thead>
             <tbody>
             @if (!Model.Any())
             {
@@ -36,7 +36,7 @@
                 foreach (var u in Model)
                 {
                     <tr data-href="@Url.Action("Edit", new { id = u.Id })" title="Bấm để sửa">
-                        <td><div class="row-title">@u.FullName @(u.IsHost ? Html.Raw("<span class=\"pill pill-info\" style=\"margin-left:.4rem;\">Chủ căn</span>") : null)</div><div class="row-meta">@u.Email</div></td>
+                        <td><div class="row-title">@u.FullName</div><div class="row-meta">@u.Email</div></td>
                         <td>
                             @if (u.Roles.Any())
                             {
@@ -45,7 +45,7 @@
                             else { <span class="text-muted">—</span> }
                         </td>
                         <td>@(u.Phone ?? "—")</td>
-                        <td class="num">@u.LeasesCount</td>
+                        <td>@(u.ApartmentCodes ?? "—")</td>
                         <td class="text-muted">@(u.LastLoginAt?.ToString("dd/MM/yyyy") ?? "—")</td>
                         <td>
                             @if (u.LockedOut) { <span class="pill pill-danger">Đã khoá</span> } else { <span class="pill pill-success">Hoạt động</span> }

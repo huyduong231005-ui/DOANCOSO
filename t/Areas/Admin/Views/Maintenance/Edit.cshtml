@@ -27,7 +27,7 @@
                         <option value="0">— Chọn căn —</option>
                         @foreach (var a in Model.Apartments)
                         {
-                            <option value="@a.Id">@(a.UnitCode ?? "?") · @a.Title @(a.Building != null ? $"({a.Building.Name})" : "")</option>
+                            <option value="@a.Id">@a.Label</option>
                         }
                     </select>
                     <span class="err" asp-validation-for="ApartmentId"></span>

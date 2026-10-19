@@ -24,7 +24,7 @@
 }
 
 <section class="page-header">
-    <div><h1>@Model.InvoiceNumber</h1><p class="subtitle">@Model.Lease.Apartment.Title</p></div>
+    <div><h1>@Model.InvoiceNumber</h1><p class="subtitle">Căn @Model.Apartment.UnitCode · @Model.Apartment.Building.Name</p></div>
     <div class="actions">
         <span class="@Pill(Model.Status)">@Model.Status.Vi()</span>
         <a class="btn btn-outline" asp-action="Pdf" asp-route-id="@Model.Id" target="_blank"><span class="material-symbols-outlined">picture_as_pdf</span>Tải PDF</a>

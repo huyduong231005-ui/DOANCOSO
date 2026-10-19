@@ -22,20 +22,12 @@ public class AppDbContext : IdentityDbContext<AppUser>
     }
 
     public DbSet<Apartment> Apartments => Set<Apartment>();
-    public DbSet<ApartmentImage> ApartmentImages => Set<ApartmentImage>();
-    public DbSet<Amenity> Amenities => Set<Amenity>();
-    public DbSet<ApartmentAmenity> ApartmentAmenities => Set<ApartmentAmenity>();
+    public DbSet<ApartmentResident> ApartmentResidents => Set<ApartmentResident>();
     public DbSet<Region> Regions => Set<Region>();
-    public DbSet<Category> Categories => Set<Category>();
     public DbSet<Project> Projects => Set<Project>();
-    public DbSet<ProjectImage> ProjectImages => Set<ProjectImage>();
-    public DbSet<Review> Reviews => Set<Review>();
-    public DbSet<Favorite> Favorites => Set<Favorite>();
 
     public DbSet<Building> Buildings => Set<Building>();
     public DbSet<Floor> Floors => Set<Floor>();
-    public DbSet<Lease> Leases => Set<Lease>();
-    public DbSet<LeaseTenant> LeaseTenants => Set<LeaseTenant>();
     public DbSet<UtilityType> UtilityTypes => Set<UtilityType>();
     public DbSet<UtilityReading> UtilityReadings => Set<UtilityReading>();
 
@@ -45,17 +37,11 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<RecurringCharge> RecurringCharges => Set<RecurringCharge>();
 
     public DbSet<MaintenanceRequest> MaintenanceRequests => Set<MaintenanceRequest>();
-    public DbSet<LeaseInspection> LeaseInspections => Set<LeaseInspection>();
-    public DbSet<DepositTransaction> DepositTransactions => Set<DepositTransaction>();
 
     public DbSet<Permission> Permissions => Set<Permission>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
-    public DbSet<ViewingAppointment> ViewingAppointments => Set<ViewingAppointment>();
-    public DbSet<RentalPreferenceProfile> RentalPreferenceProfiles => Set<RentalPreferenceProfile>();
-    public DbSet<RentalPreferenceCategory> RentalPreferenceCategories => Set<RentalPreferenceCategory>();
-    public DbSet<RentalPreferenceAmenity> RentalPreferenceAmenities => Set<RentalPreferenceAmenity>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -72,8 +58,6 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.Property(x => x.FullName).HasColumnName("HoTen");
             e.Property(x => x.AvatarUrl).HasColumnName("UrlAvatar");
             e.Property(x => x.Phone).HasColumnName("SoDienThoai");
-            e.Property(x => x.IsHost).HasColumnName("LaChuNha");
-            e.Property(x => x.HostTitle).HasColumnName("DanhXungChuNha");
             e.Property(x => x.LastLoginAt).HasColumnName("NgayDangNhapCuoi");
 
             // Audit / soft-delete columns (AppUser triển khai IAuditable + ISoftDeletable)
@@ -135,256 +119,63 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.HasIndex(r => r.Slug).IsUnique();
         });
 
-        // ================== Category ==================
-        b.Entity<Category>(e =>
-        {
-            e.ToTable("DanhMuc");
-            MapBaseEntityColumns(e);
-
-            e.Property(c => c.Name).HasColumnName("Ten").HasMaxLength(120).IsRequired();
-            e.Property(c => c.Slug).HasColumnName("Slug").HasMaxLength(160).IsRequired();
-            e.Property(c => c.Icon).HasColumnName("Icon");
-
-            e.HasIndex(c => c.Slug).IsUnique();
-        });
-
-        // ================== Amenity ==================
-        b.Entity<Amenity>(e =>
-        {
-            e.ToTable("TienIch");
-            MapBaseEntityColumns(e);
-
-            e.Property(a => a.Name).HasColumnName("Ten").HasMaxLength(120).IsRequired();
-            e.Property(a => a.Slug).HasColumnName("Slug").HasMaxLength(160).IsRequired();
-            e.Property(a => a.Icon).HasColumnName("Icon");
-
-            e.HasIndex(a => a.Slug).IsUnique();
-        });
-
         // ================== Apartment ==================
         b.Entity<Apartment>(e =>
         {
             e.ToTable("CanHo");
             MapBaseEntityColumns(e);
 
-            e.Property(a => a.Title).HasColumnName("TieuDe").HasMaxLength(250).IsRequired();
-            e.Property(a => a.Slug).HasColumnName("Slug").HasMaxLength(280).IsRequired();
-            e.Property(a => a.UnitCode).HasColumnName("MaCanHo").HasMaxLength(40);
-            e.Property(a => a.Description).HasColumnName("MoTa");
-            e.Property(a => a.DescriptionExtra).HasColumnName("MoTaThem");
-            e.Property(a => a.Price).HasColumnName("Gia").HasColumnType("decimal(18,0)");
-            e.Property(a => a.DefaultDeposit).HasColumnName("TienDatCocMacDinh").HasColumnType("decimal(18,0)");
-            e.Property(a => a.FeeNote).HasColumnName("GhiChuPhi");
+            e.Property(a => a.UnitCode).HasColumnName("MaCanHo").HasMaxLength(40).IsRequired();
             e.Property(a => a.Area).HasColumnName("DienTich");
             e.Property(a => a.Bedrooms).HasColumnName("SoPhongNgu");
             e.Property(a => a.Bathrooms).HasColumnName("SoPhongTam");
-            e.Property(a => a.Address).HasColumnName("DiaChi").HasMaxLength(500);
-            e.Property(a => a.Latitude).HasColumnName("ViDo");
-            e.Property(a => a.Longitude).HasColumnName("KinhDo");
-            e.Property(a => a.FurnishingLevel).HasColumnName("MucNoiThat").HasDefaultValue(FurnishingLevel.None);
-            e.Property(a => a.AllowsPets).HasColumnName("ChoPhepThuCung").HasDefaultValue(false);
-            e.Property(a => a.ParkingType).HasColumnName("LoaiChoDauXe").HasDefaultValue(ParkingType.None);
-            e.Property(a => a.AvailableFrom).HasColumnName("NgayCoTheVaoO").HasDefaultValueSql("CURRENT_DATE");
-            e.Property(a => a.MinLeaseMonths).HasColumnName("SoThangThueToiThieu").HasDefaultValue(1);
-            e.Property(a => a.MaxLeaseMonths).HasColumnName("SoThangThueToiDa").HasDefaultValue(12);
             e.Property(a => a.HouseDirection).HasColumnName("HuongNha");
-            e.Property(a => a.FloorNumber).HasColumnName("SoTang");
-            e.Property(a => a.Status).HasColumnName("TrangThai");
             e.Property(a => a.Occupancy).HasColumnName("TinhTrangThue");
-            e.Property(a => a.IsFeatured).HasColumnName("NoiBat");
-            e.Property(a => a.ViewCount).HasColumnName("LuotXem");
-            e.Property(a => a.ModerationNote).HasColumnName("GhiChuKiemDuyet");
-            e.Property(a => a.ApprovedAt).HasColumnName("NgayDuyet");
-            e.Property(a => a.ApprovedBy).HasColumnName("NguoiDuyet");
-            e.Property(a => a.HostId).HasColumnName("ChuNhaId");
-            e.Property(a => a.RegionId).HasColumnName("KhuVucId");
-            e.Property(a => a.CategoryId).HasColumnName("DanhMucId");
-            e.Property(a => a.ProjectId).HasColumnName("DuAnId");
+            e.Property(a => a.Note).HasColumnName("MoTa");
             e.Property(a => a.BuildingId).HasColumnName("ToaNhaId");
             e.Property(a => a.FloorId).HasColumnName("TangId");
 
-            e.HasIndex(a => a.Slug).IsUnique();
-            e.HasIndex(a => a.Status);
             e.HasIndex(a => a.Occupancy);
-            e.HasIndex(a => a.Price);
-            e.HasIndex(a => a.RegionId);
-            e.HasIndex(a => a.CategoryId);
-            e.HasIndex(a => a.ProjectId);
-            e.HasIndex(a => a.BuildingId);
             e.HasIndex(a => a.FloorId);
-            e.HasIndex(a => a.HostId);
-            e.HasIndex(a => a.IsFeatured);
-            e.HasIndex(a => a.FurnishingLevel);
-            e.HasIndex(a => a.ParkingType);
-            e.HasIndex(a => a.AvailableFrom);
-            e.HasIndex(a => new { a.BuildingId, a.UnitCode })
-             .IsUnique()
-             .HasFilter("\"ToaNhaId\" IS NOT NULL AND \"MaCanHo\" IS NOT NULL");
-
-            e.HasOne(a => a.Host)
-             .WithMany(u => u.Apartments)
-             .HasForeignKey(a => a.HostId)
-             .OnDelete(DeleteBehavior.Restrict);
-
-            e.HasOne(a => a.Region)
-             .WithMany(r => r.Apartments)
-             .HasForeignKey(a => a.RegionId)
-             .OnDelete(DeleteBehavior.Restrict);
-
-            e.HasOne(a => a.Category)
-             .WithMany(c => c.Apartments)
-             .HasForeignKey(a => a.CategoryId)
-             .OnDelete(DeleteBehavior.Restrict);
-
-            e.HasOne(a => a.Project)
-             .WithMany(p => p.Apartments)
-             .HasForeignKey(a => a.ProjectId)
-             .OnDelete(DeleteBehavior.NoAction);
+            e.HasIndex(a => new { a.BuildingId, a.UnitCode }).IsUnique().HasFilter("\"DaXoa\" = false");
 
             e.HasOne(a => a.Building)
              .WithMany(b2 => b2.Apartments)
              .HasForeignKey(a => a.BuildingId)
-             .OnDelete(DeleteBehavior.SetNull);
+             .OnDelete(DeleteBehavior.Restrict);
 
             e.HasOne(a => a.Floor)
              .WithMany(f => f.Apartments)
              .HasForeignKey(a => a.FloorId)
-             .OnDelete(DeleteBehavior.NoAction);
-        });
-
-        // ================== RentalPreferenceProfile ==================
-        b.Entity<RentalPreferenceProfile>(e =>
-        {
-            e.ToTable("HoSoNhuCauThue");
-            MapBaseEntityColumns(e);
-
-            e.Property(x => x.UserId).HasColumnName("NguoiDungId");
-            e.Property(x => x.RegionId).HasColumnName("KhuVucId");
-            e.Property(x => x.MinPrice).HasColumnName("GiaToiThieu").HasColumnType("decimal(18,0)");
-            e.Property(x => x.MaxPrice).HasColumnName("GiaToiDa").HasColumnType("decimal(18,0)");
-            e.Property(x => x.MinArea).HasColumnName("DienTichToiThieu");
-            e.Property(x => x.MaxArea).HasColumnName("DienTichToiDa");
-            e.Property(x => x.MinBedrooms).HasColumnName("SoPhongNguToiThieu");
-            e.Property(x => x.PreferredAddress).HasColumnName("DiaChiUuTien").HasMaxLength(500);
-            e.Property(x => x.PreferredLatitude).HasColumnName("ViDoUuTien");
-            e.Property(x => x.PreferredLongitude).HasColumnName("KinhDoUuTien");
-            e.Property(x => x.MaxDistanceKm).HasColumnName("BanKinhToiDaKm");
-            e.Property(x => x.FurnishingLevel).HasColumnName("MucNoiThat");
-            e.Property(x => x.AllowsPets).HasColumnName("CanChoPhepThuCung");
-            e.Property(x => x.ParkingType).HasColumnName("LoaiChoDauXe");
-            e.Property(x => x.MoveInDate).HasColumnName("NgayDuKienVaoO");
-            e.Property(x => x.MinFloor).HasColumnName("TangToiThieu");
-            e.Property(x => x.MaxFloor).HasColumnName("TangToiDa");
-            e.Property(x => x.HouseDirection).HasColumnName("HuongNha");
-            e.Property(x => x.MinLeaseMonths).HasColumnName("SoThangThueToiThieu");
-            e.Property(x => x.MaxLeaseMonths).HasColumnName("SoThangThueToiDa");
-            e.Property(x => x.RequireRegion).HasColumnName("BatBuocKhuVuc");
-            e.Property(x => x.RequirePriceRange).HasColumnName("BatBuocKhoangGia");
-            e.Property(x => x.RequireAreaRange).HasColumnName("BatBuocDienTich");
-            e.Property(x => x.RequireBedrooms).HasColumnName("BatBuocPhongNgu");
-            e.Property(x => x.RequireCategoryMatch).HasColumnName("BatBuocLoaiHinh");
-            e.Property(x => x.RequireMaxDistance).HasColumnName("BatBuocKhoangCach");
-            e.Property(x => x.RequireFurnishing).HasColumnName("BatBuocNoiThat");
-            e.Property(x => x.RequirePets).HasColumnName("BatBuocThuCung");
-            e.Property(x => x.RequireParking).HasColumnName("BatBuocDauXe");
-            e.Property(x => x.RequireMoveInDate).HasColumnName("BatBuocNgayVaoO");
-            e.Property(x => x.RequireFloorRange).HasColumnName("BatBuocKhoangTang");
-            e.Property(x => x.RequireDirection).HasColumnName("BatBuocHuongNha");
-            e.Property(x => x.RequireLeaseRange).HasColumnName("BatBuocThoiHanThue");
-
-            e.HasIndex(x => x.UserId).IsUnique();
-            e.HasIndex(x => x.RegionId);
-
-            e.HasOne(x => x.User)
-             .WithOne(x => x.RentalPreferenceProfile)
-             .HasForeignKey<RentalPreferenceProfile>(x => x.UserId)
-             .OnDelete(DeleteBehavior.Cascade);
-
-            e.HasOne(x => x.Region)
-             .WithMany()
-             .HasForeignKey(x => x.RegionId)
              .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // ================== RentalPreferenceCategory ==================
-        b.Entity<RentalPreferenceCategory>(e =>
+        // ================== ApartmentResident ==================
+        b.Entity<ApartmentResident>(e =>
         {
-            e.ToTable("HoSoNhuCauThue_DanhMuc");
-            e.HasKey(x => new { x.ProfileId, x.CategoryId });
-            e.Property(x => x.ProfileId).HasColumnName("HoSoNhuCauThueId");
-            e.Property(x => x.CategoryId).HasColumnName("DanhMucId");
-            e.Property(x => x.CreatedAt).HasColumnName("NgayTao");
-            e.Property(x => x.CreatedBy).HasColumnName("NguoiTao");
-            e.Property(x => x.UpdatedAt).HasColumnName("NgayCapNhat");
-            e.Property(x => x.UpdatedBy).HasColumnName("NguoiCapNhat");
-            e.HasIndex(x => x.CategoryId);
-            e.HasOne(x => x.Profile).WithMany(x => x.Categories)
-             .HasForeignKey(x => x.ProfileId).OnDelete(DeleteBehavior.Cascade);
-            e.HasOne(x => x.Category).WithMany()
-             .HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.Restrict);
-        });
-
-        // ================== RentalPreferenceAmenity ==================
-        b.Entity<RentalPreferenceAmenity>(e =>
-        {
-            e.ToTable("HoSoNhuCauThue_TienIch");
-            e.HasKey(x => new { x.ProfileId, x.AmenityId });
-            e.Property(x => x.ProfileId).HasColumnName("HoSoNhuCauThueId");
-            e.Property(x => x.AmenityId).HasColumnName("TienIchId");
-            e.Property(x => x.IsRequired).HasColumnName("BatBuoc");
-            e.Property(x => x.CreatedAt).HasColumnName("NgayTao");
-            e.Property(x => x.CreatedBy).HasColumnName("NguoiTao");
-            e.Property(x => x.UpdatedAt).HasColumnName("NgayCapNhat");
-            e.Property(x => x.UpdatedBy).HasColumnName("NguoiCapNhat");
-            e.HasIndex(x => x.AmenityId);
-            e.HasOne(x => x.Profile).WithMany(x => x.Amenities)
-             .HasForeignKey(x => x.ProfileId).OnDelete(DeleteBehavior.Cascade);
-            e.HasOne(x => x.Amenity).WithMany()
-             .HasForeignKey(x => x.AmenityId).OnDelete(DeleteBehavior.Restrict);
-        });
-
-        // ================== ApartmentImage ==================
-        b.Entity<ApartmentImage>(e =>
-        {
-            e.ToTable("AnhCanHo");
+            e.ToTable("CuDan");
             MapBaseEntityColumns(e);
 
-            e.Property(i => i.Url).HasColumnName("Url").HasMaxLength(500).IsRequired();
-            e.Property(i => i.Caption).HasColumnName("ChuThich");
-            e.Property(i => i.IsCover).HasColumnName("AnhBia");
-            e.Property(i => i.SortOrder).HasColumnName("ThuTu");
-            e.Property(i => i.ApartmentId).HasColumnName("CanHoId");
+            e.Property(x => x.ApartmentId).HasColumnName("CanHoId");
+            e.Property(x => x.FullName).HasColumnName("HoTen").HasMaxLength(150).IsRequired();
+            e.Property(x => x.Phone).HasColumnName("SoDienThoai").HasMaxLength(30);
+            e.Property(x => x.Email).HasColumnName("Email").HasMaxLength(200);
+            e.Property(x => x.IdNumber).HasColumnName("SoGiayTo").HasMaxLength(30);
+            e.Property(x => x.Role).HasColumnName("VaiTro");
+            e.Property(x => x.IsPrimary).HasColumnName("DaiDienCanHo");
+            e.Property(x => x.MoveInDate).HasColumnName("NgayVaoO");
+            e.Property(x => x.MoveOutDate).HasColumnName("NgayChuyenDi");
+            e.Property(x => x.UserId).HasColumnName("NguoiDungId");
+            e.Property(x => x.Note).HasColumnName("GhiChu").HasMaxLength(1000);
+            e.Ignore(x => x.IsActive);
 
-            e.HasIndex(i => i.ApartmentId);
+            e.HasIndex(x => x.ApartmentId);
+            e.HasIndex(x => x.UserId);
 
-            e.HasOne(i => i.Apartment)
-             .WithMany(a => a.Images)
-             .HasForeignKey(i => i.ApartmentId)
-             .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        // ================== ApartmentAmenity (junction) ==================
-        b.Entity<ApartmentAmenity>(e =>
-        {
-            e.ToTable("CanHo_TienIch");
-            e.HasKey(aa => new { aa.ApartmentId, aa.AmenityId });
-
-            e.Property(aa => aa.ApartmentId).HasColumnName("CanHoId");
-            e.Property(aa => aa.AmenityId).HasColumnName("TienIchId");
-            e.Property(aa => aa.CreatedAt).HasColumnName("NgayTao");
-            e.Property(aa => aa.CreatedBy).HasColumnName("NguoiTao");
-            e.Property(aa => aa.UpdatedAt).HasColumnName("NgayCapNhat");
-            e.Property(aa => aa.UpdatedBy).HasColumnName("NguoiCapNhat");
-
-            e.HasOne(aa => aa.Apartment)
-             .WithMany(a => a.ApartmentAmenities)
-             .HasForeignKey(aa => aa.ApartmentId)
-             .OnDelete(DeleteBehavior.Cascade);
-
-            e.HasOne(aa => aa.Amenity)
-             .WithMany(a => a.ApartmentAmenities)
-             .HasForeignKey(aa => aa.AmenityId)
-             .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Apartment).WithMany(a => a.Residents)
+             .HasForeignKey(x => x.ApartmentId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.User).WithMany(u => u.Residencies)
+             .HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.SetNull);
         });
 
         // ================== Project ==================
@@ -398,90 +189,14 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.Property(p => p.RegionId).HasColumnName("KhuVucId");
             e.Property(p => p.Address).HasColumnName("DiaChi");
             e.Property(p => p.ThumbnailUrl).HasColumnName("UrlAnhDaiDien");
-            e.Property(p => p.PriceFrom).HasColumnName("GiaTu").HasColumnType("decimal(18,0)");
-            e.Property(p => p.Status).HasColumnName("TrangThai");
             e.Property(p => p.ShortDescription).HasColumnName("MoTaNgan");
-            e.Property(p => p.FullDescription).HasColumnName("MoTaDayDu");
 
             e.HasIndex(p => p.Slug).IsUnique();
             e.HasIndex(p => p.RegionId);
-            e.HasIndex(p => p.Status);
 
             e.HasOne(p => p.Region)
              .WithMany(r => r.Projects)
              .HasForeignKey(p => p.RegionId)
-             .OnDelete(DeleteBehavior.Restrict);
-        });
-
-        // ================== ProjectImage ==================
-        b.Entity<ProjectImage>(e =>
-        {
-            e.ToTable("AnhDuAn");
-            MapBaseEntityColumns(e);
-
-            e.Property(i => i.ProjectId).HasColumnName("DuAnId");
-            e.Property(i => i.Url).HasColumnName("Url").HasMaxLength(500).IsRequired();
-            e.Property(i => i.Caption).HasColumnName("ChuThich");
-            e.Property(i => i.SortOrder).HasColumnName("ThuTu");
-            e.Property(i => i.IsCover).HasColumnName("AnhBia");
-
-            e.HasIndex(i => i.ProjectId);
-
-            e.HasOne(i => i.Project)
-             .WithMany(p => p.Images)
-             .HasForeignKey(i => i.ProjectId)
-             .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        // ================== Review ==================
-        b.Entity<Review>(e =>
-        {
-            e.ToTable("DanhGia");
-            MapBaseEntityColumns(e);
-
-            e.Property(r => r.Rating).HasColumnName("DiemSao");
-            e.Property(r => r.Content).HasColumnName("NoiDung").HasMaxLength(2000).IsRequired();
-            e.Property(r => r.RenterNote).HasColumnName("GhiChuNguoiThue");
-            e.Property(r => r.Status).HasColumnName("TrangThai");
-            e.Property(r => r.ApprovedAt).HasColumnName("NgayDuyet");
-            e.Property(r => r.ApprovedBy).HasColumnName("NguoiDuyet");
-            e.Property(r => r.ApartmentId).HasColumnName("CanHoId");
-            e.Property(r => r.UserId).HasColumnName("NguoiDungId");
-
-            e.HasIndex(r => r.ApartmentId);
-            e.HasIndex(r => r.UserId);
-            e.HasIndex(r => r.Status);
-
-            e.HasOne(r => r.Apartment)
-             .WithMany(a => a.Reviews)
-             .HasForeignKey(r => r.ApartmentId)
-             .OnDelete(DeleteBehavior.Cascade);
-
-            e.HasOne(r => r.User)
-             .WithMany(u => u.Reviews)
-             .HasForeignKey(r => r.UserId)
-             .OnDelete(DeleteBehavior.Restrict);
-        });
-
-        // ================== Favorite ==================
-        b.Entity<Favorite>(e =>
-        {
-            e.ToTable("YeuThich");
-            MapBaseEntityColumns(e);
-
-            e.Property(f => f.UserId).HasColumnName("NguoiDungId");
-            e.Property(f => f.ApartmentId).HasColumnName("CanHoId");
-
-            e.HasIndex(f => new { f.UserId, f.ApartmentId }).IsUnique();
-
-            e.HasOne(f => f.Apartment)
-             .WithMany(a => a.Favorites)
-             .HasForeignKey(f => f.ApartmentId)
-             .OnDelete(DeleteBehavior.Cascade);
-
-            e.HasOne(f => f.User)
-             .WithMany(u => u.Favorites)
-             .HasForeignKey(f => f.UserId)
              .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -505,6 +220,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.Property(x => x.DefaultBillingDay).HasColumnName("NgayChotKyMacDinh").HasDefaultValue(1);
             e.Property(x => x.DefaultLateFeeAfterDays).HasColumnName("SoNgayTreHanMacDinh").HasDefaultValue(7);
             e.Property(x => x.DefaultLateFeePercent).HasColumnName("PhanTramPhiTreMacDinh").HasDefaultValue(5);
+            e.Property(x => x.ManagementFeePerM2).HasColumnName("DonGiaPhiQuanLy").HasColumnType("decimal(18,0)");
 
             e.HasIndex(x => x.Slug).IsUnique();
             e.HasIndex(x => x.RegionId);
@@ -512,7 +228,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.HasIndex(x => x.Status);
 
             e.HasOne(x => x.Region).WithMany().HasForeignKey(x => x.RegionId).OnDelete(DeleteBehavior.Restrict);
-            e.HasOne(x => x.Project).WithMany().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(x => x.Project).WithMany(p => p.Buildings).HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.SetNull);
             e.HasOne(x => x.Manager).WithMany(u => u.ManagedBuildings).HasForeignKey(x => x.ManagerId).OnDelete(DeleteBehavior.SetNull);
         });
 
@@ -532,65 +248,6 @@ public class AppDbContext : IdentityDbContext<AppUser>
              .HasForeignKey(x => x.BuildingId).OnDelete(DeleteBehavior.Cascade);
         });
 
-        // ================== Lease ==================
-        b.Entity<Lease>(e =>
-        {
-            e.ToTable("HopDongThue");
-            MapBaseEntityColumns(e);
-
-            e.Property(x => x.LeaseNumber).HasColumnName("SoHopDong").HasMaxLength(40).IsRequired();
-            e.Property(x => x.ApartmentId).HasColumnName("CanHoId");
-            e.Property(x => x.PrimaryTenantId).HasColumnName("NguoiThueChinhId");
-            e.Property(x => x.StartDate).HasColumnName("NgayBatDau");
-            e.Property(x => x.EndDate).HasColumnName("NgayKetThuc");
-            e.Property(x => x.MonthlyRent).HasColumnName("TienThueThang").HasColumnType("decimal(18,0)");
-            e.Property(x => x.Deposit).HasColumnName("TienDatCoc").HasColumnType("decimal(18,0)");
-            e.Property(x => x.DepositHeld).HasColumnName("TienDatCocDangGiu").HasColumnType("decimal(18,0)");
-            e.Property(x => x.DepositRefunded).HasColumnName("TienDatCocDaHoanTra").HasColumnType("decimal(18,0)");
-            e.Property(x => x.BillingDay).HasColumnName("NgayChotKy");
-            e.Property(x => x.LateFeePercent).HasColumnName("PhanTramPhiTre");
-            e.Property(x => x.LateFeeAfterDays).HasColumnName("SoNgayTreHan");
-            e.Property(x => x.Status).HasColumnName("TrangThai");
-            e.Property(x => x.ActivatedAt).HasColumnName("NgayKichHoat");
-            e.Property(x => x.TerminatedAt).HasColumnName("NgayChamDut");
-            e.Property(x => x.TerminationReason).HasColumnName("LyDoChamDut");
-            e.Property(x => x.ContractUrl).HasColumnName("UrlHopDong");
-            e.Property(x => x.Notes).HasColumnName("GhiChu").HasMaxLength(2000);
-
-            e.HasIndex(x => x.LeaseNumber).IsUnique();
-            e.HasIndex(x => x.ApartmentId);
-            e.HasIndex(x => x.PrimaryTenantId);
-            e.HasIndex(x => x.Status);
-            e.HasIndex(x => new { x.StartDate, x.EndDate });
-
-            e.HasOne(x => x.Apartment).WithMany(a => a.Leases)
-             .HasForeignKey(x => x.ApartmentId).OnDelete(DeleteBehavior.Restrict);
-
-            e.HasOne(x => x.PrimaryTenant).WithMany(u => u.Leases)
-             .HasForeignKey(x => x.PrimaryTenantId).OnDelete(DeleteBehavior.Restrict);
-        });
-
-        // ================== LeaseTenant (junction) ==================
-        b.Entity<LeaseTenant>(e =>
-        {
-            e.ToTable("HopDong_NguoiThue");
-            e.HasKey(x => new { x.LeaseId, x.TenantId });
-
-            e.Property(x => x.LeaseId).HasColumnName("HopDongId");
-            e.Property(x => x.TenantId).HasColumnName("NguoiThueId");
-            e.Property(x => x.Relationship).HasColumnName("MoiQuanHe").HasMaxLength(60);
-            e.Property(x => x.CreatedAt).HasColumnName("NgayTao");
-            e.Property(x => x.CreatedBy).HasColumnName("NguoiTao");
-            e.Property(x => x.UpdatedAt).HasColumnName("NgayCapNhat");
-            e.Property(x => x.UpdatedBy).HasColumnName("NguoiCapNhat");
-
-            e.HasOne(x => x.Lease).WithMany(l => l.AdditionalTenants)
-             .HasForeignKey(x => x.LeaseId).OnDelete(DeleteBehavior.Cascade);
-
-            e.HasOne(x => x.Tenant).WithMany(u => u.CoTenancies)
-             .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Restrict);
-        });
-
         // ================== MaintenanceRequest ==================
         b.Entity<MaintenanceRequest>(e =>
         {
@@ -599,7 +256,6 @@ public class AppDbContext : IdentityDbContext<AppUser>
 
             e.Property(x => x.RequestNumber).HasColumnName("SoYeuCau").HasMaxLength(40).IsRequired();
             e.Property(x => x.ApartmentId).HasColumnName("CanHoId");
-            e.Property(x => x.LeaseId).HasColumnName("HopDongId");
             e.Property(x => x.ReporterId).HasColumnName("NguoiBaoCaoId");
             e.Property(x => x.Title).HasColumnName("TieuDe").HasMaxLength(250).IsRequired();
             e.Property(x => x.Description).HasColumnName("MoTa").HasMaxLength(4000);
@@ -619,78 +275,18 @@ public class AppDbContext : IdentityDbContext<AppUser>
 
             e.HasIndex(x => x.RequestNumber).IsUnique();
             e.HasIndex(x => x.ApartmentId);
-            e.HasIndex(x => x.LeaseId);
             e.HasIndex(x => x.Status);
             e.HasIndex(x => x.Priority);
             e.HasIndex(x => x.AssignedToId);
 
-            e.HasOne(x => x.Apartment).WithMany()
+            e.HasOne(x => x.Apartment).WithMany(a => a.MaintenanceRequests)
              .HasForeignKey(x => x.ApartmentId).OnDelete(DeleteBehavior.Restrict);
-
-            e.HasOne(x => x.Lease).WithMany(l => l.MaintenanceRequests)
-             .HasForeignKey(x => x.LeaseId).OnDelete(DeleteBehavior.SetNull);
 
             e.HasOne(x => x.Reporter).WithMany()
              .HasForeignKey(x => x.ReporterId).OnDelete(DeleteBehavior.NoAction);
 
             e.HasOne(x => x.AssignedTo).WithMany()
              .HasForeignKey(x => x.AssignedToId).OnDelete(DeleteBehavior.NoAction);
-        });
-
-        // ================== LeaseInspection ==================
-        b.Entity<LeaseInspection>(e =>
-        {
-            e.ToTable("KiemKeCanHo");
-            MapBaseEntityColumns(e);
-
-            e.Property(x => x.LeaseId).HasColumnName("HopDongId");
-            e.Property(x => x.Type).HasColumnName("Loai");
-            e.Property(x => x.InspectedAt).HasColumnName("NgayKiemKe");
-            e.Property(x => x.InspectorId).HasColumnName("NguoiKiemTraId");
-            e.Property(x => x.OverallCondition).HasColumnName("TinhTrangChung");
-            e.Property(x => x.Summary).HasColumnName("TomTat").HasMaxLength(2000);
-            e.Property(x => x.DamageNotes).HasColumnName("GhiChuHuHong").HasMaxLength(2000);
-            e.Property(x => x.PhotoUrls).HasColumnName("DanhSachAnh").HasMaxLength(2000);
-            e.Property(x => x.DepositDeduction).HasColumnName("KhauTruDatCoc").HasColumnType("decimal(18,0)");
-            e.Property(x => x.TenantSigned).HasColumnName("KhachThueDaKy");
-
-            e.HasIndex(x => x.LeaseId);
-            e.HasIndex(x => new { x.LeaseId, x.Type });
-
-            e.HasOne(x => x.Lease).WithMany(l => l.Inspections)
-             .HasForeignKey(x => x.LeaseId).OnDelete(DeleteBehavior.Cascade);
-
-            e.HasOne(x => x.Inspector).WithMany()
-             .HasForeignKey(x => x.InspectorId).OnDelete(DeleteBehavior.NoAction);
-        });
-
-        // ================== DepositTransaction ==================
-        b.Entity<DepositTransaction>(e =>
-        {
-            e.ToTable("GiaoDichDatCoc");
-            MapBaseEntityColumns(e);
-
-            e.Property(x => x.LeaseId).HasColumnName("HopDongId");
-            e.Property(x => x.Type).HasColumnName("Loai");
-            e.Property(x => x.Amount).HasColumnName("SoTien").HasColumnType("decimal(18,0)");
-            e.Property(x => x.Reason).HasColumnName("LyDo").HasMaxLength(500);
-            e.Property(x => x.RelatedInspectionId).HasColumnName("KiemKeLienQuanId");
-            e.Property(x => x.RelatedRequestId).HasColumnName("YeuCauLienQuanId");
-            e.Property(x => x.RecordedAt).HasColumnName("NgayGhiNhan");
-            e.Property(x => x.RecordedBy).HasColumnName("NguoiGhiNhan");
-
-            e.HasIndex(x => x.LeaseId);
-            e.HasIndex(x => x.Type);
-            e.HasIndex(x => x.RecordedAt);
-
-            e.HasOne(x => x.Lease).WithMany(l => l.DepositTransactions)
-             .HasForeignKey(x => x.LeaseId).OnDelete(DeleteBehavior.Cascade);
-
-            e.HasOne(x => x.RelatedInspection).WithMany()
-             .HasForeignKey(x => x.RelatedInspectionId).OnDelete(DeleteBehavior.NoAction);
-
-            e.HasOne(x => x.RelatedRequest).WithMany()
-             .HasForeignKey(x => x.RelatedRequestId).OnDelete(DeleteBehavior.NoAction);
         });
 
         // ================== UtilityType ==================
@@ -715,7 +311,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.ToTable("ChiSoDichVu");
             MapBaseEntityColumns(e);
 
-            e.Property(x => x.LeaseId).HasColumnName("HopDongId");
+            e.Property(x => x.ApartmentId).HasColumnName("CanHoId");
             e.Property(x => x.UtilityTypeId).HasColumnName("LoaiDichVuId");
             e.Property(x => x.BillingMonth).HasColumnName("ThangTinhPhi");
             e.Property(x => x.PreviousReading).HasColumnName("ChiSoCu").HasColumnType("decimal(18,2)");
@@ -727,11 +323,11 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.Property(x => x.ReadAt).HasColumnName("NgayDocChiSo");
             e.Property(x => x.Note).HasColumnName("GhiChu");
 
-            e.HasIndex(x => new { x.LeaseId, x.UtilityTypeId, x.BillingMonth }).IsUnique();
+            e.HasIndex(x => new { x.ApartmentId, x.UtilityTypeId, x.BillingMonth }).IsUnique().HasFilter("\"DaXoa\" = false");
             e.HasIndex(x => x.BillingMonth);
 
-            e.HasOne(x => x.Lease).WithMany(l => l.UtilityReadings)
-             .HasForeignKey(x => x.LeaseId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Apartment).WithMany(a => a.UtilityReadings)
+             .HasForeignKey(x => x.ApartmentId).OnDelete(DeleteBehavior.Cascade);
 
             e.HasOne(x => x.UtilityType).WithMany(t => t.Readings)
              .HasForeignKey(x => x.UtilityTypeId).OnDelete(DeleteBehavior.Restrict);
@@ -744,7 +340,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
             MapBaseEntityColumns(e);
 
             e.Property(x => x.InvoiceNumber).HasColumnName("SoHoaDon").HasMaxLength(40).IsRequired();
-            e.Property(x => x.LeaseId).HasColumnName("HopDongId");
+            e.Property(x => x.ApartmentId).HasColumnName("CanHoId");
             e.Property(x => x.Kind).HasColumnName("LoaiHoaDon");
             e.Property(x => x.BillingMonth).HasColumnName("ThangTinhPhi");
             e.Property(x => x.IsRecurring).HasColumnName("DinhKy");
@@ -762,14 +358,13 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.Property(x => x.Note).HasColumnName("GhiChu");
 
             e.HasIndex(x => x.InvoiceNumber).IsUnique();
-            e.HasIndex(x => x.LeaseId);
             e.HasIndex(x => x.Status);
             e.HasIndex(x => x.DueDate);
-            e.HasIndex(x => new { x.LeaseId, x.BillingMonth, x.Kind });
+            e.HasIndex(x => new { x.ApartmentId, x.BillingMonth, x.Kind });
 
-            e.HasOne(x => x.Lease)
-             .WithMany(l => l.Invoices)
-             .HasForeignKey(x => x.LeaseId)
+            e.HasOne(x => x.Apartment)
+             .WithMany(a => a.Invoices)
+             .HasForeignKey(x => x.ApartmentId)
              .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -800,17 +395,17 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.ToTable("PhiDinhKy");
             MapBaseEntityColumns(e);
 
-            e.Property(x => x.LeaseId).HasColumnName("HopDongId");
+            e.Property(x => x.ApartmentId).HasColumnName("CanHoId");
             e.Property(x => x.Description).HasColumnName("MoTa").HasMaxLength(250).IsRequired();
             e.Property(x => x.Amount).HasColumnName("SoTien").HasColumnType("decimal(18,0)");
             e.Property(x => x.SortOrder).HasColumnName("ThuTu");
             e.Property(x => x.IsActive).HasColumnName("DangApDung");
 
-            e.HasIndex(x => x.LeaseId);
+            e.HasIndex(x => x.ApartmentId);
 
-            e.HasOne(x => x.Lease)
-             .WithMany(l => l.RecurringCharges)
-             .HasForeignKey(x => x.LeaseId)
+            e.HasOne(x => x.Apartment)
+             .WithMany(a => a.RecurringCharges)
+             .HasForeignKey(x => x.ApartmentId)
              .OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -907,43 +502,6 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.HasIndex(x => x.Timestamp);
         });
 
-        // ================== ViewingAppointment ==================
-        b.Entity<ViewingAppointment>(e =>
-        {
-            e.ToTable("LichXemNha");
-            MapBaseEntityColumns(e);
-
-            e.Property(x => x.ApartmentId).HasColumnName("CanHoId");
-            e.Property(x => x.UserId).HasColumnName("NguoiDungId");
-            e.Property(x => x.ContactName).HasColumnName("TenLienHe").HasMaxLength(100).IsRequired();
-            e.Property(x => x.ContactPhone).HasColumnName("SoDienThoaiLienHe").HasMaxLength(30).IsRequired();
-            e.Property(x => x.ContactEmail).HasColumnName("EmailLienHe").HasMaxLength(200);
-            e.Property(x => x.ScheduledDate).HasColumnName("NgayHen");
-            e.Property(x => x.SlotHour).HasColumnName("GioHen");
-            e.Property(x => x.Note).HasColumnName("GhiChu").HasMaxLength(1000);
-            e.Property(x => x.Status).HasColumnName("TrangThai");
-            e.Property(x => x.ConfirmedAt).HasColumnName("NgayXacNhan");
-            e.Property(x => x.ConfirmedBy).HasColumnName("NguoiXacNhan");
-            e.Property(x => x.CancelledAt).HasColumnName("NgayHuy");
-            e.Property(x => x.CancelledBy).HasColumnName("NguoiHuy");
-            e.Property(x => x.CancellationReason).HasColumnName("LyDoHuy").HasMaxLength(500);
-
-            e.HasIndex(x => x.ApartmentId);
-            e.HasIndex(x => x.UserId);
-            e.HasIndex(x => x.ScheduledDate);
-            e.HasIndex(x => x.Status);
-
-            e.HasOne(x => x.Apartment)
-             .WithMany()
-             .HasForeignKey(x => x.ApartmentId)
-             .OnDelete(DeleteBehavior.Cascade);
-
-            e.HasOne(x => x.User)
-             .WithMany()
-             .HasForeignKey(x => x.UserId)
-             .OnDelete(DeleteBehavior.NoAction);
-        });
-
         // Soft delete global query filter
         ApplySoftDeleteFilter(b);
         ApplyRelationshipSoftDeleteFilters(b);
@@ -983,14 +541,6 @@ public class AppDbContext : IdentityDbContext<AppUser>
 
     private static void ApplyRelationshipSoftDeleteFilters(ModelBuilder b)
     {
-        b.Entity<ApartmentAmenity>()
-            .HasQueryFilter(x => !x.Apartment.IsDeleted && !x.Amenity.IsDeleted);
-        b.Entity<RentalPreferenceAmenity>()
-            .HasQueryFilter(x => !x.Profile.IsDeleted && !x.Amenity.IsDeleted);
-        b.Entity<RentalPreferenceCategory>()
-            .HasQueryFilter(x => !x.Profile.IsDeleted && !x.Category.IsDeleted);
-        b.Entity<LeaseTenant>()
-            .HasQueryFilter(x => !x.Lease.IsDeleted && !x.Tenant.IsDeleted);
         b.Entity<RolePermission>()
             .HasQueryFilter(x => !x.Permission.IsDeleted);
     }

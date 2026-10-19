@@ -16,7 +16,7 @@ public class ReportsController : AdminBaseController
     public async Task<IActionResult> Occupancy()
     {
         SetActiveNav("reports");
-        SetBreadcrumb(("Báo cáo", null), ("Lấp đầy", null));
+        SetBreadcrumb(("Báo cáo", null), ("Tình trạng căn hộ", null));
 
         var rows = await Db.Buildings
             .Select(b => new OccupancyRow
@@ -25,53 +25,16 @@ public class ReportsController : AdminBaseController
                 BuildingName = b.Name,
                 Total = b.Apartments.Count(),
                 Occupied = b.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.Occupied),
-                Available = b.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.Available),
-                Reserved = b.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.Reserved),
+                Vacant = b.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.Vacant),
+                NotHandedOver = b.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.NotHandedOver),
                 UnderMaintenance = b.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.UnderMaintenance),
-                MonthlyRevenue = b.Apartments
-                    .SelectMany(a => a.Leases)
-                    .Where(l => l.Status == LeaseStatus.Active)
-                    .Sum(l => (decimal?)l.MonthlyRent) ?? 0m
+                Rented = b.Apartments.Count(a => a.Residents.Any(r => r.MoveOutDate == null && r.Role == ResidentRole.Tenant)),
+                Outstanding = b.Apartments.SelectMany(a => a.Invoices)
+                    .Where(i => i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
+                    .Sum(i => (decimal?)i.Balance) ?? 0m
             })
             .OrderBy(x => x.BuildingName)
             .ToListAsync();
-
-        var unassignedTotal = await Db.Apartments.CountAsync(a => a.BuildingId == null);
-        if (unassignedTotal > 0)
-        {
-            rows.Add(new OccupancyRow
-            {
-                BuildingId = 0, BuildingName = "(không thuộc toà)",
-                Total = unassignedTotal,
-                Occupied = await Db.Apartments.CountAsync(a => a.BuildingId == null && a.Occupancy == ApartmentOccupancy.Occupied),
-                Available = await Db.Apartments.CountAsync(a => a.BuildingId == null && a.Occupancy == ApartmentOccupancy.Available)
-            });
-        }
-
-        return View(rows);
-    }
-
-    public async Task<IActionResult> RevenueForecast()
-    {
-        SetActiveNav("reports");
-        SetBreadcrumb(("Báo cáo", null), ("Dự báo doanh thu", null));
-
-        var now = DateTime.UtcNow.Date;
-        var months = Enumerable.Range(0, 6).Select(i => new DateTime(now.Year, now.Month, 1).AddMonths(i)).ToList();
-
-        var leases = await Db.Leases
-            .Where(l => l.Status == LeaseStatus.Active)
-            .Select(l => new { l.Id, l.StartDate, l.EndDate, l.MonthlyRent })
-            .ToListAsync();
-
-        var rows = months.Select(m =>
-        {
-            var monthStart = m;
-            var monthEnd = m.AddMonths(1).AddDays(-1);
-            var active = leases.Count(l => l.StartDate <= monthEnd && l.EndDate >= monthStart);
-            var rev = leases.Where(l => l.StartDate <= monthEnd && l.EndDate >= monthStart).Sum(l => l.MonthlyRent);
-            return new ForecastRow { Month = m, ActiveLeases = active, ProjectedRevenue = rev };
-        }).ToList();
 
         return View(rows);
     }
@@ -140,11 +103,12 @@ public class ReportsController : AdminBaseController
         // Top debtors
         var topDebtors = await Db.Invoices
             .Where(i => i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
-            .GroupBy(i => new { i.Lease.PrimaryTenant.Id, i.Lease.PrimaryTenant.FullName })
+            .GroupBy(i => new { i.ApartmentId, i.Apartment.UnitCode, BuildingName = i.Apartment.Building.Name })
             .Select(g => new TopDebtorRow
             {
-                TenantId = g.Key.Id,
-                TenantName = g.Key.FullName,
+                ApartmentId = g.Key.ApartmentId,
+                UnitCode = g.Key.UnitCode,
+                BuildingName = g.Key.BuildingName,
                 InvoiceCount = g.Count(),
                 TotalBalance = g.Sum(x => x.Balance)
             })
@@ -175,8 +139,8 @@ public class ReportsController : AdminBaseController
 
         var now = DateTime.UtcNow.Date;
         var open = await Db.Invoices
-            .Include(i => i.Lease).ThenInclude(l => l.PrimaryTenant)
-            .Include(i => i.Lease).ThenInclude(l => l.Apartment).ThenInclude(a => a.Building)
+            .Include(i => i.Apartment).ThenInclude(a => a.Building)
+            .Include(i => i.Apartment).ThenInclude(a => a.Residents)
             .Where(i => (i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
                         && i.Balance > 0)
             .ToListAsync();
@@ -193,9 +157,10 @@ public class ReportsController : AdminBaseController
             return new ArrearsRow
             {
                 InvoiceId = i.Id, InvoiceNumber = i.InvoiceNumber,
-                LeaseNumber = i.Lease.LeaseNumber,
-                TenantName = i.Lease.PrimaryTenant.FullName,
-                BuildingName = i.Lease.Apartment.Building?.Name,
+                ApartmentId = i.ApartmentId,
+                UnitCode = i.Apartment.UnitCode,
+                BuildingName = i.Apartment.Building.Name,
+                RepresentativeName = i.Apartment.PrimaryResident?.FullName,
                 DueDate = i.DueDate, DaysLate = Math.Max(0, days),
                 Balance = i.Balance,
                 Bucket = buckets[b]

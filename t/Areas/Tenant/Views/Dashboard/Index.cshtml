@@ -23,10 +23,15 @@
     };
 }
 
+@{
+    var apt = Model.Apartment;
+    var household = apt?.Residents.Where(r => r.IsActive).OrderByDescending(r => r.IsPrimary).ThenBy(r => r.Role).ToList() ?? new();
+}
+
 <section class="page-header">
     <div>
         <h1>Xin chào, @User.Identity!.Name</h1>
-        <p class="subtitle">@(Model.ActiveLease?.Apartment?.Title ?? "Chưa có hợp đồng")</p>
+        <p class="subtitle">@(apt == null ? "Tài khoản chưa được gắn với căn hộ" : $"Căn {apt.UnitCode} · {apt.Building.Name} · {apt.Building.Project?.Name}")</p>
     </div>
     <div class="actions">
         <a class="btn btn-accent" asp-area="Tenant" asp-controller="Maintenance" asp-action="Create">
@@ -35,13 +40,13 @@
     </div>
 </section>
 
-@if (Model.ActiveLease == null)
+@if (apt == null)
 {
     <div class="card">
         <div class="empty-state">
-            <span class="material-symbols-outlined">description</span>
-            <h3>Bạn chưa có hợp đồng đang hoạt động</h3>
-            <p>Vui lòng liên hệ ban quản lý nếu bạn nghĩ đây là lỗi.</p>
+            <span class="material-symbols-outlined">door_front</span>
+            <h3>Tài khoản chưa được gắn với căn hộ nào</h3>
+            <p>Liên hệ Ban quản lý để đăng ký cư trú bằng email tài khoản này; sau đó bạn sẽ xem được hoá đơn và báo sự cố.</p>
         </div>
     </div>
     return;
@@ -49,34 +54,40 @@
 
 <section class="kpi-grid">
     <div class="kpi-card">
-        <div class="kpi-icon"><span class="material-symbols-outlined">apartment</span></div>
-        <div class="kpi-label">Căn hộ thuê</div>
-        <div class="kpi-value" style="font-size:1.3rem;">@(Model.ActiveLease.Apartment.UnitCode ?? Model.ActiveLease.Apartment.Title)</div>
-        <div class="kpi-meta">@(Model.ActiveLease.Apartment.Building?.Name ?? "—") · @(Model.ActiveLease.Apartment.Floor?.Label ?? "—")</div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-icon"><span class="material-symbols-outlined">payments</span></div>
-        <div class="kpi-label">Tiền thuê / tháng</div>
-        <div class="kpi-value">@Money(Model.ActiveLease.MonthlyRent)</div>
-        <div class="kpi-meta">VNĐ · ngày @Model.ActiveLease.BillingDay hằng tháng</div>
+        <div class="kpi-icon"><span class="material-symbols-outlined">door_front</span></div>
+        <div class="kpi-label">Căn hộ</div>
+        <div class="kpi-value" style="font-size:1.3rem;">@apt.UnitCode</div>
+        <div class="kpi-meta">@apt.Building.Name · Tầng @apt.Floor.Number · @apt.Area.ToString("0.#") m²</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-icon"><span class="material-symbols-outlined">receipt_long</span></div>
-        <div class="kpi-label">Hoá đơn chưa thanh toán</div>
+        <div class="kpi-label">Phí chưa thanh toán</div>
         <div class="kpi-value">@Money(Model.TotalDue)</div>
         <div class="kpi-meta">@Model.InvoicesUnpaidCount hoá đơn @(Model.NextDueDate.HasValue ? "· đến hạn " + Model.NextDueDate.Value.ToString("dd/MM") : "")</div>
     </div>
     <div class="kpi-card">
-        <div class="kpi-icon"><span class="material-symbols-outlined">schedule</span></div>
-        <div class="kpi-label">Hợp đồng còn</div>
-        <div class="kpi-value">@((int)(Model.ActiveLease.EndDate - DateTime.UtcNow).TotalDays) ngày</div>
-        <div class="kpi-meta">đến @Model.ActiveLease.EndDate.ToString("dd/MM/yyyy")</div>
+        <div class="kpi-icon"><span class="material-symbols-outlined">payments</span></div>
+        <div class="kpi-label">Phí quản lý / tháng</div>
+        <div class="kpi-value">@Money(Math.Round((decimal)apt.Area * apt.Building.ManagementFeePerM2, 0))</div>
+        <div class="kpi-meta">@Money(apt.Building.ManagementFeePerM2) đ/m² · chốt kỳ ngày @apt.Building.DefaultBillingDay</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-icon"><span class="material-symbols-outlined">build</span></div>
-        <div class="kpi-label">Yêu cầu bảo trì đang xử lí</div>
+        <div class="kpi-label">Sự cố đang xử lý</div>
         <div class="kpi-value">@Model.OpenMaintenanceCount</div>
-        <div class="kpi-meta">tổng đang mở</div>
+        <div class="kpi-meta">của căn hộ bạn</div>
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-header"><h2>Hộ gia đình đăng ký tại căn</h2><span class="text-muted">Cần cập nhật? Liên hệ Ban quản lý</span></div>
+    <div class="card-body">
+        <div class="hstack" style="flex-wrap:wrap;gap:.6rem;">
+            @foreach (var r in household)
+            {
+                <span class="pill @(r.IsPrimary ? "pill-accent" : "pill-neutral")">@r.FullName · @r.Role.Vi()@(r.IsPrimary ? " · đại diện" : "")</span>
+            }
+        </div>
     </div>
 </section>
 
@@ -87,7 +98,7 @@
             <a class="btn btn-ghost btn-sm" asp-area="Tenant" asp-controller="Invoices" asp-action="Index">Xem tất cả →</a>
         </div>
         <div class="table-wrap">
-            <table class="data-table">
+            <table class="data-table nowrap">
                 <thead><tr><th>Mã</th><th>Loại</th><th>Đến hạn</th><th class="num">Tổng</th><th class="num">Còn lại</th><th>Trạng thái</th></tr></thead>
                 <tbody>
                 @if (!Model.RecentInvoices.Any())
@@ -100,7 +111,7 @@
                     {
                         <tr>
                             <td><a class="row-title" asp-area="Tenant" asp-controller="Invoices" asp-action="Details" asp-route-id="@i.Id">@i.InvoiceNumber</a></td>
-                            <td>@i.Kind @(i.BillingMonth > 0 ? $"· {i.BillingMonth/100}/{i.BillingMonth%100:00}" : "")</td>
+                            <td>@i.Kind.Vi() @(i.BillingMonth > 0 ? $"· {i.BillingMonth/100}/{i.BillingMonth%100:00}" : "")</td>
                             <td>@i.DueDate.ToString("dd/MM/yyyy")</td>
                             <td class="num">@Money(i.Total)</td>
                             <td class="num">@Money(i.Balance)</td>
@@ -115,11 +126,11 @@
 
     <div class="card">
         <div class="card-header">
-            <h2>Yêu cầu bảo trì</h2>
+            <h2>Sự cố đã báo</h2>
             <a class="btn btn-ghost btn-sm" asp-area="Tenant" asp-controller="Maintenance" asp-action="Index">Xem tất cả →</a>
         </div>
         <div class="table-wrap">
-            <table class="data-table">
+            <table class="data-table nowrap">
                 <thead><tr><th>Tiêu đề</th><th>Trạng thái</th></tr></thead>
                 <tbody>
                 @if (!Model.RecentMaintenance.Any())

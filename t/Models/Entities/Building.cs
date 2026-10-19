@@ -26,10 +26,11 @@ public class Building : BaseEntity
 
     public BuildingStatus Status { get; set; } = BuildingStatus.Active;
 
-    // Chính sách thanh toán mặc định cho toà nhà — dùng để điền sẵn khi tạo hợp đồng mới.
+    // Chính sách thu phí của toà: ngày chốt kỳ, phạt trễ hạn và đơn giá phí quản lý theo m².
     public int DefaultBillingDay { get; set; } = 1;
     public int DefaultLateFeeAfterDays { get; set; } = 7;
     public int DefaultLateFeePercent { get; set; } = 5;
+    public decimal ManagementFeePerM2 { get; set; }
 
     public ICollection<Floor> Floors { get; set; } = new List<Floor>();
     public ICollection<Apartment> Apartments { get; set; } = new List<Apartment>();

@@ -8,22 +8,6 @@ namespace t.Infrastructure.Localization;
 /// </summary>
 public static class VietnameseLabels
 {
-    public static string Vi(this FurnishingLevel value) => value switch
-    {
-        FurnishingLevel.None => "Chưa có nội thất",
-        FurnishingLevel.Basic => "Nội thất cơ bản",
-        FurnishingLevel.FullyFurnished => "Đầy đủ nội thất",
-        _ => value.ToString()
-    };
-
-    public static string Vi(this ParkingType value) => value switch
-    {
-        ParkingType.None => "Không có",
-        ParkingType.Motorbike => "Xe máy",
-        ParkingType.Car => "Ô tô",
-        _ => value.ToString()
-    };
-
     public static string Vi(this HouseDirection value) => value switch
     {
         HouseDirection.East => "Đông",
@@ -37,16 +21,6 @@ public static class VietnameseLabels
         _ => value.ToString()
     };
 
-    public static string Vi(this LeaseStatus s) => s switch
-    {
-        LeaseStatus.Pending => "Chờ kích hoạt",
-        LeaseStatus.Active => "Đang hiệu lực",
-        LeaseStatus.Renewing => "Đang gia hạn",
-        LeaseStatus.Expired => "Đã hết hạn",
-        LeaseStatus.Terminated => "Đã chấm dứt",
-        _ => s.ToString()
-    };
-
     public static string Vi(this BuildingStatus s) => s switch
     {
         BuildingStatus.Active => "Đang vận hành",
@@ -57,28 +31,19 @@ public static class VietnameseLabels
 
     public static string Vi(this ApartmentOccupancy o) => o switch
     {
-        ApartmentOccupancy.Available => "Còn trống",
-        ApartmentOccupancy.Reserved => "Đã đặt giữ",
-        ApartmentOccupancy.Occupied => "Đang có khách",
-        ApartmentOccupancy.UnderMaintenance => "Đang bảo trì",
+        ApartmentOccupancy.Vacant => "Để trống",
+        ApartmentOccupancy.NotHandedOver => "Chưa bàn giao",
+        ApartmentOccupancy.Occupied => "Đang ở",
+        ApartmentOccupancy.UnderMaintenance => "Đang sửa chữa",
         _ => o.ToString()
     };
 
-    public static string Vi(this ListingStatus s) => s switch
+    public static string Vi(this ResidentRole r) => r switch
     {
-        ListingStatus.Draft => "Bản nháp",
-        ListingStatus.Active => "Đang đăng",
-        ListingStatus.Expired => "Hết hạn đăng",
-        ListingStatus.Hidden => "Đã ẩn",
-        _ => s.ToString()
-    };
-
-    public static string Vi(this ProjectStatus s) => s switch
-    {
-        ProjectStatus.Upcoming => "Sắp mở",
-        ProjectStatus.OpenForRent => "Đang mở thuê",
-        ProjectStatus.Completed => "Đã hoàn thiện",
-        _ => s.ToString()
+        ResidentRole.Owner => "Chủ sở hữu",
+        ResidentRole.Tenant => "Người thuê",
+        ResidentRole.Member => "Thành viên",
+        _ => r.ToString()
     };
 
     public static string Vi(this InvoiceStatus s) => s switch
@@ -95,8 +60,7 @@ public static class VietnameseLabels
 
     public static string Vi(this InvoiceKind k) => k switch
     {
-        InvoiceKind.MonthlyRent => "Tiền thuê tháng",
-        InvoiceKind.Deposit => "Tiền cọc",
+        InvoiceKind.Monthly => "Phí dịch vụ tháng",
         InvoiceKind.LateFee => "Phí trễ hạn",
         InvoiceKind.OneOff => "Phát sinh",
         _ => k.ToString()
@@ -121,14 +85,6 @@ public static class VietnameseLabels
         PaymentMethod.Wallet => "Ví điện tử",
         PaymentMethod.QrCode => "Quét QR",
         _ => m.ToString()
-    };
-
-    public static string Vi(this ReviewStatus s) => s switch
-    {
-        ReviewStatus.Pending => "Chờ duyệt",
-        ReviewStatus.Approved => "Đã duyệt",
-        ReviewStatus.Rejected => "Đã từ chối",
-        _ => s.ToString()
     };
 
     public static string Vi(this AuditAction a) => a switch
@@ -176,32 +132,6 @@ public static class VietnameseLabels
         _ => s.ToString()
     };
 
-    public static string Vi(this InspectionType t) => t switch
-    {
-        InspectionType.MoveIn => "Nhận nhà",
-        InspectionType.MoveOut => "Trả nhà",
-        _ => t.ToString()
-    };
-
-    public static string Vi(this OverallCondition c) => c switch
-    {
-        OverallCondition.Excellent => "Xuất sắc",
-        OverallCondition.Good => "Tốt",
-        OverallCondition.Fair => "Trung bình",
-        OverallCondition.Poor => "Kém",
-        _ => c.ToString()
-    };
-
-    public static string Vi(this DepositTransactionType t) => t switch
-    {
-        DepositTransactionType.Hold => "Nhận cọc",
-        DepositTransactionType.Refund => "Hoàn cọc",
-        DepositTransactionType.Forfeit => "Mất cọc",
-        DepositTransactionType.Deduction => "Trừ cọc",
-        DepositTransactionType.Adjustment => "Điều chỉnh",
-        _ => t.ToString()
-    };
-
     public static string Vi(this UtilityBillingMode m) => m switch
     {
         UtilityBillingMode.Metered => "Theo đồng hồ",
@@ -209,13 +139,4 @@ public static class VietnameseLabels
         _ => m.ToString()
     };
 
-    public static string Vi(this ViewingStatus s) => s switch
-    {
-        ViewingStatus.Pending => "Chờ xác nhận",
-        ViewingStatus.Confirmed => "Đã xác nhận",
-        ViewingStatus.Cancelled => "Đã huỷ",
-        ViewingStatus.Completed => "Đã xem",
-        ViewingStatus.NoShow => "Không đến",
-        _ => s.ToString()
-    };
 }

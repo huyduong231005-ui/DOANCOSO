@@ -30,8 +30,8 @@ public class DashboardController : AdminBaseController
             UnitsAvailable = unitsAvailable,
             OccupancyRate = unitsTotal == 0 ? 0 : Math.Round(unitsOccupied * 100.0 / unitsTotal, 1),
             ResidentsTotal = await Db.ApartmentResidents.CountAsync(r => r.MoveOutDate == null),
-            MaintenanceOpen = await Db.MaintenanceRequests.CountAsync(m => m.Status == MaintenanceStatus.Open
-                || m.Status == MaintenanceStatus.Acknowledged || m.Status == MaintenanceStatus.InProgress),
+            MaintenanceOpen = await Db.MaintenanceRequests.CountAsync(m => MaintenanceRequest.ActiveStatuses.Contains(m.Status)),
+            MaintenanceOverdue = await Db.MaintenanceRequests.CountAsync(t.Infrastructure.Maintenance.MaintenanceWorkflow.IsOverdue(now)),
             RevenueThisMonth = await Db.Payments
                 .Where(p => p.Status == PaymentStatus.Succeeded && p.PaidAt >= startOfMonth)
                 .SumAsync(p => (decimal?)p.Amount) ?? 0m,
@@ -43,13 +43,13 @@ public class DashboardController : AdminBaseController
         };
 
         vm.RecentMaintenance = await Db.MaintenanceRequests
-            .Where(m => m.Status == MaintenanceStatus.Open || m.Status == MaintenanceStatus.Acknowledged || m.Status == MaintenanceStatus.InProgress)
+            .Where(m => MaintenanceRequest.ActiveStatuses.Contains(m.Status))
             .OrderByDescending(m => m.Priority).ThenByDescending(m => m.ReportedAt)
             .Take(8)
             .Select(m => new RecentMaintenanceRow
             {
                 Id = m.Id, RequestNumber = m.RequestNumber, Title = m.Title,
-                UnitCode = m.Apartment.UnitCode, Priority = m.Priority, Status = m.Status,
+                UnitCode = m.Apartment != null ? m.Apartment.UnitCode : "Chung: " + m.Location, Priority = m.Priority, Status = m.Status,
                 ReportedAt = m.ReportedAt
             })
             .ToListAsync();

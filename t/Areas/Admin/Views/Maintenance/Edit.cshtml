@@ -21,23 +21,32 @@
                     <label asp-for="RequestNumber">Mã yêu cầu</label>
                     <input asp-for="RequestNumber" />
                 </div>
-                <div class="form-field span-4">
-                    <label asp-for="ApartmentId">Căn hộ</label>
-                    <select asp-for="ApartmentId">
-                        <option value="0">— Chọn căn —</option>
-                        @foreach (var a in Model.Apartments)
-                        {
-                            <option value="@a.Id">@a.Label</option>
-                        }
-                    </select>
-                    <span class="err" asp-validation-for="ApartmentId"></span>
-                </div>
-                <div class="form-field span-4">
+                <div class="form-field span-8">
                     <label asp-for="ReporterId">Người báo (nếu khác bạn)</label>
                     <select asp-for="ReporterId">
                         <option value="">— Tự bạn báo —</option>
                         @foreach (var u in Model.Reporters) { <option value="@u.Id">@u.Label</option> }
                     </select>
+                </div>
+
+                <div class="form-field span-4">
+                    <label asp-for="ApartmentId">Trong căn hộ</label>
+                    <select asp-for="ApartmentId">
+                        <option value="">— Không, sự cố khu vực chung —</option>
+                        @foreach (var a in Model.Apartments) { <option value="@a.Id">@a.Label</option> }
+                    </select>
+                    <span class="err" asp-validation-for="ApartmentId"></span>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="CommonBuildingId">Hoặc khu vực chung của toà</label>
+                    <select asp-for="CommonBuildingId">
+                        <option value="">— Chọn toà —</option>
+                        @foreach (var b in Model.Buildings) { <option value="@b.Id">@b.Label</option> }
+                    </select>
+                </div>
+                <div class="form-field span-4">
+                    <label asp-for="Location">Vị trí khu vực chung</label>
+                    <input asp-for="Location" placeholder="Hành lang tầng 12, thang máy số 2…" />
                 </div>
 
                 <div class="form-field span-12">

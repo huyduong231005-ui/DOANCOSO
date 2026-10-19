@@ -22,7 +22,7 @@ public class UploadsController : Controller
         if (User.IsInRole("Admin") || User.IsInRole("Manager"))
             return true;
         return SelfServiceFolders.Contains(folder) &&
-               User.IsInRole("Tenant");
+               (User.IsInRole("Tenant") || t.Areas.Staff.Controllers.JobsController.StaffRoles.Split(',').Any(User.IsInRole));
     }
 
     [HttpPost("{folder}")]

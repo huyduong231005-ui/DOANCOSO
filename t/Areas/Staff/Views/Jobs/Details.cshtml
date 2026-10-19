@@ -1,0 +1,121 @@
+@model MaintenanceRequest
+@{
+    ViewData["Title"] = Model.RequestNumber;
+    var next = (IReadOnlyList<MaintenanceStatus>)ViewBag.NextStatuses;
+    string Local(DateTime d) => d.ToLocalTime().ToString("HH:mm dd/MM/yyyy");
+    var building = Model.Apartment?.Building ?? Model.CommonBuilding;
+    var contact = Model.Apartment?.PrimaryResident;
+    var overdue = Model.DueAt != null && Model.DueAt < DateTime.UtcNow && MaintenanceRequest.ActiveStatuses.Contains(Model.Status);
+}
+
+<section class="page-header">
+    <div>
+        <h1>@Model.RequestNumber</h1>
+        <p class="subtitle">@Model.Title · @Model.PlaceLabel@(building != null ? " · " + building.Name : "")</p>
+    </div>
+    <div class="actions">
+        <span class="pill @(Model.Priority == MaintenancePriority.Urgent ? "pill-danger" : "pill-neutral")">@Model.Priority.Vi()</span>
+        <span class="pill pill-info">@Model.Status.Vi()</span>
+        @if (overdue) { <span class="pill pill-danger">Quá hạn</span> }
+        <a class="btn btn-ghost" asp-action="Index">Quay lại</a>
+    </div>
+</section>
+
+@if (next.Any())
+{
+    <div class="card">
+        <div class="card-body hstack" style="flex-wrap:wrap;gap:.5rem;">
+            @if (next.Contains(MaintenanceStatus.InProgress))
+            {
+                <form asp-action="ChangeStatus" method="post" style="margin:0;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="status" value="@((int)MaintenanceStatus.InProgress)" />
+                    <button type="submit" class="btn btn-accent"><span class="material-symbols-outlined">play_arrow</span>@(Model.Status == MaintenanceStatus.OnHold ? "Tiếp tục xử lý" : "Bắt đầu xử lý")</button>
+                </form>
+            }
+            @if (next.Contains(MaintenanceStatus.OnHold))
+            {
+                <form asp-action="ChangeStatus" method="post" class="hstack" style="margin:0;gap:.35rem;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="status" value="@((int)MaintenanceStatus.OnHold)" />
+                    <input name="note" required maxlength="500" placeholder="Chờ vật tư, chờ cư dân hẹn lại…" style="min-width:220px;padding:.45rem .6rem;border:1px solid var(--admin-line);border-radius:9px;" />
+                    <button type="submit" class="btn btn-outline"><span class="material-symbols-outlined">pause</span>Tạm dừng</button>
+                </form>
+            }
+        </div>
+    </div>
+}
+
+<div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,1fr);gap:1.2rem;align-items:start;">
+    <div class="vstack" style="gap:1.2rem;">
+        <div class="card">
+            <div class="card-header"><h2>Mô tả của cư dân</h2></div>
+            <div class="card-body">
+                <p style="white-space:pre-wrap;margin-top:0;">@Model.Description</p>
+                <div class="hstack" style="flex-wrap:wrap;">
+                    @foreach (var p in Model.Photos) { <a href="@p.Url" target="_blank"><img src="@p.Url" alt="" style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--admin-line);" /></a> }
+                </div>
+            </div>
+        </div>
+
+        @if (next.Contains(MaintenanceStatus.Resolved))
+        {
+            <div class="card">
+                <div class="card-header"><h2>Ghi kết quả và hoàn tất</h2></div>
+                <div class="card-body">
+                    <form asp-action="Resolve" asp-route-id="@Model.Id" method="post" class="inline-form">
+                        @Html.AntiForgeryToken()
+                        <label class="full">Nguyên nhân và cách xử lý<textarea name="resolutionNote" rows="3" required></textarea></label>
+                        <label class="full">Ảnh nghiệm thu
+                            <input type="file" multiple accept="image/*" data-upload="maintenance" data-target="#staff-result-photos" />
+                            <span data-upload-preview class="hstack" style="flex-wrap:wrap;"></span>
+                            <span class="hint" data-upload-status></span>
+                            <textarea id="staff-result-photos" name="photoUrls" style="display:none;"></textarea>
+                        </label>
+                        <div class="full"><button type="submit" class="btn btn-primary btn-sm"><span class="material-symbols-outlined">task_alt</span>Báo hoàn tất</button></div>
+                    </form>
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.ResolutionNote))
+        {
+            <div class="card">
+                <div class="card-header"><h2>Kết quả đã ghi</h2></div>
+                <div class="card-body"><p style="white-space:pre-wrap;margin:0;">@Model.ResolutionNote</p></div>
+            </div>
+        }
+    </div>
+
+    <div class="vstack" style="gap:1.2rem;">
+        <div class="card">
+            <div class="card-header"><h2>Thông tin</h2></div>
+            <div class="card-body">
+                <dl class="dl-pairs">
+                    <dt>Nơi xảy ra</dt><dd>@Model.PlaceLabel</dd>
+                    @if (contact != null) { <dt>Liên hệ</dt><dd>@contact.FullName @(contact.Phone != null ? "· " + contact.Phone : "")</dd> }
+                    else if (Model.Reporter != null) { <dt>Người báo</dt><dd>@Model.Reporter.FullName @(Model.Reporter.Phone != null ? "· " + Model.Reporter.Phone : "")</dd> }
+                    <dt>Loại</dt><dd>@Model.Category.Vi()</dd>
+                    <dt>Báo lúc</dt><dd>@Local(Model.ReportedAt)</dd>
+                    @if (Model.DueAt.HasValue) { <dt>Hạn hoàn tất</dt><dd style="@(overdue ? "color:var(--admin-danger);font-weight:600;" : "")">@Local(Model.DueAt.Value)</dd> }
+                </dl>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><h2>Lịch sử</h2></div>
+            <div class="card-body">
+                <div class="mini-list">
+                    @foreach (var h in Model.History.OrderBy(h => h.ChangedAt))
+                    {
+                        <div class="row">
+                            <span>@(h.FromStatus == null ? "Tạo yêu cầu" : h.FromStatus == h.ToStatus ? "Giao việc" : h.ToStatus.Vi())@(h.Note != null && h.FromStatus != null ? " · " + h.Note : "")</span>
+                            <span class="muted no-wrap">@Local(h.ChangedAt)</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

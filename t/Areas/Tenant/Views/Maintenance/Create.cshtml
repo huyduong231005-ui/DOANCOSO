@@ -18,6 +18,18 @@
         <div class="card-body">
             <div class="form-grid">
                 <div class="form-field span-12">
+                    <label>Sự cố ở đâu?</label>
+                    <div class="hstack" style="gap:1.2rem;flex-wrap:wrap;">
+                        <label class="hstack"><input type="radio" name="CommonArea" value="false" checked="@(!Model.CommonArea)" onchange="document.getElementById('loc-field').hidden=true" /> Trong căn @apartment.UnitCode</label>
+                        <label class="hstack"><input type="radio" name="CommonArea" value="true" checked="@Model.CommonArea" onchange="document.getElementById('loc-field').hidden=false" /> Khu vực chung của @apartment.Building.Name</label>
+                    </div>
+                </div>
+                <div class="form-field span-12" id="loc-field" hidden="@(!Model.CommonArea)">
+                    <label asp-for="Location">Vị trí cụ thể</label>
+                    <input asp-for="Location" placeholder="Ví dụ: hành lang tầng 12, thang máy số 2, sảnh tầng 1" />
+                    <span class="err" asp-validation-for="Location"></span>
+                </div>
+                <div class="form-field span-12">
                     <label asp-for="Title">Tiêu đề ngắn gọn</label>
                     <input asp-for="Title" placeholder="Ví dụ: Bóng đèn phòng khách bị cháy" />
                     <span class="err" asp-validation-for="Title"></span>

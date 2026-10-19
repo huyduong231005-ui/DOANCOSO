@@ -1,0 +1,26 @@
+@{
+    var nav = (ViewData["ActiveNav"] as string ?? string.Empty).ToLowerInvariant();
+    string Cls(string key) => nav == key ? "active" : string.Empty;
+}
+<aside class="admin-sidebar">
+    <a class="brand" asp-area="Staff" asp-controller="Jobs" asp-action="Index">
+        <span class="brand-mark">L</span>
+        <span class="brand-name">Kỹ thuật</span>
+    </a>
+
+    <div>
+        <div class="sidebar-section">Công việc</div>
+        <nav>
+            <a class="@Cls("jobs")" asp-area="Staff" asp-controller="Jobs" asp-action="Index">
+                <span class="material-symbols-outlined">engineering</span><span>Việc đang làm</span>
+            </a>
+            <a class="@Cls("done")" asp-area="Staff" asp-controller="Jobs" asp-action="Index" asp-route-done="true">
+                <span class="material-symbols-outlined">task_alt</span><span>Đã xong</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="sidebar-footer">
+        <span>© Luxe Haven · @DateTime.Now.Year</span>
+    </div>
+</aside>

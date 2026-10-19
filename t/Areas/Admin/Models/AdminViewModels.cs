@@ -21,6 +21,7 @@ public class DashboardViewModel
     public double OccupancyRate { get; set; }
     public int ResidentsTotal { get; set; }
     public int MaintenanceOpen { get; set; }
+    public int MaintenanceOverdue { get; set; }
     public decimal RevenueThisMonth { get; set; }
     public decimal ArrearsTotal { get; set; }
     public int InvoicesUnpaid { get; set; }
@@ -524,8 +525,9 @@ public class MaintenanceListVm
     public int Id { get; set; }
     public string RequestNumber { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
-    public int ApartmentId { get; set; }
-    public string UnitCode { get; set; } = string.Empty;
+    public int? ApartmentId { get; set; }
+    public string? UnitCode { get; set; }
+    public string? Location { get; set; }
     public string? BuildingName { get; set; }
     public string? ReporterName { get; set; }
     public string? AssignedToName { get; set; }
@@ -534,13 +536,19 @@ public class MaintenanceListVm
     public MaintenanceStatus Status { get; set; }
     public DateTime ReportedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }
+    public DateTime? DueAt { get; set; }
+    public string Place => UnitCode ?? "Khu vực chung: " + Location;
+    public bool IsOverdue => DueAt != null && (ResolvedAt ?? DateTime.UtcNow) > DueAt
+        && Status is not (MaintenanceStatus.Rejected or MaintenanceStatus.Cancelled);
 }
 
 public class MaintenanceEditVm
 {
     public int Id { get; set; }
     public string RequestNumber { get; set; } = string.Empty;
-    [Required] public int ApartmentId { get; set; }
+    public int? ApartmentId { get; set; }
+    public int? CommonBuildingId { get; set; }
+    [StringLength(200)] public string? Location { get; set; }
     public string? ReporterId { get; set; }
     [Required, StringLength(250)] public string Title { get; set; } = string.Empty;
     [Required] public string Description { get; set; } = string.Empty;
@@ -550,6 +558,7 @@ public class MaintenanceEditVm
     [Range(0, double.MaxValue)] public decimal EstimatedCost { get; set; }
 
     public List<ApartmentOption> Apartments { get; set; } = new();
+    public List<ApartmentOption> Buildings { get; set; } = new();
     public List<HostOption> Reporters { get; set; } = new();
 }
 
@@ -566,6 +575,7 @@ public class ResolveMaintenanceVm
     [Required] public string ResolutionNote { get; set; } = string.Empty;
     [Range(0, double.MaxValue)] public decimal ActualCost { get; set; }
     public bool ChargeToTenant { get; set; }
+    public string? PhotoUrls { get; set; }
 }
 
 // ───────────────────── Users / Roles / Audit ─────────────────────

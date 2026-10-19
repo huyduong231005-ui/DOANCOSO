@@ -19,9 +19,6 @@ namespace t.Infrastructure.Maintenance;
 /// </summary>
 public class MaintenanceDispatcher
 {
-    private static readonly MaintenanceStatus[] ActiveStatuses =
-        { MaintenanceStatus.Open, MaintenanceStatus.Acknowledged, MaintenanceStatus.InProgress };
-
     // ponytail: mô hình chỉ có một loại "structural" nên tách thợ mộc / nhôm kính bằng từ khóa.
     // Sai khi mô tả không dấu dùng "kinh" theo nghĩa khác ("kinh khung"); muốn chắc thì thêm
     // loại riêng vào prompt và train lại.
@@ -35,12 +32,14 @@ public class MaintenanceDispatcher
     private readonly AppDbContext _db;
     private readonly IEmailSender _email;
     private readonly ILogger<MaintenanceDispatcher> _log;
+    private readonly MaintenanceWorkflow _workflow;
 
     public MaintenanceDispatcher(AppDbContext db, IEmailSender email, ILogger<MaintenanceDispatcher> log)
     {
         _db = db;
         _email = email;
         _log = log;
+        _workflow = new MaintenanceWorkflow(db);
     }
 
     /// <summary>Role của thợ xử lý loại sự cố này. Null = không có thợ chuyên trách, quản lý xử lý.</summary>
@@ -88,12 +87,19 @@ public class MaintenanceDispatcher
             var assignee = role == null ? null : await LeastBusyAsync(role, ct);
             if (assignee != null)
             {
-                req.AssignedToId = assignee.Id;
-                await _db.SaveChangesAsync(ct);
+                // Giao qua workflow để có mốc tiếp nhận và dòng lịch sử "hệ thống điều phối" (đo được tỉ lệ AI giao đúng).
+                var error = await _workflow.AssignAsync(req, assignee, WorkflowActor.System, null,
+                    "Hệ thống điều phối theo loại sự cố", ct);
+                if (error != null)
+                {
+                    _log.LogWarning("Auto-assign skipped for {RequestNumber}: {Error}", req.RequestNumber, error);
+                    assignee = null;
+                }
             }
 
             // Đọc DB xong hết rồi mới gửi: DbContext không dùng song song được.
             await _db.Entry(req).Reference(r => r.Apartment).LoadAsync(ct);
+            await _db.Entry(req).Reference(r => r.CommonBuilding).LoadAsync(ct);
             await _db.Entry(req).Reference(r => r.Reporter).LoadAsync(ct);
             var admins = await UsersInRoleAsync(SeedData.RoleAdmin, ct);
             var managers = await UsersInRoleAsync(SeedData.RoleManager, ct);
@@ -168,7 +174,7 @@ public class MaintenanceDispatcher
         if (staff.Count == 0) return null;
         var ids = staff.Select(s => s.Id).ToList();
         var load = await _db.MaintenanceRequests
-            .Where(m => m.AssignedToId != null && ids.Contains(m.AssignedToId) && ActiveStatuses.Contains(m.Status))
+            .Where(m => m.AssignedToId != null && ids.Contains(m.AssignedToId) && MaintenanceRequest.ActiveStatuses.Contains(m.Status))
             .GroupBy(m => m.AssignedToId!)
             .Select(g => new { Id = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.Id, x => x.Count, ct);
@@ -194,7 +200,7 @@ public class MaintenanceDispatcher
         return $@"
 <p>Yêu cầu <strong>{E(req.RequestNumber)}</strong> · {E(req.Category.Vi())} · Ưu tiên: <strong>{E(req.Priority.Vi())}</strong></p>
 {danger}
-<p>Căn hộ: <strong>{E(req.Apartment?.UnitCode)}</strong><br/>
+<p>Nơi xảy ra: <strong>{E(req.PlaceLabel)}</strong>{(req.CommonBuilding != null ? " · " + E(req.CommonBuilding.Name) : "")}<br/>
 Người báo: {E(reporter?.FullName)} · {E(phone)}</p>
 <p><strong>{E(req.Title)}</strong></p>
 <p style=""white-space:pre-wrap"">{E(req.Description)}</p>

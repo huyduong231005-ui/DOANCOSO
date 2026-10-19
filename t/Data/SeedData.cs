@@ -317,15 +317,21 @@ public static class SeedData
             if (apt == null) continue;
             seq++;
             var reported = now.AddDays(-daysAgo);
-            ctx.MaintenanceRequests.Add(new MaintenanceRequest
+            var sla = SlaPolicy.Defaults.Single(p => p.Priority == pri);
+            var req = new MaintenanceRequest
             {
                 RequestNumber = $"MR-{reported:yyyyMM}-{seq:0000}",
                 ApartmentId = apt.Id, Title = title, Description = desc,
                 Category = cat, Priority = pri, Status = status, ReportedAt = reported,
                 AcknowledgedAt = status == MaintenanceStatus.Open ? null : reported.AddHours(2),
                 ResolvedAt = status == MaintenanceStatus.Resolved ? reported.AddDays(1) : null,
-                EstimatedCost = 300_000m
-            });
+                EstimatedCost = 300_000m,
+                DueAt = reported.AddMinutes(sla.ResolveMinutes)
+            };
+            req.History.Add(new MaintenanceStatusChange { FromStatus = null, ToStatus = MaintenanceStatus.Open, ChangedAt = reported, Note = "Tạo yêu cầu" });
+            if (status != MaintenanceStatus.Open)
+                req.History.Add(new MaintenanceStatusChange { FromStatus = MaintenanceStatus.Open, ToStatus = status, ChangedAt = reported.AddHours(2), Note = "Dữ liệu mẫu" });
+            ctx.MaintenanceRequests.Add(req);
         }
     }
 
@@ -379,7 +385,10 @@ public static class SeedData
         await ctx.SaveChangesAsync();
     }
 
-    // Quản lý và thợ mẫu cho luồng báo sự cố. Không đặt mật khẩu: họ chỉ nhận email, không đăng nhập.
+    // Quản lý và thợ mẫu cho luồng báo sự cố, mật khẩu demo theo vai trò (Quanly@123 / Tho@123).
+    private const string ManagerDemoPassword = "Quanly@123";
+    private const string TechnicianDemoPassword = "Tho@123";
+
     private static async Task SeedMaintenanceStaffAsync(UserManager<AppUser> userMgr)
     {
         var staff = new (string Email, string Name, string Role)[]
@@ -393,9 +402,16 @@ public static class SeedData
         };
         foreach (var (email, name, role) in staff)
         {
-            if (await userMgr.FindByEmailAsync(email) != null) continue;
-            var user = new AppUser { UserName = email, Email = email, FullName = name, EmailConfirmed = true };
-            if ((await userMgr.CreateAsync(user)).Succeeded) await userMgr.AddToRoleAsync(user, role);
+            var password = role == RoleManager ? ManagerDemoPassword : TechnicianDemoPassword;
+            var user = await userMgr.FindByEmailAsync(email);
+            if (user != null)
+            {
+                // Tài khoản tạo từ bản cũ không có mật khẩu: bổ sung để đăng nhập được cổng kỹ thuật viên.
+                if (!await userMgr.HasPasswordAsync(user)) await userMgr.AddPasswordAsync(user, password);
+                continue;
+            }
+            user = new AppUser { UserName = email, Email = email, FullName = name, EmailConfirmed = true };
+            if ((await userMgr.CreateAsync(user, password)).Succeeded) await userMgr.AddToRoleAsync(user, role);
         }
     }
 

@@ -1,0 +1,6 @@
+@{
+    Layout = "/Areas/Tenant/Views/Shared/_TenantLayout.cshtml";
+    ViewData["Sidebar"] = "_StaffSidebar";
+    ViewData["RoleLabel"] = "Kỹ thuật viên";
+    ViewData["HomeUrl"] = Url.Action("Index", "Jobs", new { area = "Staff" });
+}

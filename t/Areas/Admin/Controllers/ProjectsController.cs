@@ -61,7 +61,7 @@ public class ProjectsController : AdminBaseController
         return View("Details", new Project { Name = "Toà chưa thuộc khu", Address = "Gán khu cho toà trong trang sửa toà nhà." });
     }
 
-    private static Task<List<BuildingListVm>> BuildingCardsAsync(IQueryable<Building> buildings) =>
+    private Task<List<BuildingListVm>> BuildingCardsAsync(IQueryable<Building> buildings) =>
         buildings
             .OrderBy(b => b.Code).ThenBy(b => b.Name)
             .Select(b => new BuildingListVm
@@ -77,8 +77,9 @@ public class ProjectsController : AdminBaseController
                 Outstanding = b.Apartments.SelectMany(a => a.Invoices)
                     .Where(i => i.Status != InvoiceStatus.Cancelled && i.Status != InvoiceStatus.Draft)
                     .Sum(i => (decimal?)i.Balance) ?? 0,
-                OpenMaintenance = b.Apartments.SelectMany(a => a.MaintenanceRequests)
-                    .Count(m => m.Status == MaintenanceStatus.Open || m.Status == MaintenanceStatus.Acknowledged || m.Status == MaintenanceStatus.InProgress)
+                OpenMaintenance = Db.MaintenanceRequests.Count(m =>
+                    ((m.Apartment != null && m.Apartment.BuildingId == b.Id) || m.CommonBuildingId == b.Id)
+                    && MaintenanceRequest.ActiveStatuses.Contains(m.Status))
             })
             .ToListAsync();
 

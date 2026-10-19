@@ -3,16 +3,24 @@
 @{
     ViewData["Title"] = Model.RequestNumber;
     var staff = (List<t.Areas.Admin.Models.HostOption>)ViewBag.Staff;
+    var next = (IReadOnlyList<MaintenanceStatus>)ViewBag.NextStatuses;
     string Money(decimal v) => v.ToString("N0");
+    string Local(DateTime d) => d.ToLocalTime().ToString("HH:mm dd/MM/yyyy");
+    var isOpen = MaintenanceRequest.ActiveStatuses.Contains(Model.Status);
+    var overdue = Model.DueAt != null && (Model.ResolvedAt ?? DateTime.UtcNow) > Model.DueAt
+                  && Model.Status is not (MaintenanceStatus.Rejected or MaintenanceStatus.Cancelled);
+    var building = Model.Apartment?.Building ?? Model.CommonBuilding;
+    var reportPhotos = Model.Photos.Where(p => p.Stage == MaintenancePhotoStage.Report).ToList();
+    var resultPhotos = Model.Photos.Where(p => p.Stage == MaintenancePhotoStage.Result).ToList();
     string StatusPill(MaintenanceStatus s) => s switch
     {
         MaintenanceStatus.Open => "pill pill-warning",
         MaintenanceStatus.Acknowledged => "pill pill-info",
         MaintenanceStatus.InProgress => "pill pill-accent",
+        MaintenanceStatus.OnHold => "pill pill-neutral",
         MaintenanceStatus.Resolved => "pill pill-success",
-        MaintenanceStatus.Closed => "pill pill-neutral",
         MaintenanceStatus.Rejected => "pill pill-danger",
-        _ => "pill"
+        _ => "pill pill-neutral"
     };
     string PrioPill(MaintenancePriority p) => p switch
     {
@@ -21,149 +29,210 @@
         MaintenancePriority.Medium => "pill pill-info",
         _ => "pill pill-neutral"
     };
+    // Nút cho các chuyển trạng thái đơn giản; Hoàn tất có form riêng (kết quả, chi phí, ảnh).
+    (string Label, string Icon, bool NeedsNote)? Action(MaintenanceStatus to) => to switch
+    {
+        MaintenanceStatus.Acknowledged => ("Tiếp nhận", "visibility", false),
+        MaintenanceStatus.InProgress => (Model.Status == MaintenanceStatus.Resolved ? "Mở lại" : Model.Status == MaintenanceStatus.OnHold ? "Tiếp tục xử lý" : "Bắt đầu xử lý", "play_arrow", Model.Status == MaintenanceStatus.Resolved),
+        MaintenanceStatus.OnHold => ("Tạm dừng", "pause", true),
+        MaintenanceStatus.Closed => ("Đóng yêu cầu", "check", false),
+        MaintenanceStatus.Cancelled => ("Huỷ", "block", false),
+        MaintenanceStatus.Rejected => ("Từ chối", "do_not_disturb_on", true),
+        _ => null
+    };
 }
 
 <section class="page-header">
     <div>
         <h1>@Model.RequestNumber</h1>
-        <p class="subtitle">@Model.Title · Căn @Model.Apartment.UnitCode · @Model.Apartment.Building.Name</p>
+        <p class="subtitle">@Model.Title · @Model.PlaceLabel@(building != null ? " · " + building.Name : "")</p>
     </div>
     <div class="actions">
         <span class="@PrioPill(Model.Priority)">@Model.Priority.Vi()</span>
         <span class="@StatusPill(Model.Status)">@Model.Status.Vi()</span>
-
-        @if (Model.Status == MaintenanceStatus.Open)
-        {
-            <form asp-action="Acknowledge" asp-route-id="@Model.Id" method="post" style="display:inline;">@Html.AntiForgeryToken()<button class="btn btn-outline"><span class="material-symbols-outlined">visibility</span>Tiếp nhận</button></form>
-        }
-        @if (Model.Status != MaintenanceStatus.Resolved && Model.Status != MaintenanceStatus.Closed && Model.Status != MaintenanceStatus.Rejected)
-        {
-            <button type="button" class="btn btn-primary" onclick="document.getElementById('resolve-form').scrollIntoView({behavior:'smooth'})"><span class="material-symbols-outlined">task_alt</span>Hoàn tất</button>
-        }
-        @if (Model.Status == MaintenanceStatus.Resolved)
-        {
-            <form asp-action="Close" asp-route-id="@Model.Id" method="post" style="display:inline;">@Html.AntiForgeryToken()<button class="btn btn-ghost">Đóng yêu cầu</button></form>
-        }
+        @if (overdue) { <span class="pill pill-danger">Quá hạn</span> }
     </div>
 </section>
 
-<div style="display:grid;grid-template-columns:1.4fr 1fr;gap:1.2rem;">
-    <div class="vstack">
+@if (next.Any(s => s != MaintenanceStatus.Resolved))
+{
+    <div class="card">
+        <div class="card-body hstack" style="flex-wrap:wrap;gap:.5rem;">
+            @foreach (var to in next.Where(s => s != MaintenanceStatus.Resolved))
+            {
+                var a = Action(to);
+                if (a == null) { continue; }
+                <form asp-action="ChangeStatus" method="post" class="hstack" style="gap:.35rem;margin:0;"
+                      data-confirm="@(to is MaintenanceStatus.Rejected or MaintenanceStatus.Cancelled ? $"{a.Value.Label} yêu cầu {Model.RequestNumber}?" : null)">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="status" value="@((int)to)" />
+                    @if (a.Value.NeedsNote)
+                    {
+                        <input name="note" required placeholder="Lý do @a.Value.Label.ToLowerInvariant()…" style="padding:.45rem .6rem;border:1px solid var(--admin-line);border-radius:9px;min-width:180px;" />
+                    }
+                    <button type="submit" class="btn @(to is MaintenanceStatus.Rejected or MaintenanceStatus.Cancelled ? "btn-ghost" : "btn-outline")">
+                        <span class="material-symbols-outlined">@a.Value.Icon</span>@a.Value.Label
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+}
+
+<div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,1fr);gap:1.2rem;align-items:start;">
+    <div class="vstack" style="gap:1.2rem;">
         <div class="card">
             <div class="card-header"><h2>Mô tả</h2></div>
             <div class="card-body">
-                <p style="white-space:pre-wrap;">@Model.Description</p>
-                @if (!string.IsNullOrEmpty(Model.PhotoUrls))
+                <p style="white-space:pre-wrap;margin-top:0;">@Model.Description</p>
+                @if (reportPhotos.Any())
                 {
                     <div class="hstack mt-2" style="flex-wrap:wrap;">
-                        @foreach (var url in Model.PhotoUrls.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                        {
-                            <img src="@url" style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--admin-line);" />
-                        }
+                        @foreach (var p in reportPhotos) { <a href="@p.Url" target="_blank"><img src="@p.Url" alt="Ảnh hiện trạng" style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--admin-line);" /></a> }
                     </div>
                 }
             </div>
         </div>
 
-        @if (Model.Status == MaintenanceStatus.Open || Model.Status == MaintenanceStatus.Acknowledged || Model.Status == MaintenanceStatus.InProgress)
+        @if (isOpen)
         {
-            <div class="card">
-                <div class="card-header"><h2>Phân công</h2></div>
+            <details class="card fold" data-fold="assign" open>
+                <summary class="card-header"><h2>Phân công</h2><span class="text-muted">@(Model.AssignedTo?.FullName ?? "Chưa giao")</span></summary>
                 <div class="card-body">
-                    <form asp-action="Assign" method="post">
+                    <form asp-action="Assign" method="post" class="inline-form">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="Id" value="@Model.Id" />
-                        <div class="form-grid">
-                            <div class="form-field span-8">
-                                <label>Phân cho</label>
-                                <select name="AssignedToId">
-                                    @foreach (var s in staff) { <option value="@s.Id" selected="@(s.Id == Model.AssignedToId)">@s.Label</option> }
-                                </select>
-                            </div>
-                            <div class="form-field span-12">
-                                <label>Ghi chú</label>
-                                <input name="Note" />
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary mt-2"><span class="material-symbols-outlined">person_add</span>Phân công</button>
+                        <label>Giao cho
+                            <select name="AssignedToId" required>
+                                <option value="">— Chọn người —</option>
+                                @foreach (var s in staff) { <option value="@s.Id" selected="@(s.Id == Model.AssignedToId)">@s.Label</option> }
+                            </select>
+                        </label>
+                        <label>Ghi chú<input name="Note" maxlength="500" /></label>
+                        <div class="full"><button type="submit" class="btn btn-primary btn-sm"><span class="material-symbols-outlined">person_add</span>@(Model.AssignedToId == null ? "Giao việc" : "Giao lại")</button></div>
                     </form>
                 </div>
-            </div>
-
-            <div id="resolve-form" class="card">
-                <div class="card-header"><h2>Hoàn tất</h2></div>
-                <div class="card-body">
-                    <form asp-action="Resolve" method="post">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="Id" value="@Model.Id" />
-                        <div class="form-grid">
-                            <div class="form-field span-12">
-                                <label>Nội dung xử lý</label>
-                                <textarea name="ResolutionNote" rows="3" required></textarea>
-                            </div>
-                            <div class="form-field span-6">
-                                <label>Chi phí thực tế (VND)</label>
-                                <input type="number" name="ActualCost" value="@Model.EstimatedCost" step="10000" />
-                            </div>
-                            <div class="form-field span-6">
-                                <label class="hstack" style="margin-top:1.5rem;">
-                                    <input type="checkbox" name="ChargeToTenant" value="true" />
-                                    <span>Lập hoá đơn phát sinh cho căn (lỗi do cư dân)</span>
-                                </label>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary mt-2"><span class="material-symbols-outlined">task_alt</span>Đánh dấu hoàn tất</button>
-                    </form>
-                </div>
-            </div>
-
-            <details>
-                <summary class="text-muted" style="cursor:pointer;padding:.5rem 0;">Từ chối yêu cầu</summary>
-                <form asp-action="Reject" asp-route-id="@Model.Id" method="post" class="card" data-confirm="Từ chối yêu cầu bảo trì này?" data-confirm-title="Từ chối yêu cầu" data-confirm-ok="Từ chối">
-                    @Html.AntiForgeryToken()
-                    <div class="card-body hstack">
-                        <input name="reason" placeholder="Lý do từ chối..." style="flex:1;padding:.6rem;border:1px solid var(--admin-line);border-radius:10px;" />
-                        <button type="submit" class="btn btn-danger">Từ chối</button>
-                    </div>
-                </form>
             </details>
         }
 
-        @if (!string.IsNullOrEmpty(Model.ResolutionNote))
+        @if (next.Contains(MaintenanceStatus.Resolved))
+        {
+            <details class="card fold" data-fold="resolve">
+                <summary class="card-header"><h2>Ghi kết quả và hoàn tất</h2></summary>
+                <div class="card-body">
+                    <form asp-action="Resolve" method="post" class="inline-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="Id" value="@Model.Id" />
+                        <label class="full">Nguyên nhân và cách xử lý<textarea name="ResolutionNote" rows="3" required></textarea></label>
+                        <label>Chi phí thực tế (VND)<input type="number" name="ActualCost" value="@Model.EstimatedCost" min="0" step="10000" /></label>
+                        @if (Model.ApartmentId != null)
+                        {
+                            <label class="check"><input type="checkbox" name="ChargeToTenant" value="true" /> Lập hoá đơn phát sinh cho căn (lỗi thuộc phần riêng của căn)</label>
+                        }
+                        <label class="full">Ảnh nghiệm thu
+                            <input type="file" multiple accept="image/*" data-upload="maintenance" data-target="#result-photos" />
+                            <span data-upload-preview class="hstack" style="flex-wrap:wrap;"></span>
+                            <span class="hint" data-upload-status></span>
+                            <textarea id="result-photos" name="PhotoUrls" style="display:none;"></textarea>
+                        </label>
+                        <div class="full"><button type="submit" class="btn btn-primary btn-sm"><span class="material-symbols-outlined">task_alt</span>Đánh dấu hoàn tất</button></div>
+                    </form>
+                </div>
+            </details>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.ResolutionNote) || resultPhotos.Any())
         {
             <div class="card">
                 <div class="card-header"><h2>Kết quả xử lý</h2></div>
                 <div class="card-body">
-                    <p style="white-space:pre-wrap;">@Model.ResolutionNote</p>
+                    <p style="white-space:pre-wrap;margin-top:0;">@Model.ResolutionNote</p>
+                    @if (resultPhotos.Any())
+                    {
+                        <div class="hstack" style="flex-wrap:wrap;">
+                            @foreach (var p in resultPhotos) { <a href="@p.Url" target="_blank"><img src="@p.Url" alt="Ảnh nghiệm thu" style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--admin-line);" /></a> }
+                        </div>
+                    }
                     @if (Model.ActualCost > 0)
                     {
-                        <p class="text-muted">Chi phí: <strong>@Money(Model.ActualCost) đ</strong> @(Model.ChargeToTenant ? "· tính vào hoá đơn cư dân" : "")</p>
+                        <p class="text-muted">Chi phí: <strong>@Money(Model.ActualCost) đ</strong> @(Model.ChargeToTenant ? "· tính vào hoá đơn của căn" : "")</p>
+                    }
+                    @if (Model.Rating != null)
+                    {
+                        <p class="text-muted" style="margin-bottom:0;">Cư dân đánh giá: <strong>@Model.Rating/5</strong> @(Model.RatingComment != null ? "· " + Model.RatingComment : "")</p>
                     }
                 </div>
             </div>
         }
+
+        <details class="card fold" data-fold="history" open>
+            <summary class="card-header"><h2>Lịch sử xử lý</h2><span class="text-muted">@Model.History.Count bước</span></summary>
+            <div class="card-body">
+                <div class="mini-list">
+                    @foreach (var h in Model.History.OrderBy(h => h.ChangedAt))
+                    {
+                        <div class="row">
+                            <span>
+                                <b>@(h.FromStatus == null ? "Tạo yêu cầu" : h.FromStatus == h.ToStatus ? "Giao việc" : h.FromStatus.Value.Vi() + " → " + h.ToStatus.Vi())</b>
+                                @if (h.Note != null && h.Note != "Tạo yêu cầu") { <span class="muted"> · @h.Note</span> }
+                                <br /><span class="muted">@(h.ChangedBy?.FullName ?? (h.FromStatus == null ? Model.Reporter?.FullName : "Hệ thống điều phối"))</span>
+                            </span>
+                            <span class="muted no-wrap">@Local(h.ChangedAt)</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </details>
     </div>
 
-    <div class="card">
-        <div class="card-header"><h2>Thông tin</h2></div>
-        <div class="card-body">
-            <dl class="dl-pairs">
-                <dt>Loại</dt><dd>@Model.Category.Vi()</dd>
-                <dt>Mức độ</dt><dd><span class="@PrioPill(Model.Priority)">@Model.Priority.Vi()</span></dd>
-                <dt>Căn hộ</dt><dd><a asp-controller="Apartments" asp-action="Details" asp-route-id="@Model.ApartmentId">@Model.Apartment.UnitCode</a></dd>
-                @if (Model.Apartment.PrimaryResident is { } rep)
-                {
-                    <dt>Đại diện căn</dt><dd>@rep.FullName @(rep.Phone != null ? "· " + rep.Phone : "")</dd>
-                }
-                <dt>Người báo</dt><dd>@(Model.Reporter?.FullName ?? "—")</dd>
-                <dt>Phụ trách</dt><dd>@(Model.AssignedTo?.FullName ?? "—")</dd>
-                <dt>Báo lúc</dt><dd>@Model.ReportedAt.ToString("HH:mm dd/MM/yyyy")</dd>
-                @if (Model.AcknowledgedAt.HasValue) { <dt>Tiếp nhận</dt><dd>@Model.AcknowledgedAt.Value.ToString("HH:mm dd/MM/yyyy")</dd> }
-                @if (Model.ResolvedAt.HasValue) { <dt>Hoàn tất</dt><dd>@Model.ResolvedAt.Value.ToString("HH:mm dd/MM/yyyy")</dd> }
-                @if (Model.ClosedAt.HasValue) { <dt>Đóng</dt><dd>@Model.ClosedAt.Value.ToString("HH:mm dd/MM/yyyy")</dd> }
-                <dt>Chi phí ước</dt><dd>@Money(Model.EstimatedCost) đ</dd>
-                @if (Model.ActualCost > 0) { <dt>Chi phí thực</dt><dd>@Money(Model.ActualCost) đ</dd> }
-            </dl>
+    <div class="vstack" style="gap:1.2rem;">
+        <div class="card">
+            <div class="card-header"><h2>Thông tin</h2></div>
+            <div class="card-body">
+                <dl class="dl-pairs">
+                    <dt>Nơi xảy ra</dt>
+                    <dd>
+                        @if (Model.Apartment != null) { <a asp-controller="Apartments" asp-action="Details" asp-route-id="@Model.ApartmentId">Căn @Model.Apartment.UnitCode</a> }
+                        else { <text>Khu vực chung · @Model.Location</text> }
+                    </dd>
+                    @if (Model.Apartment?.PrimaryResident is { } rep)
+                    {
+                        <dt>Đại diện căn</dt><dd>@rep.FullName @(rep.Phone != null ? "· " + rep.Phone : "")</dd>
+                    }
+                    <dt>Người báo</dt><dd>@(Model.Reporter?.FullName ?? "—")</dd>
+                    <dt>Phụ trách</dt><dd>@(Model.AssignedTo?.FullName ?? "—")</dd>
+                    <dt>Báo lúc</dt><dd>@Local(Model.ReportedAt)</dd>
+                    @if (Model.DueAt.HasValue) { <dt>Hạn hoàn tất</dt><dd style="@(overdue ? "color:var(--admin-danger);font-weight:600;" : "")">@Local(Model.DueAt.Value)</dd> }
+                    @if (Model.AcknowledgedAt.HasValue) { <dt>Tiếp nhận</dt><dd>@Local(Model.AcknowledgedAt.Value)</dd> }
+                    @if (Model.ResolvedAt.HasValue) { <dt>Hoàn tất</dt><dd>@Local(Model.ResolvedAt.Value)</dd> }
+                    @if (Model.ClosedAt.HasValue) { <dt>Đóng</dt><dd>@Local(Model.ClosedAt.Value)</dd> }
+                    <dt>Chi phí ước</dt><dd>@Money(Model.EstimatedCost) đ</dd>
+                </dl>
+            </div>
         </div>
+
+        @if (isOpen)
+        {
+            <details class="card fold" data-fold="reclassify">
+                <summary class="card-header"><h2>Phân loại lại</h2><span class="text-muted">@Model.Category.Vi() · @Model.Priority.Vi()</span></summary>
+                <div class="card-body">
+                    <form asp-action="Reclassify" asp-route-id="@Model.Id" method="post" class="inline-form">
+                        @Html.AntiForgeryToken()
+                        <label>Loại
+                            <select name="category">@foreach (var c in Enum.GetValues<MaintenanceCategory>()) { <option value="@((int)c)" selected="@(c == Model.Category)">@c.Vi()</option> }</select>
+                        </label>
+                        <label>Mức ưu tiên
+                            <select name="priority">@foreach (var p in Enum.GetValues<MaintenancePriority>()) { <option value="@((int)p)" selected="@(p == Model.Priority)">@p.Vi()</option> }</select>
+                        </label>
+                        <div class="full"><button type="submit" class="btn btn-outline btn-sm">Lưu phân loại</button></div>
+                    </form>
+                    @if (Model.AiTriageJson != null)
+                    {
+                        <p class="hint" style="margin-bottom:0;">AI đã đề xuất lúc tiếp nhận; sửa ở đây được lưu để đo độ chính xác của AI.</p>
+                    }
+                </div>
+            </details>
+        }
     </div>
 </div>

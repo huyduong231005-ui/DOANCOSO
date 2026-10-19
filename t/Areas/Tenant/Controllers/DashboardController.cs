@@ -33,7 +33,7 @@ public class DashboardController : TenantBaseController
             TotalDue = unpaidInvoices.Sum(i => i.Balance),
             NextDueDate = unpaidInvoices.OrderBy(i => i.DueDate).Select(i => (DateTime?)i.DueDate).FirstOrDefault(),
             OpenMaintenanceCount = await Db.MaintenanceRequests
-                .CountAsync(m => (m.ReporterId == uid || aptIds.Contains(m.ApartmentId)) && (m.Status == MaintenanceStatus.Open || m.Status == MaintenanceStatus.Acknowledged || m.Status == MaintenanceStatus.InProgress))
+                .CountAsync(m => (m.ReporterId == uid || (m.ApartmentId != null && aptIds.Contains(m.ApartmentId.Value))) && MaintenanceRequest.ActiveStatuses.Contains(m.Status))
         };
 
         vm.RecentInvoices = await Db.Invoices
@@ -49,7 +49,7 @@ public class DashboardController : TenantBaseController
             .ToListAsync();
 
         vm.RecentMaintenance = await Db.MaintenanceRequests
-            .Where(m => m.ReporterId == uid || aptIds.Contains(m.ApartmentId))
+            .Where(m => m.ReporterId == uid || (m.ApartmentId != null && aptIds.Contains(m.ApartmentId.Value)))
             .OrderByDescending(m => m.ReportedAt)
             .Take(5)
             .Select(m => new TenantMaintenanceRow

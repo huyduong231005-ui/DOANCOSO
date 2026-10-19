@@ -92,6 +92,8 @@ public class HomeController : Controller
                 var roles = await _userManager.GetRolesAsync(user);
                 if (roles.Contains("Admin") || roles.Contains("Manager"))
                     return LocalRedirect("/admin");
+                if (roles.Any(r => Areas.Staff.Controllers.JobsController.StaffRoles.Split(',').Contains(r)))
+                    return LocalRedirect("/staff/jobs");
                 if (roles.Contains("Tenant"))
                     return LocalRedirect("/tenant");
             }

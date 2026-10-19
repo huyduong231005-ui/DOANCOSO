@@ -2,6 +2,10 @@
     var pageTitle = (ViewData["Title"] as string) ?? "Cổng cư dân";
     var displayName = User?.Identity?.Name ?? string.Empty;
     var initial = string.IsNullOrEmpty(displayName) ? "T" : displayName.Substring(0, 1).ToUpperInvariant();
+    // Cổng kỹ thuật viên (area Staff) dùng chung bố cục này, chỉ đổi thanh bên và nhãn vai trò.
+    var sidebar = ViewData["Sidebar"] as string ?? "_TenantSidebar";
+    var roleLabel = ViewData["RoleLabel"] as string ?? "Cư dân";
+    var homeUrl = ViewData["HomeUrl"] as string ?? Url.Action("Index", "Dashboard", new { area = "Tenant" });
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -17,12 +21,12 @@
 </head>
 <body class="admin-shell">
 <div class="admin-layout">
-    @await Html.PartialAsync("_TenantSidebar")
+    @await Html.PartialAsync(sidebar)
 
     <div class="admin-main">
         <header class="admin-topbar">
             <div class="crumbs">
-                <a asp-area="Tenant" asp-controller="Dashboard" asp-action="Index">
+                <a href="@homeUrl">
                     <span class="material-symbols-outlined" style="font-size:18px;vertical-align:-3px;">home</span>
                 </a>
                 @{ var crumbs = ViewData["Breadcrumbs"] as List<(string Text, string? Url)>; }
@@ -45,7 +49,7 @@
                     <span class="avatar">@initial</span>
                     <div class="vstack" style="gap:0;">
                         <span>@(string.IsNullOrEmpty(displayName) ? "Khách" : displayName)</span>
-                        <span class="role">Cư dân</span>
+                        <span class="role">@roleLabel</span>
                     </div>
                 </div>
                 <form asp-area="" asp-controller="Home" asp-action="Logout" method="post">

@@ -12,13 +12,15 @@ namespace t.Areas.Tenant.Controllers;
 public class MaintenanceController : TenantBaseController
 {
     private readonly MaintenanceTriageService _triage;
-
     private readonly MaintenanceDispatcher _dispatcher;
+    private readonly MaintenanceWorkflow _workflow;
 
-    public MaintenanceController(AppDbContext db, MaintenanceTriageService triage, MaintenanceDispatcher dispatcher) : base(db)
+    public MaintenanceController(AppDbContext db, MaintenanceTriageService triage, MaintenanceDispatcher dispatcher,
+        MaintenanceWorkflow workflow) : base(db)
     {
         _triage = triage;
         _dispatcher = dispatcher;
+        _workflow = workflow;
     }
 
     public async Task<IActionResult> Index(MaintenanceStatus? status, int page = 1)
@@ -27,13 +29,7 @@ public class MaintenanceController : TenantBaseController
         SetBreadcrumb(("Báo sự cố", null));
 
         const int pageSize = 20;
-        var uid = CurrentUserId;
-        var aptIds = await MyApartmentIds().ToListAsync();
-
-        // Cư dân thấy: yêu cầu tự gửi HOẶC mọi yêu cầu của căn mình đang ở
-        // (các thành viên cùng hộ thấy báo cáo của nhau).
-        var query = Db.MaintenanceRequests.Where(m =>
-            m.ReporterId == uid || aptIds.Contains(m.ApartmentId));
+        var query = MyRequests();
         if (status.HasValue) query = query.Where(m => m.Status == status.Value);
 
         var total = await query.CountAsync();
@@ -59,15 +55,17 @@ public class MaintenanceController : TenantBaseController
     public async Task<IActionResult> Details(int id)
     {
         SetActiveNav("maintenance");
-        var uid = CurrentUserId;
-        var aptIds = await MyApartmentIds().ToListAsync();
-        var r = await Db.MaintenanceRequests
-            .Include(x => x.Apartment).ThenInclude(a => a.Building)
+        var r = await MyRequests()
+            .Include(x => x.Apartment).ThenInclude(a => a!.Building)
+            .Include(x => x.CommonBuilding)
             .Include(x => x.AssignedTo)
-            .FirstOrDefaultAsync(x => x.Id == id &&
-                (x.ReporterId == uid || aptIds.Contains(x.ApartmentId)));
+            .Include(x => x.Photos)
+            .Include(x => x.History)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(x => x.Id == id);
         if (r == null) return NotFound();
         SetBreadcrumb(("Báo sự cố", Url.Action(nameof(Index))), (r.RequestNumber, null));
+        ViewBag.NextStatuses = MaintenanceWorkflow.NextStatuses(r, WorkflowActor.Resident, CurrentUserId);
         return View(r);
     }
 
@@ -89,13 +87,15 @@ public class MaintenanceController : TenantBaseController
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateMaintenanceVm input)
     {
+        // BR-SC-01: chỉ cư dân đang ở mới báo được, cho căn mình hoặc khu vực chung của toà mình.
         var apartment = await GetMyApartmentAsync();
         if (apartment == null)
         {
             TempData["Danger"] = "Tài khoản chưa được Ban quản lý gắn với căn hộ nào.";
             return RedirectToAction(nameof(Index));
         }
-
+        if (input.CommonArea && string.IsNullOrWhiteSpace(input.Location))
+            ModelState.AddModelError(nameof(input.Location), "Ghi rõ vị trí khu vực chung (ví dụ: hành lang tầng 12).");
         if (!ModelState.IsValid)
         {
             ViewBag.Apartment = apartment;
@@ -108,17 +108,20 @@ public class MaintenanceController : TenantBaseController
         var req = new MaintenanceRequest
         {
             RequestNumber = await BillingNumberGenerator.NextMaintenanceNumberAsync(Db),
-            ApartmentId = apartment.Id,
+            ApartmentId = input.CommonArea ? null : apartment.Id,
+            CommonBuildingId = input.CommonArea ? apartment.BuildingId : null,
+            Location = input.CommonArea ? input.Location!.Trim() : null,
             ReporterId = CurrentUserId,
             Title = input.Title,
             Description = input.Description,
             Category = category,
             Priority = priority,
             AiTriageJson = triage?.RawJson,
-            PhotoUrls = input.PhotoUrls,
             Status = MaintenanceStatus.Open,
             ReportedAt = DateTime.UtcNow
         };
+        req.Photos.AddRange(MaintenanceWorkflow.PhotosFrom(input.PhotoUrls, MaintenancePhotoStage.Report, CurrentUserId));
+        await _workflow.InitializeNewAsync(req, CurrentUserId);
         Db.MaintenanceRequests.Add(req);
         try { await Db.SaveChangesAsync(); }
         catch (DbUpdateException ex) when (BillingNumberGenerator.IsUniqueConstraintError(ex))
@@ -134,5 +137,36 @@ public class MaintenanceController : TenantBaseController
         if (triage?.FollowUpQuestion != null)
             TempData["Info"] = "Ban quản lý cần thêm thông tin: " + triage.FollowUpQuestion;
         return RedirectToAction(nameof(Details), new { id = req.Id });
+    }
+
+    /// <summary>Huỷ (trước khi kỹ thuật bắt đầu), xác nhận đã xong (kèm đánh giá) hoặc báo chưa khắc phục.</summary>
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangeStatus(int id, MaintenanceStatus status, string? note, int? rating)
+    {
+        var r = await MyRequests().FirstOrDefaultAsync(x => x.Id == id);
+        if (r == null) return NotFound();
+        if (status == MaintenanceStatus.Closed && rating is >= 1 and <= 5)
+        {
+            r.Rating = rating;
+            r.RatingComment = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+        }
+        var error = await _workflow.TransitionAsync(r, status, WorkflowActor.Resident, CurrentUserId, note);
+        if (error == null) TempData["Success"] = status switch
+        {
+            MaintenanceStatus.Cancelled => "Đã huỷ yêu cầu.",
+            MaintenanceStatus.Closed => "Cảm ơn bạn đã xác nhận.",
+            _ => "Đã báo Ban quản lý: sự cố chưa được khắc phục."
+        };
+        else TempData["Danger"] = error;
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    /// <summary>Yêu cầu cư dân được xem: tự gửi, hoặc của căn mình đang ở (các thành viên cùng hộ thấy của nhau).</summary>
+    private IQueryable<MaintenanceRequest> MyRequests()
+    {
+        var uid = CurrentUserId;
+        var aptIds = MyApartmentIds();
+        return Db.MaintenanceRequests.Where(m =>
+            m.ReporterId == uid || (m.ApartmentId != null && aptIds.Contains(m.ApartmentId.Value)));
     }
 }

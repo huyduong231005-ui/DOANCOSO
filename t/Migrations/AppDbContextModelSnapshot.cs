@@ -254,7 +254,12 @@ namespace t.Migrations
                         .IsUnique()
                         .HasFilter("\"DaXoa\" = false");
 
-                    b.ToTable("CanHo", (string)null);
+                    b.ToTable("CanHo", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CanHo_DienTich", "\"DienTich\" > 0");
+
+                            t.HasCheckConstraint("CK_CanHo_SoPhongNgu", "\"SoPhongNgu\" >= 0");
+                        });
                 });
 
             modelBuilder.Entity("t.Models.Entities.ApartmentResident", b =>
@@ -359,7 +364,10 @@ namespace t.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CuDan", (string)null);
+                    b.ToTable("CuDan", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CuDan_NgayChuyenDi", "\"NgayChuyenDi\" IS NULL OR \"NgayChuyenDi\" >= \"NgayVaoO\"");
+                        });
                 });
 
             modelBuilder.Entity("t.Models.Entities.AppUser", b =>
@@ -681,7 +689,12 @@ namespace t.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("ToaNha", (string)null);
+                    b.ToTable("ToaNha", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ToaNha_DonGiaPhiQuanLy", "\"DonGiaPhiQuanLy\" >= 0");
+
+                            t.HasCheckConstraint("CK_ToaNha_NgayChotKy", "\"NgayChotKyMacDinh\" BETWEEN 1 AND 28");
+                        });
                 });
 
             modelBuilder.Entity("t.Models.Entities.Floor", b =>
@@ -879,9 +892,19 @@ namespace t.Migrations
 
                     b.HasIndex("Status");
 
+                    b.HasIndex("ApartmentId", "BillingMonth")
+                        .IsUnique()
+                        .HasDatabaseName("UX_HoaDon_PhiThang_MoiKy")
+                        .HasFilter("\"LoaiHoaDon\" = 0 AND \"TrangThai\" <> 5 AND \"DaXoa\" = false");
+
                     b.HasIndex("ApartmentId", "BillingMonth", "Kind");
 
-                    b.ToTable("HoaDon", (string)null);
+                    b.ToTable("HoaDon", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_HoaDon_ConLai", "\"ConLai\" >= 0 AND \"ConLai\" <= \"TongTien\"");
+
+                            t.HasCheckConstraint("CK_HoaDon_SoTien", "\"TongTien\" >= 0 AND \"DaThanhToan\" >= 0");
+                        });
                 });
 
             modelBuilder.Entity("t.Models.Entities.InvoiceItem", b =>
@@ -963,6 +986,45 @@ namespace t.Migrations
                     b.ToTable("ChiTietHoaDon", (string)null);
                 });
 
+            modelBuilder.Entity("t.Models.Entities.MaintenancePhoto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("MaintenanceRequestId")
+                        .HasColumnType("integer")
+                        .HasColumnName("YeuCauBaoTriId");
+
+                    b.Property<int>("Stage")
+                        .HasColumnType("integer")
+                        .HasColumnName("GiaiDoan");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("NgayTaiLen");
+
+                    b.Property<string>("UploadedById")
+                        .HasColumnType("text")
+                        .HasColumnName("NguoiTaiLenId");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DuongDan");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MaintenanceRequestId");
+
+                    b.HasIndex("UploadedById");
+
+                    b.ToTable("AnhSuCo", (string)null);
+                });
+
             modelBuilder.Entity("t.Models.Entities.MaintenanceRequest", b =>
                 {
                     b.Property<int>("Id")
@@ -983,7 +1045,7 @@ namespace t.Migrations
                     b.Property<string>("AiTriageJson")
                         .HasColumnType("text");
 
-                    b.Property<int>("ApartmentId")
+                    b.Property<int?>("ApartmentId")
                         .HasColumnType("integer")
                         .HasColumnName("CanHoId");
 
@@ -1002,6 +1064,10 @@ namespace t.Migrations
                     b.Property<DateTime?>("ClosedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayDongLai");
+
+                    b.Property<int?>("CommonBuildingId")
+                        .HasColumnType("integer")
+                        .HasColumnName("ToaNhaKhuVucChungId");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1027,6 +1093,10 @@ namespace t.Migrations
                         .HasColumnType("character varying(4000)")
                         .HasColumnName("MoTa");
 
+                    b.Property<DateTime?>("DueAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("HanXuLy");
+
                     b.Property<decimal>("EstimatedCost")
                         .HasColumnType("decimal(18,0)")
                         .HasColumnName("ChiPhiUocTinh");
@@ -1035,14 +1105,23 @@ namespace t.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
 
-                    b.Property<string>("PhotoUrls")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("DanhSachAnh");
+                    b.Property<string>("Location")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("ViTri");
 
                     b.Property<int>("Priority")
                         .HasColumnType("integer")
                         .HasColumnName("MucDoUuTien");
+
+                    b.Property<int?>("Rating")
+                        .HasColumnType("integer")
+                        .HasColumnName("DanhGia");
+
+                    b.Property<string>("RatingComment")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("NhanXet");
 
                     b.Property<DateTime>("ReportedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1098,6 +1177,10 @@ namespace t.Migrations
 
                     b.HasIndex("AssignedToId");
 
+                    b.HasIndex("CommonBuildingId");
+
+                    b.HasIndex("DueAt");
+
                     b.HasIndex("Priority");
 
                     b.HasIndex("ReporterId");
@@ -1107,7 +1190,58 @@ namespace t.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("YeuCauBaoTri", (string)null);
+                    b.ToTable("YeuCauBaoTri", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_YeuCauBaoTri_ChiPhi", "\"ChiPhiUocTinh\" >= 0 AND \"ChiPhiThucTe\" >= 0");
+
+                            t.HasCheckConstraint("CK_YeuCauBaoTri_DanhGia", "\"DanhGia\" IS NULL OR \"DanhGia\" BETWEEN 1 AND 5");
+
+                            t.HasCheckConstraint("CK_YeuCauBaoTri_HanXuLy", "\"HanXuLy\" IS NULL OR \"HanXuLy\" >= \"NgayBaoCao\"");
+
+                            t.HasCheckConstraint("CK_YeuCauBaoTri_NoiXayRa", "(\"CanHoId\" IS NOT NULL AND \"ToaNhaKhuVucChungId\" IS NULL) OR (\"CanHoId\" IS NULL AND \"ToaNhaKhuVucChungId\" IS NOT NULL AND \"ViTri\" IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("t.Models.Entities.MaintenanceStatusChange", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("ThoiDiem");
+
+                    b.Property<string>("ChangedById")
+                        .HasColumnType("text")
+                        .HasColumnName("NguoiThucHienId");
+
+                    b.Property<int?>("FromStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("TuTrangThai");
+
+                    b.Property<int>("MaintenanceRequestId")
+                        .HasColumnType("integer")
+                        .HasColumnName("YeuCauBaoTriId");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("GhiChu");
+
+                    b.Property<int>("ToStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("SangTrangThai");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChangedById");
+
+                    b.HasIndex("MaintenanceRequestId", "ChangedAt");
+
+                    b.ToTable("LichSuTrangThaiSuCo", (string)null);
                 });
 
             modelBuilder.Entity("t.Models.Entities.Payment", b =>
@@ -1221,7 +1355,10 @@ namespace t.Migrations
 
                     b.HasIndex("TransactionRef");
 
-                    b.ToTable("ThanhToan", (string)null);
+                    b.ToTable("ThanhToan", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ThanhToan_SoTien", "\"SoTien\" > 0");
+                        });
                 });
 
             modelBuilder.Entity("t.Models.Entities.Permission", b =>
@@ -1461,7 +1598,10 @@ namespace t.Migrations
 
                     b.HasIndex("ApartmentId");
 
-                    b.ToTable("PhiDinhKy", (string)null);
+                    b.ToTable("PhiDinhKy", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_PhiDinhKy_SoTien", "\"SoTien\" >= 0");
+                        });
                 });
 
             modelBuilder.Entity("t.Models.Entities.Region", b =>
@@ -1569,6 +1709,54 @@ namespace t.Migrations
                     b.ToTable("VaiTro_Quyen", (string)null);
                 });
 
+            modelBuilder.Entity("t.Models.Entities.SlaPolicy", b =>
+                {
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer")
+                        .HasColumnName("MucDoUuTien");
+
+                    b.Property<int>("ResolveMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("PhutHoanTat");
+
+                    b.Property<int>("ResponseMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("PhutPhanHoi");
+
+                    b.HasKey("Priority");
+
+                    b.ToTable("MucSla", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MucSla_ThoiHan", "\"PhutPhanHoi\" > 0 AND \"PhutHoanTat\" >= \"PhutPhanHoi\"");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Priority = 3,
+                            ResolveMinutes = 120,
+                            ResponseMinutes = 15
+                        },
+                        new
+                        {
+                            Priority = 2,
+                            ResolveMinutes = 480,
+                            ResponseMinutes = 30
+                        },
+                        new
+                        {
+                            Priority = 1,
+                            ResolveMinutes = 1440,
+                            ResponseMinutes = 120
+                        },
+                        new
+                        {
+                            Priority = 0,
+                            ResolveMinutes = 4320,
+                            ResponseMinutes = 720
+                        });
+                });
+
             modelBuilder.Entity("t.Models.Entities.UtilityReading", b =>
                 {
                     b.Property<int>("Id")
@@ -1669,7 +1857,10 @@ namespace t.Migrations
                         .IsUnique()
                         .HasFilter("\"DaXoa\" = false");
 
-                    b.ToTable("ChiSoDichVu", (string)null);
+                    b.ToTable("ChiSoDichVu", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ChiSoDichVu_ChiSo", "\"ChiSoMoi\" >= \"ChiSoCu\"");
+                        });
                 });
 
             modelBuilder.Entity("t.Models.Entities.UtilityType", b =>
@@ -1902,18 +2093,38 @@ namespace t.Migrations
                     b.Navigation("Invoice");
                 });
 
+            modelBuilder.Entity("t.Models.Entities.MaintenancePhoto", b =>
+                {
+                    b.HasOne("t.Models.Entities.MaintenanceRequest", "MaintenanceRequest")
+                        .WithMany("Photos")
+                        .HasForeignKey("MaintenanceRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("t.Models.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UploadedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("MaintenanceRequest");
+                });
+
             modelBuilder.Entity("t.Models.Entities.MaintenanceRequest", b =>
                 {
                     b.HasOne("t.Models.Entities.Apartment", "Apartment")
                         .WithMany("MaintenanceRequests")
                         .HasForeignKey("ApartmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("t.Models.Entities.AppUser", "AssignedTo")
                         .WithMany()
                         .HasForeignKey("AssignedToId")
                         .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("t.Models.Entities.Building", "CommonBuilding")
+                        .WithMany()
+                        .HasForeignKey("CommonBuildingId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("t.Models.Entities.AppUser", "Reporter")
                         .WithMany()
@@ -1924,7 +2135,27 @@ namespace t.Migrations
 
                     b.Navigation("AssignedTo");
 
+                    b.Navigation("CommonBuilding");
+
                     b.Navigation("Reporter");
+                });
+
+            modelBuilder.Entity("t.Models.Entities.MaintenanceStatusChange", b =>
+                {
+                    b.HasOne("t.Models.Entities.AppUser", "ChangedBy")
+                        .WithMany()
+                        .HasForeignKey("ChangedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("t.Models.Entities.MaintenanceRequest", "MaintenanceRequest")
+                        .WithMany("History")
+                        .HasForeignKey("MaintenanceRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChangedBy");
+
+                    b.Navigation("MaintenanceRequest");
                 });
 
             modelBuilder.Entity("t.Models.Entities.Payment", b =>
@@ -2035,6 +2266,13 @@ namespace t.Migrations
                     b.Navigation("Items");
 
                     b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("t.Models.Entities.MaintenanceRequest", b =>
+                {
+                    b.Navigation("History");
+
+                    b.Navigation("Photos");
                 });
 
             modelBuilder.Entity("t.Models.Entities.Permission", b =>

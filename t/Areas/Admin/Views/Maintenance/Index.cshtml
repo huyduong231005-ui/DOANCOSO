@@ -9,6 +9,9 @@
     var cat = (MaintenanceCategory?)ViewBag.Category;
     var bldId = (int?)ViewBag.BuildingId;
     var buildings = (List<Building>)ViewBag.Buildings;
+    var overdue = (bool)ViewBag.Overdue;
+    var counts = (Dictionary<MaintenanceStatus, int>)ViewBag.StatusCounts;
+    var overdueCount = (int)ViewBag.OverdueCount;
 
     string StatusPill(MaintenanceStatus s) => s switch
     {
@@ -47,13 +50,13 @@
 
 @* Đếm theo trạng thái, bấm để lọc nhanh (bấm lại chip đang chọn để bỏ lọc). *@
 <nav class="plan-chips" aria-label="Lọc theo trạng thái">
-    @foreach (var (s, n) in new[] {
-        (MaintenanceStatus.Open, (int)ViewBag.OpenCount),
-        (MaintenanceStatus.Acknowledged, (int)ViewBag.AckCount),
-        (MaintenanceStatus.InProgress, (int)ViewBag.InProgressCount),
-        (MaintenanceStatus.Resolved, (int)ViewBag.ResolvedCount) })
+    @if (overdueCount > 0 || overdue)
     {
-        <a class="chip @(status == s ? "active" : "")" asp-action="Index" asp-route-status="@(status == s ? null : (int?)s)">@s.Vi() <span class="n">@n</span></a>
+        <a class="chip @(overdue ? "active" : "")" asp-action="Index" asp-route-overdue="@(!overdue)" style="@(overdue ? "" : "border-color:var(--admin-danger);color:var(--admin-danger);")">Quá hạn SLA <span class="n">@overdueCount</span></a>
+    }
+    @foreach (var s in new[] { MaintenanceStatus.Open, MaintenanceStatus.Acknowledged, MaintenanceStatus.InProgress, MaintenanceStatus.OnHold, MaintenanceStatus.Resolved })
+    {
+        <a class="chip @(status == s ? "active" : "")" asp-action="Index" asp-route-status="@(status == s ? null : (int?)s)">@s.Vi() <span class="n">@counts.GetValueOrDefault(s)</span></a>
     }
     @if ((int)ViewBag.UrgentCount > 0)
     {
@@ -87,7 +90,7 @@
 <div class="card">
     <div class="table-wrap">
         <table class="data-table">
-            <thead><tr><th>Mã / Tiêu đề</th><th>Loại</th><th>Mức độ</th><th>Căn / Toà</th><th>Phụ trách</th><th>Báo lúc</th><th>Trạng thái</th><th>Cập nhật</th></tr></thead>
+            <thead><tr><th>Mã / Tiêu đề</th><th>Loại</th><th>Mức độ</th><th>Nơi xảy ra</th><th>Phụ trách</th><th>Báo lúc</th><th>Hạn</th><th>Trạng thái</th></tr></thead>
             <tbody>
             @if (!Model.Any())
             {
@@ -101,23 +104,11 @@
                         <td><span class="row-title">@r.RequestNumber</span><div class="row-meta">@r.Title</div></td>
                         <td><span class="material-symbols-outlined" style="font-size:14px;">@CatIcon(r.Category)</span> @r.Category.Vi()</td>
                         <td><span class="@PrioPill(r.Priority)">@r.Priority.Vi()</span></td>
-                        <td>@r.UnitCode<div class="row-meta">@(r.BuildingName ?? "—")</div></td>
+                        <td>@r.Place<div class="row-meta">@(r.BuildingName ?? "—")</div></td>
                         <td>@(r.AssignedToName ?? "—")<div class="row-meta">Báo: @(r.ReporterName ?? "—")</div></td>
                         <td class="text-muted no-wrap">@r.ReportedAt.ToString("HH:mm dd/MM")</td>
+                        <td class="no-wrap" style="@(r.IsOverdue ? "color:var(--admin-danger);font-weight:600;" : "color:var(--admin-muted);")">@(r.DueAt?.ToLocalTime().ToString("HH:mm dd/MM") ?? "—")</td>
                         <td><span class="@StatusPill(r.Status)">@r.Status.Vi()</span></td>
-                        <td class="actions-cell">
-                            <form asp-action="ChangeStatus" method="post" class="quick-status-form">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@r.Id" />
-                                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
-                                <select name="status" onchange="this.form.requestSubmit()">
-                                    @foreach (var s in Enum.GetValues<MaintenanceStatus>())
-                                    {
-                                        <option value="@((int)s)" selected="@(r.Status == s)">@s.Vi()</option>
-                                    }
-                                </select>
-                            </form>
-                        </td>
                     </tr>
                 }
             }

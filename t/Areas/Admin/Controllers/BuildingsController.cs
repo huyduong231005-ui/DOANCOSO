@@ -76,8 +76,7 @@ public class BuildingsController : AdminBaseController
                     .Sum(i => (decimal?)i.Balance) ?? 0,
                 HasOverdue = a.Invoices.Any(i => i.Balance > 0 && i.DueDate < today
                     && i.Status != InvoiceStatus.Cancelled && i.Status != InvoiceStatus.Draft),
-                OpenMaintenance = a.MaintenanceRequests.Count(m => m.Status == MaintenanceStatus.Open
-                    || m.Status == MaintenanceStatus.Acknowledged || m.Status == MaintenanceStatus.InProgress)
+                OpenMaintenance = a.MaintenanceRequests.Count(m => MaintenanceRequest.ActiveStatuses.Contains(m.Status))
             })
             .ToListAsync();
 

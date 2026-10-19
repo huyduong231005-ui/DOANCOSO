@@ -22,6 +22,7 @@ public enum MaintenancePriority
     Urgent = 3
 }
 
+// Giá trị số lưu trong DB: chỉ thêm ở cuối, không đổi số của trạng thái cũ.
 public enum MaintenanceStatus
 {
     Open = 0,
@@ -29,15 +30,29 @@ public enum MaintenanceStatus
     InProgress = 2,
     Resolved = 3,
     Closed = 4,
-    Rejected = 5
+    Rejected = 5,
+    OnHold = 6,     // chờ vật tư / nhà thầu / lịch hẹn: không tính vào hạn SLA
+    Cancelled = 7   // cư dân huỷ trước khi kỹ thuật bắt đầu
+}
+
+public enum MaintenancePhotoStage
+{
+    Report = 0, // ảnh hiện trạng lúc báo
+    Result = 1  // ảnh nghiệm thu sau khi sửa
 }
 
 public class MaintenanceRequest : BaseEntity
 {
     public string RequestNumber { get; set; } = string.Empty;
 
-    public int ApartmentId { get; set; }
-    public Apartment Apartment { get; set; } = null!;
+    // Sự cố nằm ở đúng một nơi: trong một căn (ApartmentId) HOẶC khu vực chung của một toà
+    // (CommonBuildingId + Location). Không lưu toà cho sự cố trong căn vì toà suy ra từ căn (3NF).
+    public int? ApartmentId { get; set; }
+    public Apartment? Apartment { get; set; }
+
+    public int? CommonBuildingId { get; set; }
+    public Building? CommonBuilding { get; set; }
+    public string? Location { get; set; }
 
     public string? ReporterId { get; set; }
     public AppUser? Reporter { get; set; }
@@ -53,7 +68,6 @@ public class MaintenanceRequest : BaseEntity
     public AppUser? AssignedTo { get; set; }
 
     public string? ResolutionNote { get; set; }
-    public string? PhotoUrls { get; set; }
 
     /// <summary>
     /// JSON nguyên văn mô hình AI trả về lúc cư dân gửi yêu cầu (null nếu mô hình không chạy).
@@ -69,4 +83,66 @@ public class MaintenanceRequest : BaseEntity
     public DateTime? AcknowledgedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }
     public DateTime? ClosedAt { get; set; }
+
+    /// <summary>
+    /// Hạn hoàn tất theo SLA, chốt lúc báo (NgayBaoCao + thời hạn của mức ưu tiên), cộng thêm thời gian tạm dừng.
+    /// Lưu lại chứ không tính lại từ bảng MucSla vì SLA có thể đổi về sau, hạn đã cam kết với cư dân thì không.
+    /// </summary>
+    public DateTime? DueAt { get; set; }
+
+    /// <summary>Cư dân đánh giá 1–5 khi xác nhận đã xử lý xong.</summary>
+    public int? Rating { get; set; }
+    public string? RatingComment { get; set; }
+
+    public List<MaintenancePhoto> Photos { get; set; } = new();
+    public List<MaintenanceStatusChange> History { get; set; } = new();
+
+    /// <summary>"Căn A-12.05" hoặc "Khu vực chung: Sảnh tầng 1" (cần nạp Apartment).</summary>
+    public string PlaceLabel => Apartment != null ? "Căn " + Apartment.UnitCode : "Khu vực chung: " + Location;
+
+    public static readonly MaintenanceStatus[] ActiveStatuses =
+        { MaintenanceStatus.Open, MaintenanceStatus.Acknowledged, MaintenanceStatus.InProgress, MaintenanceStatus.OnHold };
+}
+
+public class MaintenancePhoto
+{
+    public int Id { get; set; }
+    public int MaintenanceRequestId { get; set; }
+    public MaintenanceRequest MaintenanceRequest { get; set; } = null!;
+    public string Url { get; set; } = string.Empty;
+    public MaintenancePhotoStage Stage { get; set; }
+    public string? UploadedById { get; set; }
+    public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Một lần đổi trạng thái (hoặc giao việc). FromStatus null = lúc tạo yêu cầu.</summary>
+public class MaintenanceStatusChange
+{
+    public int Id { get; set; }
+    public int MaintenanceRequestId { get; set; }
+    public MaintenanceRequest MaintenanceRequest { get; set; } = null!;
+    public MaintenanceStatus? FromStatus { get; set; }
+    public MaintenanceStatus ToStatus { get; set; }
+    public string? ChangedById { get; set; } // null = hệ thống (AI điều phối)
+    public AppUser? ChangedBy { get; set; }
+    public DateTime ChangedAt { get; set; } = DateTime.UtcNow;
+    public string? Note { get; set; }
+}
+
+/// <summary>Thời hạn theo mức ưu tiên. Giá trị seed là giả định của nhóm, quản trị chỉnh trong DB.</summary>
+public class SlaPolicy
+{
+    public MaintenancePriority Priority { get; set; }
+    public int ResponseMinutes { get; set; }
+    public int ResolveMinutes { get; set; }
+
+    // Giả định của nhóm (chưa xác minh tại đơn vị thực tế): khẩn cấp 15 phút / 2 giờ, cao 30 phút / 8 giờ,
+    // trung bình 2 giờ / 24 giờ, thấp 12 giờ / 3 ngày.
+    public static readonly SlaPolicy[] Defaults =
+    {
+        new() { Priority = MaintenancePriority.Urgent, ResponseMinutes = 15, ResolveMinutes = 120 },
+        new() { Priority = MaintenancePriority.High, ResponseMinutes = 30, ResolveMinutes = 480 },
+        new() { Priority = MaintenancePriority.Medium, ResponseMinutes = 120, ResolveMinutes = 1440 },
+        new() { Priority = MaintenancePriority.Low, ResponseMinutes = 720, ResolveMinutes = 4320 },
+    };
 }

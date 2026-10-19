@@ -1,0 +1,45 @@
+@model List<MaintenanceRequest>
+@{
+    var done = (bool)ViewBag.Done;
+    ViewData["Title"] = done ? "Việc đã xong" : "Việc đang làm";
+    var now = DateTime.UtcNow;
+    string PrioPill(MaintenancePriority p) => p switch
+    {
+        MaintenancePriority.Urgent => "pill pill-danger",
+        MaintenancePriority.High => "pill pill-warning",
+        MaintenancePriority.Medium => "pill pill-info",
+        _ => "pill pill-neutral"
+    };
+}
+
+<section class="page-header">
+    <div>
+        <h1>@ViewData["Title"]</h1>
+        <p class="subtitle">@Model.Count yêu cầu được giao cho bạn@(done ? "" : " · khẩn cấp và gần hạn ở trên cùng")</p>
+    </div>
+</section>
+
+<div class="card">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Yêu cầu</th><th>Nơi xảy ra</th><th>Mức độ</th><th>Hạn</th><th>Trạng thái</th></tr></thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="5"><div class="empty-state"><span class="material-symbols-outlined">task_alt</span><h3>@(done ? "Chưa có việc đã xong" : "Không có việc nào đang chờ bạn")</h3></div></td></tr>
+            }
+            @foreach (var r in Model)
+            {
+                var overdue = r.DueAt != null && r.DueAt < now && MaintenanceRequest.ActiveStatuses.Contains(r.Status);
+                <tr data-href="@Url.Action("Details", new { id = r.Id })" style="cursor:pointer;" onclick="location.href=this.dataset.href">
+                    <td><span class="row-title">@r.RequestNumber</span><div class="row-meta">@r.Title</div></td>
+                    <td>@r.PlaceLabel<div class="row-meta">@((r.Apartment?.Building ?? r.CommonBuilding)?.Name)</div></td>
+                    <td><span class="@PrioPill(r.Priority)">@r.Priority.Vi()</span></td>
+                    <td class="no-wrap" style="@(overdue ? "color:var(--admin-danger);font-weight:600;" : "")">@(r.DueAt?.ToLocalTime().ToString("HH:mm dd/MM") ?? "—")</td>
+                    <td>@r.Status.Vi()</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

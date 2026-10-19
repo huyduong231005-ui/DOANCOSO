@@ -101,6 +101,7 @@ builder.Services.AddScoped<t.Infrastructure.Payments.VietQrService>();
 builder.Services.AddScoped<t.Infrastructure.Ai.MaintenanceTriageService>();
 builder.Services.AddScoped<InvoicePdfGenerator>();
 builder.Services.AddScoped<t.Infrastructure.Maintenance.MaintenanceDispatcher>();
+builder.Services.AddScoped<t.Infrastructure.Maintenance.MaintenanceWorkflow>();
 builder.Services.AddScoped<t.Infrastructure.Residents.ResidentInvites>();
 // Chưa cấu hình đủ Smtp:Host và Smtp:Password thì email chỉ ghi log và lưu vào wwwroot/dev-emails.
 if (string.IsNullOrWhiteSpace(builder.Configuration["Smtp:Host"]) || string.IsNullOrWhiteSpace(builder.Configuration["Smtp:Password"]))

@@ -6,39 +6,51 @@ using t.Areas.Admin.Models;
 using t.Data;
 using t.Infrastructure.Billing;
 using t.Infrastructure.Localization;
+using t.Infrastructure.Maintenance;
 using t.Models.Entities;
 
 namespace t.Areas.Admin.Controllers;
 
 public class MaintenanceController : AdminBaseController
 {
+    private static readonly string[] TechnicianRoles =
+    {
+        SeedData.RoleElectrician, SeedData.RolePlumber, SeedData.RoleAcTechnician, SeedData.RoleCarpenter, SeedData.RoleGlazier
+    };
+
     private readonly UserManager<AppUser> _userManager;
     private readonly InvoiceGenerator _invoiceGen;
+    private readonly MaintenanceWorkflow _workflow;
 
-    public MaintenanceController(AppDbContext db, UserManager<AppUser> userManager, InvoiceGenerator invoiceGen) : base(db)
+    public MaintenanceController(AppDbContext db, UserManager<AppUser> userManager, InvoiceGenerator invoiceGen,
+        MaintenanceWorkflow workflow) : base(db)
     {
         _userManager = userManager;
         _invoiceGen = invoiceGen;
+        _workflow = workflow;
     }
 
-    public async Task<IActionResult> Index(string? q, MaintenanceStatus? status, MaintenancePriority? priority, MaintenanceCategory? category, int? buildingId, int page = 1)
+    private string? Me => User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    public async Task<IActionResult> Index(string? q, MaintenanceStatus? status, MaintenancePriority? priority,
+        MaintenanceCategory? category, int? buildingId, bool overdue = false, int page = 1)
     {
         SetActiveNav("maintenance");
         SetBreadcrumb(("Bảo trì / Sự cố", null));
 
         const int pageSize = 25;
-        var query = Db.MaintenanceRequests
-            .Include(r => r.Apartment).ThenInclude(a => a.Building)
-            .Include(r => r.Reporter)
-            .Include(r => r.AssignedTo)
-            .AsQueryable();
+        var now = DateTime.UtcNow;
+        var query = Db.MaintenanceRequests.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(q))
-            query = query.Where(r => r.RequestNumber.Contains(q) || r.Title.Contains(q) || r.Description.Contains(q) || r.Apartment.UnitCode.Contains(q));
+            query = query.Where(r => r.RequestNumber.Contains(q) || r.Title.Contains(q) || r.Description.Contains(q)
+                || (r.Apartment != null && r.Apartment.UnitCode.Contains(q)) || (r.Location != null && r.Location.Contains(q)));
         if (status.HasValue) query = query.Where(r => r.Status == status.Value);
         if (priority.HasValue) query = query.Where(r => r.Priority == priority.Value);
         if (category.HasValue) query = query.Where(r => r.Category == category.Value);
-        if (buildingId.HasValue) query = query.Where(r => r.Apartment.BuildingId == buildingId.Value);
+        if (buildingId.HasValue)
+            query = query.Where(r => (r.Apartment != null && r.Apartment.BuildingId == buildingId.Value) || r.CommonBuildingId == buildingId.Value);
+        if (overdue) query = query.Where(MaintenanceWorkflow.IsOverdue(now));
 
         var total = await query.CountAsync();
         var rows = await query
@@ -48,36 +60,32 @@ public class MaintenanceController : AdminBaseController
             {
                 Id = r.Id, RequestNumber = r.RequestNumber, Title = r.Title,
                 ApartmentId = r.ApartmentId,
-                UnitCode = r.Apartment.UnitCode,
-                BuildingName = r.Apartment.Building.Name,
+                UnitCode = r.Apartment != null ? r.Apartment.UnitCode : null,
+                Location = r.Location,
+                BuildingName = r.Apartment != null ? r.Apartment.Building.Name : r.CommonBuilding != null ? r.CommonBuilding.Name : null,
                 ReporterName = r.Reporter != null ? r.Reporter.FullName : null,
                 AssignedToName = r.AssignedTo != null ? r.AssignedTo.FullName : null,
                 Category = r.Category, Priority = r.Priority, Status = r.Status,
-                ReportedAt = r.ReportedAt, ResolvedAt = r.ResolvedAt
+                ReportedAt = r.ReportedAt, ResolvedAt = r.ResolvedAt, DueAt = r.DueAt
             }).ToListAsync();
 
         ViewBag.Q = q; ViewBag.Status = status; ViewBag.Priority = priority;
-        ViewBag.Category = category; ViewBag.BuildingId = buildingId;
-        ViewBag.Buildings = await Db.Buildings.OrderBy(b => b.Name).ToListAsync();
+        ViewBag.Category = category; ViewBag.BuildingId = buildingId; ViewBag.Overdue = overdue;
+        ViewBag.Buildings = await Db.Buildings.AsNoTracking().OrderBy(b => b.Name).ToListAsync();
         ViewBag.Pager = new PageInfo
         {
             Page = page, PageSize = pageSize, TotalCount = total,
-            Url = pp => Url.Action(nameof(Index), new { q, status, priority, category, buildingId, page = pp }) ?? "#"
+            Url = pp => Url.Action(nameof(Index), new { q, status, priority, category, buildingId, overdue, page = pp }) ?? "#"
         };
 
         var counts = await Db.MaintenanceRequests
             .GroupBy(r => r.Status)
             .Select(g => new { g.Key, Count = g.Count() })
-            .ToListAsync();
-        ViewBag.OpenCount = counts.FirstOrDefault(c => c.Key == MaintenanceStatus.Open)?.Count ?? 0;
-        ViewBag.AckCount = counts.FirstOrDefault(c => c.Key == MaintenanceStatus.Acknowledged)?.Count ?? 0;
-        ViewBag.InProgressCount = counts.FirstOrDefault(c => c.Key == MaintenanceStatus.InProgress)?.Count ?? 0;
-        ViewBag.ResolvedCount = counts.FirstOrDefault(c => c.Key == MaintenanceStatus.Resolved)?.Count ?? 0;
+            .ToDictionaryAsync(x => x.Key, x => x.Count);
+        ViewBag.StatusCounts = counts;
+        ViewBag.OverdueCount = await Db.MaintenanceRequests.CountAsync(MaintenanceWorkflow.IsOverdue(now));
         ViewBag.UrgentCount = await Db.MaintenanceRequests
-            .CountAsync(r => r.Priority == MaintenancePriority.Urgent
-                          && r.Status != MaintenanceStatus.Closed
-                          && r.Status != MaintenanceStatus.Resolved
-                          && r.Status != MaintenanceStatus.Rejected);
+            .CountAsync(r => r.Priority == MaintenancePriority.Urgent && MaintenanceRequest.ActiveStatuses.Contains(r.Status));
 
         return View(rows);
     }
@@ -87,16 +95,16 @@ public class MaintenanceController : AdminBaseController
         if (string.IsNullOrWhiteSpace(q)) return Json(Array.Empty<object>());
         q = q.Trim();
         var raw = await Db.MaintenanceRequests
-            .Include(r => r.Apartment)
-            .Where(r => r.RequestNumber.Contains(q) || r.Title.Contains(q) || r.Description.Contains(q) || r.Apartment.UnitCode.Contains(q))
+            .Where(r => r.RequestNumber.Contains(q) || r.Title.Contains(q) || r.Description.Contains(q)
+                || (r.Apartment != null && r.Apartment.UnitCode.Contains(q)))
             .OrderByDescending(r => r.ReportedAt)
             .Take(limit)
-            .Select(r => new { r.Id, r.RequestNumber, r.Title, UnitTitle = r.Apartment.UnitCode, r.Priority, r.Status })
+            .Select(r => new { r.Id, r.RequestNumber, r.Title, Place = r.Apartment != null ? r.Apartment.UnitCode : r.Location, r.Priority, r.Status })
             .ToListAsync();
         return Json(raw.Select(r => new
         {
             title = r.RequestNumber + " · " + r.Title,
-            subtitle = r.UnitTitle + " · " + r.Priority.Vi() + " · " + r.Status.Vi(),
+            subtitle = r.Place + " · " + r.Priority.Vi() + " · " + r.Status.Vi(),
             url = Url.Action(nameof(Details), new { id = r.Id }) ?? "#",
             icon = "build"
         }));
@@ -106,17 +114,19 @@ public class MaintenanceController : AdminBaseController
     {
         SetActiveNav("maintenance");
         var r = await Db.MaintenanceRequests
-            .Include(x => x.Apartment).ThenInclude(a => a.Building)
-            .Include(x => x.Apartment).ThenInclude(a => a.Residents)
+            .Include(x => x.Apartment).ThenInclude(a => a!.Building)
+            .Include(x => x.Apartment).ThenInclude(a => a!.Residents)
+            .Include(x => x.CommonBuilding)
             .Include(x => x.Reporter).Include(x => x.AssignedTo)
+            .Include(x => x.Photos)
+            .Include(x => x.History).ThenInclude(h => h.ChangedBy)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(x => x.Id == id);
         if (r == null) return NotFound();
         SetBreadcrumb(("Bảo trì", Url.Action(nameof(Index))), (r.RequestNumber, null));
 
-        ViewBag.Staff = await _userManager.Users
-            .OrderBy(u => u.FullName)
-            .Select(u => new HostOption { Id = u.Id, Label = u.FullName + " · " + u.Email })
-            .ToListAsync();
+        ViewBag.Staff = await StaffOptionsAsync();
+        ViewBag.NextStatuses = MaintenanceWorkflow.NextStatuses(r, WorkflowActor.Manager, Me);
         return View(r);
     }
 
@@ -127,7 +137,7 @@ public class MaintenanceController : AdminBaseController
         var vm = new MaintenanceEditVm
         {
             RequestNumber = await BillingNumberGenerator.NextMaintenanceNumberAsync(Db),
-            ApartmentId = apartmentId ?? 0
+            ApartmentId = apartmentId
         };
         await PopulateLookupsAsync(vm);
         return View("Edit", vm);
@@ -136,70 +146,64 @@ public class MaintenanceController : AdminBaseController
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(MaintenanceEditVm input)
     {
+        // Đúng một nơi xảy ra: căn hộ, hoặc toà + vị trí khu vực chung (khớp CK_YeuCauBaoTri_NoiXayRa).
+        var isCommon = input.ApartmentId is null or 0;
+        if (isCommon && (input.CommonBuildingId is null or 0 || string.IsNullOrWhiteSpace(input.Location)))
+            ModelState.AddModelError(nameof(input.ApartmentId), "Chọn căn hộ, hoặc chọn toà và ghi vị trí khu vực chung.");
         if (!ModelState.IsValid)
         {
             await PopulateLookupsAsync(input);
             return View(input);
         }
-        if (input.ApartmentId == 0)
-        {
-            ModelState.AddModelError(nameof(input.ApartmentId), "Chọn căn hộ.");
-            await PopulateLookupsAsync(input);
-            return View(input);
-        }
 
-        MaintenanceRequest req;
-        bool isNew = input.Id == 0;
-        if (isNew)
+        var req = new MaintenanceRequest
         {
-            req = new MaintenanceRequest
-            {
-                RequestNumber = string.IsNullOrWhiteSpace(input.RequestNumber)
-                    ? await BillingNumberGenerator.NextMaintenanceNumberAsync(Db)
-                    : input.RequestNumber.Trim(),
-                ReportedAt = DateTime.UtcNow,
-                Status = MaintenanceStatus.Open
-            };
-            Db.MaintenanceRequests.Add(req);
-        }
-        else
-        {
-            req = await Db.MaintenanceRequests.FindAsync(input.Id) ?? throw new InvalidOperationException();
-        }
-
-        req.ApartmentId = input.ApartmentId;
-        req.ReporterId = input.ReporterId ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
-        req.Title = input.Title;
-        req.Description = input.Description;
-        req.Category = input.Category;
-        req.Priority = input.Priority;
-        req.PhotoUrls = input.PhotoUrls;
-        req.EstimatedCost = input.EstimatedCost;
+            RequestNumber = string.IsNullOrWhiteSpace(input.RequestNumber)
+                ? await BillingNumberGenerator.NextMaintenanceNumberAsync(Db)
+                : input.RequestNumber.Trim(),
+            ReportedAt = DateTime.UtcNow,
+            Status = MaintenanceStatus.Open,
+            ApartmentId = isCommon ? null : input.ApartmentId,
+            CommonBuildingId = isCommon ? input.CommonBuildingId : null,
+            Location = isCommon ? input.Location!.Trim() : null,
+            ReporterId = input.ReporterId ?? Me,
+            Title = input.Title,
+            Description = input.Description,
+            Category = input.Category,
+            Priority = input.Priority,
+            EstimatedCost = input.EstimatedCost,
+        };
+        req.Photos.AddRange(MaintenanceWorkflow.PhotosFrom(input.PhotoUrls, MaintenancePhotoStage.Report, Me));
+        await _workflow.InitializeNewAsync(req, Me);
+        Db.MaintenanceRequests.Add(req);
 
         try { await Db.SaveChangesAsync(); }
-        catch (DbUpdateException ex) when (isNew && BillingNumberGenerator.IsUniqueConstraintError(ex))
+        catch (DbUpdateException ex) when (BillingNumberGenerator.IsUniqueConstraintError(ex))
         {
             req.RequestNumber = await BillingNumberGenerator.NextMaintenanceNumberAsync(Db);
             await Db.SaveChangesAsync();
         }
-        TempData["Success"] = isNew ? "Đã tạo yêu cầu." : "Đã cập nhật.";
+        TempData["Success"] = "Đã tạo yêu cầu.";
         return RedirectToAction(nameof(Details), new { id = req.Id });
     }
 
+    /// <summary>Quản lý đổi mức ưu tiên / loại: hạn SLA tính lại từ lúc báo.</summary>
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Acknowledge(int id)
+    public async Task<IActionResult> Reclassify(int id, MaintenanceCategory category, MaintenancePriority priority)
     {
         var r = await Db.MaintenanceRequests.FindAsync(id);
         if (r == null) return NotFound();
-        if (r.Status is MaintenanceStatus.Closed or MaintenanceStatus.Rejected or MaintenanceStatus.Resolved)
+        if (!MaintenanceRequest.ActiveStatuses.Contains(r.Status))
         {
-            TempData["Danger"] = $"Không thể tiếp nhận yêu cầu ở trạng thái {r.Status.Vi()}.";
+            TempData["Danger"] = $"Yêu cầu đã {r.Status.Vi()}, không phân loại lại được.";
             return RedirectToAction(nameof(Details), new { id });
         }
-        r.Status = MaintenanceStatus.Acknowledged;
-        r.AcknowledgedAt = DateTime.UtcNow;
+        var changed = r.Priority != priority;
+        r.Category = category;
+        r.Priority = priority;
+        if (changed) await _workflow.RecalculateDueAsync(r);
         await Db.SaveChangesAsync();
-        TempData["Success"] = "Đã tiếp nhận.";
+        TempData["Success"] = changed ? "Đã phân loại lại, hạn xử lý được tính lại theo mức ưu tiên mới." : "Đã cập nhật loại sự cố.";
         return RedirectToAction(nameof(Details), new { id });
     }
 
@@ -208,13 +212,14 @@ public class MaintenanceController : AdminBaseController
     {
         var r = await Db.MaintenanceRequests.FindAsync(input.Id);
         if (r == null) return NotFound();
-        r.AssignedToId = input.AssignedToId;
-        if (r.Status == MaintenanceStatus.Open) r.Status = MaintenanceStatus.Acknowledged;
-        if (r.Status != MaintenanceStatus.Resolved && r.Status != MaintenanceStatus.Closed)
-            r.Status = MaintenanceStatus.InProgress;
-        r.AcknowledgedAt ??= DateTime.UtcNow;
-        await Db.SaveChangesAsync();
-        TempData["Success"] = "Đã phân công.";
+        var assignee = await Db.Users.FindAsync(input.AssignedToId);
+        if (assignee == null || !(await StaffOptionsAsync()).Any(s => s.Id == assignee.Id))
+        {
+            TempData["Danger"] = "Chỉ giao được cho kỹ thuật viên hoặc quản lý.";
+            return RedirectToAction(nameof(Details), new { id = input.Id });
+        }
+        var error = await _workflow.AssignAsync(r, assignee, WorkflowActor.Manager, Me, input.Note);
+        Flash(error, $"Đã giao cho {assignee.FullName}.");
         return RedirectToAction(nameof(Details), new { id = input.Id });
     }
 
@@ -223,37 +228,31 @@ public class MaintenanceController : AdminBaseController
     {
         var r = await Db.MaintenanceRequests.FirstOrDefaultAsync(x => x.Id == input.Id);
         if (r == null) return NotFound();
-        if (r.Status is MaintenanceStatus.Closed or MaintenanceStatus.Rejected)
+
+        r.ActualCost = input.ActualCost;
+        r.ChargeToTenant = input.ChargeToTenant && r.ApartmentId != null;
+        r.Photos.AddRange(MaintenanceWorkflow.PhotosFrom(input.PhotoUrls, MaintenancePhotoStage.Result, Me));
+        var error = await _workflow.TransitionAsync(r, MaintenanceStatus.Resolved, WorkflowActor.Manager, Me,
+            resolutionNote: input.ResolutionNote);
+        if (error != null)
         {
-            TempData["Danger"] = $"Không thể đánh dấu hoàn tất khi yêu cầu đã {r.Status.Vi()}.";
+            TempData["Danger"] = error;
             return RedirectToAction(nameof(Details), new { id = input.Id });
         }
 
-        r.ResolutionNote = input.ResolutionNote;
-        r.ActualCost = input.ActualCost;
-        r.ChargeToTenant = input.ChargeToTenant;
-        r.Status = MaintenanceStatus.Resolved;
-        r.ResolvedAt = DateTime.UtcNow;
-
-        await Db.SaveChangesAsync();
-
-        // ChargeToTenant → tạo hoá đơn phát sinh cho căn để cư dân có khoản phải trả.
-        if (input.ChargeToTenant && input.ActualCost > 0)
+        // Lỗi trong căn do cư dân → tạo hoá đơn phát sinh cho căn (sự cố khu vực chung không tính cho ai).
+        if (r.ChargeToTenant && input.ActualCost > 0)
         {
             var lines = new List<(string description, decimal qty, decimal unitPrice)>
             {
                 ($"Chi phí sửa chữa {r.RequestNumber} — {r.Title}", 1m, input.ActualCost)
             };
             var result = await _invoiceGen.GenerateOneOffInvoiceAsync(
-                r.ApartmentId,
-                $"Bảo trì {r.RequestNumber}",
-                lines,
-                t.Infrastructure.Time.VnTime.Today.AddDays(7),
-                note: input.ResolutionNote);
-            if (result.Success)
-                TempData["Success"] = $"Đã hoàn tất. Sinh hoá đơn truy đòi {result.InvoiceId}.";
-            else
-                TempData["Success"] = "Đã hoàn tất (không sinh được hoá đơn: " + result.Message + ").";
+                r.ApartmentId!.Value, $"Bảo trì {r.RequestNumber}", lines,
+                t.Infrastructure.Time.VnTime.Today.AddDays(7), note: input.ResolutionNote);
+            TempData["Success"] = result.Success
+                ? $"Đã hoàn tất. Sinh hoá đơn truy đòi {result.InvoiceId}."
+                : "Đã hoàn tất (không sinh được hoá đơn: " + result.Message + ").";
         }
         else
         {
@@ -262,74 +261,34 @@ public class MaintenanceController : AdminBaseController
         return RedirectToAction(nameof(Details), new { id = input.Id });
     }
 
+    /// <summary>Mọi chuyển trạng thái còn lại (tiếp nhận, bắt đầu, tạm dừng, đóng, từ chối, huỷ) đi qua workflow.</summary>
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Close(int id)
+    public async Task<IActionResult> ChangeStatus(int id, MaintenanceStatus status, string? note, string? returnUrl)
     {
         var r = await Db.MaintenanceRequests.FindAsync(id);
         if (r == null) return NotFound();
-        if (r.Status is MaintenanceStatus.Closed or MaintenanceStatus.Rejected)
-        {
-            TempData["Danger"] = $"Yêu cầu đã ở trạng thái {r.Status.Vi()}.";
-            return RedirectToAction(nameof(Details), new { id });
-        }
-        r.Status = MaintenanceStatus.Closed;
-        r.ClosedAt = DateTime.UtcNow;
-        await Db.SaveChangesAsync();
-        TempData["Success"] = "Đã đóng.";
-        return RedirectToAction(nameof(Details), new { id });
+        var error = await _workflow.TransitionAsync(r, status, WorkflowActor.Manager, Me, note);
+        Flash(error, $"Đã chuyển sang: {status.Vi()}.");
+        return RedirectToLocalOrDefault(returnUrl, Url.Action(nameof(Details), new { id })!);
     }
 
-    [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Reject(int id, string? reason)
+    private void Flash(string? error, string success)
     {
-        var r = await Db.MaintenanceRequests.FindAsync(id);
-        if (r == null) return NotFound();
-        if (r.Status is MaintenanceStatus.Closed or MaintenanceStatus.Resolved)
-        {
-            TempData["Danger"] = $"Yêu cầu đã {r.Status.Vi()} — không thể từ chối.";
-            return RedirectToAction(nameof(Details), new { id });
-        }
-        r.Status = MaintenanceStatus.Rejected;
-        r.ResolutionNote = string.IsNullOrWhiteSpace(reason) ? r.ResolutionNote : "Từ chối: " + reason;
-        r.ClosedAt = DateTime.UtcNow;
-        await Db.SaveChangesAsync();
-        TempData["Success"] = "Đã từ chối.";
-        return RedirectToAction(nameof(Details), new { id });
+        if (error == null) TempData["Success"] = success;
+        else TempData["Danger"] = error;
     }
 
-    [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> ChangeStatus(int id, MaintenanceStatus status, string? returnUrl)
+    /// <summary>Người nhận việc: kỹ thuật viên các chuyên môn và quản lý.</summary>
+    private Task<List<HostOption>> StaffOptionsAsync()
     {
-        var r = await Db.MaintenanceRequests.FindAsync(id);
-        if (r == null) return NotFound();
-
-        r.Status = status;
-        var now = DateTime.UtcNow;
-        switch (status)
-        {
-            case MaintenanceStatus.Acknowledged:
-                r.AcknowledgedAt ??= now;
-                break;
-            case MaintenanceStatus.InProgress:
-                r.AcknowledgedAt ??= now;
-                break;
-            case MaintenanceStatus.Resolved:
-                r.AcknowledgedAt ??= now;
-                r.ResolvedAt ??= now;
-                break;
-            case MaintenanceStatus.Closed:
-                r.AcknowledgedAt ??= now;
-                r.ResolvedAt ??= now;
-                r.ClosedAt ??= now;
-                break;
-            case MaintenanceStatus.Rejected:
-                r.ClosedAt ??= now;
-                break;
-        }
-
-        await Db.SaveChangesAsync();
-        TempData["Success"] = $"Đã cập nhật trạng thái: {status.Vi()}.";
-        return RedirectToLocalOrDefault(returnUrl, Url.Action(nameof(Index))!);
+        var roles = TechnicianRoles.Append(SeedData.RoleManager).ToArray();
+        return (from u in Db.Users
+                join ur in Db.UserRoles on u.Id equals ur.UserId
+                join ro in Db.Roles on ur.RoleId equals ro.Id
+                where roles.Contains(ro.Name!)
+                orderby u.FullName
+                select new HostOption { Id = u.Id, Label = u.FullName + " · " + ro.Name })
+            .ToListAsync();
     }
 
     private async Task PopulateLookupsAsync(MaintenanceEditVm vm)
@@ -337,6 +296,9 @@ public class MaintenanceController : AdminBaseController
         vm.Apartments = await Db.Apartments
             .OrderBy(a => a.Building.Code).ThenBy(a => a.UnitCode)
             .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + a.Building.Name })
+            .ToListAsync();
+        vm.Buildings = await Db.Buildings.OrderBy(b => b.Name)
+            .Select(b => new ApartmentOption { Id = b.Id, Label = b.Name })
             .ToListAsync();
         vm.Reporters = await _userManager.Users.OrderBy(u => u.FullName)
             .Select(u => new HostOption { Id = u.Id, Label = u.FullName + " · " + u.Email })

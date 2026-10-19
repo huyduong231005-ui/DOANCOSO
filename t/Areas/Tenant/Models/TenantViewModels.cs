@@ -44,6 +44,10 @@ public class CreateMaintenanceVm
     public MaintenanceCategory Category { get; set; } = MaintenanceCategory.Other;
     public MaintenancePriority Priority { get; set; } = MaintenancePriority.Medium;
     public string? PhotoUrls { get; set; }
+
+    /// <summary>Báo sự cố ở khu vực chung của toà mình đang ở (hành lang, thang máy…) thay vì trong căn.</summary>
+    public bool CommonArea { get; set; }
+    [StringLength(200)] public string? Location { get; set; }
 }
 
 public class SubmitPaymentVm

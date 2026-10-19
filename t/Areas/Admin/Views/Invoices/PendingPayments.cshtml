@@ -12,9 +12,11 @@
 }
 
 <section class="page-header">
-    <div><h1>Thanh toán chờ duyệt</h1><p class="subtitle">@Model.Count thanh toán · @groups.Count hoá đơn</p></div>
-    <div class="actions"><a class="btn btn-ghost" asp-action="Index">Tất cả hoá đơn</a></div>
+    <div><h1>Hoá đơn &amp; công nợ</h1><p class="subtitle">@Model.Count thanh toán chờ duyệt · @groups.Count hoá đơn</p></div>
 </section>
+
+@{ ViewBag.PendingPaymentsCount = Model.Count; }
+<partial name="_BillingTabs" />
 
 <div class="card">
     <div class="table-wrap">

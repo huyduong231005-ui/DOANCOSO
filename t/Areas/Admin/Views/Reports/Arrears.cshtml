@@ -9,11 +9,9 @@
 
 <section class="page-header">
     <div><h1>Công nợ phân tuổi</h1><p class="subtitle">@Model.Count hoá đơn còn dư · tổng @Money(grand) đ</p></div>
-    <div class="actions">
-        <a class="btn btn-ghost" asp-action="Occupancy">Tình trạng căn</a>
-        <a class="btn btn-ghost" asp-action="Finance">Tài chính</a>
-    </div>
 </section>
+
+<partial name="_ReportTabs" />
 
 <section class="kpi-grid">
     @for (int i = 0; i < labels.Length; i++)

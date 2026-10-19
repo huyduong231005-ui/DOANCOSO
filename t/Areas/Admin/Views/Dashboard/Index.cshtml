@@ -2,6 +2,9 @@
 @{
     ViewData["Title"] = "Bảng điều khiển";
     string Money(decimal v) => v.ToString("N0");
+    // Thẻ KPI hẹp: rút gọn thành "343,0 tr" / "1,53 tỷ", số đầy đủ để ở tooltip.
+    string Short(decimal v) => v >= 1_000_000_000m ? (v / 1_000_000_000m).ToString("0.##") + " tỷ"
+                             : v >= 1_000_000m ? (v / 1_000_000m).ToString("0.#") + " tr" : Money(v);
     var inv = System.Globalization.CultureInfo.InvariantCulture;
     decimal maxMonth = Model.RevenueByMonth.Count == 0 ? 0 : Model.RevenueByMonth.Max(r => r.Total);
     decimal sumBreakdown = Model.BreakdownManagement + Model.BreakdownUtilities + Model.BreakdownServices;
@@ -31,61 +34,41 @@
 </section>
 
 <section class="kpi-grid">
-    <div class="kpi-card">
-        <div class="kpi-icon"><span class="material-symbols-outlined">domain</span></div>
-        <div class="kpi-label">Toà nhà</div>
-        <div class="kpi-value">@Model.BuildingsTotal</div>
-        <div class="kpi-meta">@Model.UnitsTotal căn hộ</div>
-    </div>
-    <div class="kpi-card">
+    <a class="kpi-card" asp-controller="Projects" asp-action="Index">
         <div class="kpi-icon"><span class="material-symbols-outlined">door_front</span></div>
-        <div class="kpi-label">Có người ở</div>
+        <div class="kpi-label">Căn hộ có người ở</div>
         <div class="kpi-value">@Model.OccupancyRate%</div>
-        <div class="kpi-meta">@Model.UnitsOccupied đang ở · @Model.UnitsAvailable để trống</div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-icon"><span class="material-symbols-outlined">groups</span></div>
-        <div class="kpi-label">Cư dân</div>
-        <div class="kpi-value">@Model.ResidentsTotal</div>
-        <div class="kpi-meta">@Model.UsersTotal tài khoản trên hệ thống</div>
-    </div>
+        <div class="kpi-meta">@Model.UnitsOccupied/@Model.UnitsTotal căn · @Model.BuildingsTotal toà · @Model.ResidentsTotal cư dân</div>
+    </a>
     <div class="kpi-card">
         <div class="kpi-icon"><span class="material-symbols-outlined">payments</span></div>
         <div class="kpi-label">Đã thu tháng này</div>
-        <div class="kpi-value">@Money(Model.RevenueThisMonth)</div>
-        <div class="kpi-meta" style="color:@MoMColor;">
-            <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">@MoMArrow</span>
-            @(Model.MoMGrowthPct > 0 ? "+" : "")@Model.MoMGrowthPct% so với tháng trước
+        <div class="kpi-value" title="@Money(Model.RevenueThisMonth) đ">@Short(Model.RevenueThisMonth)</div>
+        <div class="kpi-meta">
+            <span style="color:@MoMColor;"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">@MoMArrow</span>@(Model.MoMGrowthPct > 0 ? "+" : "")@Model.MoMGrowthPct%</span>
+            · tỉ lệ thu @Model.CollectionRate%
         </div>
     </div>
-    <div class="kpi-card">
+    <a class="kpi-card" asp-controller="Payments" asp-action="Index">
         <div class="kpi-icon" style="color:var(--admin-danger);"><span class="material-symbols-outlined">money_off</span></div>
         <div class="kpi-label">Công nợ phải thu</div>
-        <div class="kpi-value">@Money(Model.ArrearsTotal)</div>
-        <div class="kpi-meta"><a asp-controller="Payments" asp-action="Index" style="text-decoration:underline;">@Model.InvoicesUnpaid hoá đơn chưa thu</a></div>
-    </div>
-    <div class="kpi-card">
+        <div class="kpi-value" title="@Money(Model.ArrearsTotal) đ">@Short(Model.ArrearsTotal)</div>
+        <div class="kpi-meta">@Model.InvoicesUnpaid hoá đơn chưa thu</div>
+    </a>
+    <a class="kpi-card" asp-controller="Maintenance" asp-action="Index">
         <div class="kpi-icon" style="color:var(--admin-warning);"><span class="material-symbols-outlined">build</span></div>
         <div class="kpi-label">Sự cố đang mở</div>
         <div class="kpi-value">@Model.MaintenanceOpen</div>
-        <div class="kpi-meta"><a asp-controller="Maintenance" asp-action="Index" style="text-decoration:underline;">Xem hàng đợi xử lý</a></div>
-    </div>
+        <div class="kpi-meta">Xem hàng đợi xử lý</div>
+    </a>
 </section>
 
-<section class="stat-strip">
-    <div class="stat"><div class="stat-label">Phí cố định dự kiến/tháng</div><div class="stat-value">@Money(Model.RevenueForecastNext)</div><div class="stat-sub">phí quản lý + gửi xe, chưa gồm nước</div></div>
-    <div class="stat"><div class="stat-label">Tỉ lệ thu</div><div class="stat-value">@Model.CollectionRate%</div><div class="stat-sub">đã thu / tổng đã phát hành</div></div>
-    <div class="stat"><div class="stat-label">Thu 30 ngày qua</div><div class="stat-value">@Money(Model.RevenueLast30Days)</div></div>
-    <div class="stat"><div class="stat-label">Trung bình/tháng</div><div class="stat-value">@Money(Model.RevenueAvgPerMonth)</div><div class="stat-sub">12 tháng gần nhất</div></div>
-    <div class="stat"><div class="stat-label">Tổng đã thu</div><div class="stat-value">@Money(Model.RevenueAllTime)</div></div>
-</section>
-
-<section style="display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:1.2rem;">
-    <div class="card">
-        <div class="card-header">
+<section style="display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:1.2rem;align-items:start;">
+    <details class="card fold" data-fold="revenue" open>
+        <summary class="card-header">
             <h2>Tiền thu theo tháng</h2>
-            <span class="text-muted">12 tháng gần nhất · VNĐ</span>
-        </div>
+            <span class="text-muted">TB @Short(Model.RevenueAvgPerMonth)/tháng · 12 tháng gần nhất</span>
+        </summary>
         <div class="card-body">
             @if (maxMonth == 0)
             {
@@ -96,10 +79,10 @@
                 <div style="position:relative;height:260px;"><canvas id="revenueMonthChart"></canvas></div>
             }
         </div>
-    </div>
+    </details>
 
-    <div class="card">
-        <div class="card-header"><h2>Cơ cấu khoản thu</h2></div>
+    <details class="card fold" data-fold="breakdown" open>
+        <summary class="card-header"><h2>Cơ cấu khoản thu</h2></summary>
         <div class="card-body">
             @if (sumBreakdown == 0)
             {
@@ -115,15 +98,15 @@
                 </div>
             }
         </div>
-    </div>
+    </details>
 </section>
 
-<section style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:1.2rem;">
-    <div class="card">
-        <div class="card-header">
+<section style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:1.2rem;align-items:start;">
+    <details class="card fold" data-fold="maintenance" open>
+        <summary class="card-header">
             <h2>Sự cố cần xử lý</h2>
             <a class="btn btn-ghost btn-sm" asp-controller="Maintenance" asp-action="Index">Tất cả →</a>
-        </div>
+        </summary>
         <div class="table-wrap">
             <table class="data-table">
                 <thead><tr><th>Yêu cầu</th><th>Căn</th><th>Ưu tiên</th><th>Trạng thái</th><th>Báo lúc</th></tr></thead>
@@ -145,10 +128,10 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </details>
 
-    <div class="card">
-        <div class="card-header"><h2>Công nợ theo toà</h2></div>
+    <details class="card fold" data-fold="debt-by-building" open>
+        <summary class="card-header"><h2>Công nợ theo toà</h2></summary>
         <div class="table-wrap">
             <table class="data-table">
                 <thead><tr><th>Toà</th><th class="num">Đang ở</th><th class="num">Còn phải thu</th></tr></thead>
@@ -165,37 +148,7 @@
                 </tbody>
             </table>
         </div>
-    </div>
-</section>
-
-<section class="card">
-    <div class="card-header">
-        <h2>Căn đóng phí nhiều nhất</h2>
-        <span class="text-muted">Cộng dồn từ trước đến nay</span>
-    </div>
-    <div class="table-wrap">
-        <table class="data-table">
-            <thead><tr><th>#</th><th>Căn</th><th>Toà</th><th class="num">Hoá đơn đã thu</th><th class="num">Tổng đã thu</th></tr></thead>
-            <tbody>
-            @if (!Model.TopApartments.Any())
-            {
-                <tr><td colspan="5"><div class="empty-state"><span class="material-symbols-outlined">door_front</span><h3>Chưa có dữ liệu thu</h3></div></td></tr>
-            }
-            @{ var rank = 0; }
-            @foreach (var a in Model.TopApartments)
-            {
-                rank++;
-                <tr data-href="@Url.Action("Details", "Apartments", new { id = a.Id })">
-                    <td><span class="pill @(rank == 1 ? "pill-accent" : "pill-neutral")">#@rank</span></td>
-                    <td><span class="row-title">@a.UnitCode</span></td>
-                    <td>@(a.BuildingName ?? "—")</td>
-                    <td class="num">@a.InvoiceCount</td>
-                    <td class="num"><strong>@Money(a.TotalCollected)</strong></td>
-                </tr>
-            }
-            </tbody>
-        </table>
-    </div>
+    </details>
 </section>
 
 @section Scripts {

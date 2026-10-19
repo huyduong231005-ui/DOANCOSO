@@ -76,6 +76,18 @@
         if (search) search.addEventListener('input', apply);
     });
 
+    // Thẻ thu gọn: nhớ mở/đóng theo loại trang (bỏ id cuối URL để mọi căn dùng chung một trạng thái).
+    document.querySelectorAll('details.fold[data-fold]').forEach(function (d) {
+        const key = 'fold:' + location.pathname.toLowerCase().replace(/\/\d+$/, '') + ':' + d.dataset.fold;
+        try {
+            const saved = localStorage.getItem(key);
+            if (saved !== null) d.open = saved === '1';
+        } catch (e) { /* trình duyệt chặn localStorage: giữ mặc định */ }
+        d.addEventListener('toggle', function () {
+            try { localStorage.setItem(key, d.open ? '1' : '0'); } catch (e) { /* bỏ qua */ }
+        });
+    });
+
     // Bảng ghi chỉ số: hiện tiêu thụ ngay khi nhập.
     document.querySelectorAll('[data-bulk-row]').forEach(function (row) {
         const input = row.querySelector('input[type="number"]');

@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using t.Areas.Admin.Models;
@@ -9,12 +8,7 @@ namespace t.Areas.Admin.Controllers;
 
 public class DashboardController : AdminBaseController
 {
-    private readonly UserManager<AppUser> _userManager;
-
-    public DashboardController(AppDbContext db, UserManager<AppUser> userManager) : base(db)
-    {
-        _userManager = userManager;
-    }
+    public DashboardController(AppDbContext db) : base(db) { }
 
     public async Task<IActionResult> Index()
     {
@@ -45,8 +39,7 @@ public class DashboardController : AdminBaseController
                 .Where(i => i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
                 .SumAsync(i => (decimal?)i.Balance) ?? 0m,
             InvoicesUnpaid = await Db.Invoices.CountAsync(i =>
-                i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue),
-            UsersTotal = await _userManager.Users.CountAsync()
+                i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
         };
 
         vm.RecentMaintenance = await Db.MaintenanceRequests
@@ -91,16 +84,9 @@ public class DashboardController : AdminBaseController
         // PHÂN TÍCH TÀI CHÍNH NÂNG CAO
         // ─────────────────────────────────────────────────────────────
         var startOfLastMonth = startOfMonth.AddMonths(-1);
-        var startOf30Days = now.AddDays(-30);
         var startOf12Months = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-11);
 
-        vm.RevenueAllTime = await Db.Payments
-            .Where(p => p.Status == PaymentStatus.Succeeded)
-            .SumAsync(p => (decimal?)p.Amount) ?? 0m;
 
-        vm.RevenueLast30Days = await Db.Payments
-            .Where(p => p.Status == PaymentStatus.Succeeded && p.PaidAt != null && p.PaidAt >= startOf30Days)
-            .SumAsync(p => (decimal?)p.Amount) ?? 0m;
 
         vm.RevenueLastMonth = await Db.Payments
             .Where(p => p.Status == PaymentStatus.Succeeded && p.PaidAt != null
@@ -132,13 +118,6 @@ public class DashboardController : AdminBaseController
         vm.RevenueAvgPerMonth = nonZeroMonths == 0 ? 0
             : Math.Round(vm.RevenueByMonth.Sum(r => r.Total) / nonZeroMonths, 0);
 
-        // Phí dự kiến/tháng: phí quản lý (diện tích × đơn giá toà) + phí cố định của các căn đã bàn giao.
-        var managementFee = await Db.Apartments
-            .Where(a => a.Occupancy != ApartmentOccupancy.NotHandedOver)
-            .SumAsync(a => (decimal?)((decimal)a.Area * a.Building.ManagementFeePerM2)) ?? 0m;
-        var fixedCharges = await Db.RecurringCharges.Where(c => c.IsActive)
-            .SumAsync(c => (decimal?)c.Amount) ?? 0m;
-        vm.RevenueForecastNext = Math.Round(managementFee + fixedCharges, 0);
 
         // Tỉ lệ thu thành công: AmountPaid / Total trên toàn bộ hoá đơn đã phát hành (loại trừ Draft/Cancelled)
         var invoiceTotals = await Db.Invoices
@@ -179,31 +158,6 @@ public class DashboardController : AdminBaseController
         vm.BreakdownManagement = Math.Round(sumMgmt, 0);
         vm.BreakdownUtilities = Math.Round(sumUtil, 0);
         vm.BreakdownServices = Math.Round(sumSvc, 0);
-
-        // Top 5 căn hộ doanh thu cao nhất (qua toàn bộ lịch sử)
-        vm.TopApartments = await Db.Invoices
-            .Where(i => i.AmountPaid > 0)
-            .GroupBy(i => i.ApartmentId)
-            .Select(g => new
-            {
-                ApartmentId = g.Key,
-                Collected = g.Sum(i => i.AmountPaid),
-                Count = g.Count()
-            })
-            .OrderByDescending(x => x.Collected)
-            .Take(5)
-            .Join(Db.Apartments.Include(a => a.Building),
-                  agg => agg.ApartmentId,
-                  apt => apt.Id,
-                  (agg, apt) => new TopApartmentRow
-                  {
-                      Id = apt.Id,
-                      UnitCode = apt.UnitCode,
-                      BuildingName = apt.Building.Name,
-                      TotalCollected = agg.Collected,
-                      InvoiceCount = agg.Count
-                  })
-            .ToListAsync();
 
         return View(vm);
     }

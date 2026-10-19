@@ -7,7 +7,6 @@
     var status = (InvoiceStatus?)ViewBag.Status;
     var kind = (InvoiceKind?)ViewBag.Kind;
     var month = (int?)ViewBag.Month;
-    var pendingCount = (int)(ViewBag.PendingPaymentsCount ?? 0);
     var sumTotal = (decimal)(ViewBag.SumTotal ?? 0m);
     var sumPaid = (decimal)(ViewBag.SumPaid ?? 0m);
     var sumBalance = (decimal)(ViewBag.SumBalance ?? 0m);
@@ -26,26 +25,20 @@
 
 <section class="page-header">
     <div>
-        <h1>Hoá đơn</h1>
-        <p class="subtitle">Danh sách <strong>toàn bộ</strong> hoá đơn (mọi trạng thái) · @pager.TotalCount hoá đơn</p>
+        <h1>Hoá đơn &amp; công nợ</h1>
+        <p class="summary-line">
+            <span><b>@pager.TotalCount</b> hoá đơn</span>
+            <span>Tổng <b>@Money(sumTotal)</b></span>
+            <span>Đã thu <b>@Money(sumPaid)</b></span>
+            <span class="debt">Còn nợ <b class="debt">@Money(sumBalance)</b></span>
+        </p>
     </div>
     <div class="actions">
-        <a class="btn btn-outline" asp-controller="Payments" asp-action="Index" title="Chỉ xem các hoá đơn còn nợ">
-            <span class="material-symbols-outlined">payments</span>Công nợ phải thu
-        </a>
-        <a class="btn btn-outline" asp-action="PendingPayments">
-            <span class="material-symbols-outlined">pending_actions</span>Chờ duyệt
-            @if (pendingCount > 0) { <span class="pill pill-warning" style="margin-left:.4rem;">@pendingCount</span> }
-        </a>
         <a class="btn btn-primary" asp-action="CreateOneOff"><span class="material-symbols-outlined">add</span>Tạo hoá đơn bổ sung</a>
     </div>
 </section>
 
-<section class="kpi-grid">
-    <div class="kpi-card"><div class="kpi-label">Tổng (kết quả lọc)</div><div class="kpi-value" style="font-size:1.3rem;">@Money(sumTotal)</div></div>
-    <div class="kpi-card"><div class="kpi-label">Đã thu</div><div class="kpi-value" style="font-size:1.3rem;color:var(--admin-success);">@Money(sumPaid)</div></div>
-    <div class="kpi-card"><div class="kpi-label">Còn nợ</div><div class="kpi-value" style="font-size:1.3rem;color:var(--admin-danger);">@Money(sumBalance)</div></div>
-</section>
+<partial name="_BillingTabs" />
 
 <form method="get" class="filter-bar">
     <input type="search" name="q" value="@q" placeholder="Số hoá đơn hoặc mã căn…"

@@ -14,6 +14,13 @@
         <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:16px;">location_city</span>Khu</span>
         <h1>@Model.Name</h1>
         <p class="subtitle">@Model.Address</p>
+        <p class="summary-line" style="margin-top:.45rem;">
+            <span><b>@buildings.Count</b> toà</span>
+            <span><b>@occupied/@units</b> căn có người ở (@(units == 0 ? 0 : Math.Round(occupied * 100.0 / units, 1))%)</span>
+            <span><b>@buildings.Sum(b => b.UnitsVacant)</b> để trống</span>
+            @if (buildings.Sum(b => b.Outstanding) is var debt && debt > 0) { <span class="debt">Công nợ <b class="debt">@Money(debt)</b></span> }
+            @if (buildings.Sum(b => b.OpenMaintenance) is var issues && issues > 0) { <span><b>@issues</b> sự cố đang xử lý</span> }
+        </p>
     </div>
     @if (isReal)
     {
@@ -29,16 +36,7 @@
     <p class="text-muted" style="margin:0;">@Model.ShortDescription</p>
 }
 
-<section class="stat-strip">
-    <div class="stat"><div class="stat-label">Toà nhà</div><div class="stat-value">@buildings.Count</div></div>
-    <div class="stat"><div class="stat-label">Căn hộ</div><div class="stat-value">@units</div></div>
-    <div class="stat"><div class="stat-label"><span class="dot" style="background:var(--st-occupied)"></span>Đang ở</div><div class="stat-value">@occupied</div><div class="stat-sub">@(units == 0 ? 0 : Math.Round(occupied * 100.0 / units, 1))%</div></div>
-    <div class="stat"><div class="stat-label"><span class="dot" style="background:#cbd5e1"></span>Để trống</div><div class="stat-value">@buildings.Sum(b => b.UnitsVacant)</div></div>
-    <div class="stat"><div class="stat-label"><span class="dot" style="background:var(--st-debt)"></span>Công nợ</div><div class="stat-value">@Money(buildings.Sum(b => b.Outstanding))</div><div class="stat-sub">đồng</div></div>
-    <div class="stat"><div class="stat-label">Sự cố đang xử lý</div><div class="stat-value">@buildings.Sum(b => b.OpenMaintenance)</div></div>
-</section>
-
-<div class="entity-grid">
+<div class="entity-grid fill">
     @foreach (var b in buildings)
     {
         var occPct = b.UnitsTotal == 0 ? 0 : b.UnitsOccupied * 100.0 / b.UnitsTotal;
@@ -70,7 +68,7 @@
             </div>
         </a>
     }
-    @if (isReal)
+    @if (isReal && !buildings.Any())
     {
         <a class="entity-card add-card" asp-controller="Buildings" asp-action="Create" asp-route-projectId="@Model.Id">
             <span class="material-symbols-outlined">domain_add</span>

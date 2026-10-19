@@ -1,6 +1,6 @@
 @{
     var nav = (ViewData["ActiveNav"] as string ?? string.Empty).ToLowerInvariant();
-    string Cls(string key) => nav == key ? "active" : string.Empty;
+    string Cls(params string[] keys) => keys.Contains(nav) ? "active" : string.Empty;
 }
 <aside class="admin-sidebar">
     <a class="brand" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
@@ -35,11 +35,8 @@
     <div>
         <div class="sidebar-section">Thu phí</div>
         <nav>
-            <a class="@Cls("invoices")" asp-area="Admin" asp-controller="Invoices" asp-action="Index">
-                <span class="material-symbols-outlined">receipt_long</span><span>Hoá đơn</span>
-            </a>
-            <a class="@Cls("payments")" asp-area="Admin" asp-controller="Payments" asp-action="Index">
-                <span class="material-symbols-outlined">payments</span><span>Công nợ</span>
+            <a class="@Cls("invoices", "payments")" asp-area="Admin" asp-controller="Invoices" asp-action="Index">
+                <span class="material-symbols-outlined">receipt_long</span><span>Hoá đơn &amp; công nợ</span>
             </a>
             <a class="@Cls("utilities")" asp-area="Admin" asp-controller="Utilities" asp-action="Index">
                 <span class="material-symbols-outlined">water_drop</span><span>Chỉ số điện / nước</span>
@@ -62,11 +59,8 @@
     <div>
         <div class="sidebar-section">Quản trị</div>
         <nav>
-            <a class="@Cls("users")" asp-area="Admin" asp-controller="Users" asp-action="Index">
-                <span class="material-symbols-outlined">manage_accounts</span><span>Tài khoản</span>
-            </a>
-            <a class="@Cls("roles")" asp-area="Admin" asp-controller="Roles" asp-action="Index">
-                <span class="material-symbols-outlined">admin_panel_settings</span><span>Vai trò &amp; quyền</span>
+            <a class="@Cls("users", "roles")" asp-area="Admin" asp-controller="Users" asp-action="Index">
+                <span class="material-symbols-outlined">manage_accounts</span><span>Tài khoản &amp; phân quyền</span>
             </a>
             <a class="@Cls("audit")" asp-area="Admin" asp-controller="AuditLogs" asp-action="Index">
                 <span class="material-symbols-outlined">history</span><span>Nhật ký hệ thống</span>

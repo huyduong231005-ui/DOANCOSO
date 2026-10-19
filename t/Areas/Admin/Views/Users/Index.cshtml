@@ -8,8 +8,10 @@
 }
 
 <section class="page-header">
-    <div><h1>Người dùng</h1><p class="subtitle">@pager.TotalCount tài khoản</p></div>
+    <div><h1>Tài khoản &amp; phân quyền</h1><p class="subtitle">@pager.TotalCount tài khoản</p></div>
 </section>
+
+<partial name="_AccountTabs" />
 
 <form method="get" class="filter-bar">
     <input type="search" name="q" value="@q" placeholder="Email, tên, SĐT..."

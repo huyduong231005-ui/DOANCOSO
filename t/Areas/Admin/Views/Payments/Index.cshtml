@@ -9,7 +9,6 @@
     var sumOutstanding = (decimal)(ViewBag.SumOutstanding ?? 0m);
     var sumOverdue = (decimal)(ViewBag.SumOverdue ?? 0m);
     var invoiceCount = (int)(ViewBag.InvoiceCount ?? 0);
-    var pendingCount = (int)(ViewBag.PendingPaymentsCount ?? 0);
     string Money(decimal v) => v.ToString("N0");
     string Pill(InvoiceStatus s) => s switch
     {
@@ -25,34 +24,16 @@
 
 <section class="page-header">
     <div>
-        <h1>Công nợ phải thu</h1>
-        <p class="subtitle">Chỉ hiển thị hoá đơn <strong>còn nợ</strong> (đã phát hành, chưa trả đủ) · @pager.TotalCount khoản cần thu</p>
-    </div>
-    <div class="actions">
-        <a class="btn btn-outline" asp-controller="Invoices" asp-action="Index" title="Xem tất cả hoá đơn (mọi trạng thái)">
-            <span class="material-symbols-outlined">receipt_long</span>Tất cả hoá đơn
-        </a>
-        <a class="btn btn-outline" asp-controller="Invoices" asp-action="PendingPayments">
-            <span class="material-symbols-outlined">pending_actions</span>Chờ duyệt
-            @if (pendingCount > 0) { <span class="pill pill-warning" style="margin-left:.4rem;">@pendingCount</span> }
-        </a>
+        <h1>Hoá đơn &amp; công nợ</h1>
+        <p class="summary-line">
+            <span><b>@invoiceCount</b> hoá đơn còn nợ</span>
+            <span class="debt">Tổng nợ <b class="debt">@Money(sumOutstanding)</b></span>
+            <span class="debt">Quá hạn <b class="debt">@Money(sumOverdue)</b></span>
+        </p>
     </div>
 </section>
 
-<section class="kpi-grid">
-    <div class="kpi-card">
-        <div class="kpi-label">Tổng còn nợ</div>
-        <div class="kpi-value" style="font-size:1.3rem;color:var(--admin-danger);">@Money(sumOutstanding)</div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-label">Quá hạn</div>
-        <div class="kpi-value" style="font-size:1.3rem;color:var(--admin-danger);">@Money(sumOverdue)</div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-label">Số hoá đơn</div>
-        <div class="kpi-value" style="font-size:1.3rem;">@invoiceCount</div>
-    </div>
-</section>
+<partial name="_BillingTabs" />
 
 <form method="get" class="filter-bar">
     <input type="search" name="q" value="@q" placeholder="Số hoá đơn hoặc mã căn…"

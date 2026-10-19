@@ -45,33 +45,21 @@
     <div class="actions"><a class="btn btn-primary" asp-action="Create"><span class="material-symbols-outlined">add</span>Tạo yêu cầu</a></div>
 </section>
 
-<section class="kpi-grid">
-    <div class="kpi-card">
-        <div class="kpi-icon"><span class="material-symbols-outlined">priority_high</span></div>
-        <div class="kpi-label">Khẩn cấp đang mở</div>
-        <div class="kpi-value">@ViewBag.UrgentCount</div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-icon"><span class="material-symbols-outlined">inbox</span></div>
-        <div class="kpi-label">Mới gửi</div>
-        <div class="kpi-value">@ViewBag.OpenCount</div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-icon"><span class="material-symbols-outlined">visibility</span></div>
-        <div class="kpi-label">Đã tiếp nhận</div>
-        <div class="kpi-value">@ViewBag.AckCount</div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-icon"><span class="material-symbols-outlined">build</span></div>
-        <div class="kpi-label">Đang xử lí</div>
-        <div class="kpi-value">@ViewBag.InProgressCount</div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-icon"><span class="material-symbols-outlined">task_alt</span></div>
-        <div class="kpi-label">Đã hoàn tất</div>
-        <div class="kpi-value">@ViewBag.ResolvedCount</div>
-    </div>
-</section>
+@* Đếm theo trạng thái, bấm để lọc nhanh (bấm lại chip đang chọn để bỏ lọc). *@
+<nav class="plan-chips" aria-label="Lọc theo trạng thái">
+    @foreach (var (s, n) in new[] {
+        (MaintenanceStatus.Open, (int)ViewBag.OpenCount),
+        (MaintenanceStatus.Acknowledged, (int)ViewBag.AckCount),
+        (MaintenanceStatus.InProgress, (int)ViewBag.InProgressCount),
+        (MaintenanceStatus.Resolved, (int)ViewBag.ResolvedCount) })
+    {
+        <a class="chip @(status == s ? "active" : "")" asp-action="Index" asp-route-status="@(status == s ? null : (int?)s)">@s.Vi() <span class="n">@n</span></a>
+    }
+    @if ((int)ViewBag.UrgentCount > 0)
+    {
+        <a class="chip" asp-action="Index" asp-route-priority="@((int)MaintenancePriority.Urgent)" style="border-color:var(--admin-danger);color:var(--admin-danger);">Khẩn cấp đang mở <span class="n">@ViewBag.UrgentCount</span></a>
+    }
+</nav>
 
 <form method="get" class="filter-bar">
     <input type="search" name="q" value="@q" placeholder="Mã, tiêu đề, mô tả..."

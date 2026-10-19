@@ -1,0 +1,14 @@
+@* Gộp 3 trang thu phí thành một mục: tất cả hoá đơn / còn nợ / thanh toán chờ duyệt. *@
+@{
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+    var pending = ViewBag.PendingPaymentsCount as int? ?? 0;
+    string Cls(string c, string a) => ctrl == c && action == a ? "active" : string.Empty;
+}
+<nav class="subnav">
+    <a class="@Cls("Invoices", "Index")" asp-controller="Invoices" asp-action="Index">Tất cả hoá đơn</a>
+    <a class="@Cls("Payments", "Index")" asp-controller="Payments" asp-action="Index">Còn nợ</a>
+    <a class="@Cls("Invoices", "PendingPayments")" asp-controller="Invoices" asp-action="PendingPayments">
+        Chờ duyệt @if (pending > 0) { <span class="pill pill-warning">@pending</span> }
+    </a>
+</nav>

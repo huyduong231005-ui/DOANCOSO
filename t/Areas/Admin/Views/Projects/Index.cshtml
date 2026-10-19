@@ -12,7 +12,7 @@
     <div>
         <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:16px;">location_city</span>Cấp 1 · Khu</span>
         <h1>Khu &amp; toà nhà</h1>
-        <p class="subtitle">@Model.Count khu · @Model.Sum(p => p.BuildingCount) toà · @totalUnits căn hộ · @Model.Sum(p => p.ResidentCount) cư dân đang ở</p>
+        <p class="subtitle">@Model.Count khu · @Model.Sum(p => p.BuildingCount) toà · @totalOccupied/@totalUnits căn có người ở · @Model.Sum(p => p.ResidentCount) cư dân</p>
     </div>
     <div class="actions">
         <form method="get" class="hstack">
@@ -30,7 +30,7 @@
     </div>
 }
 
-<div class="entity-grid">
+<div class="entity-grid fill">
     @foreach (var p in Model)
     {
         var occPct = p.ApartmentCount == 0 ? 0 : p.OccupiedCount * 100.0 / p.ApartmentCount;
@@ -67,15 +67,11 @@
             </div>
         </a>
     }
-    <a class="entity-card add-card" asp-action="Create">
-        <span class="material-symbols-outlined">add_business</span>
-        Thêm khu mới
-    </a>
+    @if (!Model.Any())
+    {
+        <a class="entity-card add-card" asp-action="Create">
+            <span class="material-symbols-outlined">add_business</span>
+            Thêm khu mới
+        </a>
+    }
 </div>
-
-@if (Model.Any())
-{
-    <div class="text-muted" style="font-size:13px;">
-        Toàn hệ thống: @totalOccupied/@totalUnits căn đang có người ở.
-    </div>
-}

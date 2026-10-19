@@ -1,0 +1,9 @@
+@* Ba báo cáo dùng chung một thanh tab thay cho các nút chuyển trang rời rạc. *@
+@{
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+}
+<nav class="subnav">
+    <a class="@(action == "Occupancy" ? "active" : "")" asp-controller="Reports" asp-action="Occupancy">Tình trạng căn</a>
+    <a class="@(action == "Finance" ? "active" : "")" asp-controller="Reports" asp-action="Finance">Tài chính</a>
+    <a class="@(action == "Arrears" ? "active" : "")" asp-controller="Reports" asp-action="Arrears">Tuổi nợ</a>
+</nav>

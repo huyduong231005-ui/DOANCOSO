@@ -24,14 +24,10 @@ public class DashboardViewModel
     public decimal RevenueThisMonth { get; set; }
     public decimal ArrearsTotal { get; set; }
     public int InvoicesUnpaid { get; set; }
-    public int UsersTotal { get; set; }
 
     // ── Phân tích tài chính nâng cao ──
-    public decimal RevenueAllTime { get; set; }            // Tổng doanh thu cộng dồn từ trước đến giờ
-    public decimal RevenueLast30Days { get; set; }         // Doanh thu 30 ngày gần nhất
     public decimal RevenueLastMonth { get; set; }          // Doanh thu tháng trước (để tính MoM)
     public decimal RevenueAvgPerMonth { get; set; }        // Trung bình doanh thu/tháng (12 tháng)
-    public decimal RevenueForecastNext { get; set; }       // Phí dự kiến/tháng (phí quản lý + phí cố định của các căn đã bàn giao)
     public double MoMGrowthPct { get; set; }               // % tăng/giảm so với tháng trước
     public double CollectionRate { get; set; }             // Tỉ lệ thu thành công = AmountPaid / Total
 
@@ -43,7 +39,6 @@ public class DashboardViewModel
     public List<TopBuildingRow> TopBuildings { get; set; } = new();
     public List<RevenueByDayRow> RevenueByDay { get; set; } = new();
     public List<RevenueByMonthRow> RevenueByMonth { get; set; } = new();
-    public List<TopApartmentRow> TopApartments { get; set; } = new();
 }
 
 public class RevenueByMonthRow
@@ -54,14 +49,6 @@ public class RevenueByMonthRow
     public string Label => $"{Month:00}/{Year}";
 }
 
-public class TopApartmentRow
-{
-    public int Id { get; set; }
-    public string UnitCode { get; set; } = string.Empty;
-    public string? BuildingName { get; set; }
-    public decimal TotalCollected { get; set; }
-    public int InvoiceCount { get; set; }
-}
 
 public class RecentMaintenanceRow
 {

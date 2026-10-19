@@ -4,9 +4,11 @@
 }
 
 <section class="page-header">
-    <div><h1>Vai trò &amp; quyền</h1><p class="subtitle">Ma trận phân quyền theo module</p></div>
+    <div><h1>Tài khoản &amp; phân quyền</h1><p class="subtitle">Ma trận phân quyền theo module</p></div>
     <div class="actions"><button form="role-matrix-form" type="submit" class="btn btn-primary"><span class="material-symbols-outlined">save</span>Lưu</button></div>
 </section>
+
+<partial name="_AccountTabs" />
 
 <form id="role-matrix-form" asp-action="Save" method="post">
     @Html.AntiForgeryToken()

@@ -34,8 +34,12 @@
         <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:16px;">domain</span>@(b.Project?.Name ?? "Chưa thuộc khu")</span>
         <h1>@b.Name <span class="text-muted" style="font-weight:500;font-size:1.1rem;">· mã @b.Code</span></h1>
         <p class="subtitle">
-            @Model.Floors.Count tầng · @total căn · Quản lý: @(b.Manager?.FullName ?? "chưa phân công")
-            · Phí quản lý @Money(b.ManagementFeePerM2) đ/m² · Chốt kỳ ngày @b.DefaultBillingDay
+            @Model.Floors.Count tầng · @total căn · @Model.ResidentCount cư dân · Quản lý: @(b.Manager?.FullName ?? "chưa phân công")
+        </p>
+        <p class="summary-line" style="margin-top:.35rem;">
+            <span><b>@occupied/@total</b> căn có người ở (@(total == 0 ? 0 : Math.Round(occupied * 100.0 / total, 1))%)</span>
+            <span>Phí quản lý <b>@Money(b.ManagementFeePerM2) đ/m²</b> · dự kiến <b>@Money(Model.MonthlyFeeEstimate)</b>/tháng</span>
+            <span>Chốt kỳ ngày <b>@b.DefaultBillingDay</b></span>
         </p>
     </div>
     <div class="actions">
@@ -49,16 +53,6 @@
         <a class="btn btn-outline" asp-controller="Apartments" asp-action="Create" asp-route-buildingId="@b.Id"><span class="material-symbols-outlined">add</span>Thêm căn</a>
         <a class="btn btn-ghost" asp-action="Edit" asp-route-id="@b.Id" title="Sửa toà"><span class="material-symbols-outlined">settings</span></a>
     </div>
-</section>
-
-<section class="stat-strip">
-    <div class="stat"><div class="stat-label">Tổng căn</div><div class="stat-value">@total</div></div>
-    <div class="stat"><div class="stat-label"><span class="dot" style="background:var(--st-occupied)"></span>Đang ở</div><div class="stat-value">@occupied</div><div class="stat-sub">@(total == 0 ? 0 : Math.Round(occupied * 100.0 / total, 1))% · @rented căn cho thuê</div></div>
-    <div class="stat"><div class="stat-label"><span class="dot" style="background:#cbd5e1"></span>Để trống</div><div class="stat-value">@Model.Count(ApartmentOccupancy.Vacant)</div></div>
-    <div class="stat"><div class="stat-label">Chưa bàn giao</div><div class="stat-value">@Model.Count(ApartmentOccupancy.NotHandedOver)</div></div>
-    <div class="stat"><div class="stat-label">Cư dân</div><div class="stat-value">@Model.ResidentCount</div></div>
-    <div class="stat"><div class="stat-label"><span class="dot" style="background:var(--st-debt)"></span>Căn nợ quá hạn</div><div class="stat-value">@debtCount</div></div>
-    <div class="stat"><div class="stat-label">Phí quản lý dự kiến/tháng</div><div class="stat-value">@Money(Model.MonthlyFeeEstimate)</div><div class="stat-sub">đồng</div></div>
 </section>
 
 <div class="card" data-plan-root>
@@ -121,7 +115,3 @@
         </div>
     }
 </div>
-
-<p class="text-muted" style="font-size:12.5px;margin:0;">
-    Bấm vào một căn để xem nhanh cư dân, công nợ, sự cố. Ctrl + bấm để mở trang chi tiết ở tab mới.
-</p>

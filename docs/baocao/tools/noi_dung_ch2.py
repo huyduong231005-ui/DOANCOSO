@@ -187,46 +187,14 @@ def blocks():
     b("MucUuTienId là khoá tự nhiên 0–3 (Thấp đến Khẩn cấp), cũng là thứ tự ưu tiên.")
     b("CuTru dùng khoá CuTruId vì một người có thể rời đi rồi quay lại cùng một căn.")
 
-    B.append(("h3", "2.1.3. Thông tin lưu hai nơi và cột không dùng"))
-    p("Bảng 2.3 liệt kê các thông tin từng lưu ở hai nơi và cách nhóm xử lý. Mọi thay đổi đã áp vào cơ sở dữ liệu "
-      "thật, kèm chuyển dữ liệu cũ.")
-    T("Bảng 2.3. Thông tin lưu hai nơi và cách xử lý", ["Thông tin", "Từng lưu ở", "Cách xử lý"], [
-        ["Họ tên, điện thoại, email của người ở", "CuDan và NguoiDung",
-         "Bỏ CuDan. Thông tin người chỉ ở NguoiDung; CuTru ghi ai ở căn nào."],
-        ["Toà của căn", "CanHo và Tang", "Bỏ CanHo.ToaNhaId; toà lấy qua tầng."],
-        ["Khu vực, địa chỉ của toà", "ToaNha và DuAn", "Bỏ ToaNha.KhuVucId, DiaChiToaNha; lấy từ dự án."],
-        ["Số tầng, nhãn tầng", "ToaNha.SoLuongTang, Tang.NhanTang",
-         "Bỏ cả hai. Số tầng là số dòng Tang; nhãn là “Tầng ” + SoTang."],
-        ["Căn đang có người ở", "CanHo.TinhTrangThue và CuTru",
-         "Suy ra từ CuTru. Cột đổi thành TinhTrangCanHo, chỉ còn: đã bàn giao, chưa bàn giao, đang sửa chữa."],
-        ["Số điện thoại", "Hai cột của NguoiDung", "Giữ một cột SoDienThoai."],
-        ["Mốc tiếp nhận, xử lý xong, đóng", "YeuCauBaoTri và LichSuYeuCau", "Bỏ ba cột mốc; lấy từ lịch sử."],
-        ["Tiêu thụ, đơn giá, thành tiền điện nước", "ChiSoDichVu và ChiTietHoaDon",
-         "ChiSoDichVu chỉ giữ chỉ số cũ, mới. Đơn giá lấy từ LoaiDichVu khi lập hoá đơn và chốt ở dòng hoá đơn."],
-        ["Chỉ số đã lên hoá đơn", "Cờ DaXuatHoaDon và dòng hoá đơn", "Bỏ cờ; dòng hoá đơn trỏ về chỉ số."],
-        ["Hoá đơn định kỳ", "LaHoaDonDinhKy và LoaiHoaDon", "Bỏ LaHoaDonDinhKy."],
-        ["Phí cố định", "LoaiDichVu.CheDoTinhPhi và PhiDinhKy", "Bỏ CheDoTinhPhi; phí cố định chỉ ở PhiDinhKy."],
-        ["Đơn vị tiền tệ", "HoaDon và ThanhToan", "Bỏ ở cả hai; hệ thống chỉ dùng đồng Việt Nam."],
-        ["Tổng tiền, đã trả, còn lại, thành tiền dòng", "HoaDon và ChiTietHoaDon",
-         "Giữ vì là số chốt trên chứng từ; CHECK buộc đúng công thức (mục 2.4.3 e)."],
-    ], [3.4, 3.4, 4.4])
-    p("Nhóm cũng bỏ các cột nghiệp vụ không dùng tới: ba cột Slug (đường dẫn web còn sót lại), MoTaQuyen (luôn "
-      "rỗng), BieuTuong (tên biểu tượng giao diện) và PhienBan (luôn rỗng, khoá lạc quan đã dùng cột hệ thống xmin). "
-      "Các cột có hậu tố MacDinh ở ToaNha và LoaiDichVu được bỏ hậu tố vì không có chỗ nào ghi đè các giá trị này.")
-
     # ------------------------------------------------------------------ 2.2
     B.append(("h2", "2.2. Mô hình thực thể kết hợp (ERD)"))
     B.append(("h3", "2.2.1. Ký hiệu sử dụng"))
     p("ERD vẽ ở mức khái niệm theo ký pháp thực thể – mối kết hợp. Hình chữ nhật là thực thể, thuộc tính khoá gạch "
       "chân. Hình thoi là mối kết hợp, đặt tên bằng động từ; thuộc tính của mối kết hợp ghi trong khung chú thích "
       "nối nét đứt vào hình thoi. Cặp (min, max) cạnh thực thể cho biết mỗi thể hiện của nó tham gia mối kết hợp ít "
-      "nhất và nhiều nhất bao nhiêu lần (Bảng 2.4). ERD không vẽ khoá ngoại.")
-    T("Bảng 2.4. Ký hiệu bản số trên ERD", ["Cặp (min,max)", "Ý nghĩa", "Khi chuyển sang lược đồ quan hệ"], [
-        ["(0,1)", "Không có hoặc có một", "Khoá ngoại ở thực thể này, cho phép NULL"],
-        ["(1,1)", "Có đúng một", "Khoá ngoại ở thực thể này, NOT NULL"],
-        ["(0,n)", "Không có hoặc có nhiều", "Thực thể ở phía 1 của quan hệ 1 – n"],
-        ["(1,n)", "Có ít nhất một", "Như (0,n); “ít nhất một” do ứng dụng đảm bảo"],
-    ], [2.4, 3.6, 5.2])
+      "nhất và nhiều nhất bao nhiêu lần: (0,1) không có hoặc một, (1,1) đúng một, (0,n) không có hoặc nhiều, (1,n) "
+      "ít nhất một. ERD không vẽ khoá ngoại.")
     B.append(("h3", "2.2.2. Sơ đồ ERD và các mối kết hợp"))
     p("ERD chia thành bốn hình theo nhóm nghiệp vụ, mỗi hình trên một trang ngang, kèm bảng các mối kết hợp. Thực "
       "thể đã mô tả ở hình khác chỉ ghi khoá chính.")
@@ -261,15 +229,7 @@ def blocks():
         if t == "CuTru" and ("rd", "CuTru") in B:
             continue
         B.append(("rd", t))
-    B.append(("h3", "2.3.3. Sơ đồ lược đồ quan hệ"))
-    p("Hình 2.5 đến Hình 2.8 là lược đồ quan hệ của 22 bảng, chia bốn nhóm như ERD. Cột đầu ghi PK, FK, U (duy nhất), "
-      "N (cho phép NULL); cột thứ ba là kiểu dữ liệu. Chân gà nằm ở bảng chứa khoá ngoại; đầu kia có hai vạch nếu "
-      "khoá ngoại bắt buộc, có vòng tròn nếu cho phép NULL.")
-    for i, cap in enumerate(["Lược đồ quan hệ cơ cấu chung cư và cư trú", "Lược đồ quan hệ tài khoản và phân quyền",
-                             "Lược đồ quan hệ sự cố và bảo trì", "Lược đồ quan hệ phân hệ thu phí"]):
-        spec = [sd.rd_co_cau, sd.rd_tai_khoan, sd.rd_su_co, sd.rd_thu_phi][i]()
-        B.append(("fig", f"Hình 2.{5 + i}. {cap}", IMG / (spec["name"] + ".png")))
-    B.append(("h3", "2.3.4. Lý do tạo các bảng trung gian và bảng tách riêng"))
+    B.append(("h3", "2.3.3. Lý do tạo các bảng trung gian và bảng tách riêng"))
     b("CuTru: mối kết hợp cư trú giữa người và căn. Đây là liên kết thường, không phải hợp thành: căn còn người cư "
       "trú thì không xoá được, xoá căn không xoá người.")
     b("NguoiDung_VaiTro: một người có thể giữ nhiều vai trò.")
@@ -289,8 +249,9 @@ def blocks():
       "mọi vế trái X đều là siêu khoá.")
     B.append(("h3", "2.4.2. Phụ thuộc hàm và kết luận dạng chuẩn"))
     p("Bảng 2.9 liệt kê khoá ứng viên của từng quan hệ, lấy từ khoá chính và các ràng buộc duy nhất. Sau khi bỏ các "
-      "thông tin lưu hai nơi (mục 2.1.3), vế trái của mọi phụ thuộc hàm không tầm thường đều là khoá ứng viên, nên "
-      "cả 22 quan hệ đạt BCNF, tức đạt 3NF. Khoá có dấu * chỉ duy nhất trên các dòng chưa xoá mềm.")
+      "thông tin lưu hai nơi (mục 2.4.3), vế trái của mọi phụ thuộc hàm không tầm thường đều là khoá ứng viên, nên "
+      "cả 22 quan hệ đạt BCNF, tức đạt 3NF. Bảng 2.9 chỉ liệt kê các quan hệ có thêm khoá tự nhiên; các quan hệ "
+      "còn lại chỉ có khoá chính làm khoá ứng viên. Khoá có dấu * chỉ duy nhất trên các dòng chưa xoá mềm.")
     fd_rows = []
     for t in TABLE_ORDER[:6] + ["CuTru", "VaiTro", "NguoiDung_VaiTro", "Quyen", "VaiTro_Quyen"] + TABLE_ORDER[9:]:
         ks = candidate_keys(t)
@@ -298,8 +259,9 @@ def blocks():
         fd = "Không có thuộc tính ngoài khoá" if not non else \
             f"{ks[0]} → {', '.join(non) if len(non) <= 4 else 'mọi thuộc tính còn lại'}"
         extra = [f"{k.rstrip(' *')} → {ks[0]}" for k in ks[1:]]
-        fd_rows.append([t, "; ".join(ks), "; ".join([fd] + extra), "BCNF"])
-    T("Bảng 2.9. Khoá ứng viên, phụ thuộc hàm và dạng chuẩn",
+        if len(ks) > 1:   # quan hệ chỉ có khoá chính: hiển nhiên, không liệt kê
+            fd_rows.append([t, "; ".join(ks), "; ".join([fd] + extra), "BCNF"])
+    T("Bảng 2.9. Quan hệ có khoá tự nhiên, phụ thuộc hàm và dạng chuẩn",
       ["Quan hệ", "Khoá ứng viên", "Phụ thuộc hàm không tầm thường", "Dạng chuẩn"], fd_rows, [2.8, 3.0, 4.4, 1.2])
     B.append(("h3", "2.4.3. Các quyết định chuẩn hoá"))
     p("a) Toà – tầng – căn. CanHo chỉ giữ TangId; nếu giữ thêm ToaNhaId sẽ có phụ thuộc bắc cầu CanHoId → TangId → "
@@ -330,9 +292,9 @@ def blocks():
     for t in TABLE_ORDER:
         rows = []
         for i, c in enumerate(cols(t), 1):
-            rows.append([str(i), c["name"], c["type"], constraint_text(c, t), DESC.get(f"{t}.{c['name']}", "")])
-        T(f"Bảng {{n}}. Cấu trúc bảng {t}", ["STT", "Thuộc tính", "Kiểu dữ liệu", "Ràng buộc", "Mô tả"], rows,
-          [0.9, 3.0, 2.2, 2.6, 3.5])
+            rows.append([c["name"], c["type"], constraint_text(c, t), DESC.get(f"{t}.{c['name']}", "")])
+        T(f"Bảng {{n}}. Cấu trúc bảng {t}", ["Thuộc tính", "Kiểu dữ liệu", "Ràng buộc", "Mô tả"], rows,
+          [3.2, 2.3, 2.7, 3.9])
     T("Bảng {n}. Cấu trúc hai bảng trung gian", ["Bảng", "Thuộc tính", "Kiểu dữ liệu", "Ràng buộc", "Mô tả"], [
         ["NguoiDung_VaiTro", "NguoiDungId", "text", "PK; FK → NguoiDung", "Người dùng"],
         ["NguoiDung_VaiTro", "VaiTroId", "text", "PK; FK → VaiTro", "Vai trò"],
@@ -355,28 +317,13 @@ def blocks():
          "Mỗi hoá đơn: tạm tính và số đã trả đang lưu, so với số tính lại từ dòng chi tiết và thanh toán. "
          "Ngày 24/11/2026: 0 hoá đơn lệch."],
     ], [3.4, 3.4, 4.4])
-    T("Bảng {n}. Cách tính KPI từ dữ liệu", ["KPI", "Cách tính", "Dữ liệu dùng"], [
-        ["Tỉ lệ hoàn tất đúng hạn SLA", "Số yêu cầu xử lý xong không muộn hơn HanXuLy / số yêu cầu đã xử lý xong "
-         "có hạn", "LichSuYeuCau, HanXuLy"],
-        ["MTTR (giờ)", "Trung bình từ NgayBaoCao đến lúc xử lý xong", "NgayBaoCao, LichSuYeuCau"],
-        ["Thời gian phản hồi trung bình (phút)", "Trung bình từ NgayBaoCao đến lần đầu tiếp nhận", "LichSuYeuCau"],
-        ["Tỉ lệ phản hồi đúng SLA", "Số yêu cầu tiếp nhận trong PhutPhanHoi / số đã tiếp nhận",
-         "LichSuYeuCau, MucUuTien"],
-        ["Số yêu cầu đang quá hạn", "Yêu cầu đang mở có HanXuLy trước hiện tại", "TrangThaiYeuCau, HanXuLy"],
-        ["CSAT", "Trung bình DiemDanhGia của các yêu cầu được đánh giá", "DiemDanhGia"],
-        ["Tỉ lệ việc tự giao được giữ", "Số yêu cầu hệ thống tự giao mà quản lý không giao lại / số yêu cầu tự giao",
-         "LichSuYeuCau"],
-        ["Tỉ lệ thu", "Tổng DaThanhToan / tổng TongTien của hoá đơn đã phát hành", "HoaDon"],
-        ["Công nợ phân tuổi", "Tổng ConLai theo số ngày trễ: chưa đến hạn, 1–30, 31–60, 61–90, trên 90", "HoaDon"],
-        ["Tỉ lệ lấp đầy", "Số căn có người đang ở / tổng số căn, theo toà", "CuTru, CanHo, Tang"],
-    ], [3.4, 4.6, 3.2])
-    p("Kỳ chưa có dữ liệu hiển thị “—” thay vì 0%. Các cột hay dùng để lọc có chỉ mục: TrangThaiYeuCau, MucUuTienId, "
+    p("Các KPI và công thức ở Bảng 1.10 được tính từ đúng các nguồn trên. Kỳ chưa có dữ liệu hiển thị “—” thay vì 0%. Các cột hay dùng để lọc có chỉ mục: TrangThaiYeuCau, MucUuTienId, "
       "NguoiPhuTrachId, HanXuLy, NgayBaoCao và cặp (YeuCauBaoTriId, ThoiDiemChuyen).")
 
     # ------------------------------------------------------------------ 2.8
     B.append(("h2", "2.8. Kết quả đạt được và việc tiếp theo"))
     n_rel = sum(len(erd_relations(s)) for s in erd_specs)
-    p(f"Hết tuần 6, thiết kế dữ liệu gồm 22 bảng, bốn ERD với {n_rel} mối kết hợp và bốn lược đồ quan hệ; cả 22 quan "
+    p(f"Hết tuần 6, thiết kế dữ liệu gồm 22 bảng, bốn ERD với {n_rel} mối kết hợp và lược đồ quan hệ của 22 bảng; cả 22 quan "
       "hệ đạt BCNF. Kèm theo là danh mục ràng buộc toàn vẹn có biểu diễn hình thức, ba trigger, một hàm, một khung "
       "nhìn và từ điển dữ liệu. Theo nhận xét của giảng viên, nhóm đã bỏ mọi thông tin lưu hai nơi và các cột không dùng, gộp cư dân "
       "vào người dùng, đặt lại tên trùng và áp thay đổi vào cơ sở dữ liệu thật. 116 ca kiểm thử tự động đều đạt, kể "
@@ -455,7 +402,7 @@ LB = [  # (mã, bối cảnh, nội dung, biểu diễn, cách đảm bảo, [(q
      "∀y, y.NguoiPhuTrachId ≠ NULL: ∃v ∈ NguoiDung_VaiTro: v.NguoiDungId = y.NguoiPhuTrachId ∧ v.VaiTroId ∈ "
      "{thợ, quản lý}", "Ứng dụng khi giao việc", [("YeuCauBaoTri", "+", "–", "+ (NguoiPhuTrachId)"),
                                                   ("NguoiDung_VaiTro", "–", "+", "+ (VaiTroId)")]),
-    ("LB03", "YeuCauBaoTri", "Trạng thái chỉ chuyển theo bảng chuyển trạng thái (Bảng 2.17); bắt đầu xử lý phải có "
+    ("LB03", "YeuCauBaoTri", "Trạng thái chỉ chuyển theo bảng chuyển trạng thái (Bảng 1.7); bắt đầu xử lý phải có "
      "người phụ trách.", "∀y cũ → y mới: (y.TrangThaiYeuCau, y'.TrangThaiYeuCau) ∈ Chuyển ∧ (y'.TrangThaiYeuCau = "
      "2 ⇒ y'.NguoiPhuTrachId ≠ NULL)", "Trigger TG1 và ứng dụng",
      [("YeuCauBaoTri", "–", "–", "+ (TrangThaiYeuCau)")]),
@@ -520,15 +467,15 @@ def rbtv_blocks():
     T = lambda cap, head, rows, w: B.append(("table", cap, head, rows, w))
     B.append(("h2", "2.5. Ràng buộc toàn vẹn"))
     B.append(("h3", "2.5.1. Phân loại và cách trình bày"))
-    p("Ràng buộc toàn vẹn chia năm loại: miền giá trị, liên thuộc tính, duy nhất, tham chiếu và liên bộ – liên quan hệ. Mỗi ràng buộc có bối cảnh (các quan hệ liên quan), nội dung, biểu diễn hình thức và tầm ảnh hưởng: thao tác Thêm (T), Xoá (X), Sửa (S) nào có thể làm vi phạm. Dấu + là phải kiểm tra, – là không ảnh hưởng, + (cột) là chỉ khi sửa các cột đó. Cột cài đặt ghi đúng tên ràng buộc trong cơ sở dữ liệu.")
+    p("Ràng buộc toàn vẹn chia năm loại: miền giá trị, liên thuộc tính, duy nhất, tham chiếu và liên bộ – liên quan hệ. Mỗi ràng buộc có bối cảnh (các quan hệ liên quan), nội dung, biểu diễn hình thức và tầm ảnh hưởng: thao tác Thêm (T), Xoá (X), Sửa (S) nào có thể làm vi phạm. Dấu + là phải kiểm tra, – là không ảnh hưởng, + (cột) là chỉ khi sửa các cột đó. Ràng buộc miền giá trị, liên thuộc tính và duy nhất chỉ có thể bị vi phạm khi Thêm hoặc Sửa trên chính quan hệ đó. Cột cài đặt ghi đúng tên ràng buộc trong cơ sở dữ liệu.")
     B.append(("h3", "2.5.2. Ràng buộc miền giá trị"))
     p("Mỗi ràng buộc giới hạn giá trị của một thuộc tính. Thêm và Sửa có thể vi phạm, Xoá thì không.")
-    T("Bảng 2.10. Ràng buộc miền giá trị", ["Mã", "Bối cảnh", "Nội dung", "Biểu diễn", "T/X/S", "Cài đặt"],
-      [[m, t, nd, bd, "+/–/+", ck] for m, t, nd, bd, ck in MG], [1.2, 1.6, 2.8, 3.3, 0.9, 1.8])
+    T("Bảng 2.10. Ràng buộc miền giá trị", ["Mã", "Bối cảnh", "Nội dung", "Biểu diễn", "Cài đặt"],
+      [[m, t, nd, bd, ck] for m, t, nd, bd, ck in MG], [1.2, 1.7, 3.1, 3.4, 2.2])
     B.append(("h3", "2.5.3. Ràng buộc liên thuộc tính"))
     p("Các ràng buộc này so sánh thuộc tính trong cùng một dòng nên khai báo được bằng CHECK. Công thức của các số chốt trên chứng từ (mục 2.4.3 e) nằm ở nhóm này.")
-    T("Bảng 2.11. Ràng buộc liên thuộc tính", ["Mã", "Bối cảnh", "Nội dung", "Biểu diễn", "T/X/S", "Cài đặt"],
-      [[m, t, nd, bd, "+/–/+", ck] for m, t, nd, bd, ck in TT], [1.2, 1.6, 2.8, 3.3, 0.9, 1.8])
+    T("Bảng 2.11. Ràng buộc liên thuộc tính", ["Mã", "Bối cảnh", "Nội dung", "Biểu diễn", "Cài đặt"],
+      [[m, t, nd, bd, ck] for m, t, nd, bd, ck in TT], [1.2, 1.7, 3.1, 3.4, 2.2])
     B.append(("h3", "2.5.4. Ràng buộc duy nhất"))
     dn = []
     i = 0
@@ -552,21 +499,22 @@ def rbtv_blocks():
             colsn = colsn.replace("NormalizedEmail", "Email")
             dn.append([f"DN{i:02d}", t, f"({colsn}) không trùng{cond}",
                        f"∀x, x' ∈ {t}, x ≠ x'{' (thoả điều kiện)' if cond else ''}: x.({colsn}) ≠ x'.({colsn})",
-                       "+/–/+", "UNIQUE có điều kiện" if u["where"] else "UNIQUE"])
+                       "UNIQUE có điều kiện" if u["where"] else "UNIQUE"])
     p("Khoá tự nhiên được khai báo duy nhất. Ràng buộc chỉ áp cho một phần dòng (đang ở, chưa huỷ, chưa xoá mềm) dùng chỉ mục duy nhất có điều kiện.")
-    T("Bảng 2.12. Ràng buộc duy nhất", ["Mã", "Bối cảnh", "Nội dung", "Biểu diễn", "T/X/S", "Cài đặt"], dn,
-      [1.2, 1.9, 2.9, 3.1, 0.9, 1.6])
+    T("Bảng 2.12. Ràng buộc duy nhất", ["Mã", "Bối cảnh", "Nội dung", "Biểu diễn", "Cài đặt"], dn,
+      [1.2, 2.0, 3.2, 3.2, 2.0])
     B.append(("h3", "2.5.5. Ràng buộc tham chiếu (khoá ngoại)"))
-    p("Mỗi khoá ngoại bảo đảm: ∀x ∈ Con, x.K ≠ NULL: ∃y ∈ Cha: y.PK = x.K. Thêm, Sửa khoá ngoại ở quan hệ con và Xoá ở quan hệ cha có thể vi phạm. Khi xoá dòng cha: CASCADE với bộ phận của cha (ảnh, lịch sử, dòng hoá đơn), SET NULL với tham chiếu tuỳ chọn tới người dùng, RESTRICT với phần còn lại. Ứng dụng dùng xoá mềm, nên đây là lớp bảo vệ khi xoá trực tiếp trong cơ sở dữ liệu.")
+    p("Mỗi khoá ngoại bảo đảm: ∀x ∈ Con, x.K ≠ NULL: ∃y ∈ Cha: y.PK = x.K. Thêm, Sửa khoá ngoại ở quan hệ con và Xoá ở quan hệ cha có thể vi phạm. Khi xoá dòng cha: CASCADE với bộ phận của cha (ảnh, lịch sử, dòng hoá đơn), SET NULL với tham chiếu tuỳ chọn tới người dùng, RESTRICT với phần còn lại. Ứng dụng dùng xoá mềm, nên đây là lớp bảo vệ khi xoá trực tiếp trong cơ sở dữ liệu. Bảng 2.13 chỉ liệt kê các khoá không dùng RESTRICT; các khoá còn lại chặn xoá và đã thể hiện ở lược đồ quan hệ, từ điển dữ liệu.")
     tc = []
     i = 0
     for t in TABLE_ORDER + ["NguoiDung_VaiTro", "VaiTro_Quyen"]:
         for c in S[t]["columns"]:
             if c["fk"]:
                 i += 1
-                tc.append([f"TC{i:02d}", f"{t}.{c['name']}", c["fk"], "Có" if c["null"] else "Không",
-                           c["on_delete"].replace("NO ACTION", "RESTRICT")])
-    T("Bảng 2.13. Ràng buộc tham chiếu và hành vi khi xoá dòng cha",
+                rule = c["on_delete"].replace("NO ACTION", "RESTRICT")
+                if rule != "RESTRICT":     # RESTRICT là mặc định, chỉ liệt kê ngoại lệ
+                    tc.append([f"TC{i:02d}", f"{t}.{c['name']}", c["fk"], "Có" if c["null"] else "Không", rule])
+    T("Bảng 2.13. Khoá ngoại không chặn xoá dòng cha",
       ["Mã", "Quan hệ con và khoá ngoại", "Quan hệ cha", "Cho phép NULL", "Khi xoá ở quan hệ cha"], tc,
       [1.0, 4.4, 2.4, 1.6, 2.2])
     B.append(("h3", "2.5.6. Ràng buộc liên bộ, liên quan hệ"))
@@ -577,7 +525,7 @@ def rbtv_blocks():
       [[m if j == 0 else "", r, tt, x, ss] for m, *_, rows in LB for j, (r, tt, x, ss) in enumerate(rows)],
       [1.0, 3.6, 1.1, 1.1, 4.4])
     B.append(("h3", "2.5.7. Trigger và hàm bảo vệ dữ liệu"))
-    p("Ba trigger và một hàm ở Bảng 2.16 chỉ kiểm tra rồi chấp nhận hoặc từ chối lệnh ghi, không tự ghi thêm dữ liệu; mỗi cái đã được thử bằng lệnh vi phạm cố ý. TG1 kiểm tra theo bảng chuyển trạng thái ở Bảng 2.17; ai được chuyển do ứng dụng xác định theo vai trò (Bảng 1.7).")
+    p("Ba trigger và một hàm ở Bảng 2.16 chỉ kiểm tra rồi chấp nhận hoặc từ chối lệnh ghi, không tự ghi thêm dữ liệu; mỗi cái đã được thử bằng lệnh vi phạm cố ý. TG1 kiểm tra theo bảng chuyển trạng thái ở Bảng 1.7; ai được chuyển do ứng dụng xác định theo vai trò (Bảng 1.7).")
     T("Bảng 2.16. Trigger và hàm ở tầng cơ sở dữ liệu",
       ["Mã", "Loại, đối tượng", "Điều kiện kiểm tra", "Khi vi phạm", "Ràng buộc"], [
           ["TG1", "Trigger BEFORE UPDATE OF TrangThaiYeuCau trên YeuCauBaoTri",
@@ -590,9 +538,4 @@ def rbtv_blocks():
           ["FN1", "Hàm fn_han_xu_ly(ngày báo, mức)", "Trả về ngày báo + PhutHoanTat của mức trong MucUuTien",
            "Không có", "LB05"],
       ], [1.1, 3.2, 3.5, 2.2, 1.3])
-    T("Bảng 2.17. Bảng chuyển trạng thái của yêu cầu sự cố", ["Trạng thái hiện tại", "Được chuyển sang"], [
-        ["Mới gửi", "Đã tiếp nhận; Từ chối; Đã huỷ"], ["Đã tiếp nhận", "Đang xử lý; Từ chối; Đã huỷ"],
-        ["Đang xử lý", "Tạm dừng; Đã xử lý"], ["Tạm dừng", "Đang xử lý"],
-        ["Đã xử lý", "Đã đóng; Đang xử lý (cư dân báo chưa khắc phục)"],
-        ["Đã đóng, Từ chối, Đã huỷ", "Không chuyển tiếp"]], [4.0, 7.2])
     return B

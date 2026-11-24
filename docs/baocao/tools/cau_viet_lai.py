@@ -104,10 +104,10 @@ CAU = [
      "Đến tuần 4, bộ mô hình thiết kế gồm: sơ đồ kiến trúc; sơ đồ use case tổng quát và năm sơ đồ use case chi tiết "
      "kèm đặc tả; ba sơ đồ hoạt động; sơ đồ trạng thái; hai sơ đồ lớp; bốn sơ đồ tuần tự. ERD và lược đồ quan hệ ở "
      "Chương 2."),
-    ("Bảng chuyển trạng thái của yêu cầu (Bảng 2.17) được kiểm tra ở mức logic trên 56 cặp trạng thái (từ, sang) "
+    ("Bảng chuyển trạng thái của yêu cầu (Bảng 1.7) được kiểm tra ở mức logic trên 56 cặp trạng thái (từ, sang) "
      "khác nhau: đúng 11 cặp được phép và 45 cặp bị chặn; việc bắt đầu xử lý khi chưa có người phụ trách hoặc hoàn "
      "tất khi chưa ghi kết quả cũng bị chặn.",
-     "Bảng chuyển trạng thái (Bảng 2.17) được kiểm tra trên đủ 56 cặp trạng thái (từ, sang): 11 cặp được phép, 45 "
+     "Bảng chuyển trạng thái (Bảng 1.7) được kiểm tra trên đủ 56 cặp trạng thái (từ, sang): 11 cặp được phép, 45 "
      "cặp bị chặn. Bắt đầu xử lý khi chưa có người phụ trách, hoặc hoàn tất khi chưa ghi kết quả, cũng bị chặn."),
     ("Bước kiểm tra của quy trình quyết định nhánh: vi phạm bảng chuyển trạng thái hoặc thiếu kết quả xử lý thì trả "
      "về thông báo lỗi và không lưu gì; hợp lệ thì ghi mốc giải quyết, kết quả và lịch sử trong cùng một giao dịch.",
@@ -184,4 +184,27 @@ CAU = [
      "Tuần 6: phân quyền chi tiết theo bảng VaiTro_Quyen. Mọi phân hệ chạy trọn nghiệp vụ trên CSDL của nhóm, kể cả "
      "sự cố khi không có AI. Ngoại lệ và ràng buộc được chặn ở máy chủ; hai người cùng thao tác không ghi đè nhau; "
      "yêu cầu quá hạn có thư cảnh báo cho quản lý; báo cáo khớp dữ liệu."),
+]
+
+
+# 25/11/2026: cắt gọn báo cáo và sửa chỗ còn sai so với CSDL mới (RaSoat_DoDai_BaoCao_20261125.md, mục A)
+CAU += [
+    ("Bảng 1.10 nêu công thức và nguồn dữ liệu; cách tính từ dữ liệu ở mục 2.7.",
+     "Bảng 1.10 nêu công thức và nguồn dữ liệu."),
+    ("CSAT (cách tính ở mục 2.7)", "CSAT (cách tính ở Bảng 1.10)"),
+    ("đúng như thiết kế ở mục 2.3.4", "đúng như thiết kế ở mục 2.3.3"),
+    (" Bảng 3.9 mô tả ý nghĩa của các thao tác trên sơ đồ lớp.", ""),
+    ("Kèm giao việc; ghi mốc tiếp nhận", "Kèm giao việc; ghi dòng lịch sử"),
+    ("NgayBaoCao, mốc giải quyết", "NgayBaoCao, LichSuYeuCau"),
+    ("Mốc tiếp nhận (từ lịch sử)", "LichSuYeuCau"),
+    ("Mốc giải quyết (từ lịch sử), HanXuLy", "LichSuYeuCau, HanXuLy"),
+    ("4. Hệ thống ghi mốc giải quyết, lưu lịch sử;", "4. Hệ thống lưu kết quả và dòng lịch sử;"),
+    ("chuyển Đã tiếp nhận, ghi mốc tiếp nhận và lịch sử;", "chuyển Đã tiếp nhận và ghi lịch sử;"),
+    ("UC06: Đã đóng, có mốc đóng và điểm đánh giá. UC06b: quay lại Đang xử lý, bỏ mốc giải quyết.",
+     "UC06: Đã đóng, có dòng lịch sử đóng và điểm đánh giá. UC06b: quay lại Đang xử lý, lý do ghi vào lịch sử."),
+    ("Trung bình DanhGia (1–5)", "Trung bình DiemDanhGia (1–5)"),
+    ("Khung nhìn công nợ hoá đơn", "HoaDon"),
+    ("với vai trò Manager", "với vai trò Quản lý"),
+    ("Mô hình trả về loại plumbing, mức medium, không nguy hiểm",
+     "Mô hình trả về loại Cấp/thoát nước, mức Trung bình, không nguy hiểm"),
 ]

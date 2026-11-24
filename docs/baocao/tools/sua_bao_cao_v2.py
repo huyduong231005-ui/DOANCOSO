@@ -332,7 +332,7 @@ REPL = [
     ("trong MucSla", "trong MucUuTien"),
     ("MucSla", "MucUuTien"),
     ("ràng buộc miền giá trị MG06", "ràng buộc miền giá trị MG05"),
-    ("Bảng 2.16", "Bảng 2.17"),
+    ("Bảng 2.16", "Bảng 1.7"),   # bảng chuyển trạng thái chỉ còn ở Chương 1
     ("mỗi nhóm một hình để vừa trang dọc", "mỗi nhóm một hình đặt trên trang ngang"),
     ("Mỗi nút quyết định có đúng một luồng vào", "Mỗi ô là một hành động cụ thể; trước mỗi nút quyết định là một "
      "hành động kiểm tra và nút quyết định ghi câu hỏi. Mỗi nút quyết định có đúng một luồng vào"),
@@ -345,6 +345,7 @@ REPL = [
 ]
 # Câu viết lại cho gọn (so khớp chữ đã qua các phép thay ở trên), rồi mới đổi tên bảng.
 from cau_viet_lai import CAU, TEN_MOI  # noqa: E402
+import gon_bao_cao  # noqa: E402
 REPL = REPL + CAU + TEN_MOI
 REWRITE = {  # đoạn bắt đầu bằng ... -> nội dung mới
     "Hình 1.6 là sơ đồ use case tổng quát.":
@@ -464,7 +465,10 @@ def table_after(cap_prefix):
 
 
 def fix_text():
+    ch2 = gon_bao_cao.ngoai_chuong2(body)       # Chương 2 do noi_dung_ch2 sinh: không áp phép thay chữ của nhóm
     for el in paras():
+        if el in ch2:
+            continue
         s = text(el)
         for k, v in REWRITE.items():
             if s.startswith(k) and style_of(el) in ("Noidung", "Gachdaudong"):
@@ -478,6 +482,8 @@ def fix_text():
                 set_text(el, new)
     for tbl in body.iter(qn("w:tbl")):
         for p in tbl.iter(qn("w:p")):
+            if p in ch2:
+                continue
             s = text(p)
             new = s
             for a, b in REPL:
@@ -493,23 +499,17 @@ def fix_text():
             set_text(tcs[2].find(qn("w:p")), BR_MECH[code])
         if code in BR_TEXT:
             set_text(tcs[1].find(qn("w:p")), BR_TEXT[code])
-    # Bảng 3.8: các nút quyết định của sơ đồ hoạt động mới
-    t38 = table_after("Bảng 3.8.")
-    head = [text(tc) for tc in t38.findall(qn("w:tr"))[0].findall(qn("w:tc"))]
-    t38.addprevious(new_table(head, DECISIONS_38, [2.4, 3.4, 5.4]))
-    body.remove(t38)
-    # Bảng 3.9: thao tác lấy đúng từ sơ đồ lớp
-    t39 = table_after("Bảng 3.9.")
-    head = [text(tc) for tc in t39.findall(qn("w:tr"))[0].findall(qn("w:tc"))]
-    rows = [[k, o["name"] + "()", OPS_DESC.get(o["name"], "")] for k, (_, ops) in sd.CLS.items() for o in ops]
-    t39.addprevious(new_table(head, rows, [3.0, 3.4, 4.8]))
-    body.remove(t39)
+    gon_bao_cao.sua_o(body, set_text)
 
 
 def main():
     rebuild_chapter2()
     replace_figures()
     fix_text()
+    gon_bao_cao.gop_uc_vao_fr(body, new_table, set_text)
+    gon_bao_cao.bo_bang_chuong3(body, set_text)
+    treo, doi = gon_bao_cao.danh_so_lai(body, set_text)
+    print(f"đánh số lại {doi} bảng; tham chiếu treo: {treo or 'không'}")
     groups, nland = landscape_sections()
     doc.save(str(OUT))
     leftovers = [w for w in ("MucSla", "CuDan", "MUC_SLA", "YEU_CAU_SU_CO", "[P1]", "NgayTiepNhan", "SoLuongTang",

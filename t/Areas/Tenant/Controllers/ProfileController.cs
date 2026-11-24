@@ -25,7 +25,7 @@ public class ProfileController : TenantBaseController
         var vm = new TenantProfileVm
         {
             FullName = u.FullName, Email = u.Email!,
-            Phone = u.Phone, AvatarUrl = u.AvatarUrl
+            Phone = u.PhoneNumber, AvatarUrl = u.AvatarUrl
         };
         return View(vm);
     }
@@ -38,7 +38,7 @@ public class ProfileController : TenantBaseController
         if (u == null) return Unauthorized();
 
         u.FullName = input.FullName;
-        u.Phone = input.Phone;
+        u.PhoneNumber = input.Phone;
         u.PhoneNumber = input.Phone;
         u.AvatarUrl = input.AvatarUrl;
         await _userManager.UpdateAsync(u);

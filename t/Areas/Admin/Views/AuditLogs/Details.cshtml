@@ -13,7 +13,7 @@
         <div class="card-header"><h2>Thông tin</h2></div>
         <div class="card-body">
             <dl class="dl-pairs">
-                <dt>Lúc</dt><dd>@Model.Timestamp.ToString("HH:mm:ss dd/MM/yyyy")</dd>
+                <dt>Lúc</dt><dd>@t.Infrastructure.Time.VnTime.FromUtc(Model.Timestamp).ToString("HH:mm:ss dd/MM/yyyy")</dd>
                 <dt>Đối tượng</dt><dd>@Model.EntityName</dd>
                 <dt>Khoá</dt><dd>@(Model.EntityKey ?? "—")</dd>
                 <dt>Hành động</dt><dd>@Model.Action.Vi()</dd>

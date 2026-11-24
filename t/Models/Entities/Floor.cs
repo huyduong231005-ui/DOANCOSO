@@ -8,7 +8,7 @@ public class Floor : BaseEntity
     public Building Building { get; set; } = null!;
 
     public int Number { get; set; }
-    public string Label { get; set; } = string.Empty;
+    public string Label => $"Tầng {Number}";
 
     public ICollection<Apartment> Apartments { get; set; } = new List<Apartment>();
 }

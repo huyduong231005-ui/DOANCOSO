@@ -1,0 +1,13 @@
+@{
+    ViewData["Title"] = "Không có quyền truy cập";
+}
+
+<section class="page-shell">
+    <h1>Bạn không có quyền truy cập trang này</h1>
+    <p>Trang này dành cho vai trò khác. Bạn vẫn đang đăng nhập, có thể quay lại trang của mình.</p>
+    <p>
+        <a class="back-link" href="@ViewData["PortalUrl"]">Về trang của tôi</a>
+        ·
+        <a asp-controller="Home" asp-action="Login">Đăng nhập bằng tài khoản khác</a>
+    </p>
+</section>

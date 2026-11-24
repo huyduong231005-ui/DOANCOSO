@@ -29,13 +29,13 @@ public abstract class TenantBaseController : Controller
     {
         var uid = CurrentUserId;
         return Db.ApartmentResidents
-            .Where(r => r.UserId == uid && r.MoveOutDate == null)
+            .Where(r => r.UserId == uid && r.MoveOutDate == null && r.ConfirmedAt != null)
             .Select(r => r.ApartmentId);
     }
 
     protected Task<Apartment?> GetMyApartmentAsync() =>
         Db.Apartments
-            .Include(a => a.Building).ThenInclude(b => b.Project)
+            .Include(a => a.Floor.Building).ThenInclude(b => b.Project)
             .Include(a => a.Floor)
             .Where(a => MyApartmentIds().Contains(a.Id))
             .OrderBy(a => a.Id)

@@ -12,7 +12,7 @@
 <form asp-action="Edit" method="post">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
+    <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
 
     <div class="card">
         <div class="card-body">
@@ -20,6 +20,7 @@
                 <div class="form-field span-4">
                     <label asp-for="RequestNumber">Mã yêu cầu</label>
                     <input asp-for="RequestNumber" />
+                    <span class="err" asp-validation-for="RequestNumber"></span>
                 </div>
                 <div class="form-field span-8">
                     <label asp-for="ReporterId">Người báo (nếu khác bạn)</label>
@@ -27,6 +28,7 @@
                         <option value="">— Tự bạn báo —</option>
                         @foreach (var u in Model.Reporters) { <option value="@u.Id">@u.Label</option> }
                     </select>
+                    <span class="err" asp-validation-for="ReporterId"></span>
                 </div>
 
                 <div class="form-field span-4">
@@ -43,10 +45,12 @@
                         <option value="">— Chọn toà —</option>
                         @foreach (var b in Model.Buildings) { <option value="@b.Id">@b.Label</option> }
                     </select>
+                    <span class="err" asp-validation-for="CommonBuildingId"></span>
                 </div>
                 <div class="form-field span-4">
                     <label asp-for="Location">Vị trí khu vực chung</label>
                     <input asp-for="Location" placeholder="Hành lang tầng 12, thang máy số 2…" />
+                    <span class="err" asp-validation-for="Location"></span>
                 </div>
 
                 <div class="form-field span-12">
@@ -57,6 +61,7 @@
                 <div class="form-field span-12">
                     <label asp-for="Description">Mô tả chi tiết</label>
                     <textarea asp-for="Description" rows="4"></textarea>
+                    <span class="err" asp-validation-for="Description"></span>
                 </div>
 
                 <div class="form-field span-4">
@@ -64,16 +69,19 @@
                     <select asp-for="Category">
                         @foreach (var c in Enum.GetValues<MaintenanceCategory>()) { <option value="@((int)c)">@c.Vi()</option> }
                     </select>
+                    <span class="err" asp-validation-for="Category"></span>
                 </div>
                 <div class="form-field span-4">
                     <label asp-for="Priority">Mức độ ưu tiên</label>
                     <select asp-for="Priority">
                         @foreach (var p in Enum.GetValues<MaintenancePriority>()) { <option value="@((int)p)">@p.Vi()</option> }
                     </select>
+                    <span class="err" asp-validation-for="Priority"></span>
                 </div>
                 <div class="form-field span-4">
                     <label asp-for="EstimatedCost">Chi phí ước tính (VND)</label>
                     <input asp-for="EstimatedCost" type="number" step="10000" />
+                    <span class="err" asp-validation-for="EstimatedCost"></span>
                 </div>
                 <div class="form-field span-12">
                     <label asp-for="PhotoUrls">Ảnh</label>
@@ -81,6 +89,7 @@
                     <div data-upload-preview class="hstack mt-2" style="flex-wrap:wrap;"></div>
                     <p class="hint" data-upload-status></p>
                     <textarea id="mt-photos" asp-for="PhotoUrls" rows="2" placeholder="Hoặc dán URL trực tiếp (cách nhau dấu phẩy)"></textarea>
+                    <span class="err" asp-validation-for="PhotoUrls"></span>
                 </div>
             </div>
         </div>

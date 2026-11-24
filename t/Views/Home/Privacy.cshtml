@@ -1,9 +1,39 @@
 ﻿@{
-    ViewData["Title"] = "Privacy";
+    ViewData["Title"] = "Chính sách bảo mật";
 }
 
 <section class="page-shell">
-    <h1>Privacy Policy</h1>
-    <p>Use this page to detail your site's privacy policy.</p>
+    <h1>Chính sách bảo mật và điều khoản sử dụng</h1>
+
+    <h2>Dữ liệu hệ thống lưu</h2>
+    <ul>
+        <li>Thông tin cư dân do Ban quản lý nhập khi nhận căn: họ tên, số điện thoại, email, số giấy tờ, căn đang ở, ngày vào ở và chuyển đi.</li>
+        <li>Tài khoản cổng cư dân: email đăng nhập và mật khẩu (chỉ lưu dạng đã băm, không ai xem được mật khẩu gốc).</li>
+        <li>Hoá đơn, chỉ số điện nước, các khoản thanh toán và thông tin chuyển khoản cư dân gửi để Ban quản lý đối chiếu.</li>
+        <li>Yêu cầu sửa chữa: mô tả, ảnh hiện trạng, ảnh nghiệm thu, lịch sử xử lý và đánh giá.</li>
+        <li>Nhật ký thao tác của tài khoản quản lý (ai sửa gì, lúc nào) để truy vết; nhật ký không ghi mật khẩu.</li>
+    </ul>
+
+    <h2>Cách dữ liệu được dùng</h2>
+    <ul>
+        <li>Chỉ dùng cho việc vận hành toà nhà: tính phí, nhắc nợ, tiếp nhận và điều phối sự cố.</li>
+        <li>Mô tả sự cố được gửi tới mô hình AI chạy trên máy chủ của Ban quản lý để gợi ý loại sự cố và mức ưu tiên; không gửi ra dịch vụ AI bên ngoài.</li>
+        <li>Email thông báo (thư mời, nhắc phí, đặt lại mật khẩu) được gửi qua máy chủ thư của Ban quản lý.</li>
+    </ul>
+
+    <h2>Ai được xem</h2>
+    <ul>
+        <li>Cư dân chỉ xem được hoá đơn và yêu cầu của căn mình đang ở.</li>
+        <li>Kỹ thuật viên chỉ xem được các việc được giao cho mình.</li>
+        <li>Quản lý và quản trị viên xem theo quyền được cấp trong mục Vai trò và quyền.</li>
+    </ul>
+
+    <h2>Tài khoản</h2>
+    <ul>
+        <li>Tài khoản cư dân được tạo qua thư mời Ban quản lý gửi tới email đã đăng ký khi nhận căn.</li>
+        <li>Đăng nhập sai nhiều lần liên tiếp, tài khoản tạm khoá vài phút. Quên mật khẩu thì dùng chức năng Quên mật khẩu để nhận liên kết đặt lại qua email.</li>
+        <li>Cần sửa hoặc xoá thông tin cá nhân, liên hệ Ban quản lý.</li>
+    </ul>
+
     <a class="back-link" asp-controller="Home" asp-action="Index">Về trang chủ</a>
 </section>

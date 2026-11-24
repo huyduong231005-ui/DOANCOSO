@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace t.Models.Entities.Common;
 
 public interface IAuditable
@@ -29,7 +27,4 @@ public abstract class BaseEntity : IAuditable, ISoftDeletable
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
     public string? DeletedBy { get; set; }
-
-    [Timestamp]
-    public byte[]? RowVersion { get; set; }
 }

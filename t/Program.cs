@@ -53,6 +53,7 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
     options.SignIn.RequireConfirmedEmail = false;
+    options.User.RequireUniqueEmail = true; // một người một tài khoản (khớp chỉ mục duy nhất EmailIndex)
 })
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
@@ -61,9 +62,14 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Home/Login";
     options.LogoutPath = "/Home/Logout";
-    options.AccessDeniedPath = "/Home/Login";
+    // Không trỏ về Login: trang Login tự đăng xuất, người dùng sẽ bị văng ra mà không biết vì sao.
+    options.AccessDeniedPath = "/Home/AccessDenied";
 });
 
+// Phiên đăng nhập được đối chiếu tem bảo mật mỗi phút (mặc định 30 phút): tài khoản bị khoá hoặc đổi
+// mật khẩu sẽ bị đăng xuất khỏi mọi phiên cũ trong vòng một phút.
+builder.Services.Configure<SecurityStampValidatorOptions>(o => o.ValidationInterval = TimeSpan.FromMinutes(1));
+builder.Services.AddScoped<t.Infrastructure.Security.PermissionService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
@@ -92,13 +98,14 @@ builder.Services.AddControllersWithViews(options =>
 });
 builder.Services.AddScoped<AuthCommandHandler>();
 builder.Services.AddScoped<AuthQueryHandler>();
-builder.Services.AddSingleton<IDevResetTokenStore, InMemoryDevResetTokenStore>();
 builder.Services.AddScoped<InvoiceGenerator>();
 builder.Services.AddHostedService<InvoiceGenerationService>();
 builder.Services.AddScoped<FileStorageService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<t.Infrastructure.Payments.VietQrService>();
 builder.Services.AddScoped<t.Infrastructure.Ai.MaintenanceTriageService>();
+builder.Services.AddHostedService<t.Infrastructure.Ai.OllamaWarmUpService>();
+builder.Services.AddHostedService<t.Infrastructure.Maintenance.MaintenanceOverdueAlertService>();
 builder.Services.AddScoped<InvoicePdfGenerator>();
 builder.Services.AddScoped<t.Infrastructure.Maintenance.MaintenanceDispatcher>();
 builder.Services.AddScoped<t.Infrastructure.Maintenance.MaintenanceWorkflow>();

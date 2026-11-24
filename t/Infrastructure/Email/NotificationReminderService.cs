@@ -59,11 +59,11 @@ public class NotificationReminderService : BackgroundService
         foreach (var i in dueSoon)
         {
             var to = i.Apartment.PrimaryResident;
-            if (string.IsNullOrEmpty(to?.Email)) continue;
+            if (string.IsNullOrEmpty(to?.User.Email)) continue;
             await sender.SendAsync(
-                to.Email,
+                to.User.Email,
                 $"[Luxe Haven] Hoá đơn {i.InvoiceNumber} sắp đến hạn ({i.DueDate:dd/MM})",
-                BuildDueSoonHtml(i, to.FullName),
+                BuildDueSoonHtml(i, to.User.FullName),
                 ct);
         }
 
@@ -76,12 +76,12 @@ public class NotificationReminderService : BackgroundService
         foreach (var i in overdue)
         {
             var to = i.Apartment.PrimaryResident;
-            if (string.IsNullOrEmpty(to?.Email)) continue;
+            if (string.IsNullOrEmpty(to?.User.Email)) continue;
             var daysLate = (int)(now - i.DueDate).TotalDays;
             await sender.SendAsync(
-                to.Email,
+                to.User.Email,
                 $"[Luxe Haven] Hoá đơn {i.InvoiceNumber} đã trễ {daysLate} ngày",
-                BuildOverdueHtml(i, to.FullName, daysLate),
+                BuildOverdueHtml(i, to.User.FullName, daysLate),
                 ct);
         }
     }
@@ -89,14 +89,14 @@ public class NotificationReminderService : BackgroundService
     private static string BuildDueSoonHtml(Invoice i, string name) => $@"
 <p>Xin chào {name},</p>
 <p>Hoá đơn <strong>{i.InvoiceNumber}</strong> của căn <strong>{i.Apartment.UnitCode}</strong> đến hạn ngày <strong>{i.DueDate:dd/MM/yyyy}</strong>.</p>
-<p>Số tiền cần thanh toán: <strong>{i.Balance:N0} {i.Currency}</strong>.</p>
+<p>Số tiền cần thanh toán: <strong>{i.Balance:N0} đ</strong>.</p>
 <p>Vui lòng đăng nhập cổng cư dân để xem chi tiết và thanh toán.</p>
 <p>— Ban quản lý Luxe Haven</p>";
 
     private static string BuildOverdueHtml(Invoice i, string name, int daysLate) => $@"
 <p>Xin chào {name},</p>
 <p>Hoá đơn <strong>{i.InvoiceNumber}</strong> của căn <strong>{i.Apartment.UnitCode}</strong> đã quá hạn <strong>{daysLate} ngày</strong>.</p>
-<p>Số tiền chưa thanh toán: <strong>{i.Balance:N0} {i.Currency}</strong>.</p>
+<p>Số tiền chưa thanh toán: <strong>{i.Balance:N0} đ</strong>.</p>
 <p>Đề nghị quý cư dân thanh toán sớm để tránh phát sinh phí trễ hạn.</p>
 <p>— Ban quản lý Luxe Haven</p>";
 }

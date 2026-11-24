@@ -65,7 +65,7 @@ public class MaintenanceKpiTests
     }
 
     [Fact]
-    public void AiKeptRate_IsAutoAssignedWithoutManualReassign()
+    public void AutoKeptRate_IsAutoAssignedWithoutManualReassign()
     {
         var kpi = MaintenanceKpi.Compute(new[]
         {
@@ -75,8 +75,8 @@ public class MaintenanceKpiTests
             Row(4, MaintenanceStatus.Closed, auto: false, reassigned: true), // quản lý tự giao: không tính
         }, Now);
 
-        Assert.Equal(3, kpi.AiAssigned);
-        Assert.Equal(2.0 / 3, kpi.AiKeptRate!.Value, 3);
+        Assert.Equal(3, kpi.AutoAssignedCount);
+        Assert.Equal(2.0 / 3, kpi.AutoKeptRate!.Value, 3);
     }
 
     [Fact]
@@ -104,6 +104,6 @@ public class MaintenanceKpiTests
         Assert.Equal(0, kpi.Total);
         Assert.Null(kpi.OnTimeRate);
         Assert.Null(kpi.MttrHours);
-        Assert.Null(kpi.AiKeptRate);
+        Assert.Null(kpi.AutoKeptRate);
     }
 }

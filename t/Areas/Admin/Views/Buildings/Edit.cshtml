@@ -12,7 +12,7 @@
 <form asp-action="Edit" method="post">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
+    <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
 
     <div class="card">
         <div class="card-header"><h2>Thông tin toà nhà</h2></div>
@@ -26,30 +26,23 @@
                 <div class="form-field span-4">
                     <label asp-for="Code">Mã toà</label>
                     <input asp-for="Code" placeholder="A, B, R1…" />
+                    <span class="err" asp-validation-for="Code"></span>
                     <span class="hint">Dùng làm tiền tố mã căn: A-12.05</span>
-                </div>
-                <div class="form-field span-8">
-                    <label asp-for="Slug">Slug</label>
-                    <input asp-for="Slug" placeholder="tự sinh từ tên" />
                 </div>
                 <div class="form-field span-4">
                     <label asp-for="FloorCount">Số tầng</label>
                     <input asp-for="FloorCount" type="number" min="1" max="120" />
+                    <span class="err" asp-validation-for="FloorCount"></span>
                     <span class="hint">Tăng số tầng sẽ tự thêm tầng mới</span>
                 </div>
 
                 <div class="form-field span-4">
-                    <label asp-for="RegionId">Khu vực</label>
-                    <select asp-for="RegionId">
-                        @foreach (var r in Model.Regions) { <option value="@r.Id">@r.Name</option> }
-                    </select>
-                </div>
-                <div class="form-field span-4">
                     <label asp-for="ProjectId">Thuộc khu</label>
                     <select asp-for="ProjectId">
-                        <option value="">— Chưa thuộc khu —</option>
+                        <option value="">— Chọn khu —</option>
                         @foreach (var p in Model.Projects) { <option value="@p.Id">@p.Name</option> }
                     </select>
+                    <span class="err" asp-validation-for="ProjectId"></span>
                 </div>
                 <div class="form-field span-4">
                     <label asp-for="ManagerId">Quản lí phụ trách</label>
@@ -57,25 +50,25 @@
                         <option value="">— Chưa phân công —</option>
                         @foreach (var m in Model.Managers) { <option value="@m.Id">@m.Label</option> }
                     </select>
+                    <span class="err" asp-validation-for="ManagerId"></span>
                 </div>
 
                 <div class="form-field span-12">
-                    <label asp-for="Address">Địa chỉ</label>
-                    <input asp-for="Address" />
-                </div>
-                <div class="form-field span-12">
                     <label asp-for="ThumbnailUrl">URL ảnh đại diện</label>
                     <input asp-for="ThumbnailUrl" />
+                    <span class="err" asp-validation-for="ThumbnailUrl"></span>
                 </div>
                 <div class="form-field span-12">
                     <label asp-for="Description">Mô tả</label>
                     <textarea asp-for="Description" rows="3"></textarea>
+                    <span class="err" asp-validation-for="Description"></span>
                 </div>
                 <div class="form-field span-4">
                     <label asp-for="Status">Trạng thái</label>
                     <select asp-for="Status">
                         @foreach (var s in Enum.GetValues<BuildingStatus>()) { <option value="@((int)s)">@s.Vi()</option> }
                     </select>
+                    <span class="err" asp-validation-for="Status"></span>
                 </div>
             </div>
         </div>
@@ -98,7 +91,7 @@
                 <div class="form-field span-4">
                     <label asp-for="DefaultBillingDay">Ngày chốt kỳ</label>
                     <input asp-for="DefaultBillingDay" type="number" min="1" max="28" />
-                    <span class="hint">Hạn thanh toán = ngày chốt kỳ + 7</span>
+                    <span class="hint">Hạn thanh toán = ngày lập hoá đơn + 7 (lập đúng ngày chốt thì là ngày chốt + 7)</span>
                     <span class="err" asp-validation-for="DefaultBillingDay"></span>
                 </div>
                 <div class="form-field span-4">
@@ -130,10 +123,12 @@
                     <div class="form-field span-6">
                         <label asp-for="UnitsPerFloor">Số căn mỗi tầng</label>
                         <input asp-for="UnitsPerFloor" type="number" min="0" max="60" />
+                        <span class="err" asp-validation-for="UnitsPerFloor"></span>
                     </div>
                     <div class="form-field span-6">
                         <label asp-for="DefaultUnitArea">Diện tích mặc định (m²)</label>
                         <input asp-for="DefaultUnitArea" type="number" min="0" step="0.1" />
+                        <span class="err" asp-validation-for="DefaultUnitArea"></span>
                         <span class="hint">Sửa từng căn sau khi tạo</span>
                     </div>
                 </div>

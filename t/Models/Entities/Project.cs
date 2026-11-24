@@ -6,7 +6,6 @@ namespace t.Models.Entities;
 public class Project : BaseEntity
 {
     public string Name { get; set; } = string.Empty;
-    public string Slug { get; set; } = string.Empty;
     public int RegionId { get; set; }
     public string Address { get; set; } = string.Empty;
     public string ThumbnailUrl { get; set; } = string.Empty;

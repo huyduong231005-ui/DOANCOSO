@@ -101,11 +101,8 @@ public class BuildingEditVm
 {
     public int Id { get; set; }
     [Required, StringLength(200)] public string Name { get; set; } = string.Empty;
-    [Required, StringLength(220)] public string Slug { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
-    public int? ProjectId { get; set; }
-    public int RegionId { get; set; }
-    public string Address { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Chọn khu chứa toà.")] public int? ProjectId { get; set; }
     [Range(1, 120)] public int FloorCount { get; set; } = 1;
     public string? ThumbnailUrl { get; set; }
     public string? Description { get; set; }
@@ -119,7 +116,6 @@ public class BuildingEditVm
     [Range(0, 60)] public int UnitsPerFloor { get; set; }
     [Range(0, 1000)] public double DefaultUnitArea { get; set; } = 70;
 
-    public List<Region> Regions { get; set; } = new();
     public List<Project> Projects { get; set; } = new();
     public List<HostOption> Managers { get; set; } = new();
 }
@@ -148,7 +144,8 @@ public class UnitCellVm
     public string UnitCode { get; set; } = string.Empty;
     public double Area { get; set; }
     public int Bedrooms { get; set; }
-    public ApartmentOccupancy Occupancy { get; set; }
+    public ApartmentCondition Condition { get; set; }
+    public ApartmentOccupancy Occupancy => Apartment.OccupancyOf(Condition, ResidentCount > 0);
     public bool IsRented { get; set; }
     public int ResidentCount { get; set; }
     public string? RepresentativeName { get; set; }
@@ -171,7 +168,9 @@ public class ApartmentListVm
     public int FloorNumber { get; set; }
     public double Area { get; set; }
     public int Bedrooms { get; set; }
-    public ApartmentOccupancy Occupancy { get; set; }
+    public ApartmentCondition Condition { get; set; }
+    public bool HasResident { get; set; }
+    public ApartmentOccupancy Occupancy => Apartment.OccupancyOf(Condition, HasResident);
     public string? RepresentativeName { get; set; }
     public int ResidentCount { get; set; }
     public decimal Balance { get; set; }
@@ -187,7 +186,7 @@ public class ApartmentEditVm
     [Range(0, 20)] public int Bedrooms { get; set; }
     [Range(0, 20)] public int Bathrooms { get; set; }
     public HouseDirection? HouseDirection { get; set; }
-    public ApartmentOccupancy Occupancy { get; set; } = ApartmentOccupancy.Vacant;
+    public ApartmentCondition Condition { get; set; } = ApartmentCondition.HandedOver;
     [StringLength(2000)] public string? Note { get; set; }
 
     public List<Building> Buildings { get; set; } = new();
@@ -205,7 +204,7 @@ public class ApartmentDetailVm
     public ResidentEditVm NewResident { get; set; } = new();
     public RecurringChargeEditVm NewCharge { get; set; } = new();
 
-    public decimal ManagementFee => Math.Round((decimal)Apartment.Area * Apartment.Building.ManagementFeePerM2, 0);
+    public decimal ManagementFee => Math.Round((decimal)Apartment.Area * Apartment.Floor.Building.ManagementFeePerM2, 0);
     public decimal MonthlyFixed => ManagementFee + Apartment.RecurringCharges.Where(c => c.IsActive).Sum(c => c.Amount);
 }
 
@@ -257,7 +256,6 @@ public class ProjectListVm
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public string Slug { get; set; } = string.Empty;
     public string RegionName { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
     public string ThumbnailUrl { get; set; } = string.Empty;
@@ -273,7 +271,6 @@ public class ProjectEditVm
 {
     public int Id { get; set; }
     [Required, StringLength(200)] public string Name { get; set; } = string.Empty;
-    [Required, StringLength(220)] public string Slug { get; set; } = string.Empty;
     public int RegionId { get; set; }
     [Required] public string Address { get; set; } = string.Empty;
     public string? ThumbnailUrl { get; set; }
@@ -391,9 +388,7 @@ public class UtilityTypeEditVm
     [Required, StringLength(40)] public string Code { get; set; } = string.Empty;
     [Required, StringLength(120)] public string Name { get; set; } = string.Empty;
     [StringLength(20)] public string Unit { get; set; } = string.Empty;
-    public UtilityBillingMode BillingMode { get; set; } = UtilityBillingMode.Metered;
     [Range(0, double.MaxValue)] public decimal DefaultRate { get; set; }
-    public string? Icon { get; set; }
 }
 
 public class UtilityReadingListVm
@@ -403,7 +398,6 @@ public class UtilityReadingListVm
     public string UnitCode { get; set; } = string.Empty;
     public string BuildingName { get; set; } = string.Empty;
     public string UtilityName { get; set; } = string.Empty;
-    public string UtilityIcon { get; set; } = string.Empty;
     public int BillingMonth { get; set; }
     public decimal Previous { get; set; }
     public decimal Current { get; set; }
@@ -420,7 +414,6 @@ public class UtilityReadingEditVm
     [Range(202000, 209912)] public int BillingMonth { get; set; }
     [Range(0, double.MaxValue)] public decimal PreviousReading { get; set; }
     [Range(0, double.MaxValue)] public decimal CurrentReading { get; set; }
-    [Range(0, double.MaxValue)] public decimal Rate { get; set; }
     public string? Note { get; set; }
 
     public List<ApartmentOption> Apartments { get; set; } = new();
@@ -494,6 +487,8 @@ public class FinanceDashboardVm
 {
     public decimal ThisMonthBilled { get; set; }
     public decimal ThisMonthPaid { get; set; }
+    /// <summary>Số đã thu của riêng các hoá đơn phát hành tháng này.</summary>
+    public decimal ThisMonthBilledCollected { get; set; }
     public decimal PrevMonthPaid { get; set; }
     public decimal Outstanding { get; set; }
     public decimal OverdueAmount { get; set; }

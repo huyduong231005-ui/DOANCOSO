@@ -99,33 +99,39 @@ public class MaintenanceWorkflow
 
         switch (to)
         {
-            case MaintenanceStatus.Acknowledged:
-                r.AcknowledgedAt ??= now;
-                break;
-            case MaintenanceStatus.InProgress:
-                r.AcknowledgedAt ??= now;
-                if (from == MaintenanceStatus.Resolved) r.ResolvedAt = null; // cư dân báo chưa khắc phục
-                break;
+            // Mốc tiếp nhận / giải quyết / đóng là dòng lịch sử ghi bên dưới (không lưu cột riêng).
             case MaintenanceStatus.Resolved:
                 if (!string.IsNullOrWhiteSpace(resolutionNote)) r.ResolutionNote = resolutionNote.Trim();
-                r.ResolvedAt = now;
-                break;
-            case MaintenanceStatus.Closed:
-                r.ClosedAt = now;
                 break;
             case MaintenanceStatus.Rejected:
                 r.ResolutionNote = "Từ chối: " + note!.Trim();
-                r.ClosedAt = now;
-                break;
-            case MaintenanceStatus.Cancelled:
-                r.ClosedAt = now;
                 break;
         }
 
         r.Status = to;
         AddHistory(r, from, to, userId, note);
-        await _db.SaveChangesAsync(ct);
-        return null;
+        return await SaveOrConflictAsync(ct);
+    }
+
+    public const string ConflictMessage = "Yêu cầu vừa được người khác cập nhật. Tải lại trang để xem trạng thái mới rồi thao tác lại.";
+
+    /// <summary>
+    /// Lưu; nếu người khác vừa sửa cùng yêu cầu (xmin đã đổi) hoặc trigger CSDL chặn chuyển trạng thái
+    /// thì không lưu gì (cả trạng thái lẫn lịch sử nằm chung một giao dịch) và trả thông báo thay vì lỗi 500.
+    /// </summary>
+    private async Task<string?> SaveOrConflictAsync(CancellationToken ct)
+    {
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+            return null;
+        }
+        catch (DbUpdateException ex) when (ex is DbUpdateConcurrencyException
+                                           || ex.InnerException is Npgsql.PostgresException { SqlState: "P0001" })
+        {
+            _db.ChangeTracker.Clear();
+            return ConflictMessage;
+        }
     }
 
     /// <summary>
@@ -148,8 +154,7 @@ public class MaintenanceWorkflow
             return await TransitionAsync(r, MaintenanceStatus.Acknowledged, actor, userId, text, ct: ct);
 
         AddHistory(r, r.Status, r.Status, userId, text);
-        await _db.SaveChangesAsync(ct);
-        return null;
+        return await SaveOrConflictAsync(ct);
     }
 
     /// <summary>Gắn hạn SLA và ghi lịch sử "tạo yêu cầu". Gọi trước lần SaveChanges đầu tiên của yêu cầu mới.</summary>

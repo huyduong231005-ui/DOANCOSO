@@ -33,14 +33,16 @@ public class ReportsController : AdminBaseController
 
         var query = Db.MaintenanceRequests.AsNoTracking().Where(r => r.ReportedAt >= fromUtc && r.ReportedAt < toUtc);
         if (buildingId.HasValue)
-            query = query.Where(r => (r.Apartment != null && r.Apartment.BuildingId == buildingId) || r.CommonBuildingId == buildingId);
+            query = query.Where(r => (r.Apartment != null && r.Apartment.Floor.BuildingId == buildingId) || r.CommonBuildingId == buildingId);
 
         var rows = await query.Select(r => new MaintenanceKpiRow
         {
             Id = r.Id, Status = r.Status, Priority = r.Priority, Category = r.Category,
-            BuildingName = r.Apartment != null ? r.Apartment.Building.Name : r.CommonBuilding != null ? r.CommonBuilding.Name : null,
+            BuildingName = r.Apartment != null ? r.Apartment.Floor.Building.Name : r.CommonBuilding != null ? r.CommonBuilding.Name : null,
             TechnicianName = r.AssignedTo != null ? r.AssignedTo.FullName : null,
-            ReportedAt = r.ReportedAt, AcknowledgedAt = r.AcknowledgedAt, ResolvedAt = r.ResolvedAt, DueAt = r.DueAt,
+            // Mốc tiếp nhận, giải quyết lấy từ lịch sử trạng thái (không lưu cột riêng).
+            ReportedAt = r.ReportedAt, AcknowledgedAt = r.History.Where(h => h.ToStatus == MaintenanceStatus.Acknowledged).Min(h => (DateTime?)h.ChangedAt),
+            ResolvedAt = (r.Status == MaintenanceStatus.Resolved || r.Status == MaintenanceStatus.Closed ? r.History.Where(h => h.ToStatus == MaintenanceStatus.Resolved).Max(h => (DateTime?)h.ChangedAt) : null), DueAt = r.DueAt,
             ResponseSlaMinutes = Db.SlaPolicies.Where(s => s.Priority == r.Priority).Select(s => s.ResponseMinutes).FirstOrDefault(),
             Rating = r.Rating,
             AutoAssigned = r.History.Any(h => h.ChangedById == null && h.Note != null && h.Note.Contains(MaintenanceDispatcher.AutoAssignNote)),
@@ -64,13 +66,13 @@ public class ReportsController : AdminBaseController
             {
                 BuildingId = b.Id,
                 BuildingName = b.Name,
-                Total = b.Apartments.Count(),
-                Occupied = b.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.Occupied),
-                Vacant = b.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.Vacant),
-                NotHandedOver = b.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.NotHandedOver),
-                UnderMaintenance = b.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.UnderMaintenance),
-                Rented = b.Apartments.Count(a => a.Residents.Any(r => r.MoveOutDate == null && r.Role == ResidentRole.Tenant)),
-                Outstanding = b.Apartments.SelectMany(a => a.Invoices)
+                Total = b.Floors.SelectMany(f => f.Apartments).Count(),
+                Occupied = b.Floors.SelectMany(f => f.Apartments).AsQueryable().Count(Apartment.IsOccupied),
+                Vacant = b.Floors.SelectMany(f => f.Apartments).AsQueryable().Count(Apartment.IsVacant),
+                NotHandedOver = b.Floors.SelectMany(f => f.Apartments).Count(a => a.Condition == ApartmentCondition.NotHandedOver),
+                UnderMaintenance = b.Floors.SelectMany(f => f.Apartments).Count(a => a.Condition == ApartmentCondition.UnderMaintenance),
+                Rented = b.Floors.SelectMany(f => f.Apartments).Count(a => a.Residents.Any(r => r.MoveOutDate == null && r.Role == ResidentRole.Tenant)),
+                Outstanding = b.Floors.SelectMany(f => f.Apartments).SelectMany(a => a.Invoices)
                     .Where(i => i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
                     .Sum(i => (decimal?)i.Balance) ?? 0m
             })
@@ -89,16 +91,18 @@ public class ReportsController : AdminBaseController
         var startOfMonth = new DateTime(today.Year, today.Month, 1);
         var startOfPrevMonth = startOfMonth.AddMonths(-1);
 
-        // Aggregate KPIs
+        // IssueDate lưu theo giờ Việt Nam, PaidAt theo UTC: mốc so sánh của tiền thu phải đổi sang UTC.
+        // Thực thu = số đã trả trừ phần đã hoàn, tính cả thanh toán đã hoàn một phần.
+        var monthStartUtc = VnTime.ToUtc(startOfMonth);
         var thisMonthBilled = await Db.Invoices
             .Where(i => i.IssueDate >= startOfMonth && i.Status != InvoiceStatus.Cancelled)
             .SumAsync(i => (decimal?)i.Total) ?? 0m;
-        var thisMonthPaid = await Db.Payments
-            .Where(p => p.PaidAt != null && p.PaidAt >= startOfMonth && p.Status == PaymentStatus.Succeeded)
-            .SumAsync(p => (decimal?)(p.Amount - p.RefundedAmount)) ?? 0m;
-        var prevMonthPaid = await Db.Payments
-            .Where(p => p.PaidAt != null && p.PaidAt >= startOfPrevMonth && p.PaidAt < startOfMonth && p.Status == PaymentStatus.Succeeded)
-            .SumAsync(p => (decimal?)(p.Amount - p.RefundedAmount)) ?? 0m;
+        // Tỉ lệ thu chỉ xét tiền đã thu của chính các hoá đơn phát hành tháng này (không lẫn tiền nợ cũ).
+        var thisMonthBilledCollected = await Db.Invoices
+            .Where(i => i.IssueDate >= startOfMonth && i.Status != InvoiceStatus.Cancelled)
+            .SumAsync(i => (decimal?)i.AmountPaid) ?? 0m;
+        var thisMonthPaid = await CollectedAsync(monthStartUtc, null);
+        var prevMonthPaid = await CollectedAsync(VnTime.ToUtc(startOfPrevMonth), monthStartUtc);
         var outstanding = await Db.Invoices
             .Where(i => i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
             .SumAsync(i => (decimal?)i.Balance) ?? 0m;
@@ -121,9 +125,7 @@ public class ReportsController : AdminBaseController
             var billed = await Db.Invoices
                 .Where(i => i.IssueDate >= mStart && i.IssueDate < mEnd && i.Status != InvoiceStatus.Cancelled)
                 .SumAsync(i => (decimal?)i.Total) ?? 0m;
-            var paid = await Db.Payments
-                .Where(p => p.PaidAt != null && p.PaidAt >= mStart && p.PaidAt < mEnd && p.Status == PaymentStatus.Succeeded)
-                .SumAsync(p => (decimal?)(p.Amount - p.RefundedAmount)) ?? 0m;
+            var paid = await CollectedAsync(VnTime.ToUtc(mStart), VnTime.ToUtc(mEnd));
             monthlyRows.Add(new MonthlyFinanceRow { Month = m, Billed = billed, Paid = paid });
         }
 
@@ -144,7 +146,7 @@ public class ReportsController : AdminBaseController
         // Top debtors
         var topDebtors = await Db.Invoices
             .Where(i => i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
-            .GroupBy(i => new { i.ApartmentId, i.Apartment.UnitCode, BuildingName = i.Apartment.Building.Name })
+            .GroupBy(i => new { i.ApartmentId, i.Apartment.UnitCode, BuildingName = i.Apartment.Floor.Building.Name })
             .Select(g => new TopDebtorRow
             {
                 ApartmentId = g.Key.ApartmentId,
@@ -161,6 +163,7 @@ public class ReportsController : AdminBaseController
         {
             ThisMonthBilled = thisMonthBilled,
             ThisMonthPaid = thisMonthPaid,
+            ThisMonthBilledCollected = thisMonthBilledCollected,
             PrevMonthPaid = prevMonthPaid,
             Outstanding = outstanding,
             OverdueAmount = overdueAmount,
@@ -173,14 +176,21 @@ public class ReportsController : AdminBaseController
         return View(vm);
     }
 
+    /// <summary>Thực thu trong khoảng [fromUtc, toUtc): đã trả trừ đã hoàn, gồm cả thanh toán đã hoàn một phần.</summary>
+    private async Task<decimal> CollectedAsync(DateTime fromUtc, DateTime? toUtc) =>
+        await Db.Payments
+            .Where(p => p.PaidAt != null && p.PaidAt >= fromUtc && (toUtc == null || p.PaidAt < toUtc)
+                        && (p.Status == PaymentStatus.Succeeded || p.Status == PaymentStatus.PartiallyRefunded))
+            .SumAsync(p => (decimal?)(p.Amount - p.RefundedAmount)) ?? 0m;
+
     public async Task<IActionResult> Arrears()
     {
         SetActiveNav("reports");
         SetBreadcrumb(("Báo cáo", null), ("Công nợ", null));
 
-        var now = DateTime.UtcNow.Date;
+        var now = VnTime.Today; // hạn thanh toán là ngày theo giờ Việt Nam
         var open = await Db.Invoices
-            .Include(i => i.Apartment).ThenInclude(a => a.Building)
+            .Include(i => i.Apartment).ThenInclude(a => a.Floor).ThenInclude(f => f.Building)
             .Include(i => i.Apartment).ThenInclude(a => a.Residents)
             .Where(i => (i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
                         && i.Balance > 0)
@@ -200,8 +210,8 @@ public class ReportsController : AdminBaseController
                 InvoiceId = i.Id, InvoiceNumber = i.InvoiceNumber,
                 ApartmentId = i.ApartmentId,
                 UnitCode = i.Apartment.UnitCode,
-                BuildingName = i.Apartment.Building.Name,
-                RepresentativeName = i.Apartment.PrimaryResident?.FullName,
+                BuildingName = i.Apartment.Floor.Building.Name,
+                RepresentativeName = i.Apartment.PrimaryResident?.User.FullName,
                 DueDate = i.DueDate, DaysLate = Math.Max(0, days),
                 Balance = i.Balance,
                 Bucket = buckets[b]

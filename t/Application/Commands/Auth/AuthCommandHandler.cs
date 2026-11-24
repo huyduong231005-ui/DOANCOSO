@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using t.Infrastructure.Security;
+using Microsoft.AspNetCore.Identity;
 using t.Models.Entities;
 using t.Models.ViewModels;
 
@@ -14,15 +13,8 @@ public sealed class ForgotPasswordCommandResult
 public sealed class AuthCommandHandler
 {
     private readonly UserManager<AppUser> _userManager;
-    private readonly IWebHostEnvironment _env;
-    private readonly IDevResetTokenStore _tokenStore;
 
-    public AuthCommandHandler(UserManager<AppUser> userManager, IWebHostEnvironment env, IDevResetTokenStore tokenStore)
-    {
-        _userManager = userManager;
-        _env = env;
-        _tokenStore = tokenStore;
-    }
+    public AuthCommandHandler(UserManager<AppUser> userManager) => _userManager = userManager;
 
     public async Task<ForgotPasswordCommandResult> ForgotPasswordAsync(string email)
     {
@@ -31,8 +23,6 @@ public sealed class AuthCommandHandler
             return new ForgotPasswordCommandResult { UserFound = false };
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-        if (_env.IsDevelopment())
-            _tokenStore.Save(email, token);
 
         return new ForgotPasswordCommandResult
         {

@@ -92,7 +92,7 @@ public class MaintenanceWorkflowTests
         await using var db = new t.Data.AppDbContext(new DbContextOptionsBuilder<t.Data.AppDbContext>()
             .UseInMemoryDatabase($"workflow-{Guid.NewGuid():N}").Options);
         var due = DateTime.UtcNow.AddHours(4);
-        var r = new MaintenanceRequest { RequestNumber = "MR-T", ApartmentId = 1, Status = MaintenanceStatus.OnHold, AssignedToId = Tech, DueAt = due };
+        var r = new MaintenanceRequest { RequestNumber = "MR-T", ApartmentId = 1, ReporterId = "nguoi-bao", Status = MaintenanceStatus.OnHold, AssignedToId = Tech, DueAt = due };
         db.MaintenanceRequests.Add(r);
         await db.SaveChangesAsync();
         db.MaintenanceStatusChanges.Add(new MaintenanceStatusChange

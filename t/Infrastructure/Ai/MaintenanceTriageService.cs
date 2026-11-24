@@ -63,6 +63,11 @@ public class MaintenanceTriageService
     // Mô tả dài hơn mức này bị cắt khi gửi cho mô hình (bản lưu trong DB vẫn đủ): ngữ cảnh chỉ 2048 token.
     private const int MaxDescriptionChars = 2000;
 
+    // Dùng chung cho TriageAsync và WarmUpAsync: Ollama nạp lại mô hình nếu num_ctx khác lần nạp trước,
+    // nên bước mồi phải nạp đúng ngữ cảnh mà lời gọi phân loại dùng.
+    private const int NumCtx = 2048;
+    private const string KeepAlive = "24h";
+
     private static readonly string[] Categories =
         Enum.GetNames<MaintenanceCategory>().Select(n => n.ToLowerInvariant()).ToArray();
     public static readonly string[] Handlers =
@@ -123,13 +128,13 @@ public class MaintenanceTriageService
                     new { role = "user", content = description.Length > MaxDescriptionChars ? description[..MaxDescriptionChars] : description },
                 },
                 stream = false,
-                keep_alive = "24h",
+                keep_alive = KeepAlive,
                 think = false,
                 // Bản fine-tune chạy bằng runner llama.cpp, runner này ép khóa JSON theo thứ tự bảng chữ cái
                 // khi nhận schema (follow_up_question đứng trước need_more_info), lệch thứ tự lúc train và
                 // làm mô hình hỏi lại thừa. Bật Ollama:JsonMode cho mô hình fine-tune; Parse vẫn kiểm tra nhãn.
                 format = _config.GetValue("Ollama:JsonMode", false) ? (object)"json" : Schema,
-                options = new { temperature = 0, num_ctx = 2048, num_predict = 300 },
+                options = new { temperature = 0, num_ctx = NumCtx, num_predict = 300 },
             }, ct);
             response.EnsureSuccessStatusCode();
             using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
@@ -142,6 +147,34 @@ public class MaintenanceTriageService
         {
             _log.LogWarning(ex, "Maintenance triage failed; keeping tenant's own choice");
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Nạp sẵn mô hình vào bộ nhớ (Ollama: messages rỗng thì chỉ nạp, không sinh chữ) để yêu cầu đầu tiên của
+    /// cư dân không phải chờ thêm ~5 giây nạp mô hình. Không đụng tới prompt hay tham số sinh nên không ảnh
+    /// hưởng kết quả phân loại. False nếu tắt tính năng hoặc Ollama chưa chạy.
+    /// </summary>
+    public async Task<bool> WarmUpAsync(CancellationToken ct = default)
+    {
+        var baseUrl = _config["Ollama:BaseUrl"];
+        if (string.IsNullOrWhiteSpace(baseUrl)) return false;
+        try
+        {
+            using var client = _httpFactory.CreateClient("ollama");
+            client.Timeout = TimeSpan.FromSeconds(120); // chạy nền, đủ cho lần nạp chậm nhất
+            using var response = await client.PostAsJsonAsync(baseUrl.TrimEnd('/') + "/api/chat", new
+            {
+                model = _config["Ollama:Model"],
+                messages = Array.Empty<object>(),
+                keep_alive = KeepAlive,
+                options = new { num_ctx = NumCtx },
+            }, ct);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException && !ct.IsCancellationRequested)
+        {
+            return false;
         }
     }
 

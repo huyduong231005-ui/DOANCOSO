@@ -25,7 +25,7 @@
 <section class="page-header">
     <div>
         <h1>@Model.InvoiceNumber</h1>
-        <p class="subtitle">Căn @Model.Apartment.UnitCode · @Model.Apartment.Building.Name · @(Model.Apartment.PrimaryResident?.FullName ?? "chưa có người đại diện")</p>
+        <p class="subtitle">Căn @Model.Apartment.UnitCode · @Model.Apartment.Floor.Building.Name · @(Model.Apartment.PrimaryResident?.User.FullName ?? "chưa có người đại diện")</p>
     </div>
     <div class="actions">
         <span class="@Pill(Model.Status)">@Model.Status.Vi()</span>
@@ -62,6 +62,7 @@
                         <tr><td colspan="3" class="num">Tạm tính</td><td class="num">@Money(Model.SubTotal)</td></tr>
                         <tr><td colspan="3" class="num">Giảm giá</td><td class="num">@Money(Model.Discount)</td></tr>
                         <tr><td colspan="3" class="num">Thuế</td><td class="num">@Money(Model.Tax)</td></tr>
+                        @if (Model.LateFee > 0) { <tr><td colspan="3" class="num">Phí trễ hạn</td><td class="num">@Money(Model.LateFee)</td></tr> }
                         <tr><td colspan="3" class="num"><strong>Tổng cộng</strong></td><td class="num"><strong>@Money(Model.Total)</strong></td></tr>
                         <tr><td colspan="3" class="num">Đã thanh toán</td><td class="num">@Money(Model.AmountPaid)</td></tr>
                         <tr><td colspan="3" class="num"><strong>Còn lại</strong></td><td class="num"><strong>@Money(Model.Balance)</strong></td></tr>
@@ -146,13 +147,12 @@
             <div class="card-header"><h2>Thông tin</h2></div>
             <div class="card-body">
                 <dl class="dl-pairs">
-                    <dt>Căn hộ</dt><dd><a asp-controller="Apartments" asp-action="Details" asp-route-id="@Model.ApartmentId">@Model.Apartment.UnitCode</a> · @Model.Apartment.Building.Name</dd>
-                    <dt>Đại diện</dt><dd>@(Model.Apartment.PrimaryResident?.FullName ?? "—")</dd>
+                    <dt>Căn hộ</dt><dd><a asp-controller="Apartments" asp-action="Details" asp-route-id="@Model.ApartmentId">@Model.Apartment.UnitCode</a> · @Model.Apartment.Floor.Building.Name</dd>
+                    <dt>Đại diện</dt><dd>@(Model.Apartment.PrimaryResident?.User.FullName ?? "—")</dd>
                     <dt>Loại</dt><dd>@Model.Kind.Vi()</dd>
                     @if (Model.BillingMonth > 0) { <dt>Kỳ</dt><dd>@(Model.BillingMonth/100)/@((Model.BillingMonth%100).ToString("00"))</dd> }
                     <dt>Phát hành</dt><dd>@Model.IssueDate.ToString("dd/MM/yyyy")</dd>
                     <dt>Đến hạn</dt><dd>@Model.DueDate.ToString("dd/MM/yyyy")</dd>
-                    <dt>Tiền tệ</dt><dd>@Model.Currency</dd>
                 </dl>
             </div>
         </div>

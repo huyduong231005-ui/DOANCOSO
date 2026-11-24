@@ -14,7 +14,16 @@ public enum HouseDirection
     SouthWest = 7
 }
 
-// Tình trạng sử dụng căn hộ theo góc nhìn Ban quản lý.
+// Tình trạng của căn do Ban quản lý đặt (cột TinhTrangCanHo).
+public enum ApartmentCondition
+{
+    HandedOver = 0,
+    NotHandedOver = 1,
+    UnderMaintenance = 3
+}
+
+// Trạng thái hiển thị, không lưu: "Đang ở" / "Để trống" suy ra từ CuTru (căn có người chưa chuyển đi),
+// để một thông tin chỉ nằm ở một bảng.
 public enum ApartmentOccupancy
 {
     Vacant = 0,
@@ -23,7 +32,10 @@ public enum ApartmentOccupancy
     UnderMaintenance = 3
 }
 
-/// <summary>Một căn hộ nằm trên một tầng của một toà. Mã căn duy nhất trong toà (vd: A-12.05).</summary>
+/// <summary>
+/// Một căn hộ nằm trên một tầng. Toà của căn suy ra qua tầng (Floor.Building), không lưu lại ở căn
+/// để một thông tin chỉ nằm ở một bảng. Mã căn (vd: A-12.05) bắt đầu bằng mã toà nên duy nhất toàn hệ thống.
+/// </summary>
 public class Apartment : BaseEntity
 {
     public string UnitCode { get; set; } = string.Empty;
@@ -31,17 +43,32 @@ public class Apartment : BaseEntity
     public int Bedrooms { get; set; }
     public int Bathrooms { get; set; }
     public HouseDirection? HouseDirection { get; set; }
-    public ApartmentOccupancy Occupancy { get; set; } = ApartmentOccupancy.Vacant;
+    public ApartmentCondition Condition { get; set; } = ApartmentCondition.HandedOver;
     public string? Note { get; set; }
 
-    public int BuildingId { get; set; }
-    public Building Building { get; set; } = null!;
     public int FloorId { get; set; }
     public Floor Floor { get; set; } = null!;
 
     public ICollection<ApartmentResident> Residents { get; set; } = new List<ApartmentResident>();
     public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
     public ICollection<UtilityReading> UtilityReadings { get; set; } = new List<UtilityReading>();
+
+    /// <summary>Dùng khi đã nạp Residents.</summary>
+    public ApartmentOccupancy Occupancy => OccupancyOf(Condition, Residents.Any(r => r.MoveOutDate == null));
+
+    public static ApartmentOccupancy OccupancyOf(ApartmentCondition c, bool hasResident) => c switch
+    {
+        ApartmentCondition.NotHandedOver => ApartmentOccupancy.NotHandedOver,
+        ApartmentCondition.UnderMaintenance => ApartmentOccupancy.UnderMaintenance,
+        _ => hasResident ? ApartmentOccupancy.Occupied : ApartmentOccupancy.Vacant
+    };
+
+    // Dạng biểu thức để EF dịch sang SQL (đếm, lọc).
+    public static readonly System.Linq.Expressions.Expression<Func<Apartment, bool>> IsOccupied =
+        a => a.Condition == ApartmentCondition.HandedOver && a.Residents.Any(r => r.MoveOutDate == null);
+
+    public static readonly System.Linq.Expressions.Expression<Func<Apartment, bool>> IsVacant =
+        a => a.Condition == ApartmentCondition.HandedOver && !a.Residents.Any(r => r.MoveOutDate == null);
     public ICollection<RecurringCharge> RecurringCharges { get; set; } = new List<RecurringCharge>();
     public ICollection<MaintenanceRequest> MaintenanceRequests { get; set; } = new List<MaintenanceRequest>();
 

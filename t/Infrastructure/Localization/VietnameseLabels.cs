@@ -29,6 +29,14 @@ public static class VietnameseLabels
         _ => s.ToString()
     };
 
+    public static string Vi(this ApartmentCondition c) => c switch
+    {
+        ApartmentCondition.HandedOver => "Đã bàn giao",
+        ApartmentCondition.NotHandedOver => "Chưa bàn giao",
+        ApartmentCondition.UnderMaintenance => "Đang sửa chữa",
+        _ => c.ToString()
+    };
+
     public static string Vi(this ApartmentOccupancy o) => o switch
     {
         ApartmentOccupancy.Vacant => "Để trống",
@@ -134,11 +142,5 @@ public static class VietnameseLabels
         _ => s.ToString()
     };
 
-    public static string Vi(this UtilityBillingMode m) => m switch
-    {
-        UtilityBillingMode.Metered => "Theo đồng hồ",
-        UtilityBillingMode.Fixed => "Cố định",
-        _ => m.ToString()
-    };
 
 }

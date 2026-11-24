@@ -3,7 +3,7 @@
     ViewData["Title"] = Model.RequestNumber;
     var next = (IReadOnlyList<MaintenanceStatus>)ViewBag.NextStatuses;
     string Local(DateTime d) => d.ToLocalTime().ToString("HH:mm dd/MM/yyyy");
-    var building = Model.Apartment?.Building ?? Model.CommonBuilding;
+    var building = Model.Apartment?.Floor.Building ?? Model.CommonBuilding;
     var contact = Model.Apartment?.PrimaryResident;
     var overdue = Model.DueAt != null && Model.DueAt < DateTime.UtcNow && MaintenanceRequest.ActiveStatuses.Contains(Model.Status);
 }
@@ -95,8 +95,8 @@
             <div class="card-body">
                 <dl class="dl-pairs">
                     <dt>Nơi xảy ra</dt><dd>@Model.PlaceLabel</dd>
-                    @if (contact != null) { <dt>Liên hệ</dt><dd>@contact.FullName @(contact.Phone != null ? "· " + contact.Phone : "")</dd> }
-                    else if (Model.Reporter != null) { <dt>Người báo</dt><dd>@Model.Reporter.FullName @(Model.Reporter.Phone != null ? "· " + Model.Reporter.Phone : "")</dd> }
+                    @if (contact != null) { <dt>Liên hệ</dt><dd>@contact.User.FullName @(contact.User.PhoneNumber != null ? "· " + contact.User.PhoneNumber : "")</dd> }
+                    else if (Model.Reporter != null) { <dt>Người báo</dt><dd>@Model.Reporter.FullName @(Model.Reporter.PhoneNumber != null ? "· " + Model.Reporter.PhoneNumber : "")</dd> }
                     <dt>Loại</dt><dd>@Model.Category.Vi()</dd>
                     <dt>Báo lúc</dt><dd>@Local(Model.ReportedAt)</dd>
                     @if (Model.DueAt.HasValue) { <dt>Hạn hoàn tất</dt><dd style="@(overdue ? "color:var(--admin-danger);font-weight:600;" : "")">@Local(Model.DueAt.Value)</dd> }

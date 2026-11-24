@@ -26,45 +26,23 @@ public class PlannedFlowTests : IClassFixture<TestWebApplicationFactory>, IClass
     }
 
     [Fact]
-    public async Task Register_ShouldSucceed_AndDuplicateEmailShouldFail()
+    public async Task Register_WithoutInvite_RedirectsToLogin_AndCreatesNoAccount()
     {
-        using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
-        {
-            AllowAutoRedirect = false
-        });
-
+        using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         var email = $"new-user-{Guid.NewGuid():N}@example.com";
-        var firstToken = await GetRequestVerificationTokenAsync(client, "/Home/Register");
+        var page = await client.GetAsync("/Home/Register");
+        Assert.Equal(HttpStatusCode.Redirect, page.StatusCode);
+        Assert.Contains("/Home/Login", page.Headers.Location?.OriginalString);
 
-        var firstPost = await client.PostAsync("/Home/Register", new FormUrlEncodedContent(new Dictionary<string, string>
+        var token = await GetRequestVerificationTokenAsync(client, "/Home/Login");
+        var post = await client.PostAsync("/Home/Register", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["FullName"] = "Nguoi Dung Moi",
-            ["Email"] = email,
-            ["Phone"] = "0901234567",
-            ["Password"] = "Abc12345",
-            ["ConfirmPassword"] = "Abc12345",
-            ["__RequestVerificationToken"] = firstToken
+            ["FullName"] = "Nguoi Dung Moi", ["Email"] = email, ["Password"] = "Abc12345",
+            ["ConfirmPassword"] = "Abc12345", ["__RequestVerificationToken"] = token
         }));
-
-        Assert.Equal(HttpStatusCode.Redirect, firstPost.StatusCode);
-        Assert.Equal("/", firstPost.Headers.Location?.OriginalString);
-
-        var secondToken = await GetRequestVerificationTokenAsync(client, "/Home/Register");
-        var secondPost = await client.PostAsync("/Home/Register", new FormUrlEncodedContent(new Dictionary<string, string>
-        {
-            ["FullName"] = "Nguoi Dung Moi",
-            ["Email"] = email,
-            ["Phone"] = "0901234567",
-            ["Password"] = "Abc12345",
-            ["ConfirmPassword"] = "Abc12345",
-            ["__RequestVerificationToken"] = secondToken
-        }));
-
-        Assert.Equal(HttpStatusCode.OK, secondPost.StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, post.StatusCode);
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var usersWithEmail = await db.Users.CountAsync(u => u.Email == email);
-        Assert.Equal(1, usersWithEmail);
+        Assert.False(await scope.ServiceProvider.GetRequiredService<AppDbContext>().Users.AnyAsync(u => u.Email == email));
     }
 
     [Fact]
@@ -86,9 +64,12 @@ public class PlannedFlowTests : IClassFixture<TestWebApplicationFactory>, IClass
 
         Assert.Equal(HttpStatusCode.OK, forgotPost.StatusCode);
 
-        var devTokenResponse = await client.GetFromJsonAsync<DevResetTokenResponse>($"/api/dev/auth/reset-token?email={Uri.EscapeDataString(email)}");
-        Assert.NotNull(devTokenResponse);
-        Assert.False(string.IsNullOrWhiteSpace(devTokenResponse!.Token));
+        string validToken;
+        using (var scope = _devFactory.Services.CreateScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<AppUser>>();
+            validToken = await users.GeneratePasswordResetTokenAsync((await users.FindByEmailAsync(email))!);
+        }
 
         var invalidResetPage = await client.GetAsync($"/Home/ResetPassword?email={Uri.EscapeDataString(email)}&token=invalid-token");
         Assert.Equal(HttpStatusCode.OK, invalidResetPage.StatusCode);
@@ -106,7 +87,6 @@ public class PlannedFlowTests : IClassFixture<TestWebApplicationFactory>, IClass
 
         Assert.Equal(HttpStatusCode.OK, invalidResetPost.StatusCode);
 
-        var validToken = devTokenResponse.Token!;
         var validResetPage = await client.GetAsync($"/Home/ResetPassword?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(validToken)}");
         Assert.Equal(HttpStatusCode.OK, validResetPage.StatusCode);
         var validResetHtml = await validResetPage.Content.ReadAsStringAsync();
@@ -135,23 +115,6 @@ public class PlannedFlowTests : IClassFixture<TestWebApplicationFactory>, IClass
 
         Assert.Equal(HttpStatusCode.Redirect, loginPost.StatusCode);
         Assert.Equal("/tenant", loginPost.Headers.Location?.OriginalString);
-    }
-
-    [Fact]
-    public async Task EmailExistsApi_ShouldReturnExpectedResults()
-    {
-        using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
-        {
-            AllowAutoRedirect = false
-        });
-
-        var exists = await client.GetFromJsonAsync<EmailExistsResponse>("/api/auth/email-exists?email=renter@luxehaven.vn");
-        var missing = await client.GetFromJsonAsync<EmailExistsResponse>("/api/auth/email-exists?email=not-found@example.com");
-
-        Assert.NotNull(exists);
-        Assert.NotNull(missing);
-        Assert.True(exists!.Exists);
-        Assert.False(missing!.Exists);
     }
 
     [Fact]

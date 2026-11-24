@@ -46,14 +46,14 @@
         <div class="kpi-meta">Trong số yêu cầu của kỳ này</div>
     </a>
     <div class="kpi-card">
-        <div class="kpi-label">AI giao đúng người</div>
-        <div class="kpi-value">@Pct(Model.AiKeptRate)</div>
-        <div class="kpi-meta">@Model.AiAssigned việc do hệ thống tự giao · hài lòng @Num(Model.CsatAvg)/5 (@Model.CsatCount đánh giá)</div>
+        <div class="kpi-label">Tự giao được giữ nguyên</div>
+        <div class="kpi-value">@Pct(Model.AutoKeptRate)</div>
+        <div class="kpi-meta">@Model.AutoAssignedCount việc do hệ thống tự giao · hài lòng @Num(Model.CsatAvg)/5 (@Model.CsatCount đánh giá)</div>
     </div>
 </section>
 
 <p class="hint" style="margin:0;">
-    Đúng hạn = hoàn tất trước hạn SLA (đã cộng thời gian tạm dừng). AI giao đúng người = việc hệ thống tự giao mà quản lý không phải giao lại.
+    Đúng hạn = hoàn tất trước hạn SLA (đã cộng thời gian tạm dừng). Tự giao được giữ nguyên = việc hệ thống tự giao theo loại sự cố (loại do cư dân chọn hoặc AI gợi ý) mà quản lý không phải giao lại.
     Tỉ lệ hiện "—" khi kỳ này chưa có mẫu.
 </p>
 

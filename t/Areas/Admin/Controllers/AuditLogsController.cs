@@ -6,6 +6,7 @@ using t.Models.Entities;
 
 namespace t.Areas.Admin.Controllers;
 
+[t.Infrastructure.Security.Permission("audit.view")]
 public class AuditLogsController : AdminBaseController
 {
     public AuditLogsController(AppDbContext db) : base(db) { }
@@ -20,8 +21,9 @@ public class AuditLogsController : AdminBaseController
         if (!string.IsNullOrWhiteSpace(entity)) query = query.Where(l => l.EntityName == entity);
         if (action.HasValue) query = query.Where(l => l.Action == action.Value);
         if (!string.IsNullOrWhiteSpace(user)) query = query.Where(l => l.UserName != null && l.UserName.Contains(user));
-        if (from.HasValue) query = query.Where(l => l.Timestamp >= from.Value);
-        if (to.HasValue) query = query.Where(l => l.Timestamp <= to.Value);
+        // Ngày lọc là ngày giờ Việt Nam, cột Timestamp lưu UTC; "đến ngày" tính trọn ngày đó.
+        if (from.HasValue) { var f = t.Infrastructure.Time.VnTime.ToUtc(from.Value.Date); query = query.Where(l => l.Timestamp >= f); }
+        if (to.HasValue) { var e = t.Infrastructure.Time.VnTime.ToUtc(to.Value.Date.AddDays(1)); query = query.Where(l => l.Timestamp < e); }
 
         var total = await query.CountAsync();
         var rows = await query

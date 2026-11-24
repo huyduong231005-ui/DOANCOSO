@@ -1,8 +1,12 @@
 @* Gộp Tài khoản và Vai trò & quyền thành một mục. *@
+@inject t.Infrastructure.Security.PermissionService Permissions
 @{
     var ctrl = ViewContext.RouteData.Values["controller"]?.ToString();
 }
 <nav class="subnav">
     <a class="@(ctrl == "Users" ? "active" : "")" asp-controller="Users" asp-action="Index">Tài khoản</a>
-    <a class="@(ctrl == "Roles" ? "active" : "")" asp-controller="Roles" asp-action="Index">Vai trò &amp; quyền</a>
+    @if (await Permissions.HasAsync(User, "roles.manage"))
+    {
+        <a class="@(ctrl == "Roles" ? "active" : "")" asp-controller="Roles" asp-action="Index">Vai trò &amp; quyền</a>
+    }
 </nav>

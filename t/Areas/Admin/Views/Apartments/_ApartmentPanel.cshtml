@@ -24,7 +24,7 @@
 
 <div class="drawer-head" style="margin:-1rem -1.2rem 0;">
     <div>
-        <div class="sub">@a.Building.Name · Tầng @a.Floor.Number</div>
+        <div class="sub">@a.Floor.Building.Name · Tầng @a.Floor.Number</div>
         <h2>Căn @a.UnitCode</h2>
         <div class="hstack" style="margin-top:.35rem;flex-wrap:wrap;">
             <span class="@Pill(a.Occupancy)">@a.Occupancy.Vi()</span>
@@ -56,10 +56,10 @@
             @foreach (var r in living)
             {
                 <div class="person">
-                    <span class="avatar">@r.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Last()[..1]</span>
+                    <span class="avatar">@r.User.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Last()[..1]</span>
                     <div class="who">
-                        <b>@r.FullName</b>
-                        <small>@(r.Phone ?? r.Email ?? "Chưa có liên hệ")</small>
+                        <b>@r.User.FullName</b>
+                        <small>@(r.User.PhoneNumber ?? r.User.Email ?? "Chưa có liên hệ")</small>
                     </div>
                     @if (r.IsPrimary) { <span class="tag primary">Đại diện</span> }
                     <span class="tag">@r.Role.Vi()</span>

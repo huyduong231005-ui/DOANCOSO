@@ -9,6 +9,9 @@ public record InvoiceResult(bool Success, string Message, int? InvoiceId = null)
 
 public class InvoiceGenerator
 {
+    /// <summary>Số ngày cư dân có để thanh toán kể từ ngày lập hoá đơn.</summary>
+    public const int PaymentTermDays = 7;
+
     private readonly AppDbContext _db;
     private readonly ILogger<InvoiceGenerator> _log;
 
@@ -27,12 +30,13 @@ public class InvoiceGenerator
     public async Task<InvoiceResult> GenerateMonthlyInvoiceAsync(int apartmentId, DateTime forDate, CancellationToken ct = default)
     {
         var apt = await _db.Apartments
-            .Include(a => a.Building)
+            .Include(a => a.Floor.Building)
             .Include(a => a.UtilityReadings).ThenInclude(r => r.UtilityType)
+            .Include(a => a.UtilityReadings).ThenInclude(r => r.InvoiceItems).ThenInclude(i => i.Invoice)
             .Include(a => a.RecurringCharges)
             .FirstOrDefaultAsync(a => a.Id == apartmentId, ct);
         if (apt == null) return new(false, "Không tìm thấy căn hộ.");
-        if (apt.Occupancy == ApartmentOccupancy.NotHandedOver) return new(false, $"Căn {apt.UnitCode} chưa bàn giao, chưa thu phí.");
+        if (apt.Condition == ApartmentCondition.NotHandedOver) return new(false, $"Căn {apt.UnitCode} chưa bàn giao, chưa thu phí.");
 
         var billingMonth = ToBillingMonth(forDate);
 
@@ -43,36 +47,41 @@ public class InvoiceGenerator
             && i.Status != InvoiceStatus.Cancelled, ct);
         if (existing) return new(false, $"Căn {apt.UnitCode} đã có hoá đơn tháng {billingMonth % 100:00}/{billingMonth / 100}.");
 
-        var dueDay = Math.Min(apt.Building.DefaultBillingDay + 7, 28);
-        var dueDate = new DateTime(forDate.Year, forDate.Month, dueDay);
+        // Hạn = ngày lập + 7: lập đúng ngày chốt thì bằng ngày chốt + 7; lập muộn (bù kỳ, lập tay)
+        // vẫn đủ 7 ngày, không sinh ra đã quá hạn rồi bị tính phí trễ.
+        var dueDate = forDate.Date.AddDays(PaymentTermDays);
 
         var items = new List<InvoiceItem>();
         var sort = 0;
         var area = (decimal)apt.Area;
-        if (apt.Building.ManagementFeePerM2 > 0 && area > 0)
+        if (apt.Floor.Building.ManagementFeePerM2 > 0 && area > 0)
         {
             items.Add(new InvoiceItem
             {
+                Kind = InvoiceItemKind.ManagementFee,
                 Description = $"Phí quản lý {apt.UnitCode} – {forDate:MM/yyyy} ({area:0.##} m²)",
-                Quantity = area, UnitPrice = apt.Building.ManagementFeePerM2,
-                LineTotal = Math.Round(area * apt.Building.ManagementFeePerM2, 0), SortOrder = sort++
+                Quantity = area, UnitPrice = apt.Floor.Building.ManagementFeePerM2,
+                LineTotal = Math.Round(area * apt.Floor.Building.ManagementFeePerM2, 0), SortOrder = sort++
             });
         }
 
         foreach (var r in apt.UtilityReadings.Where(r => !r.Billed && r.BillingMonth == billingMonth).OrderBy(r => r.UtilityTypeId))
         {
+            // Dòng trỏ về chỉ số: từ nay chỉ số được coi là đã xuất hoá đơn (không cần cờ riêng).
             items.Add(new InvoiceItem
             {
+                Kind = InvoiceItemKind.Utility, UtilityReading = r,
                 Description = $"{r.UtilityType.Name} ({r.UtilityType.Unit}) – {r.Consumption:0.##}",
-                Quantity = r.Consumption, UnitPrice = r.Rate, LineTotal = r.Amount, SortOrder = sort++
+                Quantity = r.Consumption, UnitPrice = r.UtilityType.DefaultRate,
+                LineTotal = Math.Round(r.Consumption * r.UtilityType.DefaultRate, 0), SortOrder = sort++
             });
-            r.Billed = true;
         }
 
         foreach (var c in apt.RecurringCharges.Where(c => c.IsActive).OrderBy(c => c.SortOrder))
         {
             items.Add(new InvoiceItem
             {
+                Kind = InvoiceItemKind.Recurring, RecurringCharge = c,
                 Description = c.Description,
                 Quantity = 1m, UnitPrice = c.Amount, LineTotal = c.Amount, SortOrder = sort++
             });
@@ -87,14 +96,12 @@ public class InvoiceGenerator
             ApartmentId = apt.Id,
             Kind = InvoiceKind.Monthly,
             BillingMonth = billingMonth,
-            IsRecurring = true,
             IssueDate = forDate,
             DueDate = dueDate,
             SubTotal = subTotal,
             Total = subTotal,
             Balance = subTotal,
             Status = InvoiceStatus.Issued,
-            Currency = "VND",
             Items = items
         };
         _db.Invoices.Add(invoice);
@@ -113,7 +120,7 @@ public class InvoiceGenerator
     public async Task<int> GenerateForBuildingAsync(int buildingId, DateTime forDate, CancellationToken ct = default)
     {
         var ids = await _db.Apartments
-            .Where(a => a.BuildingId == buildingId && a.Occupancy != ApartmentOccupancy.NotHandedOver)
+            .Where(a => a.Floor.BuildingId == buildingId && a.Condition != ApartmentCondition.NotHandedOver)
             .Select(a => a.Id)
             .ToListAsync(ct);
         var generated = 0;
@@ -159,14 +166,12 @@ public class InvoiceGenerator
             ApartmentId = apartmentId,
             Kind = InvoiceKind.OneOff,
             BillingMonth = ToBillingMonth(now),
-            IsRecurring = false,
             IssueDate = now,
             DueDate = dueDate,
             SubTotal = subTotal,
             Total = subTotal,
             Balance = subTotal,
             Status = InvoiceStatus.Issued,
-            Currency = "VND",
             Note = note,
             Items = items
         };
@@ -183,8 +188,11 @@ public class InvoiceGenerator
 
     public async Task<int> GenerateForBillingDayAsync(DateTime asOf, CancellationToken ct = default)
     {
+        // "<=" chứ không "==": máy chủ tắt đúng ngày chốt thì lần chạy sau trong tháng vẫn bù được kỳ đó.
+        // Chạy lại không sinh trùng vì GenerateMonthlyInvoiceAsync bỏ qua căn đã có hoá đơn kỳ này.
+        // ponytail: tắt suốt phần còn lại của tháng thì kỳ đó vẫn lỡ; cần thì bù thêm tháng trước khi sang tháng mới.
         var buildingIds = await _db.Buildings
-            .Where(b => b.DefaultBillingDay == asOf.Day && b.Status == BuildingStatus.Active)
+            .Where(b => b.DefaultBillingDay <= asOf.Day && b.Status == BuildingStatus.Active)
             .Select(b => b.Id)
             .ToListAsync(ct);
 
@@ -198,7 +206,7 @@ public class InvoiceGenerator
     public async Task<int> ApplyLateFeesAsync(DateTime asOf, CancellationToken ct = default)
     {
         var due = await _db.Invoices
-            .Include(i => i.Apartment).ThenInclude(a => a.Building)
+            .Include(i => i.Apartment).ThenInclude(a => a.Floor).ThenInclude(f => f.Building)
             .Where(i => (i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
                         && i.Balance > 0
                         && i.DueDate < asOf
@@ -208,7 +216,7 @@ public class InvoiceGenerator
         var applied = 0;
         foreach (var inv in due)
         {
-            var building = inv.Apartment.Building;
+            var building = inv.Apartment.Floor.Building;
             if ((asOf - inv.DueDate).TotalDays < building.DefaultLateFeeAfterDays) continue;
 
             var fee = Math.Round(inv.Balance * building.DefaultLateFeePercent / 100m, 0);

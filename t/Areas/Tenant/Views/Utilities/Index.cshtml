@@ -18,7 +18,7 @@
 
 @foreach (var grp in groups)
 {
-    var groupTotal = grp.Sum(x => x.Amount);
+    var groupTotal = grp.Sum(x => x.EstimatedAmount);
     <div class="card">
         <div class="card-header">
             <h2>Kỳ @(grp.Key/100)/@((grp.Key%100).ToString("00"))</h2>
@@ -31,12 +31,12 @@
                 @foreach (var r in grp.OrderBy(x => x.UtilityType.Name))
                 {
                     <tr>
-                        <td><span class="material-symbols-outlined" style="font-size:14px;">@(r.UtilityType.Icon ?? "bolt")</span> @r.UtilityType.Name</td>
+                        <td>@r.UtilityType.Name</td>
                         <td class="num">@r.PreviousReading</td>
                         <td class="num">@r.CurrentReading</td>
                         <td class="num">@r.Consumption @r.UtilityType.Unit</td>
-                        <td class="num">@Money(r.Rate)</td>
-                        <td class="num">@Money(r.Amount)</td>
+                        <td class="num">@Money(r.UtilityType.DefaultRate)</td>
+                        <td class="num">@Money(r.EstimatedAmount)</td>
                         <td>@(r.Billed ? Html.Raw("<span class=\"pill pill-success\">Đã tính HĐ</span>") : Html.Raw("<span class=\"pill pill-warning\">Chưa</span>"))</td>
                     </tr>
                 }

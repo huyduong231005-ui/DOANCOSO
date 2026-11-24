@@ -25,7 +25,8 @@ namespace t.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("VaiTroId");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -33,7 +34,8 @@ namespace t.Migrations
 
                     b.Property<string>("Name")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("TenVaiTro");
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256)
@@ -165,7 +167,7 @@ namespace t.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("Id");
+                        .HasColumnName("CanHoId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
@@ -181,9 +183,9 @@ namespace t.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("SoPhongNgu");
 
-                    b.Property<int>("BuildingId")
+                    b.Property<int>("Condition")
                         .HasColumnType("integer")
-                        .HasColumnName("ToaNhaId");
+                        .HasColumnName("TinhTrangCanHo");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -217,17 +219,7 @@ namespace t.Migrations
 
                     b.Property<string>("Note")
                         .HasColumnType("text")
-                        .HasColumnName("MoTa");
-
-                    b.Property<int>("Occupancy")
-                        .HasColumnType("integer")
-                        .HasColumnName("TinhTrangThue");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
+                        .HasColumnName("MoTaCanHo");
 
                     b.Property<string>("UnitCode")
                         .IsRequired()
@@ -246,11 +238,11 @@ namespace t.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Condition");
+
                     b.HasIndex("FloorId");
 
-                    b.HasIndex("Occupancy");
-
-                    b.HasIndex("BuildingId", "UnitCode")
+                    b.HasIndex("UnitCode")
                         .IsUnique()
                         .HasFilter("\"DaXoa\" = false");
 
@@ -258,7 +250,11 @@ namespace t.Migrations
                         {
                             t.HasCheckConstraint("CK_CanHo_DienTich", "\"DienTich\" > 0");
 
-                            t.HasCheckConstraint("CK_CanHo_SoPhongNgu", "\"SoPhongNgu\" >= 0");
+                            t.HasCheckConstraint("CK_CanHo_HuongNha", "\"HuongNha\" IS NULL OR \"HuongNha\" BETWEEN 0 AND 7");
+
+                            t.HasCheckConstraint("CK_CanHo_SoPhong", "\"SoPhongNgu\" >= 0 AND \"SoPhongTam\" >= 0");
+
+                            t.HasCheckConstraint("CK_CanHo_TinhTrangCanHo", "\"TinhTrangCanHo\" IN (0, 1, 3)");
                         });
                 });
 
@@ -267,13 +263,17 @@ namespace t.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("Id");
+                        .HasColumnName("CuTruId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("ApartmentId")
                         .HasColumnType("integer")
                         .HasColumnName("CanHoId");
+
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("NgayXacNhan");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -293,29 +293,13 @@ namespace t.Migrations
                         .HasColumnType("character varying(450)")
                         .HasColumnName("NguoiXoa");
 
-                    b.Property<string>("Email")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("Email");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)")
-                        .HasColumnName("HoTen");
-
-                    b.Property<string>("IdNumber")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("SoGiayTo");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
 
                     b.Property<bool>("IsPrimary")
                         .HasColumnType("boolean")
-                        .HasColumnName("DaiDienCanHo");
+                        .HasColumnName("LaDaiDien");
 
                     b.Property<DateTime>("MoveInDate")
                         .HasColumnType("timestamp without time zone")
@@ -328,22 +312,11 @@ namespace t.Migrations
                     b.Property<string>("Note")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
-                        .HasColumnName("GhiChu");
-
-                    b.Property<string>("Phone")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("SoDienThoai");
+                        .HasColumnName("GhiChuCuTru");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer")
-                        .HasColumnName("VaiTro");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
+                        .HasColumnName("VaiTroTrongHo");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -355,32 +328,44 @@ namespace t.Migrations
                         .HasColumnName("NguoiCapNhat");
 
                     b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("NguoiDungId");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApartmentId");
+                    b.HasIndex("ApartmentId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_CuTru_DaiDien")
+                        .HasFilter("\"LaDaiDien\" AND \"NgayChuyenDi\" IS NULL AND \"DaXoa\" = false");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CuDan", null, t =>
+                    b.HasIndex("ApartmentId", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_CuTru_DangO")
+                        .HasFilter("\"NgayChuyenDi\" IS NULL AND \"DaXoa\" = false");
+
+                    b.ToTable("CuTru", null, t =>
                         {
-                            t.HasCheckConstraint("CK_CuDan_NgayChuyenDi", "\"NgayChuyenDi\" IS NULL OR \"NgayChuyenDi\" >= \"NgayVaoO\"");
+                            t.HasCheckConstraint("CK_CuTru_NgayChuyenDi", "\"NgayChuyenDi\" IS NULL OR \"NgayChuyenDi\" >= \"NgayVaoO\"");
+
+                            t.HasCheckConstraint("CK_CuTru_VaiTroTrongHo", "\"VaiTroTrongHo\" BETWEEN 0 AND 2");
                         });
                 });
 
             modelBuilder.Entity("t.Models.Entities.AppUser", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("NguoiDungId");
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
                     b.Property<string>("AvatarUrl")
                         .HasColumnType("text")
-                        .HasColumnName("UrlAvatar");
+                        .HasColumnName("AnhDaiDien");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -416,6 +401,11 @@ namespace t.Migrations
                         .HasColumnType("text")
                         .HasColumnName("HoTen");
 
+                    b.Property<string>("IdNumber")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("SoGiayTo");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
@@ -439,14 +429,12 @@ namespace t.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Phone")
                         .HasColumnType("text")
-                        .HasColumnName("SoDienThoai");
+                        .HasColumnName("MatKhauBam");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("SoDienThoai");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
@@ -468,20 +456,23 @@ namespace t.Migrations
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("TenDangNhap");
 
                     b.HasKey("Id");
 
                     b.HasIndex("IsDeleted");
 
                     b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
+                        .IsUnique()
+                        .HasDatabaseName("EmailIndex")
+                        .HasFilter("\"NormalizedEmail\" IS NOT NULL");
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.HasIndex("Phone");
+                    b.HasIndex("PhoneNumber");
 
                     b.ToTable("NguoiDung", (string)null);
                 });
@@ -490,7 +481,8 @@ namespace t.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("NhatKyId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
@@ -505,7 +497,7 @@ namespace t.Migrations
                     b.Property<string>("EntityKey")
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)")
-                        .HasColumnName("KhoaBang");
+                        .HasColumnName("KhoaDong");
 
                     b.Property<string>("EntityName")
                         .IsRequired()
@@ -528,22 +520,22 @@ namespace t.Migrations
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp without time zone")
-                        .HasColumnName("ThoiGian");
+                        .HasColumnName("ThoiGianGhi");
 
                     b.Property<string>("UserAgent")
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)")
-                        .HasColumnName("UserAgent");
+                        .HasColumnName("TrinhDuyet");
 
                     b.Property<string>("UserId")
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiDungId");
+                        .HasColumnName("NguoiGhiId");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
-                        .HasColumnName("TenNguoiDung");
+                        .HasColumnName("TenNguoiGhi");
 
                     b.HasKey("Id");
 
@@ -561,21 +553,15 @@ namespace t.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("Id");
+                        .HasColumnName("ToaNhaId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("DiaChi");
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)")
-                        .HasColumnName("Ma");
+                        .HasColumnName("MaToaNha");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -590,19 +576,19 @@ namespace t.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasDefaultValue(1)
-                        .HasColumnName("NgayChotKyMacDinh");
+                        .HasColumnName("NgayChotKy");
 
                     b.Property<int>("DefaultLateFeeAfterDays")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasDefaultValue(7)
-                        .HasColumnName("SoNgayTreHanMacDinh");
+                        .HasColumnName("SoNgayAnHan");
 
                     b.Property<int>("DefaultLateFeePercent")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasDefaultValue(5)
-                        .HasColumnName("PhanTramPhiTreMacDinh");
+                        .HasColumnName("PhanTramPhiTre");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp without time zone")
@@ -615,11 +601,7 @@ namespace t.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("text")
-                        .HasColumnName("MoTa");
-
-                    b.Property<int>("FloorCount")
-                        .HasColumnType("integer")
-                        .HasColumnName("SoLuongTang");
+                        .HasColumnName("MoTaToaNha");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
@@ -637,35 +619,19 @@ namespace t.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
-                        .HasColumnName("Ten");
+                        .HasColumnName("TenToaNha");
 
-                    b.Property<int?>("ProjectId")
+                    b.Property<int>("ProjectId")
                         .HasColumnType("integer")
                         .HasColumnName("DuAnId");
 
-                    b.Property<int>("RegionId")
-                        .HasColumnType("integer")
-                        .HasColumnName("KhuVucId");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
-
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasMaxLength(220)
-                        .HasColumnType("character varying(220)")
-                        .HasColumnName("Slug");
-
                     b.Property<int>("Status")
                         .HasColumnType("integer")
-                        .HasColumnName("TrangThai");
+                        .HasColumnName("TrangThaiToaNha");
 
                     b.Property<string>("ThumbnailUrl")
                         .HasColumnType("text")
-                        .HasColumnName("UrlAnhDaiDien");
+                        .HasColumnName("AnhDaiDienToaNha");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -678,14 +644,13 @@ namespace t.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasFilter("\"DaXoa\" = false");
+
                     b.HasIndex("ManagerId");
 
                     b.HasIndex("ProjectId");
-
-                    b.HasIndex("RegionId");
-
-                    b.HasIndex("Slug")
-                        .IsUnique();
 
                     b.HasIndex("Status");
 
@@ -693,7 +658,11 @@ namespace t.Migrations
                         {
                             t.HasCheckConstraint("CK_ToaNha_DonGiaPhiQuanLy", "\"DonGiaPhiQuanLy\" >= 0");
 
-                            t.HasCheckConstraint("CK_ToaNha_NgayChotKy", "\"NgayChotKyMacDinh\" BETWEEN 1 AND 28");
+                            t.HasCheckConstraint("CK_ToaNha_NgayChotKy", "\"NgayChotKy\" BETWEEN 1 AND 28");
+
+                            t.HasCheckConstraint("CK_ToaNha_PhiTre", "\"SoNgayAnHan\" >= 0 AND \"PhanTramPhiTre\" BETWEEN 0 AND 100");
+
+                            t.HasCheckConstraint("CK_ToaNha_TrangThai", "\"TrangThaiToaNha\" BETWEEN 0 AND 2");
                         });
                 });
 
@@ -702,7 +671,7 @@ namespace t.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("Id");
+                        .HasColumnName("TangId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
@@ -732,21 +701,9 @@ namespace t.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
 
-                    b.Property<string>("Label")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("NhanTang");
-
                     b.Property<int>("Number")
                         .HasColumnType("integer")
                         .HasColumnName("SoTang");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -770,7 +727,7 @@ namespace t.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("Id");
+                        .HasColumnName("HoaDonId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
@@ -788,7 +745,7 @@ namespace t.Migrations
 
                     b.Property<int>("BillingMonth")
                         .HasColumnType("integer")
-                        .HasColumnName("ThangTinhPhi");
+                        .HasColumnName("KyHoaDon");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -798,12 +755,6 @@ namespace t.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)")
                         .HasColumnName("NguoiTao");
-
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("character varying(8)")
-                        .HasColumnName("DonViTienTe");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp without time zone")
@@ -832,10 +783,6 @@ namespace t.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
 
-                    b.Property<bool>("IsRecurring")
-                        .HasColumnType("boolean")
-                        .HasColumnName("DinhKy");
-
                     b.Property<DateTime>("IssueDate")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayPhatHanh");
@@ -850,17 +797,11 @@ namespace t.Migrations
 
                     b.Property<string>("Note")
                         .HasColumnType("text")
-                        .HasColumnName("GhiChu");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
+                        .HasColumnName("GhiChuHoaDon");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer")
-                        .HasColumnName("TrangThai");
+                        .HasColumnName("TrangThaiHoaDon");
 
                     b.Property<decimal>("SubTotal")
                         .HasColumnType("decimal(18,0)")
@@ -895,7 +836,7 @@ namespace t.Migrations
                     b.HasIndex("ApartmentId", "BillingMonth")
                         .IsUnique()
                         .HasDatabaseName("UX_HoaDon_PhiThang_MoiKy")
-                        .HasFilter("\"LoaiHoaDon\" = 0 AND \"TrangThai\" <> 5 AND \"DaXoa\" = false");
+                        .HasFilter("\"LoaiHoaDon\" = 0 AND \"TrangThaiHoaDon\" <> 5 AND \"DaXoa\" = false");
 
                     b.HasIndex("ApartmentId", "BillingMonth", "Kind");
 
@@ -903,7 +844,15 @@ namespace t.Migrations
                         {
                             t.HasCheckConstraint("CK_HoaDon_ConLai", "\"ConLai\" >= 0 AND \"ConLai\" <= \"TongTien\"");
 
-                            t.HasCheckConstraint("CK_HoaDon_SoTien", "\"TongTien\" >= 0 AND \"DaThanhToan\" >= 0");
+                            t.HasCheckConstraint("CK_HoaDon_CongThuc", "\"TongTien\" = \"TamTinh\" - \"GiamGia\" + \"Thue\" + \"PhiTreHan\" AND \"ConLai\" = \"TongTien\" - \"DaThanhToan\"");
+
+                            t.HasCheckConstraint("CK_HoaDon_HanThanhToan", "\"NgayDenHan\" >= \"NgayPhatHanh\"");
+
+                            t.HasCheckConstraint("CK_HoaDon_Ky", "\"KyHoaDon\" % 100 BETWEEN 1 AND 12");
+
+                            t.HasCheckConstraint("CK_HoaDon_SoTien", "\"TongTien\" >= 0 AND \"DaThanhToan\" >= 0 AND \"GiamGia\" >= 0 AND \"Thue\" >= 0 AND \"PhiTreHan\" >= 0");
+
+                            t.HasCheckConstraint("CK_HoaDon_TrangThai", "\"TrangThaiHoaDon\" BETWEEN 0 AND 6");
                         });
                 });
 
@@ -912,7 +861,7 @@ namespace t.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("Id");
+                        .HasColumnName("ChiTietHoaDonId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
@@ -938,7 +887,7 @@ namespace t.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
-                        .HasColumnName("MoTa");
+                        .HasColumnName("NoiDungKhoan");
 
                     b.Property<int>("InvoiceId")
                         .HasColumnType("integer")
@@ -948,27 +897,33 @@ namespace t.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
 
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("LoaiKhoan");
+
                     b.Property<decimal>("LineTotal")
                         .HasColumnType("decimal(18,0)")
-                        .HasColumnName("ThanhTien");
+                        .HasColumnName("ThanhTienKhoan");
+
+                    b.Property<int?>("MaintenanceRequestId")
+                        .HasColumnType("integer")
+                        .HasColumnName("YeuCauBaoTriId");
 
                     b.Property<decimal>("Quantity")
                         .HasColumnType("decimal(18,2)")
-                        .HasColumnName("SoLuong");
+                        .HasColumnName("SoLuongKhoan");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
+                    b.Property<int?>("RecurringChargeId")
+                        .HasColumnType("integer")
+                        .HasColumnName("PhiDinhKyId");
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer")
-                        .HasColumnName("ThuTu");
+                        .HasColumnName("ThuTuKhoan");
 
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(18,0)")
-                        .HasColumnName("DonGia");
+                        .HasColumnName("DonGiaKhoan");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -979,18 +934,38 @@ namespace t.Migrations
                         .HasColumnType("character varying(450)")
                         .HasColumnName("NguoiCapNhat");
 
+                    b.Property<int?>("UtilityReadingId")
+                        .HasColumnType("integer")
+                        .HasColumnName("ChiSoDichVuId");
+
                     b.HasKey("Id");
 
                     b.HasIndex("InvoiceId");
 
-                    b.ToTable("ChiTietHoaDon", (string)null);
+                    b.HasIndex("MaintenanceRequestId");
+
+                    b.HasIndex("RecurringChargeId");
+
+                    b.HasIndex("UtilityReadingId");
+
+                    b.ToTable("ChiTietHoaDon", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ChiTietHoaDon_LoaiKhoan", "\"LoaiKhoan\" BETWEEN 0 AND 4");
+
+                            t.HasCheckConstraint("CK_ChiTietHoaDon_Nguon", "(\"LoaiKhoan\" = 1) = (\"ChiSoDichVuId\" IS NOT NULL) AND (\"LoaiKhoan\" = 2) = (\"PhiDinhKyId\" IS NOT NULL) AND (\"YeuCauBaoTriId\" IS NULL OR \"LoaiKhoan\" = 3)");
+
+                            t.HasCheckConstraint("CK_ChiTietHoaDon_SoTien", "\"SoLuongKhoan\" > 0 AND \"DonGiaKhoan\" >= 0");
+
+                            t.HasCheckConstraint("CK_ChiTietHoaDon_ThanhTien", "\"ThanhTienKhoan\" = round(\"SoLuongKhoan\" * \"DonGiaKhoan\")");
+                        });
                 });
 
             modelBuilder.Entity("t.Models.Entities.MaintenancePhoto", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("AnhYeuCauId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
@@ -1000,7 +975,7 @@ namespace t.Migrations
 
                     b.Property<int>("Stage")
                         .HasColumnType("integer")
-                        .HasColumnName("GiaiDoan");
+                        .HasColumnName("GiaiDoanAnh");
 
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1014,7 +989,7 @@ namespace t.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
-                        .HasColumnName("DuongDan");
+                        .HasColumnName("DuongDanAnh");
 
                     b.HasKey("Id");
 
@@ -1022,7 +997,10 @@ namespace t.Migrations
 
                     b.HasIndex("UploadedById");
 
-                    b.ToTable("AnhSuCo", (string)null);
+                    b.ToTable("AnhYeuCau", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_AnhYeuCau_GiaiDoan", "\"GiaiDoanAnh\" IN (0, 1)");
+                        });
                 });
 
             modelBuilder.Entity("t.Models.Entities.MaintenanceRequest", b =>
@@ -1030,20 +1008,17 @@ namespace t.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("Id");
+                        .HasColumnName("YeuCauBaoTriId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("AcknowledgedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTiepNhan");
 
                     b.Property<decimal>("ActualCost")
                         .HasColumnType("decimal(18,0)")
                         .HasColumnName("ChiPhiThucTe");
 
                     b.Property<string>("AiTriageJson")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("PhanLoaiAi");
 
                     b.Property<int?>("ApartmentId")
                         .HasColumnType("integer")
@@ -1055,19 +1030,15 @@ namespace t.Migrations
 
                     b.Property<int>("Category")
                         .HasColumnType("integer")
-                        .HasColumnName("LoaiBaoTri");
+                        .HasColumnName("LoaiSuCo");
 
                     b.Property<bool>("ChargeToTenant")
                         .HasColumnType("boolean")
-                        .HasColumnName("TinhPhiKhachThue");
-
-                    b.Property<DateTime?>("ClosedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayDongLai");
+                        .HasColumnName("TinhPhiCuDan");
 
                     b.Property<int?>("CommonBuildingId")
                         .HasColumnType("integer")
-                        .HasColumnName("ToaNhaKhuVucChungId");
+                        .HasColumnName("ToaNhaId");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1091,7 +1062,7 @@ namespace t.Migrations
                         .IsRequired()
                         .HasMaxLength(4000)
                         .HasColumnType("character varying(4000)")
-                        .HasColumnName("MoTa");
+                        .HasColumnName("MoTaYeuCau");
 
                     b.Property<DateTime?>("DueAt")
                         .HasColumnType("timestamp without time zone")
@@ -1112,22 +1083,23 @@ namespace t.Migrations
 
                     b.Property<int>("Priority")
                         .HasColumnType("integer")
-                        .HasColumnName("MucDoUuTien");
+                        .HasColumnName("MucUuTienId");
 
                     b.Property<int?>("Rating")
                         .HasColumnType("integer")
-                        .HasColumnName("DanhGia");
+                        .HasColumnName("DiemDanhGia");
 
                     b.Property<string>("RatingComment")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
-                        .HasColumnName("NhanXet");
+                        .HasColumnName("NhanXetCuDan");
 
                     b.Property<DateTime>("ReportedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayBaoCao");
 
                     b.Property<string>("ReporterId")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("NguoiBaoCaoId");
 
@@ -1140,27 +1112,17 @@ namespace t.Migrations
                     b.Property<string>("ResolutionNote")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)")
-                        .HasColumnName("GhiChuXuLy");
-
-                    b.Property<DateTime?>("ResolvedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayGiaiQuyet");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
+                        .HasColumnName("KetQuaXuLy");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer")
-                        .HasColumnName("TrangThai");
+                        .HasColumnName("TrangThaiYeuCau");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)")
-                        .HasColumnName("TieuDe");
+                        .HasColumnName("TieuDeYeuCau");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1170,6 +1132,12 @@ namespace t.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)")
                         .HasColumnName("NguoiCapNhat");
+
+                    b.Property<uint>("Xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 
@@ -1183,6 +1151,8 @@ namespace t.Migrations
 
                     b.HasIndex("Priority");
 
+                    b.HasIndex("ReportedAt");
+
                     b.HasIndex("ReporterId");
 
                     b.HasIndex("RequestNumber")
@@ -1194,11 +1164,17 @@ namespace t.Migrations
                         {
                             t.HasCheckConstraint("CK_YeuCauBaoTri_ChiPhi", "\"ChiPhiUocTinh\" >= 0 AND \"ChiPhiThucTe\" >= 0");
 
-                            t.HasCheckConstraint("CK_YeuCauBaoTri_DanhGia", "\"DanhGia\" IS NULL OR \"DanhGia\" BETWEEN 1 AND 5");
+                            t.HasCheckConstraint("CK_YeuCauBaoTri_DanhGia", "\"DiemDanhGia\" IS NULL OR \"DiemDanhGia\" BETWEEN 1 AND 5");
 
                             t.HasCheckConstraint("CK_YeuCauBaoTri_HanXuLy", "\"HanXuLy\" IS NULL OR \"HanXuLy\" >= \"NgayBaoCao\"");
 
-                            t.HasCheckConstraint("CK_YeuCauBaoTri_NoiXayRa", "(\"CanHoId\" IS NOT NULL AND \"ToaNhaKhuVucChungId\" IS NULL) OR (\"CanHoId\" IS NULL AND \"ToaNhaKhuVucChungId\" IS NOT NULL AND \"ViTri\" IS NOT NULL)");
+                            t.HasCheckConstraint("CK_YeuCauBaoTri_KetQua", "\"TrangThaiYeuCau\" NOT IN (3, 4) OR coalesce(btrim(\"KetQuaXuLy\"), '') <> ''");
+
+                            t.HasCheckConstraint("CK_YeuCauBaoTri_LoaiSuCo", "\"LoaiSuCo\" IN (0, 1, 2, 3, 4, 5, 6, 99)");
+
+                            t.HasCheckConstraint("CK_YeuCauBaoTri_NoiXayRa", "(\"CanHoId\" IS NOT NULL AND \"ToaNhaId\" IS NULL) OR (\"CanHoId\" IS NULL AND \"ToaNhaId\" IS NOT NULL AND \"ViTri\" IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_YeuCauBaoTri_TrangThai", "\"TrangThaiYeuCau\" BETWEEN 0 AND 7");
                         });
                 });
 
@@ -1206,13 +1182,14 @@ namespace t.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("LichSuYeuCauId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("ChangedAt")
                         .HasColumnType("timestamp without time zone")
-                        .HasColumnName("ThoiDiem");
+                        .HasColumnName("ThoiDiemChuyen");
 
                     b.Property<string>("ChangedById")
                         .HasColumnType("text")
@@ -1220,7 +1197,7 @@ namespace t.Migrations
 
                     b.Property<int?>("FromStatus")
                         .HasColumnType("integer")
-                        .HasColumnName("TuTrangThai");
+                        .HasColumnName("TrangThaiTruoc");
 
                     b.Property<int>("MaintenanceRequestId")
                         .HasColumnType("integer")
@@ -1229,11 +1206,11 @@ namespace t.Migrations
                     b.Property<string>("Note")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
-                        .HasColumnName("GhiChu");
+                        .HasColumnName("GhiChuChuyen");
 
                     b.Property<int>("ToStatus")
                         .HasColumnType("integer")
-                        .HasColumnName("SangTrangThai");
+                        .HasColumnName("TrangThaiSau");
 
                     b.HasKey("Id");
 
@@ -1241,7 +1218,7 @@ namespace t.Migrations
 
                     b.HasIndex("MaintenanceRequestId", "ChangedAt");
 
-                    b.ToTable("LichSuTrangThaiSuCo", (string)null);
+                    b.ToTable("LichSuYeuCau", (string)null);
                 });
 
             modelBuilder.Entity("t.Models.Entities.Payment", b =>
@@ -1249,13 +1226,13 @@ namespace t.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("Id");
+                        .HasColumnName("ThanhToanId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,0)")
-                        .HasColumnName("SoTien");
+                        .HasColumnName("SoTienThanhToan");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1265,12 +1242,6 @@ namespace t.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)")
                         .HasColumnName("NguoiTao");
-
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("character varying(8)")
-                        .HasColumnName("DonViTienTe");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1295,7 +1266,7 @@ namespace t.Migrations
 
                     b.Property<string>("Note")
                         .HasColumnType("text")
-                        .HasColumnName("GhiChu");
+                        .HasColumnName("GhiChuThanhToan");
 
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("timestamp without time zone")
@@ -1320,15 +1291,9 @@ namespace t.Migrations
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayHoanTien");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
-
                     b.Property<int>("Status")
                         .HasColumnType("integer")
-                        .HasColumnName("TrangThai");
+                        .HasColumnName("TrangThaiThanhToan");
 
                     b.Property<string>("TransactionRef")
                         .HasMaxLength(120)
@@ -1357,7 +1322,11 @@ namespace t.Migrations
 
                     b.ToTable("ThanhToan", null, t =>
                         {
-                            t.HasCheckConstraint("CK_ThanhToan_SoTien", "\"SoTien\" > 0");
+                            t.HasCheckConstraint("CK_ThanhToan_HoanTra", "\"SoTienHoanTra\" >= 0 AND \"SoTienHoanTra\" <= \"SoTienThanhToan\"");
+
+                            t.HasCheckConstraint("CK_ThanhToan_MaSo", "\"PhuongThuc\" BETWEEN 0 AND 4 AND \"TrangThaiThanhToan\" BETWEEN 0 AND 5");
+
+                            t.HasCheckConstraint("CK_ThanhToan_SoTien", "\"SoTienThanhToan\" > 0");
                         });
                 });
 
@@ -1366,7 +1335,7 @@ namespace t.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("Id");
+                        .HasColumnName("QuyenId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
@@ -1374,7 +1343,7 @@ namespace t.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
-                        .HasColumnName("Ma");
+                        .HasColumnName("MaQuyen");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1394,15 +1363,11 @@ namespace t.Migrations
                         .HasColumnType("character varying(450)")
                         .HasColumnName("NguoiXoa");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("MoTa");
-
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
-                        .HasColumnName("TenHienThi");
+                        .HasColumnName("TenQuyen");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
@@ -1412,13 +1377,7 @@ namespace t.Migrations
                         .IsRequired()
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)")
-                        .HasColumnName("Module");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
+                        .HasColumnName("PhanHe");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1444,14 +1403,14 @@ namespace t.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("Id");
+                        .HasColumnName("DuAnId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("DiaChi");
+                        .HasColumnName("DiaChiDuAn");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1479,33 +1438,21 @@ namespace t.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
-                        .HasColumnName("Ten");
+                        .HasColumnName("TenDuAn");
 
                     b.Property<int>("RegionId")
                         .HasColumnType("integer")
                         .HasColumnName("KhuVucId");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
-
                     b.Property<string>("ShortDescription")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("MoTaNgan");
-
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasMaxLength(220)
-                        .HasColumnType("character varying(220)")
-                        .HasColumnName("Slug");
+                        .HasColumnName("MoTaDuAn");
 
                     b.Property<string>("ThumbnailUrl")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("UrlAnhDaiDien");
+                        .HasColumnName("AnhDaiDienDuAn");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1520,9 +1467,6 @@ namespace t.Migrations
 
                     b.HasIndex("RegionId");
 
-                    b.HasIndex("Slug")
-                        .IsUnique();
-
                     b.ToTable("DuAn", (string)null);
                 });
 
@@ -1531,13 +1475,13 @@ namespace t.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("Id");
+                        .HasColumnName("PhiDinhKyId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,0)")
-                        .HasColumnName("SoTien");
+                        .HasColumnName("SoTienKhoanPhi");
 
                     b.Property<int>("ApartmentId")
                         .HasColumnType("integer")
@@ -1565,7 +1509,7 @@ namespace t.Migrations
                         .IsRequired()
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)")
-                        .HasColumnName("MoTa");
+                        .HasColumnName("TenKhoanPhi");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
@@ -1575,15 +1519,9 @@ namespace t.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
-
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer")
-                        .HasColumnName("ThuTu");
+                        .HasColumnName("ThuTuKhoanPhi");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1600,7 +1538,7 @@ namespace t.Migrations
 
                     b.ToTable("PhiDinhKy", null, t =>
                         {
-                            t.HasCheckConstraint("CK_PhiDinhKy_SoTien", "\"SoTien\" >= 0");
+                            t.HasCheckConstraint("CK_PhiDinhKy_SoTien", "\"SoTienKhoanPhi\" >= 0");
                         });
                 });
 
@@ -1609,7 +1547,7 @@ namespace t.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("Id");
+                        .HasColumnName("KhuVucId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
@@ -1633,7 +1571,7 @@ namespace t.Migrations
 
                     b.Property<string>("ImageUrl")
                         .HasColumnType("text")
-                        .HasColumnName("UrlAnh");
+                        .HasColumnName("AnhKhuVuc");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
@@ -1643,19 +1581,7 @@ namespace t.Migrations
                         .IsRequired()
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)")
-                        .HasColumnName("Ten");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
-
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasMaxLength(160)
-                        .HasColumnType("character varying(160)")
-                        .HasColumnName("Slug");
+                        .HasColumnName("TenKhuVuc");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1667,9 +1593,6 @@ namespace t.Migrations
                         .HasColumnName("NguoiCapNhat");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Slug")
-                        .IsUnique();
 
                     b.ToTable("KhuVuc", (string)null);
                 });
@@ -1713,7 +1636,13 @@ namespace t.Migrations
                 {
                     b.Property<int>("Priority")
                         .HasColumnType("integer")
-                        .HasColumnName("MucDoUuTien");
+                        .HasColumnName("MucUuTienId");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("TenMucUuTien");
 
                     b.Property<int>("ResolveMinutes")
                         .HasColumnType("integer")
@@ -1725,33 +1654,42 @@ namespace t.Migrations
 
                     b.HasKey("Priority");
 
-                    b.ToTable("MucSla", null, t =>
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("MucUuTien", null, t =>
                         {
-                            t.HasCheckConstraint("CK_MucSla_ThoiHan", "\"PhutPhanHoi\" > 0 AND \"PhutHoanTat\" >= \"PhutPhanHoi\"");
+                            t.HasCheckConstraint("CK_MucUuTien_Id", "\"MucUuTienId\" BETWEEN 0 AND 3");
+
+                            t.HasCheckConstraint("CK_MucUuTien_ThoiHan", "\"PhutPhanHoi\" > 0 AND \"PhutHoanTat\" >= \"PhutPhanHoi\"");
                         });
 
                     b.HasData(
                         new
                         {
                             Priority = 3,
+                            Name = "Khẩn cấp",
                             ResolveMinutes = 120,
                             ResponseMinutes = 15
                         },
                         new
                         {
                             Priority = 2,
+                            Name = "Cao",
                             ResolveMinutes = 480,
                             ResponseMinutes = 30
                         },
                         new
                         {
                             Priority = 1,
+                            Name = "Trung bình",
                             ResolveMinutes = 1440,
                             ResponseMinutes = 120
                         },
                         new
                         {
                             Priority = 0,
+                            Name = "Thấp",
                             ResolveMinutes = 4320,
                             ResponseMinutes = 720
                         });
@@ -1762,29 +1700,17 @@ namespace t.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("Id");
+                        .HasColumnName("ChiSoDichVuId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,0)")
-                        .HasColumnName("ThanhTien");
 
                     b.Property<int>("ApartmentId")
                         .HasColumnType("integer")
                         .HasColumnName("CanHoId");
 
-                    b.Property<bool>("Billed")
-                        .HasColumnType("boolean")
-                        .HasColumnName("DaXuatHoaDon");
-
                     b.Property<int>("BillingMonth")
                         .HasColumnType("integer")
-                        .HasColumnName("ThangTinhPhi");
-
-                    b.Property<decimal>("Consumption")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("TieuThu");
+                        .HasColumnName("KyChiSo");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1814,25 +1740,15 @@ namespace t.Migrations
 
                     b.Property<string>("Note")
                         .HasColumnType("text")
-                        .HasColumnName("GhiChu");
+                        .HasColumnName("GhiChuChiSo");
 
                     b.Property<decimal>("PreviousReading")
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("ChiSoCu");
 
-                    b.Property<decimal>("Rate")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("DonGia");
-
                     b.Property<DateTime?>("ReadAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayDocChiSo");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1859,7 +1775,9 @@ namespace t.Migrations
 
                     b.ToTable("ChiSoDichVu", null, t =>
                         {
-                            t.HasCheckConstraint("CK_ChiSoDichVu_ChiSo", "\"ChiSoMoi\" >= \"ChiSoCu\"");
+                            t.HasCheckConstraint("CK_ChiSoDichVu_ChiSo", "\"ChiSoCu\" >= 0 AND \"ChiSoMoi\" >= \"ChiSoCu\"");
+
+                            t.HasCheckConstraint("CK_ChiSoDichVu_Ky", "\"KyChiSo\" % 100 BETWEEN 1 AND 12");
                         });
                 });
 
@@ -1868,19 +1786,15 @@ namespace t.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("Id");
+                        .HasColumnName("LoaiDichVuId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BillingMode")
-                        .HasColumnType("integer")
-                        .HasColumnName("CheDoTinhPhi");
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)")
-                        .HasColumnName("Ma");
+                        .HasColumnName("MaLoaiDichVu");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1893,7 +1807,7 @@ namespace t.Migrations
 
                     b.Property<decimal>("DefaultRate")
                         .HasColumnType("decimal(18,2)")
-                        .HasColumnName("DonGiaMacDinh");
+                        .HasColumnName("DonGia");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1904,10 +1818,6 @@ namespace t.Migrations
                         .HasColumnType("character varying(450)")
                         .HasColumnName("NguoiXoa");
 
-                    b.Property<string>("Icon")
-                        .HasColumnType("text")
-                        .HasColumnName("Icon");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
@@ -1916,13 +1826,7 @@ namespace t.Migrations
                         .IsRequired()
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)")
-                        .HasColumnName("Ten");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("PhienBan");
+                        .HasColumnName("TenLoaiDichVu");
 
                     b.Property<string>("Unit")
                         .IsRequired()
@@ -1944,7 +1848,10 @@ namespace t.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("LoaiDichVu", (string)null);
+                    b.ToTable("LoaiDichVu", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_LoaiDichVu_DonGia", "\"DonGia\" >= 0");
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -2000,19 +1907,11 @@ namespace t.Migrations
 
             modelBuilder.Entity("t.Models.Entities.Apartment", b =>
                 {
-                    b.HasOne("t.Models.Entities.Building", "Building")
-                        .WithMany("Apartments")
-                        .HasForeignKey("BuildingId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("t.Models.Entities.Floor", "Floor")
                         .WithMany("Apartments")
                         .HasForeignKey("FloorId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Building");
 
                     b.Navigation("Floor");
                 });
@@ -2022,13 +1921,14 @@ namespace t.Migrations
                     b.HasOne("t.Models.Entities.Apartment", "Apartment")
                         .WithMany("Residents")
                         .HasForeignKey("ApartmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("t.Models.Entities.AppUser", "User")
                         .WithMany("Residencies")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Apartment");
 
@@ -2045,19 +1945,12 @@ namespace t.Migrations
                     b.HasOne("t.Models.Entities.Project", "Project")
                         .WithMany("Buildings")
                         .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("t.Models.Entities.Region", "Region")
-                        .WithMany()
-                        .HasForeignKey("RegionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Manager");
 
                     b.Navigation("Project");
-
-                    b.Navigation("Region");
                 });
 
             modelBuilder.Entity("t.Models.Entities.Floor", b =>
@@ -2065,7 +1958,7 @@ namespace t.Migrations
                     b.HasOne("t.Models.Entities.Building", "Building")
                         .WithMany("Floors")
                         .HasForeignKey("BuildingId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Building");
@@ -2090,7 +1983,28 @@ namespace t.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("t.Models.Entities.MaintenanceRequest", "MaintenanceRequest")
+                        .WithMany()
+                        .HasForeignKey("MaintenanceRequestId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("t.Models.Entities.RecurringCharge", "RecurringCharge")
+                        .WithMany()
+                        .HasForeignKey("RecurringChargeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("t.Models.Entities.UtilityReading", "UtilityReading")
+                        .WithMany("InvoiceItems")
+                        .HasForeignKey("UtilityReadingId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Invoice");
+
+                    b.Navigation("MaintenanceRequest");
+
+                    b.Navigation("RecurringCharge");
+
+                    b.Navigation("UtilityReading");
                 });
 
             modelBuilder.Entity("t.Models.Entities.MaintenancePhoto", b =>
@@ -2104,7 +2018,7 @@ namespace t.Migrations
                     b.HasOne("t.Models.Entities.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UploadedById")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("MaintenanceRequest");
                 });
@@ -2119,7 +2033,7 @@ namespace t.Migrations
                     b.HasOne("t.Models.Entities.AppUser", "AssignedTo")
                         .WithMany()
                         .HasForeignKey("AssignedToId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("t.Models.Entities.Building", "CommonBuilding")
                         .WithMany()
@@ -2135,7 +2049,8 @@ namespace t.Migrations
                     b.HasOne("t.Models.Entities.AppUser", "Reporter")
                         .WithMany()
                         .HasForeignKey("ReporterId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Apartment");
 
@@ -2151,7 +2066,7 @@ namespace t.Migrations
                     b.HasOne("t.Models.Entities.AppUser", "ChangedBy")
                         .WithMany()
                         .HasForeignKey("ChangedById")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("t.Models.Entities.MaintenanceRequest", "MaintenanceRequest")
                         .WithMany("History")
@@ -2191,7 +2106,7 @@ namespace t.Migrations
                     b.HasOne("t.Models.Entities.Apartment", "Apartment")
                         .WithMany("RecurringCharges")
                         .HasForeignKey("ApartmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Apartment");
@@ -2221,7 +2136,7 @@ namespace t.Migrations
                     b.HasOne("t.Models.Entities.Apartment", "Apartment")
                         .WithMany("UtilityReadings")
                         .HasForeignKey("ApartmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("t.Models.Entities.UtilityType", "UtilityType")
@@ -2257,8 +2172,6 @@ namespace t.Migrations
 
             modelBuilder.Entity("t.Models.Entities.Building", b =>
                 {
-                    b.Navigation("Apartments");
-
                     b.Navigation("Floors");
                 });
 
@@ -2294,6 +2207,11 @@ namespace t.Migrations
             modelBuilder.Entity("t.Models.Entities.Region", b =>
                 {
                     b.Navigation("Projects");
+                });
+
+            modelBuilder.Entity("t.Models.Entities.UtilityReading", b =>
+                {
+                    b.Navigation("InvoiceItems");
                 });
 
             modelBuilder.Entity("t.Models.Entities.UtilityType", b =>

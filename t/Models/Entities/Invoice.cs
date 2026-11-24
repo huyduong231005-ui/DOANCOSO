@@ -29,7 +29,6 @@ public class Invoice : BaseEntity
 
     public InvoiceKind Kind { get; set; } = InvoiceKind.Monthly;
     public int BillingMonth { get; set; }
-    public bool IsRecurring { get; set; }
 
     public DateTime IssueDate { get; set; } = DateTime.UtcNow;
     public DateTime DueDate { get; set; }
@@ -43,7 +42,6 @@ public class Invoice : BaseEntity
     public decimal Balance { get; set; }
 
     public InvoiceStatus Status { get; set; } = InvoiceStatus.Draft;
-    public string Currency { get; set; } = "VND";
     public string? Note { get; set; }
 
     public ICollection<InvoiceItem> Items { get; set; } = new List<InvoiceItem>();

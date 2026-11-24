@@ -9,7 +9,7 @@
 
 <form asp-action="Index" method="post">
     @Html.AntiForgeryToken()
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
+    <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
 
     <div class="card">
         <div class="card-header"><h2>Thông tin cá nhân</h2></div>
@@ -23,15 +23,18 @@
                 <div class="form-field span-6">
                     <label asp-for="Email">Email</label>
                     <input asp-for="Email" readonly style="background:var(--admin-soft);" />
+                    <span class="err" asp-validation-for="Email"></span>
                     <span class="hint">Liên hệ ban quản lý nếu cần đổi email</span>
                 </div>
                 <div class="form-field span-6">
                     <label asp-for="Phone">Số điện thoại</label>
                     <input asp-for="Phone" />
+                    <span class="err" asp-validation-for="Phone"></span>
                 </div>
                 <div class="form-field span-6">
                     <label asp-for="AvatarUrl">Avatar URL</label>
                     <input asp-for="AvatarUrl" placeholder="https://..." />
+                    <span class="err" asp-validation-for="AvatarUrl"></span>
                 </div>
             </div>
         </div>

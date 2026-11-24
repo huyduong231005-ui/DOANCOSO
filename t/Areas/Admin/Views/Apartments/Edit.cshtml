@@ -17,7 +17,7 @@
 <form asp-action="Edit" method="post">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
+    <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
 
     <div class="card">
         <div class="card-header"><h2>Vị trí</h2></div>
@@ -31,6 +31,7 @@
                             <option value="@b.Id">@b.Name@(b.Project != null ? " · " + b.Project.Name : "")</option>
                         }
                     </select>
+                    <span class="err" asp-validation-for="BuildingId"></span>
                 </div>
                 <div class="form-field span-4">
                     <label asp-for="FloorId">Tầng</label>
@@ -61,10 +62,12 @@
                 <div class="form-field span-3">
                     <label asp-for="Bedrooms">Phòng ngủ</label>
                     <input asp-for="Bedrooms" type="number" min="0" max="20" />
+                    <span class="err" asp-validation-for="Bedrooms"></span>
                 </div>
                 <div class="form-field span-3">
                     <label asp-for="Bathrooms">Phòng tắm</label>
                     <input asp-for="Bathrooms" type="number" min="0" max="20" />
+                    <span class="err" asp-validation-for="Bathrooms"></span>
                 </div>
                 <div class="form-field span-3">
                     <label asp-for="HouseDirection">Hướng</label>
@@ -72,17 +75,20 @@
                         <option value="">—</option>
                         @foreach (var d in Enum.GetValues<HouseDirection>()) { <option value="@d">@d.Vi()</option> }
                     </select>
+                    <span class="err" asp-validation-for="HouseDirection"></span>
                 </div>
                 <div class="form-field span-4">
-                    <label asp-for="Occupancy">Tình trạng</label>
-                    <select asp-for="Occupancy">
-                        @foreach (var o in Enum.GetValues<ApartmentOccupancy>()) { <option value="@o">@o.Vi()</option> }
+                    <label asp-for="Condition">Tình trạng</label>
+                    <select asp-for="Condition">
+                        @foreach (var o in Enum.GetValues<ApartmentCondition>()) { <option value="@o">@o.Vi()</option> }
                     </select>
-                    <span class="hint">Tự chuyển "Đang ở" khi thêm cư dân</span>
+                    <span class="err" asp-validation-for="Condition"></span>
+                    <span class="hint">"Đang ở" / "Để trống" tự suy ra từ danh sách cư dân</span>
                 </div>
                 <div class="form-field span-8">
                     <label asp-for="Note">Ghi chú</label>
                     <textarea asp-for="Note" rows="2" placeholder="Hiện trạng bàn giao, lưu ý kỹ thuật…"></textarea>
+                    <span class="err" asp-validation-for="Note"></span>
                 </div>
             </div>
         </div>

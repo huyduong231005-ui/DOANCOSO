@@ -27,7 +27,7 @@
     <div class="kpi-card">
         <div class="kpi-label">Đã phát hành tháng này</div>
         <div class="kpi-value">@Money(Model.ThisMonthBilled)</div>
-        <div class="kpi-meta">Tỉ lệ thu: @(Model.ThisMonthBilled == 0 ? "—" : ((double)Model.ThisMonthPaid * 100 / (double)Model.ThisMonthBilled).ToString("0.#") + "%")</div>
+        <div class="kpi-meta">Đã thu @(Model.ThisMonthBilled == 0 ? "—" : ((double)Model.ThisMonthBilledCollected * 100 / (double)Model.ThisMonthBilled).ToString("0.#") + "%") số phát hành tháng này</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-label">Tổng công nợ</div>

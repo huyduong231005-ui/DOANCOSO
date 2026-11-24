@@ -29,7 +29,6 @@ public class PlannedEndpointsTests : IClassFixture<TestWebApplicationFactory>, I
     [Theory]
     [InlineData("/")]
     [InlineData("/Home/Login")]
-    [InlineData("/api/auth/email-exists?email=test@example.com")]
     public async Task PlannedEndpoint_ShouldNotReturn404(string path)
     {
         var response = await _client.GetAsync(path);
@@ -37,18 +36,13 @@ public class PlannedEndpointsTests : IClassFixture<TestWebApplicationFactory>, I
         Assert.NotEqual(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    [Fact]
-    public async Task DevResetTokenEndpoint_ShouldBeHiddenOutsideDevelopment()
+    // Hai API công khai đã bỏ: dò email có tài khoản và lấy mã đặt lại mật khẩu (kể cả ở Development).
+    [Theory]
+    [InlineData("/api/auth/email-exists?email=test@example.com")]
+    [InlineData("/api/dev/auth/reset-token?email=test@example.com")]
+    public async Task RemovedAuthApis_ShouldBe404_EvenInDevelopment(string path)
     {
-        var response = await _client.GetAsync("/api/dev/auth/reset-token?email=test@example.com");
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task DevResetTokenEndpoint_ShouldExistInDevelopment()
-    {
-        var response = await _devClient.GetAsync("/api/dev/auth/reset-token?email=test@example.com");
-        Assert.NotEqual(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await _devClient.GetAsync(path)).StatusCode);
     }
 
     [Fact]
@@ -56,7 +50,8 @@ public class PlannedEndpointsTests : IClassFixture<TestWebApplicationFactory>, I
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        Assert.Contains("InMemory", db.Database.ProviderName ?? string.Empty);
+        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("TEST_PG"))) // chế độ chạy trên PostgreSQL thì bỏ qua
+            Assert.Contains("InMemory", db.Database.ProviderName ?? string.Empty);
         Assert.True(await db.Projects.AnyAsync());
     }
 }

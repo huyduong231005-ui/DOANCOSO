@@ -90,7 +90,7 @@ public class MaintenanceDispatcher
             var assignee = role == null ? null : await LeastBusyAsync(role, ct);
             if (assignee != null)
             {
-                // Giao qua workflow để có mốc tiếp nhận và dòng lịch sử "hệ thống điều phối" (đo được tỉ lệ AI giao đúng).
+                // Giao qua workflow để có mốc tiếp nhận và dòng lịch sử "hệ thống điều phối" (đo được tỉ lệ việc tự giao được giữ nguyên).
                 var error = await _workflow.AssignAsync(req, assignee, WorkflowActor.System, null, AutoAssignNote, ct);
                 if (error != null)
                 {
@@ -196,7 +196,7 @@ public class MaintenanceDispatcher
     private static string BuildDetails(MaintenanceRequest req, MaintenanceTriage? triage)
     {
         var reporter = req.Reporter;
-        var phone = reporter?.Phone ?? reporter?.PhoneNumber;
+        var phone = reporter?.PhoneNumber;
         var danger = triage?.IsDangerous == true
             ? "<p><strong>Cảnh báo: sự cố có nguy cơ gây mất an toàn.</strong></p>" : "";
         return $@"

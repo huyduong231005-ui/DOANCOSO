@@ -28,7 +28,7 @@
 
 <section class="page-header">
     <div>
-        <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:16px;">door_front</span>@a.Building.Name · Tầng @a.Floor.Number</span>
+        <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:16px;">door_front</span>@a.Floor.Building.Name · Tầng @a.Floor.Number</span>
         <h1>Căn @a.UnitCode</h1>
         <p class="subtitle">@a.Area.ToString("0.#") m² · @a.Bedrooms PN · @a.Bathrooms WC · hướng @(a.HouseDirection?.Vi() ?? "—")</p>
         <div class="hstack" style="margin-top:.45rem;flex-wrap:wrap;">
@@ -42,9 +42,9 @@
             @Html.AntiForgeryToken()
             <input type="hidden" name="returnUrl" value="@returnUrl" />
             <select name="status" onchange="this.form.submit()" aria-label="Đổi tình trạng căn">
-                @foreach (var o in Enum.GetValues<ApartmentOccupancy>())
+                @foreach (var o in Enum.GetValues<ApartmentCondition>())
                 {
-                    <option value="@o" selected="@(o == a.Occupancy)">@o.Vi()</option>
+                    <option value="@o" selected="@(o == a.Condition)">@o.Vi()</option>
                 }
             </select>
         </form>
@@ -72,23 +72,23 @@
                     @foreach (var r in living)
                     {
                         <div class="person">
-                            <span class="avatar">@Initial(r.FullName)</span>
+                            <span class="avatar">@Initial(r.User.FullName)</span>
                             <div class="who">
-                                <b>@r.FullName</b>
+                                <b>@r.User.FullName</b>
                                 <small>
-                                    @(r.Phone ?? "—") · @(r.Email ?? "chưa có email")
+                                    @(r.User.PhoneNumber ?? "—") · @(r.User.Email ?? "chưa có email")
                                     · vào ở @r.MoveInDate.ToString("dd/MM/yyyy")
                                     @if (r.UserId != null) { <text> · <span title="Đăng nhập được cổng cư dân">có tài khoản</span></text> }
                                 </small>
                             </div>
                             @if (r.IsPrimary) { <span class="tag primary">Đại diện</span> }
                             <span class="tag">@r.Role.Vi()</span>
-                            @if (r.UserId == null && r.Email != null)
+                            @if (r.UserId == null && r.User.Email != null)
                             {
                                 <form asp-action="ResendInvite" method="post" style="margin:0;">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="residentId" value="@r.Id" />
-                                    <button type="submit" class="btn btn-ghost btn-sm" title="Chưa có tài khoản: gửi (lại) thư mời tạo tài khoản tới @r.Email"><span class="material-symbols-outlined">forward_to_inbox</span></button>
+                                    <button type="submit" class="btn btn-ghost btn-sm" title="Chưa có tài khoản: gửi (lại) thư mời tạo tài khoản tới @r.User.Email"><span class="material-symbols-outlined">forward_to_inbox</span></button>
                                 </form>
                             }
                             @if (!r.IsPrimary)
@@ -99,7 +99,7 @@
                                     <button type="submit" class="btn btn-ghost btn-sm" title="Đặt làm đại diện"><span class="material-symbols-outlined">star</span></button>
                                 </form>
                             }
-                            <form asp-action="MoveOut" method="post" style="margin:0;" data-confirm="Ghi nhận @r.FullName đã chuyển đi khỏi căn @a.UnitCode?" data-confirm-title="Chuyển đi" data-confirm-ok="Xác nhận">
+                            <form asp-action="MoveOut" method="post" style="margin:0;" data-confirm="Ghi nhận @r.User.FullName đã chuyển đi khỏi căn @a.UnitCode?" data-confirm-title="Chuyển đi" data-confirm-ok="Xác nhận">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="residentId" value="@r.Id" />
                                 <button type="submit" class="btn btn-ghost btn-sm" title="Chuyển đi"><span class="material-symbols-outlined">logout</span></button>
@@ -140,8 +140,8 @@
                             @foreach (var r in moved)
                             {
                                 <div class="person moved">
-                                    <span class="avatar">@Initial(r.FullName)</span>
-                                    <div class="who"><b>@r.FullName</b><small>@r.Role.Vi() · @r.MoveInDate.ToString("dd/MM/yyyy") → @r.MoveOutDate?.ToString("dd/MM/yyyy")</small></div>
+                                    <span class="avatar">@Initial(r.User.FullName)</span>
+                                    <div class="who"><b>@r.User.FullName</b><small>@r.Role.Vi() · @r.MoveInDate.ToString("dd/MM/yyyy") → @r.MoveOutDate?.ToString("dd/MM/yyyy")</small></div>
                                 </div>
                             }
                         </div>
@@ -206,7 +206,7 @@
                             <td class="num">@r.PreviousReading.ToString("0.##")</td>
                             <td class="num">@r.CurrentReading.ToString("0.##")</td>
                             <td class="num">@r.Consumption.ToString("0.##") @r.UtilityType.Unit</td>
-                            <td class="num">@Money(r.Amount)</td>
+                            <td class="num">@Money(r.EstimatedAmount)</td>
                             <td>@(r.Billed ? "Đã lên HĐ" : "Chưa lên HĐ")</td>
                         </tr>
                     }
@@ -221,7 +221,7 @@
             <summary class="card-header"><h2>Phí cố định hằng tháng</h2></summary>
             <div class="card-body vstack" style="gap:.6rem;">
                 <div class="mini-list">
-                    <div class="row"><span>Phí quản lý (@a.Area.ToString("0.#") m² × @Money(a.Building.ManagementFeePerM2))</span><b>@Money(Model.ManagementFee)</b></div>
+                    <div class="row"><span>Phí quản lý (@a.Area.ToString("0.#") m² × @Money(a.Floor.Building.ManagementFeePerM2))</span><b>@Money(Model.ManagementFee)</b></div>
                     @foreach (var c in a.RecurringCharges)
                     {
                         <div class="row" style="@(c.IsActive ? "" : "opacity:.5")">

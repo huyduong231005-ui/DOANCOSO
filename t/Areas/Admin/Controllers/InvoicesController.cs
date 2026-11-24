@@ -10,6 +10,7 @@ using t.Models.Entities;
 
 namespace t.Areas.Admin.Controllers;
 
+[t.Infrastructure.Security.Permission("invoices.view", "invoices.issue")]
 public class InvoicesController : AdminBaseController
 {
     private readonly InvoicePdfGenerator _pdfGen;
@@ -23,7 +24,7 @@ public class InvoicesController : AdminBaseController
     public async Task<IActionResult> Pdf(int id)
     {
         var inv = await Db.Invoices
-            .Include(i => i.Apartment).ThenInclude(a => a.Building)
+            .Include(i => i.Apartment).ThenInclude(a => a.Floor).ThenInclude(f => f.Building).ThenInclude(b => b.Project)
             .Include(i => i.Apartment).ThenInclude(a => a.Residents)
             .Include(i => i.Items)
             .Include(i => i.Payments)
@@ -44,7 +45,7 @@ public class InvoicesController : AdminBaseController
 
         if (!string.IsNullOrWhiteSpace(q))
             query = query.Where(i => i.InvoiceNumber.Contains(q) || i.Apartment.UnitCode.Contains(q));
-        if (buildingId.HasValue) query = query.Where(i => i.Apartment.BuildingId == buildingId.Value);
+        if (buildingId.HasValue) query = query.Where(i => i.Apartment.Floor.BuildingId == buildingId.Value);
         if (status.HasValue) query = query.Where(i => i.Status == status.Value);
         if (kind.HasValue) query = query.Where(i => i.Kind == kind.Value);
         if (month.HasValue) query = query.Where(i => i.BillingMonth == month.Value);
@@ -58,7 +59,7 @@ public class InvoicesController : AdminBaseController
                 Id = i.Id, InvoiceNumber = i.InvoiceNumber,
                 ApartmentId = i.ApartmentId,
                 UnitCode = i.Apartment.UnitCode,
-                BuildingName = i.Apartment.Building.Name,
+                BuildingName = i.Apartment.Floor.Building.Name,
                 Kind = i.Kind, BillingMonth = i.BillingMonth,
                 IssueDate = i.IssueDate, DueDate = i.DueDate,
                 Total = i.Total, AmountPaid = i.AmountPaid, Balance = i.Balance,
@@ -111,7 +112,7 @@ public class InvoicesController : AdminBaseController
     {
         SetActiveNav("invoices");
         var inv = await Db.Invoices
-            .Include(i => i.Apartment).ThenInclude(a => a.Building)
+            .Include(i => i.Apartment).ThenInclude(a => a.Floor).ThenInclude(f => f.Building).ThenInclude(b => b.Project)
             .Include(i => i.Apartment).ThenInclude(a => a.Residents)
             .Include(i => i.Items)
             .Include(i => i.Payments)
@@ -150,7 +151,8 @@ public class InvoicesController : AdminBaseController
             TempData["Danger"] = $"Không thể huỷ hoá đơn ở trạng thái {inv.Status.Vi()}.";
             return RedirectToAction(nameof(Details), new { id });
         }
-        if (inv.Payments.Any(p => p.Status == PaymentStatus.Succeeded && p.RefundedAmount < p.Amount))
+        if (inv.Payments.Any(p => p.Status is (PaymentStatus.Succeeded or PaymentStatus.PartiallyRefunded)
+                                  && p.RefundedAmount < p.Amount))
         {
             TempData["Danger"] = "Hoá đơn đã có thanh toán thành công — vui lòng hoàn tiền trước khi huỷ.";
             return RedirectToAction(nameof(Details), new { id });
@@ -204,8 +206,7 @@ public class InvoicesController : AdminBaseController
             Status = PaymentStatus.Succeeded,
             TransactionRef = input.TransactionRef,
             Note = input.Note,
-            PaidAt = DateTime.UtcNow,
-            Currency = inv.Currency
+            PaidAt = DateTime.UtcNow
         };
         Db.Payments.Add(payment);
 
@@ -321,6 +322,9 @@ public class InvoicesController : AdminBaseController
             .Select(l => (l.Description!.Trim(), l.Quantity, l.UnitPrice))
             .ToList();
         if (lines.Count == 0) ModelState.AddModelError("", "Cần ít nhất một dòng có mô tả và số tiền.");
+        if (input.DueDate == default) input.DueDate = VnTime.Today.AddDays(InvoiceGenerator.PaymentTermDays);
+        else if (input.DueDate.Date < VnTime.Today)
+            ModelState.AddModelError(nameof(input.DueDate), "Hạn thanh toán không được trước hôm nay.");
         if (!ModelState.IsValid)
         {
             await PopulateOneOffLookupsAsync(input);
@@ -380,7 +384,11 @@ public class InvoicesController : AdminBaseController
 
         var keepIds = input.Lines.Where(l => l.Id > 0).Select(l => l.Id).ToHashSet();
         foreach (var existing in inv.Items.Where(x => !keepIds.Contains(x.Id)).ToList())
+        {
+            // Rút khỏi cả danh sách trong bộ nhớ: RecomputeTotals cộng inv.Items, dòng chỉ đánh dấu xoá vẫn bị cộng.
+            inv.Items.Remove(existing);
             Db.InvoiceItems.Remove(existing);
+        }
 
         var sort = 0;
         foreach (var line in input.Lines.Where(l => !string.IsNullOrWhiteSpace(l.Description) && l.Quantity > 0))
@@ -412,6 +420,13 @@ public class InvoicesController : AdminBaseController
         inv.Tax = Math.Max(0, input.Tax);
         inv.Note = input.Note;
         RecomputeTotals(inv);
+        if (inv.Total < inv.AmountPaid)
+        {
+            // Không lưu: số đã thu lớn hơn tổng mới thì phần thừa sẽ mất dấu. Hoàn phần chênh trước rồi sửa.
+            TempData["Danger"] = $"Tổng mới ({inv.Total:N0}) nhỏ hơn số đã thu ({inv.AmountPaid:N0}). " +
+                                 "Hoàn phần chênh lệch cho cư dân trước khi giảm hoá đơn.";
+            return RedirectToAction(nameof(Details), new { id = inv.Id });
+        }
 
         await Db.SaveChangesAsync();
         TempData["Success"] = "Đã cập nhật dòng và tính lại tổng.";
@@ -441,7 +456,9 @@ public class InvoicesController : AdminBaseController
     {
         inv.AmountPaid += amount;
         inv.Balance = Math.Max(0, inv.Total - inv.AmountPaid);
+        // Trả một phần cho hoá đơn đã qua hạn thì vẫn là Quá hạn (không tạm "hết quá hạn" tới lần chạy tiến trình sau).
         inv.Status = inv.Balance == 0 ? InvoiceStatus.Paid
+                    : inv.DueDate.Date < VnTime.Today ? InvoiceStatus.Overdue
                     : inv.AmountPaid > 0 ? InvoiceStatus.PartiallyPaid
                     : inv.Status;
     }
@@ -459,9 +476,9 @@ public class InvoicesController : AdminBaseController
     private async Task PopulateOneOffLookupsAsync(OneOffInvoiceVm vm)
     {
         vm.Apartments = await Db.Apartments
-            .Where(a => a.Occupancy != ApartmentOccupancy.NotHandedOver || a.Id == vm.ApartmentId)
-            .OrderBy(a => a.Building.Code).ThenBy(a => a.UnitCode)
-            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + a.Building.Name })
+            .Where(a => a.Condition != ApartmentCondition.NotHandedOver || a.Id == vm.ApartmentId)
+            .OrderBy(a => a.Floor.Building.Code).ThenBy(a => a.UnitCode)
+            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + a.Floor.Building.Name })
             .ToListAsync();
     }
 }

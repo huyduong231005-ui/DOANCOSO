@@ -9,39 +9,39 @@ namespace t.Infrastructure.Billing;
 /// Uses MAX(seq)+1 per prefix (per billing month / per VN day). Callers must
 /// retry on unique-constraint violation in case two requests pick the same
 /// number concurrently — the unique index on InvoiceNumber/PaymentNumber is
-/// the source of truth.
+/// the source of truth. Số của dòng đã xoá mềm vẫn chiếm chỗ trong unique index nên phải tính cả (IgnoreQueryFilters).
 /// </summary>
 public static class BillingNumberGenerator
 {
     public static async Task<string> NextInvoiceNumberAsync(AppDbContext db, int billingMonth, CancellationToken ct = default)
     {
-        var prefix = $"INV-{billingMonth}-";
+        var prefix = $"HD-{billingMonth}-";
         return await NextWithPrefixAsync(prefix,
-            await db.Invoices.Where(i => i.InvoiceNumber.StartsWith(prefix))
+            await db.Invoices.IgnoreQueryFilters().Where(i => i.InvoiceNumber.StartsWith(prefix))
                               .Select(i => i.InvoiceNumber).ToListAsync(ct));
     }
 
     public static async Task<string> NextOneOffInvoiceNumberAsync(AppDbContext db, CancellationToken ct = default)
     {
-        var prefix = $"INV-{VnTime.Now:yyyyMM}-";
+        var prefix = $"HD-{VnTime.Now:yyyyMM}-";
         return await NextWithPrefixAsync(prefix,
-            await db.Invoices.Where(i => i.InvoiceNumber.StartsWith(prefix))
+            await db.Invoices.IgnoreQueryFilters().Where(i => i.InvoiceNumber.StartsWith(prefix))
                               .Select(i => i.InvoiceNumber).ToListAsync(ct));
     }
 
     public static async Task<string> NextMaintenanceNumberAsync(AppDbContext db, CancellationToken ct = default)
     {
-        var prefix = $"MR-{VnTime.Now:yyyyMM}-";
+        var prefix = $"YC-{VnTime.Now:yyyyMM}-";
         return await NextWithPrefixAsync(prefix,
-            await db.MaintenanceRequests.Where(r => r.RequestNumber.StartsWith(prefix))
+            await db.MaintenanceRequests.IgnoreQueryFilters().Where(r => r.RequestNumber.StartsWith(prefix))
                                           .Select(r => r.RequestNumber).ToListAsync(ct));
     }
 
     public static async Task<string> NextPaymentNumberAsync(AppDbContext db, CancellationToken ct = default)
     {
-        var prefix = $"PMT-{VnTime.Now:yyyyMMdd}-";
+        var prefix = $"PT-{VnTime.Now:yyyyMMdd}-";
         return await NextWithPrefixAsync(prefix,
-            await db.Payments.Where(p => p.PaymentNumber.StartsWith(prefix))
+            await db.Payments.IgnoreQueryFilters().Where(p => p.PaymentNumber.StartsWith(prefix))
                               .Select(p => p.PaymentNumber).ToListAsync(ct));
     }
 

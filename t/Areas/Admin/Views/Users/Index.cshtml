@@ -53,6 +53,8 @@
                             @if (u.LockedOut) { <span class="pill pill-danger">Đã khoá</span> } else { <span class="pill pill-success">Hoạt động</span> }
                         </td>
                         <td class="actions-cell">
+                            @if (ViewBag.CanManage == true)
+                            {
                             <a class="btn btn-ghost btn-sm" asp-action="Edit" asp-route-id="@u.Id" title="Sửa"><span class="material-symbols-outlined">edit</span></a>
                             <form asp-action="ToggleLock" asp-route-id="@u.Id" method="post" style="display:inline;" data-confirm="@(u.LockedOut ? "Mở khoá" : "Khoá") tài khoản này?" data-confirm-title="@(u.LockedOut ? "Mở khoá tài khoản" : "Khoá tài khoản")" data-confirm-ok="@(u.LockedOut ? "Mở khoá" : "Khoá")">
                                 @Html.AntiForgeryToken()
@@ -60,6 +62,7 @@
                                     <span class="material-symbols-outlined">@(u.LockedOut ? "lock_open" : "lock")</span>
                                 </button>
                             </form>
+                            }
                         </td>
                     </tr>
                 }

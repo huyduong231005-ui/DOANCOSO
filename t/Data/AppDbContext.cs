@@ -54,13 +54,21 @@ public class AppDbContext : IdentityDbContext<AppUser>
         b.Entity<AppUser>(e =>
         {
             e.ToTable("NguoiDung");
+            e.Property(x => x.Id).HasColumnName("NguoiDungId");
             e.HasIndex(u => u.IsDeleted);
-            e.HasIndex(u => u.Phone);
+            // Một người một tài khoản: email (nếu có) không trùng.
+            e.HasIndex(u => u.NormalizedEmail).HasDatabaseName("EmailIndex").IsUnique().HasFilter("\"NormalizedEmail\" IS NOT NULL");
+            e.HasIndex(u => u.PhoneNumber);
 
             // Custom columns
             e.Property(x => x.FullName).HasColumnName("HoTen");
-            e.Property(x => x.AvatarUrl).HasColumnName("UrlAvatar");
-            e.Property(x => x.Phone).HasColumnName("SoDienThoai");
+            e.Property(x => x.AvatarUrl).HasColumnName("AnhDaiDien");
+            e.Property(x => x.IdNumber).HasColumnName("SoGiayTo").HasMaxLength(30);
+            e.Property(x => x.UserName).HasColumnName("TenDangNhap");
+            e.Property(x => x.PasswordHash).HasColumnName("MatKhauBam");
+            e.Ignore(x => x.IsActivated);
+            // Một cột số điện thoại duy nhất: dùng PhoneNumber của Identity, đặt tên SoDienThoai.
+            e.Property(x => x.PhoneNumber).HasColumnName("SoDienThoai");
             e.Property(x => x.LastLoginAt).HasColumnName("NgayDangNhapCuoi");
 
             // Audit / soft-delete columns (AppUser triển khai IAuditable + ISoftDeletable)
@@ -76,6 +84,8 @@ public class AppDbContext : IdentityDbContext<AppUser>
         b.Entity<IdentityRole>(e =>
         {
             e.ToTable("VaiTro");
+            e.Property(x => x.Id).HasColumnName("VaiTroId");
+            e.Property(x => x.Name).HasColumnName("TenVaiTro");
         });
 
         b.Entity<IdentityUserRole<string>>(e =>
@@ -113,13 +123,11 @@ public class AppDbContext : IdentityDbContext<AppUser>
         b.Entity<Region>(e =>
         {
             e.ToTable("KhuVuc");
-            MapBaseEntityColumns(e);
+            MapBaseEntityColumns(e, "KhuVucId");
 
-            e.Property(r => r.Name).HasColumnName("Ten").HasMaxLength(120).IsRequired();
-            e.Property(r => r.Slug).HasColumnName("Slug").HasMaxLength(160).IsRequired();
-            e.Property(r => r.ImageUrl).HasColumnName("UrlAnh");
+            e.Property(r => r.Name).HasColumnName("TenKhuVuc").HasMaxLength(120).IsRequired();
+            e.Property(r => r.ImageUrl).HasColumnName("AnhKhuVuc");
 
-            e.HasIndex(r => r.Slug).IsUnique();
         });
 
         // ================== Apartment ==================
@@ -128,78 +136,83 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.ToTable("CanHo", t =>
             {
                 t.HasCheckConstraint("CK_CanHo_DienTich", "\"DienTich\" > 0");
-                t.HasCheckConstraint("CK_CanHo_SoPhongNgu", "\"SoPhongNgu\" >= 0");
+                t.HasCheckConstraint("CK_CanHo_SoPhong", "\"SoPhongNgu\" >= 0 AND \"SoPhongTam\" >= 0");
+                t.HasCheckConstraint("CK_CanHo_HuongNha", "\"HuongNha\" IS NULL OR \"HuongNha\" BETWEEN 0 AND 7");
+                t.HasCheckConstraint("CK_CanHo_TinhTrangCanHo", "\"TinhTrangCanHo\" IN (0, 1, 3)");
             });
-            MapBaseEntityColumns(e);
+            MapBaseEntityColumns(e, "CanHoId");
 
             e.Property(a => a.UnitCode).HasColumnName("MaCanHo").HasMaxLength(40).IsRequired();
             e.Property(a => a.Area).HasColumnName("DienTich");
             e.Property(a => a.Bedrooms).HasColumnName("SoPhongNgu");
             e.Property(a => a.Bathrooms).HasColumnName("SoPhongTam");
             e.Property(a => a.HouseDirection).HasColumnName("HuongNha");
-            e.Property(a => a.Occupancy).HasColumnName("TinhTrangThue");
-            e.Property(a => a.Note).HasColumnName("MoTa");
-            e.Property(a => a.BuildingId).HasColumnName("ToaNhaId");
+            e.Property(a => a.Condition).HasColumnName("TinhTrangCanHo");
+            e.Property(a => a.Note).HasColumnName("MoTaCanHo");
             e.Property(a => a.FloorId).HasColumnName("TangId");
 
-            e.HasIndex(a => a.Occupancy);
+            e.HasIndex(a => a.Condition);
             e.HasIndex(a => a.FloorId);
-            e.HasIndex(a => new { a.BuildingId, a.UnitCode }).IsUnique().HasFilter("\"DaXoa\" = false");
+            // Mã căn bắt đầu bằng mã toà (duy nhất) nên duy nhất toàn hệ thống.
+            e.HasIndex(a => a.UnitCode).IsUnique().HasFilter("\"DaXoa\" = false");
 
-            e.HasOne(a => a.Building)
-             .WithMany(b2 => b2.Apartments)
-             .HasForeignKey(a => a.BuildingId)
-             .OnDelete(DeleteBehavior.Restrict);
-
+            // Toà của căn suy ra qua tầng; căn không lưu ToaNhaId. Tầng và toà luôn được nạp kèm căn.
+            e.Navigation(a => a.Floor).AutoInclude();
             e.HasOne(a => a.Floor)
              .WithMany(f => f.Apartments)
              .HasForeignKey(a => a.FloorId)
              .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // ================== ApartmentResident ==================
+        // ================== ApartmentResident (bảng CuTru: người dùng cư trú tại căn) ==================
         b.Entity<ApartmentResident>(e =>
         {
-            e.ToTable("CuDan", t => t.HasCheckConstraint("CK_CuDan_NgayChuyenDi",
-                "\"NgayChuyenDi\" IS NULL OR \"NgayChuyenDi\" >= \"NgayVaoO\""));
-            MapBaseEntityColumns(e);
+            e.ToTable("CuTru", t =>
+            {
+                t.HasCheckConstraint("CK_CuTru_NgayChuyenDi", "\"NgayChuyenDi\" IS NULL OR \"NgayChuyenDi\" >= \"NgayVaoO\"");
+                t.HasCheckConstraint("CK_CuTru_VaiTroTrongHo", "\"VaiTroTrongHo\" BETWEEN 0 AND 2");
+            });
+            MapBaseEntityColumns(e, "CuTruId");
 
             e.Property(x => x.ApartmentId).HasColumnName("CanHoId");
-            e.Property(x => x.FullName).HasColumnName("HoTen").HasMaxLength(150).IsRequired();
-            e.Property(x => x.Phone).HasColumnName("SoDienThoai").HasMaxLength(30);
-            e.Property(x => x.Email).HasColumnName("Email").HasMaxLength(200);
-            e.Property(x => x.IdNumber).HasColumnName("SoGiayTo").HasMaxLength(30);
-            e.Property(x => x.Role).HasColumnName("VaiTro");
-            e.Property(x => x.IsPrimary).HasColumnName("DaiDienCanHo");
+            e.Property(x => x.UserId).HasColumnName("NguoiDungId").IsRequired();
+            e.Property(x => x.Role).HasColumnName("VaiTroTrongHo");
+            e.Property(x => x.IsPrimary).HasColumnName("LaDaiDien");
             e.Property(x => x.MoveInDate).HasColumnName("NgayVaoO");
             e.Property(x => x.MoveOutDate).HasColumnName("NgayChuyenDi");
-            e.Property(x => x.UserId).HasColumnName("NguoiDungId");
-            e.Property(x => x.Note).HasColumnName("GhiChu").HasMaxLength(1000);
+            e.Property(x => x.Note).HasColumnName("GhiChuCuTru").HasMaxLength(1000);
+            e.Property(x => x.ConfirmedAt).HasColumnName("NgayXacNhan");
             e.Ignore(x => x.IsActive);
+            // Họ tên, liên hệ của người cư trú nằm ở NguoiDung: luôn nạp kèm.
+            e.Navigation(x => x.User).AutoInclude();
 
             e.HasIndex(x => x.ApartmentId);
             e.HasIndex(x => x.UserId);
+            // Một người không cư trú cùng một căn hai lần cùng lúc; mỗi căn một người đại diện đang ở.
+            e.HasIndex(x => new { x.ApartmentId, x.UserId }).IsUnique()
+             .HasDatabaseName("UX_CuTru_DangO").HasFilter("\"NgayChuyenDi\" IS NULL AND \"DaXoa\" = false");
+            e.HasIndex(x => x.ApartmentId).IsUnique()
+             .HasDatabaseName("UX_CuTru_DaiDien").HasFilter("\"LaDaiDien\" AND \"NgayChuyenDi\" IS NULL AND \"DaXoa\" = false");
 
+            // Liên kết thường, không hợp thành: căn còn người cư trú thì không xoá được, xoá căn không xoá người.
             e.HasOne(x => x.Apartment).WithMany(a => a.Residents)
-             .HasForeignKey(x => x.ApartmentId).OnDelete(DeleteBehavior.Cascade);
+             .HasForeignKey(x => x.ApartmentId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.User).WithMany(u => u.Residencies)
-             .HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.SetNull);
+             .HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
         });
 
         // ================== Project ==================
         b.Entity<Project>(e =>
         {
             e.ToTable("DuAn");
-            MapBaseEntityColumns(e);
+            MapBaseEntityColumns(e, "DuAnId");
 
-            e.Property(p => p.Name).HasColumnName("Ten").HasMaxLength(200).IsRequired();
-            e.Property(p => p.Slug).HasColumnName("Slug").HasMaxLength(220).IsRequired();
+            e.Property(p => p.Name).HasColumnName("TenDuAn").HasMaxLength(200).IsRequired();
             e.Property(p => p.RegionId).HasColumnName("KhuVucId");
-            e.Property(p => p.Address).HasColumnName("DiaChi");
-            e.Property(p => p.ThumbnailUrl).HasColumnName("UrlAnhDaiDien");
-            e.Property(p => p.ShortDescription).HasColumnName("MoTaNgan");
+            e.Property(p => p.Address).HasColumnName("DiaChiDuAn");
+            e.Property(p => p.ThumbnailUrl).HasColumnName("AnhDaiDienDuAn");
+            e.Property(p => p.ShortDescription).HasColumnName("MoTaDuAn");
 
-            e.HasIndex(p => p.Slug).IsUnique();
             e.HasIndex(p => p.RegionId);
 
             e.HasOne(p => p.Region)
@@ -214,33 +227,29 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.ToTable("ToaNha", t =>
             {
                 t.HasCheckConstraint("CK_ToaNha_DonGiaPhiQuanLy", "\"DonGiaPhiQuanLy\" >= 0");
-                t.HasCheckConstraint("CK_ToaNha_NgayChotKy", "\"NgayChotKyMacDinh\" BETWEEN 1 AND 28");
+                t.HasCheckConstraint("CK_ToaNha_NgayChotKy", "\"NgayChotKy\" BETWEEN 1 AND 28");
+                t.HasCheckConstraint("CK_ToaNha_PhiTre", "\"SoNgayAnHan\" >= 0 AND \"PhanTramPhiTre\" BETWEEN 0 AND 100");
+                t.HasCheckConstraint("CK_ToaNha_TrangThai", "\"TrangThaiToaNha\" BETWEEN 0 AND 2");
             });
-            MapBaseEntityColumns(e);
+            MapBaseEntityColumns(e, "ToaNhaId");
 
-            e.Property(x => x.Name).HasColumnName("Ten").HasMaxLength(200).IsRequired();
-            e.Property(x => x.Slug).HasColumnName("Slug").HasMaxLength(220).IsRequired();
-            e.Property(x => x.Code).HasColumnName("Ma").HasMaxLength(40);
+            e.Property(x => x.Name).HasColumnName("TenToaNha").HasMaxLength(200).IsRequired();
+            e.Property(x => x.Code).HasColumnName("MaToaNha").HasMaxLength(40);
             e.Property(x => x.ProjectId).HasColumnName("DuAnId");
-            e.Property(x => x.RegionId).HasColumnName("KhuVucId");
-            e.Property(x => x.Address).HasColumnName("DiaChi").HasMaxLength(500);
-            e.Property(x => x.FloorCount).HasColumnName("SoLuongTang");
-            e.Property(x => x.ThumbnailUrl).HasColumnName("UrlAnhDaiDien");
-            e.Property(x => x.Description).HasColumnName("MoTa");
+            e.Property(x => x.ThumbnailUrl).HasColumnName("AnhDaiDienToaNha");
+            e.Property(x => x.Description).HasColumnName("MoTaToaNha");
             e.Property(x => x.ManagerId).HasColumnName("QuanLyId");
-            e.Property(x => x.Status).HasColumnName("TrangThai");
-            e.Property(x => x.DefaultBillingDay).HasColumnName("NgayChotKyMacDinh").HasDefaultValue(1);
-            e.Property(x => x.DefaultLateFeeAfterDays).HasColumnName("SoNgayTreHanMacDinh").HasDefaultValue(7);
-            e.Property(x => x.DefaultLateFeePercent).HasColumnName("PhanTramPhiTreMacDinh").HasDefaultValue(5);
+            e.Property(x => x.Status).HasColumnName("TrangThaiToaNha");
+            e.Property(x => x.DefaultBillingDay).HasColumnName("NgayChotKy").HasDefaultValue(1);
+            e.Property(x => x.DefaultLateFeeAfterDays).HasColumnName("SoNgayAnHan").HasDefaultValue(7);
+            e.Property(x => x.DefaultLateFeePercent).HasColumnName("PhanTramPhiTre").HasDefaultValue(5);
             e.Property(x => x.ManagementFeePerM2).HasColumnName("DonGiaPhiQuanLy").HasColumnType("decimal(18,0)");
 
-            e.HasIndex(x => x.Slug).IsUnique();
-            e.HasIndex(x => x.RegionId);
+            e.HasIndex(x => x.Code).IsUnique().HasFilter("\"DaXoa\" = false");
             e.HasIndex(x => x.ProjectId);
             e.HasIndex(x => x.Status);
 
-            e.HasOne(x => x.Region).WithMany().HasForeignKey(x => x.RegionId).OnDelete(DeleteBehavior.Restrict);
-            e.HasOne(x => x.Project).WithMany(p => p.Buildings).HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(x => x.Project).WithMany(p => p.Buildings).HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Manager).WithMany(u => u.ManagedBuildings).HasForeignKey(x => x.ManagerId).OnDelete(DeleteBehavior.SetNull);
         });
 
@@ -248,55 +257,63 @@ public class AppDbContext : IdentityDbContext<AppUser>
         b.Entity<Floor>(e =>
         {
             e.ToTable("Tang");
-            MapBaseEntityColumns(e);
+            MapBaseEntityColumns(e, "TangId");
 
             e.Property(x => x.BuildingId).HasColumnName("ToaNhaId");
             e.Property(x => x.Number).HasColumnName("SoTang");
-            e.Property(x => x.Label).HasColumnName("NhanTang").HasMaxLength(50);
+            e.Ignore(x => x.Label);   // nhãn "Tầng n" suy ra từ SoTang
 
             e.HasIndex(x => new { x.BuildingId, x.Number }).IsUnique();
 
+            e.Navigation(x => x.Building).AutoInclude();
             e.HasOne(x => x.Building).WithMany(b2 => b2.Floors)
-             .HasForeignKey(x => x.BuildingId).OnDelete(DeleteBehavior.Cascade);
+             .HasForeignKey(x => x.BuildingId).OnDelete(DeleteBehavior.Restrict);
         });
 
         // ================== MaintenanceRequest ==================
         b.Entity<MaintenanceRequest>(e =>
         {
+            e.Property(x => x.Xmin).IsRowVersion(); // Npgsql: uint + IsRowVersion → cột hệ thống xmin
             e.ToTable("YeuCauBaoTri", t =>
             {
                 // BR: sự cố ở đúng một nơi, trong căn hoặc khu vực chung (có toà và mô tả vị trí).
                 t.HasCheckConstraint("CK_YeuCauBaoTri_NoiXayRa",
-                    "(\"CanHoId\" IS NOT NULL AND \"ToaNhaKhuVucChungId\" IS NULL) OR " +
-                    "(\"CanHoId\" IS NULL AND \"ToaNhaKhuVucChungId\" IS NOT NULL AND \"ViTri\" IS NOT NULL)");
+                    "(\"CanHoId\" IS NOT NULL AND \"ToaNhaId\" IS NULL) OR " +
+                    "(\"CanHoId\" IS NULL AND \"ToaNhaId\" IS NOT NULL AND \"ViTri\" IS NOT NULL)");
                 t.HasCheckConstraint("CK_YeuCauBaoTri_ChiPhi", "\"ChiPhiUocTinh\" >= 0 AND \"ChiPhiThucTe\" >= 0");
-                t.HasCheckConstraint("CK_YeuCauBaoTri_DanhGia", "\"DanhGia\" IS NULL OR \"DanhGia\" BETWEEN 1 AND 5");
+                t.HasCheckConstraint("CK_YeuCauBaoTri_DanhGia", "\"DiemDanhGia\" IS NULL OR \"DiemDanhGia\" BETWEEN 1 AND 5");
                 t.HasCheckConstraint("CK_YeuCauBaoTri_HanXuLy", "\"HanXuLy\" IS NULL OR \"HanXuLy\" >= \"NgayBaoCao\"");
+                // Miền giá trị của enum MaintenanceStatus / MaintenanceCategory (thêm giá trị mới thì sửa cả hai nơi).
+                t.HasCheckConstraint("CK_YeuCauBaoTri_TrangThai", "\"TrangThaiYeuCau\" BETWEEN 0 AND 7");
+                t.HasCheckConstraint("CK_YeuCauBaoTri_LoaiSuCo", "\"LoaiSuCo\" IN (0, 1, 2, 3, 4, 5, 6, 99)");
+                // Đã xử lý (3) hoặc đã đóng (4) phải có kết quả xử lý.
+                t.HasCheckConstraint("CK_YeuCauBaoTri_KetQua", "\"TrangThaiYeuCau\" NOT IN (3, 4) OR coalesce(btrim(\"KetQuaXuLy\"), '') <> ''");
             });
-            MapBaseEntityColumns(e);
+            MapBaseEntityColumns(e, "YeuCauBaoTriId");
 
             e.Property(x => x.RequestNumber).HasColumnName("SoYeuCau").HasMaxLength(40).IsRequired();
             e.Property(x => x.ApartmentId).HasColumnName("CanHoId");
-            e.Property(x => x.CommonBuildingId).HasColumnName("ToaNhaKhuVucChungId");
+            e.Property(x => x.CommonBuildingId).HasColumnName("ToaNhaId");
             e.Property(x => x.Location).HasColumnName("ViTri").HasMaxLength(200);
-            e.Property(x => x.ReporterId).HasColumnName("NguoiBaoCaoId");
-            e.Property(x => x.Title).HasColumnName("TieuDe").HasMaxLength(250).IsRequired();
-            e.Property(x => x.Description).HasColumnName("MoTa").HasMaxLength(4000);
-            e.Property(x => x.Category).HasColumnName("LoaiBaoTri");
-            e.Property(x => x.Priority).HasColumnName("MucDoUuTien");
-            e.Property(x => x.Status).HasColumnName("TrangThai");
+            e.Property(x => x.ReporterId).HasColumnName("NguoiBaoCaoId").IsRequired(); // mỗi yêu cầu có đúng một người báo
+            e.Property(x => x.Title).HasColumnName("TieuDeYeuCau").HasMaxLength(250).IsRequired();
+            e.Property(x => x.Description).HasColumnName("MoTaYeuCau").HasMaxLength(4000);
+            e.Property(x => x.Category).HasColumnName("LoaiSuCo");
+            e.Property(x => x.Priority).HasColumnName("MucUuTienId");
+            e.Property(x => x.Status).HasColumnName("TrangThaiYeuCau");
             e.Property(x => x.AssignedToId).HasColumnName("NguoiPhuTrachId");
-            e.Property(x => x.ResolutionNote).HasColumnName("GhiChuXuLy").HasMaxLength(2000);
+            e.Property(x => x.ResolutionNote).HasColumnName("KetQuaXuLy").HasMaxLength(2000);
+            e.Property(x => x.AiTriageJson).HasColumnName("PhanLoaiAi");
             e.Property(x => x.EstimatedCost).HasColumnName("ChiPhiUocTinh").HasColumnType("decimal(18,0)");
             e.Property(x => x.ActualCost).HasColumnName("ChiPhiThucTe").HasColumnType("decimal(18,0)");
-            e.Property(x => x.ChargeToTenant).HasColumnName("TinhPhiKhachThue");
+            e.Property(x => x.ChargeToTenant).HasColumnName("TinhPhiCuDan");
             e.Property(x => x.ReportedAt).HasColumnName("NgayBaoCao");
-            e.Property(x => x.AcknowledgedAt).HasColumnName("NgayTiepNhan");
-            e.Property(x => x.ResolvedAt).HasColumnName("NgayGiaiQuyet");
-            e.Property(x => x.ClosedAt).HasColumnName("NgayDongLai");
+            e.Ignore(x => x.AcknowledgedAt);   // mốc thời gian suy ra từ LichSuYeuCau
+            e.Ignore(x => x.ResolvedAt);
+            e.Ignore(x => x.ClosedAt);
             e.Property(x => x.DueAt).HasColumnName("HanXuLy");
-            e.Property(x => x.Rating).HasColumnName("DanhGia");
-            e.Property(x => x.RatingComment).HasColumnName("NhanXet").HasMaxLength(1000);
+            e.Property(x => x.Rating).HasColumnName("DiemDanhGia");
+            e.Property(x => x.RatingComment).HasColumnName("NhanXetCuDan").HasMaxLength(1000);
 
             e.HasIndex(x => x.RequestNumber).IsUnique();
             e.HasIndex(x => x.ApartmentId);
@@ -305,6 +322,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.HasIndex(x => x.AssignedToId);
             e.HasIndex(x => x.CommonBuildingId);
             e.HasIndex(x => x.DueAt);
+            e.HasIndex(x => x.ReportedAt);   // mọi báo cáo KPI lọc theo kỳ báo
 
             e.HasOne(x => x.Apartment).WithMany(a => a.MaintenanceRequests)
              .HasForeignKey(x => x.ApartmentId).OnDelete(DeleteBehavior.Restrict);
@@ -312,72 +330,77 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.HasOne(x => x.CommonBuilding).WithMany()
              .HasForeignKey(x => x.CommonBuildingId).OnDelete(DeleteBehavior.Restrict);
 
-            // Mức ưu tiên phải là một mức có trong bảng SLA (không xoá được mức SLA đang được dùng).
+            // Mức ưu tiên phải là một mức có trong bảng MucUuTien (không xoá được mức đang được dùng).
             e.HasOne<SlaPolicy>().WithMany()
              .HasForeignKey(x => x.Priority).OnDelete(DeleteBehavior.Restrict);
 
             e.HasOne(x => x.Reporter).WithMany()
-             .HasForeignKey(x => x.ReporterId).OnDelete(DeleteBehavior.NoAction);
+             .HasForeignKey(x => x.ReporterId).OnDelete(DeleteBehavior.Restrict);
 
             e.HasOne(x => x.AssignedTo).WithMany()
-             .HasForeignKey(x => x.AssignedToId).OnDelete(DeleteBehavior.NoAction);
+             .HasForeignKey(x => x.AssignedToId).OnDelete(DeleteBehavior.SetNull);
         });
 
         // ================== MaintenancePhoto / StatusChange / SlaPolicy ==================
         b.Entity<MaintenancePhoto>(e =>
         {
-            e.ToTable("AnhSuCo");
+            e.ToTable("AnhYeuCau", t => t.HasCheckConstraint("CK_AnhYeuCau_GiaiDoan", "\"GiaiDoanAnh\" IN (0, 1)"));
             e.HasQueryFilter(x => !x.MaintenanceRequest.IsDeleted); // khớp bộ lọc xoá mềm của yêu cầu cha
+            e.Property(x => x.Id).HasColumnName("AnhYeuCauId");
             e.Property(x => x.MaintenanceRequestId).HasColumnName("YeuCauBaoTriId");
-            e.Property(x => x.Url).HasColumnName("DuongDan").HasMaxLength(500).IsRequired();
-            e.Property(x => x.Stage).HasColumnName("GiaiDoan");
+            e.Property(x => x.Url).HasColumnName("DuongDanAnh").HasMaxLength(500).IsRequired();
+            e.Property(x => x.Stage).HasColumnName("GiaiDoanAnh");
             e.Property(x => x.UploadedById).HasColumnName("NguoiTaiLenId");
             e.Property(x => x.UploadedAt).HasColumnName("NgayTaiLen");
             e.HasIndex(x => x.MaintenanceRequestId);
             e.HasOne(x => x.MaintenanceRequest).WithMany(r => r.Photos)
              .HasForeignKey(x => x.MaintenanceRequestId).OnDelete(DeleteBehavior.Cascade);
-            e.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UploadedById).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UploadedById).OnDelete(DeleteBehavior.SetNull);
         });
 
         b.Entity<MaintenanceStatusChange>(e =>
         {
-            e.ToTable("LichSuTrangThaiSuCo");
+            e.ToTable("LichSuYeuCau");
             e.HasQueryFilter(x => !x.MaintenanceRequest.IsDeleted);
+            e.Property(x => x.Id).HasColumnName("LichSuYeuCauId");
             e.Property(x => x.MaintenanceRequestId).HasColumnName("YeuCauBaoTriId");
-            e.Property(x => x.FromStatus).HasColumnName("TuTrangThai");
-            e.Property(x => x.ToStatus).HasColumnName("SangTrangThai");
+            e.Property(x => x.FromStatus).HasColumnName("TrangThaiTruoc");
+            e.Property(x => x.ToStatus).HasColumnName("TrangThaiSau");
             e.Property(x => x.ChangedById).HasColumnName("NguoiThucHienId");
-            e.Property(x => x.ChangedAt).HasColumnName("ThoiDiem");
-            e.Property(x => x.Note).HasColumnName("GhiChu").HasMaxLength(1000);
+            e.Property(x => x.ChangedAt).HasColumnName("ThoiDiemChuyen");
+            e.Property(x => x.Note).HasColumnName("GhiChuChuyen").HasMaxLength(1000);
             e.HasIndex(x => new { x.MaintenanceRequestId, x.ChangedAt });
             e.HasOne(x => x.MaintenanceRequest).WithMany(r => r.History)
              .HasForeignKey(x => x.MaintenanceRequestId).OnDelete(DeleteBehavior.Cascade);
-            e.HasOne(x => x.ChangedBy).WithMany().HasForeignKey(x => x.ChangedById).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne(x => x.ChangedBy).WithMany().HasForeignKey(x => x.ChangedById).OnDelete(DeleteBehavior.SetNull);
         });
 
         b.Entity<SlaPolicy>(e =>
         {
-            e.ToTable("MucSla", t => t.HasCheckConstraint("CK_MucSla_ThoiHan",
-                "\"PhutPhanHoi\" > 0 AND \"PhutHoanTat\" >= \"PhutPhanHoi\""));
+            e.ToTable("MucUuTien", t =>
+            {
+                t.HasCheckConstraint("CK_MucUuTien_ThoiHan", "\"PhutPhanHoi\" > 0 AND \"PhutHoanTat\" >= \"PhutPhanHoi\"");
+                t.HasCheckConstraint("CK_MucUuTien_Id", "\"MucUuTienId\" BETWEEN 0 AND 3");
+            });
             e.HasKey(x => x.Priority);
-            e.Property(x => x.Priority).HasColumnName("MucDoUuTien").ValueGeneratedNever();
+            e.Property(x => x.Priority).HasColumnName("MucUuTienId").ValueGeneratedNever();
+            e.Property(x => x.Name).HasColumnName("TenMucUuTien").HasMaxLength(50).IsRequired();
             e.Property(x => x.ResponseMinutes).HasColumnName("PhutPhanHoi");
             e.Property(x => x.ResolveMinutes).HasColumnName("PhutHoanTat");
+            e.HasIndex(x => x.Name).IsUnique();
             e.HasData(SlaPolicy.Defaults);
         });
 
         // ================== UtilityType ==================
         b.Entity<UtilityType>(e =>
         {
-            e.ToTable("LoaiDichVu");
-            MapBaseEntityColumns(e);
+            e.ToTable("LoaiDichVu", t => t.HasCheckConstraint("CK_LoaiDichVu_DonGia", "\"DonGia\" >= 0"));
+            MapBaseEntityColumns(e, "LoaiDichVuId");
 
-            e.Property(x => x.Code).HasColumnName("Ma").HasMaxLength(40).IsRequired();
-            e.Property(x => x.Name).HasColumnName("Ten").HasMaxLength(120).IsRequired();
+            e.Property(x => x.Code).HasColumnName("MaLoaiDichVu").HasMaxLength(40).IsRequired();
+            e.Property(x => x.Name).HasColumnName("TenLoaiDichVu").HasMaxLength(120).IsRequired();
             e.Property(x => x.Unit).HasColumnName("DonViTinh").HasMaxLength(20);
-            e.Property(x => x.BillingMode).HasColumnName("CheDoTinhPhi");
-            e.Property(x => x.DefaultRate).HasColumnName("DonGiaMacDinh").HasColumnType("decimal(18,2)");
-            e.Property(x => x.Icon).HasColumnName("Icon");
+            e.Property(x => x.DefaultRate).HasColumnName("DonGia").HasColumnType("decimal(18,2)");
 
             e.HasIndex(x => x.Code).IsUnique();
         });
@@ -385,26 +408,31 @@ public class AppDbContext : IdentityDbContext<AppUser>
         // ================== UtilityReading ==================
         b.Entity<UtilityReading>(e =>
         {
-            e.ToTable("ChiSoDichVu", t => t.HasCheckConstraint("CK_ChiSoDichVu_ChiSo", "\"ChiSoMoi\" >= \"ChiSoCu\""));
-            MapBaseEntityColumns(e);
+            e.ToTable("ChiSoDichVu", t =>
+            {
+                t.HasCheckConstraint("CK_ChiSoDichVu_ChiSo", "\"ChiSoCu\" >= 0 AND \"ChiSoMoi\" >= \"ChiSoCu\"");
+                t.HasCheckConstraint("CK_ChiSoDichVu_Ky", "\"KyChiSo\" % 100 BETWEEN 1 AND 12");
+            });
+            MapBaseEntityColumns(e, "ChiSoDichVuId");
 
             e.Property(x => x.ApartmentId).HasColumnName("CanHoId");
             e.Property(x => x.UtilityTypeId).HasColumnName("LoaiDichVuId");
-            e.Property(x => x.BillingMonth).HasColumnName("ThangTinhPhi");
+            e.Property(x => x.BillingMonth).HasColumnName("KyChiSo");
             e.Property(x => x.PreviousReading).HasColumnName("ChiSoCu").HasColumnType("decimal(18,2)");
             e.Property(x => x.CurrentReading).HasColumnName("ChiSoMoi").HasColumnType("decimal(18,2)");
-            e.Property(x => x.Consumption).HasColumnName("TieuThu").HasColumnType("decimal(18,2)");
-            e.Property(x => x.Rate).HasColumnName("DonGia").HasColumnType("decimal(18,2)");
-            e.Property(x => x.Amount).HasColumnName("ThanhTien").HasColumnType("decimal(18,0)");
-            e.Property(x => x.Billed).HasColumnName("DaXuatHoaDon");
+            e.Ignore(x => x.Consumption);   // = ChiSoMoi − ChiSoCu
             e.Property(x => x.ReadAt).HasColumnName("NgayDocChiSo");
-            e.Property(x => x.Note).HasColumnName("GhiChu");
+            e.Property(x => x.Note).HasColumnName("GhiChuChiSo");
+            e.Ignore(x => x.Billed);
+            // Đã xuất hoá đơn hay chưa suy ra từ các dòng hoá đơn trỏ về chỉ số: luôn nạp kèm.
+            e.Navigation(x => x.InvoiceItems).AutoInclude();
 
             e.HasIndex(x => new { x.ApartmentId, x.UtilityTypeId, x.BillingMonth }).IsUnique().HasFilter("\"DaXoa\" = false");
             e.HasIndex(x => x.BillingMonth);
 
+            // Chỉ số là dữ liệu của căn nhưng không phải bộ phận của căn: căn còn chỉ số thì không xoá được.
             e.HasOne(x => x.Apartment).WithMany(a => a.UtilityReadings)
-             .HasForeignKey(x => x.ApartmentId).OnDelete(DeleteBehavior.Cascade);
+             .HasForeignKey(x => x.ApartmentId).OnDelete(DeleteBehavior.Restrict);
 
             e.HasOne(x => x.UtilityType).WithMany(t => t.Readings)
              .HasForeignKey(x => x.UtilityTypeId).OnDelete(DeleteBehavior.Restrict);
@@ -415,16 +443,19 @@ public class AppDbContext : IdentityDbContext<AppUser>
         {
             e.ToTable("HoaDon", t =>
             {
-                t.HasCheckConstraint("CK_HoaDon_SoTien", "\"TongTien\" >= 0 AND \"DaThanhToan\" >= 0");
+                t.HasCheckConstraint("CK_HoaDon_SoTien", "\"TongTien\" >= 0 AND \"DaThanhToan\" >= 0 AND \"GiamGia\" >= 0 AND \"Thue\" >= 0 AND \"PhiTreHan\" >= 0");
                 t.HasCheckConstraint("CK_HoaDon_ConLai", "\"ConLai\" >= 0 AND \"ConLai\" <= \"TongTien\"");
+                t.HasCheckConstraint("CK_HoaDon_CongThuc", "\"TongTien\" = \"TamTinh\" - \"GiamGia\" + \"Thue\" + \"PhiTreHan\" AND \"ConLai\" = \"TongTien\" - \"DaThanhToan\"");
+                t.HasCheckConstraint("CK_HoaDon_HanThanhToan", "\"NgayDenHan\" >= \"NgayPhatHanh\"");
+                t.HasCheckConstraint("CK_HoaDon_Ky", "\"KyHoaDon\" % 100 BETWEEN 1 AND 12");
+                t.HasCheckConstraint("CK_HoaDon_TrangThai", "\"TrangThaiHoaDon\" BETWEEN 0 AND 6");
             });
-            MapBaseEntityColumns(e);
+            MapBaseEntityColumns(e, "HoaDonId");
 
             e.Property(x => x.InvoiceNumber).HasColumnName("SoHoaDon").HasMaxLength(40).IsRequired();
             e.Property(x => x.ApartmentId).HasColumnName("CanHoId");
             e.Property(x => x.Kind).HasColumnName("LoaiHoaDon");
-            e.Property(x => x.BillingMonth).HasColumnName("ThangTinhPhi");
-            e.Property(x => x.IsRecurring).HasColumnName("DinhKy");
+            e.Property(x => x.BillingMonth).HasColumnName("KyHoaDon");
             e.Property(x => x.IssueDate).HasColumnName("NgayPhatHanh");
             e.Property(x => x.DueDate).HasColumnName("NgayDenHan");
             e.Property(x => x.SubTotal).HasColumnName("TamTinh").HasColumnType("decimal(18,0)");
@@ -434,9 +465,8 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.Property(x => x.Total).HasColumnName("TongTien").HasColumnType("decimal(18,0)");
             e.Property(x => x.AmountPaid).HasColumnName("DaThanhToan").HasColumnType("decimal(18,0)");
             e.Property(x => x.Balance).HasColumnName("ConLai").HasColumnType("decimal(18,0)");
-            e.Property(x => x.Status).HasColumnName("TrangThai");
-            e.Property(x => x.Currency).HasColumnName("DonViTienTe").HasMaxLength(8).IsRequired();
-            e.Property(x => x.Note).HasColumnName("GhiChu");
+            e.Property(x => x.Status).HasColumnName("TrangThaiHoaDon");
+            e.Property(x => x.Note).HasColumnName("GhiChuHoaDon");
 
             e.HasIndex(x => x.InvoiceNumber).IsUnique();
             e.HasIndex(x => x.Status);
@@ -445,7 +475,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
             // BR: mỗi căn chỉ một hoá đơn phí tháng còn hiệu lực cho mỗi kỳ (huỷ thì được lập lại).
             e.HasIndex(x => new { x.ApartmentId, x.BillingMonth })
              .HasDatabaseName("UX_HoaDon_PhiThang_MoiKy").IsUnique()
-             .HasFilter("\"LoaiHoaDon\" = 0 AND \"TrangThai\" <> 5 AND \"DaXoa\" = false");
+             .HasFilter("\"LoaiHoaDon\" = 0 AND \"TrangThaiHoaDon\" <> 5 AND \"DaXoa\" = false");
 
             e.HasOne(x => x.Apartment)
              .WithMany(a => a.Invoices)
@@ -456,34 +486,57 @@ public class AppDbContext : IdentityDbContext<AppUser>
         // ================== InvoiceItem ==================
         b.Entity<InvoiceItem>(e =>
         {
-            e.ToTable("ChiTietHoaDon");
-            MapBaseEntityColumns(e);
+            e.ToTable("ChiTietHoaDon", t =>
+            {
+                t.HasCheckConstraint("CK_ChiTietHoaDon_SoTien", "\"SoLuongKhoan\" > 0 AND \"DonGiaKhoan\" >= 0");
+                t.HasCheckConstraint("CK_ChiTietHoaDon_LoaiKhoan", "\"LoaiKhoan\" BETWEEN 0 AND 4");
+                t.HasCheckConstraint("CK_ChiTietHoaDon_ThanhTien", "\"ThanhTienKhoan\" = round(\"SoLuongKhoan\" * \"DonGiaKhoan\")");
+                // Dòng điện nước phải trỏ tới chỉ số, dòng phí định kỳ trỏ tới khoản phí; dòng loại khác không trỏ tới hai bảng đó.
+                t.HasCheckConstraint("CK_ChiTietHoaDon_Nguon",
+                    "(\"LoaiKhoan\" = 1) = (\"ChiSoDichVuId\" IS NOT NULL) AND (\"LoaiKhoan\" = 2) = (\"PhiDinhKyId\" IS NOT NULL)" +
+                    " AND (\"YeuCauBaoTriId\" IS NULL OR \"LoaiKhoan\" = 3)");
+            });
+            MapBaseEntityColumns(e, "ChiTietHoaDonId");
 
             e.Property(x => x.InvoiceId).HasColumnName("HoaDonId");
-            e.Property(x => x.Description).HasColumnName("MoTa").HasMaxLength(500).IsRequired();
-            e.Property(x => x.Quantity).HasColumnName("SoLuong").HasColumnType("decimal(18,2)");
-            e.Property(x => x.UnitPrice).HasColumnName("DonGia").HasColumnType("decimal(18,0)");
-            e.Property(x => x.LineTotal).HasColumnName("ThanhTien").HasColumnType("decimal(18,0)");
-            e.Property(x => x.SortOrder).HasColumnName("ThuTu");
+            e.Property(x => x.Kind).HasColumnName("LoaiKhoan");
+            e.Property(x => x.UtilityReadingId).HasColumnName("ChiSoDichVuId");
+            e.Property(x => x.RecurringChargeId).HasColumnName("PhiDinhKyId");
+            e.Property(x => x.MaintenanceRequestId).HasColumnName("YeuCauBaoTriId");
+            e.Property(x => x.Description).HasColumnName("NoiDungKhoan").HasMaxLength(500).IsRequired();
+            e.Property(x => x.Quantity).HasColumnName("SoLuongKhoan").HasColumnType("decimal(18,2)");
+            e.Property(x => x.UnitPrice).HasColumnName("DonGiaKhoan").HasColumnType("decimal(18,0)");
+            e.Property(x => x.LineTotal).HasColumnName("ThanhTienKhoan").HasColumnType("decimal(18,0)");
+            e.Property(x => x.SortOrder).HasColumnName("ThuTuKhoan");
 
             e.HasIndex(x => x.InvoiceId);
+            e.HasIndex(x => x.UtilityReadingId);
+            e.HasIndex(x => x.RecurringChargeId);
+            e.HasIndex(x => x.MaintenanceRequestId);
 
             e.HasOne(x => x.Invoice)
              .WithMany(i => i.Items)
              .HasForeignKey(x => x.InvoiceId)
              .OnDelete(DeleteBehavior.Cascade);
+            e.Navigation(x => x.Invoice).AutoInclude();
+            e.HasOne(x => x.UtilityReading).WithMany(r => r.InvoiceItems)
+             .HasForeignKey(x => x.UtilityReadingId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.RecurringCharge).WithMany()
+             .HasForeignKey(x => x.RecurringChargeId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.MaintenanceRequest).WithMany()
+             .HasForeignKey(x => x.MaintenanceRequestId).OnDelete(DeleteBehavior.Restrict);
         });
 
         // ================== RecurringCharge ==================
         b.Entity<RecurringCharge>(e =>
         {
-            e.ToTable("PhiDinhKy", t => t.HasCheckConstraint("CK_PhiDinhKy_SoTien", "\"SoTien\" >= 0"));
-            MapBaseEntityColumns(e);
+            e.ToTable("PhiDinhKy", t => t.HasCheckConstraint("CK_PhiDinhKy_SoTien", "\"SoTienKhoanPhi\" >= 0"));
+            MapBaseEntityColumns(e, "PhiDinhKyId");
 
             e.Property(x => x.ApartmentId).HasColumnName("CanHoId");
-            e.Property(x => x.Description).HasColumnName("MoTa").HasMaxLength(250).IsRequired();
-            e.Property(x => x.Amount).HasColumnName("SoTien").HasColumnType("decimal(18,0)");
-            e.Property(x => x.SortOrder).HasColumnName("ThuTu");
+            e.Property(x => x.Description).HasColumnName("TenKhoanPhi").HasMaxLength(250).IsRequired();
+            e.Property(x => x.Amount).HasColumnName("SoTienKhoanPhi").HasColumnType("decimal(18,0)");
+            e.Property(x => x.SortOrder).HasColumnName("ThuTuKhoanPhi");
             e.Property(x => x.IsActive).HasColumnName("DangApDung");
 
             e.HasIndex(x => x.ApartmentId);
@@ -491,27 +544,31 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.HasOne(x => x.Apartment)
              .WithMany(a => a.RecurringCharges)
              .HasForeignKey(x => x.ApartmentId)
-             .OnDelete(DeleteBehavior.Cascade);
+             .OnDelete(DeleteBehavior.Restrict);
         });
 
         // ================== Payment ==================
         b.Entity<Payment>(e =>
         {
-            e.ToTable("ThanhToan", t => t.HasCheckConstraint("CK_ThanhToan_SoTien", "\"SoTien\" > 0"));
-            MapBaseEntityColumns(e);
+            e.ToTable("ThanhToan", t =>
+            {
+                t.HasCheckConstraint("CK_ThanhToan_SoTien", "\"SoTienThanhToan\" > 0");
+                t.HasCheckConstraint("CK_ThanhToan_HoanTra", "\"SoTienHoanTra\" >= 0 AND \"SoTienHoanTra\" <= \"SoTienThanhToan\"");
+                t.HasCheckConstraint("CK_ThanhToan_MaSo", "\"PhuongThuc\" BETWEEN 0 AND 4 AND \"TrangThaiThanhToan\" BETWEEN 0 AND 5");
+            });
+            MapBaseEntityColumns(e, "ThanhToanId");
 
             e.Property(x => x.PaymentNumber).HasColumnName("SoThanhToan").HasMaxLength(40).IsRequired();
             e.Property(x => x.InvoiceId).HasColumnName("HoaDonId");
-            e.Property(x => x.Amount).HasColumnName("SoTien").HasColumnType("decimal(18,0)");
-            e.Property(x => x.Currency).HasColumnName("DonViTienTe").HasMaxLength(8).IsRequired();
+            e.Property(x => x.Amount).HasColumnName("SoTienThanhToan").HasColumnType("decimal(18,0)");
             e.Property(x => x.Method).HasColumnName("PhuongThuc");
-            e.Property(x => x.Status).HasColumnName("TrangThai");
+            e.Property(x => x.Status).HasColumnName("TrangThaiThanhToan");
             e.Property(x => x.TransactionRef).HasColumnName("MaGiaoDich").HasMaxLength(120);
             e.Property(x => x.Provider).HasColumnName("NhaCungCap").HasMaxLength(80);
             e.Property(x => x.PaidAt).HasColumnName("NgayThanhToan");
             e.Property(x => x.RefundedAt).HasColumnName("NgayHoanTien");
             e.Property(x => x.RefundedAmount).HasColumnName("SoTienHoanTra").HasColumnType("decimal(18,0)");
-            e.Property(x => x.Note).HasColumnName("GhiChu");
+            e.Property(x => x.Note).HasColumnName("GhiChuThanhToan");
 
             e.HasIndex(x => x.PaymentNumber).IsUnique();
             e.HasIndex(x => x.InvoiceId);
@@ -528,12 +585,11 @@ public class AppDbContext : IdentityDbContext<AppUser>
         b.Entity<Permission>(e =>
         {
             e.ToTable("Quyen");
-            MapBaseEntityColumns(e);
+            MapBaseEntityColumns(e, "QuyenId");
 
-            e.Property(x => x.Code).HasColumnName("Ma").HasMaxLength(100).IsRequired();
-            e.Property(x => x.Module).HasColumnName("Module").HasMaxLength(60).IsRequired();
-            e.Property(x => x.DisplayName).HasColumnName("TenHienThi").HasMaxLength(200).IsRequired();
-            e.Property(x => x.Description).HasColumnName("MoTa");
+            e.Property(x => x.Code).HasColumnName("MaQuyen").HasMaxLength(100).IsRequired();
+            e.Property(x => x.Module).HasColumnName("PhanHe").HasMaxLength(60).IsRequired();
+            e.Property(x => x.DisplayName).HasColumnName("TenQuyen").HasMaxLength(200).IsRequired();
 
             e.HasIndex(x => x.Code).IsUnique();
             e.HasIndex(x => x.Module);
@@ -571,16 +627,17 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.ToTable("NhatKyHeThong");
 
             e.Property(x => x.EntityName).HasColumnName("TenBang").HasMaxLength(120).IsRequired();
-            e.Property(x => x.EntityKey).HasColumnName("KhoaBang").HasMaxLength(120);
+            e.Property(x => x.EntityKey).HasColumnName("KhoaDong").HasMaxLength(120);
             e.Property(x => x.Action).HasColumnName("HanhDong");
-            e.Property(x => x.UserId).HasColumnName("NguoiDungId").HasMaxLength(450);
-            e.Property(x => x.UserName).HasColumnName("TenNguoiDung").HasMaxLength(256);
-            e.Property(x => x.Timestamp).HasColumnName("ThoiGian");
+            e.Property(x => x.Id).HasColumnName("NhatKyId");
+            e.Property(x => x.UserId).HasColumnName("NguoiGhiId").HasMaxLength(450);
+            e.Property(x => x.UserName).HasColumnName("TenNguoiGhi").HasMaxLength(256);
+            e.Property(x => x.Timestamp).HasColumnName("ThoiGianGhi");
             e.Property(x => x.OldValues).HasColumnName("GiaTriCu");
             e.Property(x => x.NewValues).HasColumnName("GiaTriMoi");
             e.Property(x => x.ChangedColumns).HasColumnName("CotThayDoi");
             e.Property(x => x.IpAddress).HasColumnName("DiaChiIp").HasMaxLength(64);
-            e.Property(x => x.UserAgent).HasColumnName("UserAgent").HasMaxLength(512);
+            e.Property(x => x.UserAgent).HasColumnName("TrinhDuyet").HasMaxLength(512);
 
             e.HasIndex(x => new { x.EntityName, x.EntityKey });
             e.HasIndex(x => x.UserId);
@@ -595,10 +652,11 @@ public class AppDbContext : IdentityDbContext<AppUser>
         ApplyAuditColumnConstraints(b);
     }
 
-    // Map các cột audit/soft-delete/Id/RowVersion chuẩn của BaseEntity sang tên tiếng Việt
-    private static void MapBaseEntityColumns<T>(EntityTypeBuilder<T> e) where T : BaseEntity
+    // Map các cột audit/soft-delete/Id chuẩn của BaseEntity sang tên tiếng Việt
+    private static void MapBaseEntityColumns<T>(EntityTypeBuilder<T> e, string idColumn) where T : BaseEntity
     {
-        e.Property(x => x.Id).HasColumnName("Id");
+        // Khoá chính đặt tên theo bảng (KhuVucId, CanHoId…) để không có hai bảng cùng một tên cột khoá.
+        e.Property(x => x.Id).HasColumnName(idColumn);
         e.Property(x => x.CreatedAt).HasColumnName("NgayTao");
         e.Property(x => x.CreatedBy).HasColumnName("NguoiTao");
         e.Property(x => x.UpdatedAt).HasColumnName("NgayCapNhat");
@@ -606,7 +664,6 @@ public class AppDbContext : IdentityDbContext<AppUser>
         e.Property(x => x.IsDeleted).HasColumnName("DaXoa");
         e.Property(x => x.DeletedAt).HasColumnName("NgayXoa");
         e.Property(x => x.DeletedBy).HasColumnName("NguoiXoa");
-        e.Property(x => x.RowVersion).HasColumnName("PhienBan");
     }
 
     private static void ApplySoftDeleteFilter(ModelBuilder b)
@@ -707,6 +764,11 @@ public class AppDbContext : IdentityDbContext<AppUser>
         return logs;
     }
 
+    private static readonly HashSet<string> SecretColumns = new()
+    {
+        nameof(AppUser.PasswordHash), nameof(AppUser.SecurityStamp), nameof(AppUser.ConcurrencyStamp)
+    };
+
     private static AuditLog? BuildAuditLog(
         EntityEntry entry, string? userId, string? userName,
         string? ip, string? ua, DateTime now)
@@ -727,17 +789,20 @@ public class AppDbContext : IdentityDbContext<AppUser>
         foreach (var p in entry.Properties)
         {
             var name = p.Metadata.Name;
+            // Giá trị bí mật chỉ ghi là có đổi, không ghi nội dung (nhật ký xem được trên giao diện).
+            object? Mask(object? v) => SecretColumns.Contains(name) && v != null ? "(ẩn)" : v;
             switch (entry.State)
             {
                 case EntityState.Added:
-                    newValues[name] = p.CurrentValue;
+                    newValues[name] = Mask(p.CurrentValue);
                     break;
                 case EntityState.Deleted:
-                    oldValues[name] = p.OriginalValue;
+                    oldValues[name] = Mask(p.OriginalValue);
                     break;
-                case EntityState.Modified when p.IsModified:
-                    oldValues[name] = p.OriginalValue;
-                    newValues[name] = p.CurrentValue;
+                // UserManager.UpdateAsync đánh dấu mọi cột là sửa; chỉ ghi cột thật sự đổi giá trị.
+                case EntityState.Modified when p.IsModified && !Equals(p.OriginalValue, p.CurrentValue):
+                    oldValues[name] = Mask(p.OriginalValue);
+                    newValues[name] = Mask(p.CurrentValue);
                     changedColumns.Add(name);
                     break;
             }

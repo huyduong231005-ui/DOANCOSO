@@ -33,7 +33,7 @@ public class MaintenanceDispatcherTests
         var free = AddUser(db, "free", SeedData.RoleElectrician);
         AddUser(db, "manager", SeedData.RoleManager);
         AddUser(db, "admin", SeedData.RoleAdmin);
-        db.MaintenanceRequests.Add(new MaintenanceRequest { RequestNumber = "OLD", ApartmentId = 1, AssignedToId = busy.Id });
+        db.MaintenanceRequests.Add(new MaintenanceRequest { RequestNumber = "OLD", ApartmentId = 1, ReporterId = "nguoi-bao", AssignedToId = busy.Id });
         var req = AddRequest(db, MaintenanceCategory.Electrical, MaintenancePriority.Medium);
         await db.SaveChangesAsync();
         var sender = new RecordingSender();
@@ -220,7 +220,7 @@ public class MaintenanceDispatcherTests
         var apartment = new Apartment { UnitCode = $"A-01.{Random.Shared.Next(1, 99):00}" };
         var req = new MaintenanceRequest
         {
-            RequestNumber = "NEW", Apartment = apartment, Title = "Sự cố", Description = "Mô tả",
+            RequestNumber = "NEW", Apartment = apartment, ReporterId = "nguoi-bao", Title = "Sự cố", Description = "Mô tả",
             Category = category, Priority = priority,
         };
         db.MaintenanceRequests.Add(req);

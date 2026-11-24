@@ -101,17 +101,17 @@ public class InvoicePdfGenerator
                 {
                     var payer = inv.Apartment?.PrimaryResident;
                     b.Item().Text("Đại diện căn hộ").FontColor(Colors.Grey.Medium).FontSize(9);
-                    b.Item().Text(payer?.FullName ?? "—").Bold();
-                    b.Item().Text(payer?.Email ?? "").FontSize(9);
-                    b.Item().Text(payer?.Phone ?? "").FontSize(9);
+                    b.Item().Text(payer?.User.FullName ?? "—").Bold();
+                    b.Item().Text(payer?.User.Email ?? "").FontSize(9);
+                    b.Item().Text(payer?.User.PhoneNumber ?? "").FontSize(9);
                 });
                 row.ConstantItem(15);
                 row.RelativeItem().Background("#f3f4f7").Padding(10).Column(b =>
                 {
                     b.Item().Text("Căn hộ").FontColor(Colors.Grey.Medium).FontSize(9);
                     b.Item().Text(inv.Apartment?.UnitCode ?? "—").Bold();
-                    b.Item().Text(inv.Apartment?.Building?.Name ?? "").FontSize(9);
-                    b.Item().Text(inv.Apartment?.Building?.Address ?? "").FontSize(9);
+                    b.Item().Text(inv.Apartment?.Floor.Building?.Name ?? "").FontSize(9);
+                    b.Item().Text(inv.Apartment?.Floor.Building?.Project?.Address ?? "").FontSize(9);
                 });
             });
 
@@ -181,13 +181,13 @@ public class InvoicePdfGenerator
                     t.Item().Row(r =>
                     {
                         r.RelativeItem().Text("TỔNG CỘNG").Bold();
-                        r.ConstantItem(110).AlignRight().Text(inv.Total.ToString("N0") + " " + inv.Currency).Bold().FontColor("#001e40");
+                        r.ConstantItem(110).AlignRight().Text(inv.Total.ToString("N0") + " đ").Bold().FontColor("#001e40");
                     });
                     t.Item().Row(r => { r.RelativeItem().Text("Đã thanh toán").FontColor(Colors.Grey.Medium); r.ConstantItem(110).AlignRight().Text(inv.AmountPaid.ToString("N0")).FontColor(Colors.Grey.Medium); });
                     t.Item().Row(r =>
                     {
                         r.RelativeItem().Text("Còn lại").Bold();
-                        r.ConstantItem(110).AlignRight().Text(inv.Balance.ToString("N0") + " " + inv.Currency).Bold().FontColor(inv.Balance > 0 ? "#dc2626" : "#16a34a");
+                        r.ConstantItem(110).AlignRight().Text(inv.Balance.ToString("N0") + " đ").Bold().FontColor(inv.Balance > 0 ? "#dc2626" : "#16a34a");
                     });
                 });
             });

@@ -19,19 +19,25 @@ public class HomeController : Controller
     private readonly SignInManager<AppUser> _signInManager;
     private readonly AuthCommandHandler _authCommandHandler;
     private readonly ResidentInvites _invites;
+    private readonly t.Infrastructure.Email.IEmailSender _email;
+    private readonly ILogger<HomeController> _log;
 
     public HomeController(
         AppDbContext db,
         UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
         AuthCommandHandler authCommandHandler,
-        ResidentInvites invites)
+        ResidentInvites invites,
+        t.Infrastructure.Email.IEmailSender email,
+        ILogger<HomeController> log)
     {
         _db = db;
         _userManager = userManager;
         _signInManager = signInManager;
         _authCommandHandler = authCommandHandler;
         _invites = invites;
+        _email = email;
+        _log = log;
     }
 
     // Trang giới thiệu Ban quản lý: các khu đang vận hành, lối vào cổng cư dân / quản trị.
@@ -47,13 +53,31 @@ public class HomeController : Controller
                 ThumbnailUrl = p.ThumbnailUrl,
                 ShortDescription = p.ShortDescription,
                 BuildingCount = _db.Buildings.Count(b => b.ProjectId == p.Id),
-                ApartmentCount = _db.Apartments.Count(a => a.Building != null && a.Building.ProjectId == p.Id)
+                ApartmentCount = _db.Apartments.Count(a => a.Floor.Building != null && a.Floor.Building.ProjectId == p.Id)
             })
             .ToListAsync();
         return View(projects);
     }
 
     public IActionResult Privacy() => View();
+
+    /// <summary>Đã đăng nhập nhưng vai trò không được vào trang: báo rõ (403) và giữ nguyên phiên.</summary>
+    [HttpGet]
+    public IActionResult AccessDenied()
+    {
+        Response.StatusCode = StatusCodes.Status403Forbidden;
+        ViewData["PortalUrl"] = PortalUrl(User.IsInRole);
+        return View();
+    }
+
+    /// <summary>Trang chính theo vai trò, dùng sau khi đăng nhập và trên trang không có quyền.</summary>
+    private static string PortalUrl(Func<string, bool> isInRole)
+    {
+        if (isInRole("Admin") || isInRole("Manager")) return "/admin";
+        if (Areas.Staff.Controllers.JobsController.StaffRoles.Split(',').Any(isInRole)) return "/staff/jobs";
+        if (isInRole("Tenant")) return "/tenant";
+        return "/";
+    }
 
     [HttpGet]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None, Duration = 0)]
@@ -80,32 +104,26 @@ public class HomeController : Controller
             await _signInManager.SignOutAsync();
 
         var result = await _signInManager.PasswordSignInAsync(
-            model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+            model.Email, model.Password, model.RememberMe, lockoutOnFailure: true); // sai 5 lần khoá 5 phút (mặc định Identity)
 
         if (result.Succeeded)
         {
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)) return LocalRedirect(returnUrl);
 
             var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user != null)
-            {
-                var roles = await _userManager.GetRolesAsync(user);
-                if (roles.Contains("Admin") || roles.Contains("Manager"))
-                    return LocalRedirect("/admin");
-                if (roles.Any(r => Areas.Staff.Controllers.JobsController.StaffRoles.Split(',').Contains(r)))
-                    return LocalRedirect("/staff/jobs");
-                if (roles.Contains("Tenant"))
-                    return LocalRedirect("/tenant");
-            }
-            return LocalRedirect("/");
+            if (user == null) return LocalRedirect("/");
+            var roles = await _userManager.GetRolesAsync(user);
+            return LocalRedirect(PortalUrl(roles.Contains));
         }
 
-        ModelState.AddModelError(string.Empty, "Email hoặc mật khẩu không chính xác.");
+        ModelState.AddModelError(string.Empty, result.IsLockedOut
+            ? "Tài khoản đang bị khoá do đăng nhập sai nhiều lần hoặc theo yêu cầu của Ban quản lý. Thử lại sau ít phút hoặc liên hệ Ban quản lý."
+            : "Email hoặc mật khẩu không chính xác.");
         return View(model);
     }
 
-    // Liên kết trong thư mời của Ban quản lý: đã có tài khoản đúng email thì gắn căn luôn rồi mời đăng nhập,
-    // chưa có thì sang trang đăng ký với email được mời.
+    // Liên kết trong thư mời của Ban quản lý. Tài khoản của người cư trú đã có sẵn (BQL tạo khi ghi nhận cư trú):
+    // chưa đặt mật khẩu thì sang trang kích hoạt, đã kích hoạt thì chỉ cần đăng nhập.
     [HttpGet]
     public async Task<IActionResult> Invite(string? token)
     {
@@ -115,18 +133,14 @@ public class HomeController : Controller
             TempData["AuthError"] = "Lời mời không hợp lệ hoặc đã hết hạn. Liên hệ Ban quản lý để được gửi lại.";
             return RedirectToAction(nameof(Login));
         }
+        if (!resident.User.IsActivated) return RedirectToAction(nameof(Register), new { invite = token });
 
-        var existing = await _userManager.FindByEmailAsync(resident.Email!);
-        if (existing == null) return RedirectToAction(nameof(Register), new { invite = token });
-
-        if (await _invites.AcceptAsync(token, existing) == null)
-        {
-            TempData["AuthError"] = "Cư dân này đã được gắn với một tài khoản khác. Liên hệ Ban quản lý.";
-            return RedirectToAction(nameof(Login));
-        }
-        if (!await _userManager.IsInRoleAsync(existing, "Tenant"))
-            await _userManager.AddToRoleAsync(existing, "Tenant");
-        TempData["AuthInfo"] = $"Đã gắn căn {resident.Apartment.UnitCode} vào tài khoản {resident.Email}. Đăng nhập để xem.";
+        // Tài khoản đã có: bấm thư là xác nhận nhận căn.
+        resident.ConfirmedAt ??= DateTime.UtcNow;
+        await _userManager.UpdateAsync(resident.User); // lưu cả thay đổi của bản ghi cư trú (cùng DbContext)
+        if (!await _userManager.IsInRoleAsync(resident.User, "Tenant"))
+            await _userManager.AddToRoleAsync(resident.User, "Tenant");
+        TempData["AuthInfo"] = $"Căn {resident.Apartment.UnitCode} đã gắn với tài khoản {resident.User.Email}. Đăng nhập để xem.";
         return RedirectToAction(nameof(Login));
     }
 
@@ -134,60 +148,45 @@ public class HomeController : Controller
     public async Task<IActionResult> Register(string? invite)
     {
         var resident = await _invites.FindAsync(invite);
-        if (resident == null) return View();
+        if (resident == null || resident.User.IsActivated) return RegisterNeedsInvite();
         ViewData["Invite"] = invite;
         ViewData["InviteUnit"] = resident.Apartment.UnitCode;
-        return View(new RegisterViewModel { FullName = resident.FullName, Email = resident.Email!, Phone = resident.Phone });
+        return View(new RegisterViewModel { FullName = resident.User.FullName, Email = resident.User.Email!, Phone = resident.User.PhoneNumber });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model, string? invite)
     {
-        // Đăng ký qua thư mời: email phải đúng email được mời (ô email bị khoá trên form, kiểm tra lại ở đây).
+        // Chỉ kích hoạt qua thư mời (BR-CD-02): email là email được mời (ô email bị khoá trên form,
+        // kiểm tra lại ở đây). Bấm được liên kết trong thư là đã chứng minh sở hữu hộp thư.
         var invited = await _invites.FindAsync(invite);
-        if (invited != null)
-        {
-            ViewData["Invite"] = invite;
-            ViewData["InviteUnit"] = invited.Apartment.UnitCode;
-            model.Email = invited.Email!;
-            ModelState.Remove(nameof(model.Email));
-        }
+        if (invited == null || invited.User.IsActivated) return RegisterNeedsInvite();
+        ViewData["Invite"] = invite;
+        ViewData["InviteUnit"] = invited.Apartment.UnitCode;
+        model.Email = invited.User.Email!;
+        ModelState.Remove(nameof(model.Email));
 
         if (!ModelState.IsValid)
             return View(model);
 
-        var user = new AppUser
-        {
-            UserName = model.Email,
-            Email = model.Email,
-            FullName = model.FullName,
-            Phone = model.Phone,
-            EmailConfirmed = true
-        };
-
-        var result = await _userManager.CreateAsync(user, model.Password);
+        var user = invited.User;
+        user.FullName = model.FullName;
+        user.PhoneNumber = model.Phone;
+        user.EmailConfirmed = true;
+        invited.ConfirmedAt = DateTime.UtcNow;
+        var result = await _userManager.AddPasswordAsync(user, model.Password); // lưu luôn bản ghi cư trú (cùng DbContext)
 
         if (result.Succeeded)
         {
-            // Public sign-up always lands in the Tenant role. Without this the user
-            // cannot access /tenant area and admin lease dropdowns won't list them.
             await _userManager.AddToRoleAsync(user, "Tenant");
             await _signInManager.SignInAsync(user, isPersistent: false);
-            if (invited != null && await _invites.AcceptAsync(invite, user) != null)
-                return LocalRedirect("/tenant");
-            return RedirectToAction(nameof(Index));
+            return LocalRedirect("/tenant");
         }
 
         foreach (var error in result.Errors)
         {
             var message = ToVietnameseIdentityError(error.Code);
-            if (error.Code is "DuplicateEmail" or "InvalidEmail")
-            {
-                ModelState.AddModelError(nameof(model.Email), message);
-                continue;
-            }
-
             if (error.Code.StartsWith("Password", StringComparison.Ordinal))
             {
                 ModelState.AddModelError(nameof(model.Password), message);
@@ -198,6 +197,12 @@ public class HomeController : Controller
         }
 
         return View(model);
+    }
+
+    private IActionResult RegisterNeedsInvite()
+    {
+        TempData["AuthInfo"] = "Tài khoản cư dân được tạo qua thư mời của Ban quản lý. Liên hệ Ban quản lý nếu bạn chưa nhận được thư.";
+        return RedirectToAction(nameof(Login));
     }
 
     [HttpGet]
@@ -213,7 +218,17 @@ public class HomeController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        await _authCommandHandler.ForgotPasswordAsync(model.Email);
+        var result = await _authCommandHandler.ForgotPasswordAsync(model.Email);
+        if (result.UserFound)
+        {
+            var link = Url.Action(nameof(ResetPassword), "Home", new { email = model.Email, token = result.Token }, Request.Scheme)!;
+            var html = "<p>Bạn (hoặc ai đó) vừa yêu cầu đặt lại mật khẩu cổng cư dân.</p>" +
+                       $"<p><a href=\"{System.Net.WebUtility.HtmlEncode(link)}\">Đặt lại mật khẩu</a></p>" +
+                       "<p>Nếu không phải bạn yêu cầu, hãy bỏ qua thư này; mật khẩu hiện tại vẫn giữ nguyên.</p>";
+            try { await _email.SendAsync(model.Email, "Đặt lại mật khẩu cổng cư dân", html); }
+            catch (Exception ex) { _log.LogWarning(ex, "Could not send password reset email"); }
+        }
+        // Cùng một thông báo dù email có tồn tại hay không, để không lộ email nào có tài khoản.
         TempData["ForgotSuccess"] = true;
         return View(model);
     }

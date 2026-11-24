@@ -77,3 +77,10 @@ verify_neon.csx
 ## Cấu hình bí mật trên máy dev
 .env
 .gstack/
+
+## Không đưa lên git: bản sao lưu CSDL (dữ liệu người dùng), dữ liệu riêng và bản build tạm của StarUML
+db_backup/
+docs/baocao/staruml/_starumldata/
+docs/baocao/staruml/_work/
+docs/baocao/staruml/_work_v2/
+__pycache__/

@@ -18,7 +18,7 @@
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
 
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
+    <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
 
     <div class="card">
         <div class="card-header"><h2>Thông tin khu</h2></div>
@@ -29,29 +29,29 @@
                     <input asp-for="Name" placeholder="VD: Luxe Haven Grand Park" />
                     <span class="err" asp-validation-for="Name"></span>
                 </div>
-                <div class="form-field span-4">
-                    <label asp-for="Slug">Slug</label>
-                    <input asp-for="Slug" placeholder="auto-generate" />
-                </div>
 
                 <div class="form-field span-4">
                     <label asp-for="RegionId">Khu vực</label>
                     <select asp-for="RegionId">
                         @foreach (var r in Model.Regions) { <option value="@r.Id">@r.Name</option> }
                     </select>
+                    <span class="err" asp-validation-for="RegionId"></span>
                 </div>
 
                 <div class="form-field span-12">
                     <label asp-for="Address">Địa chỉ</label>
                     <input asp-for="Address" />
+                    <span class="err" asp-validation-for="Address"></span>
                 </div>
                 <div class="form-field span-12">
                     <label asp-for="ThumbnailUrl">URL ảnh đại diện</label>
                     <input asp-for="ThumbnailUrl" placeholder="/img/..." />
+                    <span class="err" asp-validation-for="ThumbnailUrl"></span>
                 </div>
                 <div class="form-field span-12">
                     <label asp-for="ShortDescription">Giới thiệu ngắn</label>
                     <input asp-for="ShortDescription" />
+                    <span class="err" asp-validation-for="ShortDescription"></span>
                 </div>
             </div>
         </div>

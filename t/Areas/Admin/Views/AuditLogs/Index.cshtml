@@ -55,7 +55,7 @@
                 foreach (var l in Model)
                 {
                     <tr>
-                        <td class="text-muted no-wrap">@l.Timestamp.ToString("HH:mm:ss dd/MM/yyyy")</td>
+                        <td class="text-muted no-wrap">@t.Infrastructure.Time.VnTime.FromUtc(l.Timestamp).ToString("HH:mm:ss dd/MM/yyyy")</td>
                         <td><span class="@Pill(l.Action)">@l.Action.Vi()</span></td>
                         <td class="row-title">@l.EntityName</td>
                         <td>@(l.EntityKey ?? "—")</td>

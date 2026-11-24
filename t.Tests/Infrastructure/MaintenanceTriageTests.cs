@@ -150,6 +150,62 @@ public class MaintenanceTriageTests
         Assert.Null(await service.TriageAsync("Bồn rửa bị rò nước"));
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("http://127.0.0.1:1")]
+    public async Task WarmUpAsync_returns_false_instead_of_throwing_when_model_is_unreachable(string baseUrl)
+    {
+        var (service, _) = ServiceWith(baseUrl, new RecordingHandler());
+
+        Assert.False(await service.WarmUpAsync());
+    }
+
+    // Lệch num_ctx hay keep_alive thì Ollama nạp lại mô hình ở lời gọi phân loại, bước mồi thành vô ích.
+    [Fact]
+    public async Task WarmUpAsync_loads_model_with_same_context_as_triage_and_sends_no_prompt()
+    {
+        var handler = new RecordingHandler();
+        var (service, _) = ServiceWith("http://ollama.test", handler);
+
+        Assert.True(await service.WarmUpAsync());
+        await service.TriageAsync("Bồn rửa bị rò nước");
+
+        using var warm = System.Text.Json.JsonDocument.Parse(handler.Bodies[0]);
+        using var real = System.Text.Json.JsonDocument.Parse(handler.Bodies[1]);
+        Assert.Equal(0, warm.RootElement.GetProperty("messages").GetArrayLength());
+        foreach (var path in new[] { "model", "keep_alive" })
+            Assert.Equal(real.RootElement.GetProperty(path).ToString(), warm.RootElement.GetProperty(path).ToString());
+        Assert.Equal(real.RootElement.GetProperty("options").GetProperty("num_ctx").GetInt32(),
+            warm.RootElement.GetProperty("options").GetProperty("num_ctx").GetInt32());
+    }
+
+    private static (MaintenanceTriageService, ServiceProvider) ServiceWith(string baseUrl, HttpMessageHandler handler)
+    {
+        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Ollama:BaseUrl"] = baseUrl,
+            ["Ollama:Model"] = "qwen3-suco4",
+        }).Build();
+        var services = new ServiceCollection();
+        services.AddHttpClient("ollama").ConfigurePrimaryHttpMessageHandler(() => handler);
+        var provider = services.BuildServiceProvider();
+        return (new MaintenanceTriageService(config, provider.GetRequiredService<IHttpClientFactory>(),
+            NullLogger<MaintenanceTriageService>.Instance), provider);
+    }
+
+    private sealed class RecordingHandler : HttpMessageHandler
+    {
+        public List<string> Bodies { get; } = new();
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+        {
+            if (request.RequestUri!.Port == 1) throw new HttpRequestException("connection refused");
+            Bodies.Add(await request.Content!.ReadAsStringAsync(ct));
+            var content = System.Text.Json.JsonSerializer.Serialize(new { message = new { content = ValidJson } });
+            return new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new StringContent(content) };
+        }
+    }
+
     [Fact]
     public void Apply_keeps_category_the_tenant_chose_explicitly()
     {

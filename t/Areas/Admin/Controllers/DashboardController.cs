@@ -16,11 +16,22 @@ public class DashboardController : AdminBaseController
         SetBreadcrumb(("Bảng điều khiển", null));
 
         var now = DateTime.UtcNow;
-        var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        // Mốc tháng/ngày theo giờ Việt Nam; PaidAt lưu UTC nên mốc được đổi sang UTC trước khi so.
+        var today = t.Infrastructure.Time.VnTime.Today;
+        var startOfMonthVn = new DateTime(today.Year, today.Month, 1);
+        // Thực thu = đã trả trừ đã hoàn, gồm cả thanh toán đã hoàn một phần; gom theo ngày Việt Nam ở bộ nhớ.
+        var startOf12MonthsVn = startOfMonthVn.AddMonths(-11);
+        var collected = (await Db.Payments
+                .Where(p => (p.Status == PaymentStatus.Succeeded || p.Status == PaymentStatus.PartiallyRefunded)
+                            && p.PaidAt != null && p.PaidAt >= t.Infrastructure.Time.VnTime.ToUtc(startOf12MonthsVn))
+                .Select(p => new { p.PaidAt, Net = p.Amount - p.RefundedAmount })
+                .ToListAsync())
+            .Select(p => (Day: t.Infrastructure.Time.VnTime.FromUtc(p.PaidAt!.Value).Date, p.Net))
+            .ToList();
 
-        var unitsTotal = await Db.Apartments.CountAsync();
-        var unitsOccupied = await Db.Apartments.CountAsync(a => a.Occupancy == ApartmentOccupancy.Occupied);
-        var unitsAvailable = await Db.Apartments.CountAsync(a => a.Occupancy == ApartmentOccupancy.Vacant);
+        var unitsTotal = await Db.Floors.SelectMany(f => f.Apartments).CountAsync();
+        var unitsOccupied = await Db.Floors.SelectMany(f => f.Apartments).CountAsync(Apartment.IsOccupied);
+        var unitsAvailable = await Db.Floors.SelectMany(f => f.Apartments).CountAsync(Apartment.IsVacant);
 
         var vm = new DashboardViewModel
         {
@@ -32,9 +43,7 @@ public class DashboardController : AdminBaseController
             ResidentsTotal = await Db.ApartmentResidents.CountAsync(r => r.MoveOutDate == null),
             MaintenanceOpen = await Db.MaintenanceRequests.CountAsync(m => MaintenanceRequest.ActiveStatuses.Contains(m.Status)),
             MaintenanceOverdue = await Db.MaintenanceRequests.CountAsync(t.Infrastructure.Maintenance.MaintenanceWorkflow.IsOverdue(now)),
-            RevenueThisMonth = await Db.Payments
-                .Where(p => p.Status == PaymentStatus.Succeeded && p.PaidAt >= startOfMonth)
-                .SumAsync(p => (decimal?)p.Amount) ?? 0m,
+            RevenueThisMonth = collected.Where(p => p.Day >= startOfMonthVn).Sum(p => p.Net),
             ArrearsTotal = await Db.Invoices
                 .Where(i => i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
                 .SumAsync(i => (decimal?)i.Balance) ?? 0m,
@@ -58,9 +67,9 @@ public class DashboardController : AdminBaseController
             .Select(b => new TopBuildingRow
             {
                 Id = b.Id, Name = b.Name,
-                Units = b.Apartments.Count(),
-                Occupied = b.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.Occupied),
-                MonthlyRevenue = b.Apartments.SelectMany(a => a.Invoices)
+                Units = b.Floors.SelectMany(f => f.Apartments).Count(),
+                Occupied = b.Floors.SelectMany(f => f.Apartments).AsQueryable().Count(Apartment.IsOccupied),
+                MonthlyRevenue = b.Floors.SelectMany(f => f.Apartments).SelectMany(a => a.Invoices)
                     .Where(i => i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
                     .Sum(i => (decimal?)i.Balance) ?? 0m
             })
@@ -68,12 +77,10 @@ public class DashboardController : AdminBaseController
             .Take(5)
             .ToListAsync();
 
-        var startOfWindow = now.Date.AddDays(-13);
-        var revenueRaw = await Db.Payments
-            .Where(p => p.Status == PaymentStatus.Succeeded && p.PaidAt != null && p.PaidAt >= startOfWindow)
-            .GroupBy(p => p.PaidAt!.Value.Date)
-            .Select(g => new RevenueByDayRow { Day = g.Key, Total = g.Sum(p => p.Amount) })
-            .ToListAsync();
+        var startOfWindow = today.AddDays(-13);
+        var revenueRaw = collected.Where(p => p.Day >= startOfWindow).GroupBy(p => p.Day)
+            .Select(g => new RevenueByDayRow { Day = g.Key, Total = g.Sum(p => p.Net) })
+            .ToList();
 
         vm.RevenueByDay = Enumerable.Range(0, 14)
             .Select(i => startOfWindow.AddDays(i))
@@ -83,30 +90,20 @@ public class DashboardController : AdminBaseController
         // ─────────────────────────────────────────────────────────────
         // PHÂN TÍCH TÀI CHÍNH NÂNG CAO
         // ─────────────────────────────────────────────────────────────
-        var startOfLastMonth = startOfMonth.AddMonths(-1);
-        var startOf12Months = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-11);
+        var startOfLastMonthVn = startOfMonthVn.AddMonths(-1);
+        var startOf12Months = startOf12MonthsVn;
 
 
 
-        vm.RevenueLastMonth = await Db.Payments
-            .Where(p => p.Status == PaymentStatus.Succeeded && p.PaidAt != null
-                     && p.PaidAt >= startOfLastMonth && p.PaidAt < startOfMonth)
-            .SumAsync(p => (decimal?)p.Amount) ?? 0m;
+        vm.RevenueLastMonth = collected.Where(p => p.Day >= startOfLastMonthVn && p.Day < startOfMonthVn).Sum(p => p.Net);
 
         vm.MoMGrowthPct = vm.RevenueLastMonth == 0 ? 0
             : Math.Round((double)((vm.RevenueThisMonth - vm.RevenueLastMonth) * 100m / vm.RevenueLastMonth), 1);
 
         // Doanh thu trung bình 12 tháng (chỉ tính các tháng có dữ liệu)
-        var revenueByMonthRaw = await Db.Payments
-            .Where(p => p.Status == PaymentStatus.Succeeded && p.PaidAt != null && p.PaidAt >= startOf12Months)
-            .GroupBy(p => new { p.PaidAt!.Value.Year, p.PaidAt.Value.Month })
-            .Select(g => new RevenueByMonthRow
-            {
-                Year = g.Key.Year,
-                Month = g.Key.Month,
-                Total = g.Sum(p => p.Amount)
-            })
-            .ToListAsync();
+        var revenueByMonthRaw = collected.GroupBy(p => new { p.Day.Year, p.Day.Month })
+            .Select(g => new RevenueByMonthRow { Year = g.Key.Year, Month = g.Key.Month, Total = g.Sum(p => p.Net) })
+            .ToList();
 
         vm.RevenueByMonth = Enumerable.Range(0, 12)
             .Select(i => startOf12Months.AddMonths(i))

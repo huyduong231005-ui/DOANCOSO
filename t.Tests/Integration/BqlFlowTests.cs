@@ -33,7 +33,7 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         var reading = new UtilityReading
         {
             ApartmentId = apt.Id, UtilityTypeId = water.Id, BillingMonth = 203103,
-            PreviousReading = 100, CurrentReading = 110, Consumption = 10, Rate = 18_000m, Amount = 180_000m
+            PreviousReading = 100, CurrentReading = 110
         };
         db.UtilityReadings.Add(reading);
         await db.SaveChangesAsync();
@@ -58,7 +58,7 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var gen = scope.ServiceProvider.GetRequiredService<InvoiceGenerator>();
-        var (apt, _) = await NewApartmentAsync(db, area: 50, feePerM2: 15_000m, ApartmentOccupancy.NotHandedOver);
+        var (apt, _) = await NewApartmentAsync(db, area: 50, feePerM2: 15_000m, ApartmentCondition.NotHandedOver);
 
         var result = await gen.GenerateMonthlyInvoiceAsync(apt.Id, new DateTime(2031, 4, 1));
 
@@ -67,13 +67,13 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task AddResident_MarksOccupied_LinksAccount_AndMoveOutOfLastResident_MarksVacant()
+    public async Task AddResident_MarksOccupied_AndMoveOutOfLastResident_MarksVacant()
     {
         int aptId;
         using (var scope = _factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            aptId = (await NewApartmentAsync(db, 60, 15_000m, ApartmentOccupancy.Vacant)).Apartment.Id;
+            aptId = (await NewApartmentAsync(db, 60, 15_000m)).Apartment.Id;
         }
         using var client = await AdminClientAsync();
         var token = await TokenAsync(client, $"/Admin/Apartments/Details/{aptId}");
@@ -81,7 +81,7 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         var add = await client.PostAsync("/Admin/Apartments/AddResident", Form(token, new()
         {
             ["ApartmentId"] = aptId.ToString(), ["FullName"] = "Nguyễn Văn Test", ["Role"] = "Owner",
-            ["Email"] = "renter3@luxehaven.vn", ["MoveInDate"] = "2026-01-01"
+            ["MoveInDate"] = "2026-01-01"
         }));
         Assert.Equal(HttpStatusCode.Redirect, add.StatusCode);
 
@@ -93,7 +93,6 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
             Assert.Equal(ApartmentOccupancy.Occupied, apt.Occupancy);
             var r = Assert.Single(apt.Residents);
             Assert.True(r.IsPrimary);
-            Assert.Equal("renter3@luxehaven.vn", r.User?.Email);
             residentId = r.Id;
         }
 
@@ -134,7 +133,7 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         using var scope2 = _factory.Services.CreateScope();
         var db2 = scope2.ServiceProvider.GetRequiredService<AppDbContext>();
         var b = await db2.Buildings.SingleAsync(x => x.Code == "T9");
-        var codes = await db2.Apartments.Where(a => a.BuildingId == b.Id).Select(a => a.UnitCode).ToListAsync();
+        var codes = await db2.Apartments.Where(a => a.Floor.BuildingId == b.Id).Select(a => a.UnitCode).ToListAsync();
         Assert.Equal(3, await db2.Floors.CountAsync(f => f.BuildingId == b.Id));
         Assert.Equal(12, codes.Count);
         Assert.Contains("T9-03.04", codes);
@@ -152,10 +151,10 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var (apt1, water) = await NewApartmentAsync(db, 50, 10_000m);
-            var apt2 = new Apartment { BuildingId = apt1.BuildingId, FloorId = apt1.FloorId, UnitCode = apt1.UnitCode + "B", Area = 40, Occupancy = ApartmentOccupancy.Occupied };
+            var apt2 = new Apartment { FloorId = apt1.FloorId, UnitCode = apt1.UnitCode + "B", Area = 40 };
             db.Apartments.Add(apt2);
             await db.SaveChangesAsync();
-            (buildingId, waterId, a1, a2) = (apt1.BuildingId, water.Id, apt1.Id, apt2.Id);
+            (buildingId, waterId, a1, a2) = (apt1.Floor.BuildingId, water.Id, apt1.Id, apt2.Id);
         }
         using var client = await AdminClientAsync();
         var token = await TokenAsync(client, $"/Admin/Utilities/Bulk?buildingId={buildingId}");
@@ -172,7 +171,6 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         var db2 = scope2.ServiceProvider.GetRequiredService<AppDbContext>();
         var r = await db2.UtilityReadings.SingleAsync(x => x.ApartmentId == a1 && x.BillingMonth == 203105);
         Assert.Equal(12.5m, r.Consumption);
-        Assert.Equal(225_000m, r.Amount);
         Assert.False(await db2.UtilityReadings.AnyAsync(x => x.ApartmentId == a2 && x.BillingMonth == 203105));
     }
 
@@ -202,8 +200,8 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         using (var scope = _factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var apt = await db.Apartments.Include(a => a.Building).SingleAsync(a => a.UnitCode == "A-12.05");
-            (projectId, buildingId, aptId) = (apt.Building.ProjectId!.Value, apt.BuildingId, apt.Id);
+            var apt = await db.Apartments.Include(a => a.Floor.Building).SingleAsync(a => a.UnitCode == "A-12.05");
+            (projectId, buildingId, aptId) = (apt.Floor.Building.ProjectId, apt.Floor.BuildingId, apt.Id);
         }
 
         using var admin = await AdminClientAsync();
@@ -225,21 +223,21 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
     // ── helpers ──
 
     private static async Task<(Apartment Apartment, UtilityType Water)> NewApartmentAsync(
-        AppDbContext db, double area, decimal feePerM2, ApartmentOccupancy occupancy = ApartmentOccupancy.Occupied)
+        AppDbContext db, double area, decimal feePerM2, ApartmentCondition condition = ApartmentCondition.HandedOver)
     {
         var code = "X" + Guid.NewGuid().ToString("N")[..6];
-        var region = await db.Regions.FirstAsync();
+        var project = await db.Projects.FirstAsync();
         var b = new Building
         {
-            Name = "Toà " + code, Code = code, Slug = code.ToLowerInvariant(), RegionId = region.Id,
+            Name = "Toà " + code, Code = code, ProjectId = project.Id,
             DefaultBillingDay = 1, ManagementFeePerM2 = feePerM2
         };
         db.Buildings.Add(b);
         await db.SaveChangesAsync();
-        var f = new Floor { BuildingId = b.Id, Number = 1, Label = "Tầng 1" };
+        var f = new Floor { BuildingId = b.Id, Number = 1 };
         db.Floors.Add(f);
         await db.SaveChangesAsync();
-        var apt = new Apartment { BuildingId = b.Id, FloorId = f.Id, UnitCode = code + "-01.01", Area = area, Bedrooms = 2, Occupancy = occupancy };
+        var apt = new Apartment { FloorId = f.Id, UnitCode = code + "-01.01", Area = area, Bedrooms = 2, Condition = condition };
         db.Apartments.Add(apt);
         await db.SaveChangesAsync();
         return (apt, await db.UtilityTypes.SingleAsync(t => t.Code == "WATER"));

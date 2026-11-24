@@ -54,7 +54,28 @@ public sealed class AdminSecurityHardeningTests : IClassFixture<TestWebApplicati
         var response = await client.PostAsync("/admin/uploads/multi/apartments", content);
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
-        Assert.Contains("/Home/Login", response.Headers.Location?.OriginalString);
+        Assert.Contains("/Home/AccessDenied", response.Headers.Location?.OriginalString);
+    }
+
+    // Trước đây trang không có quyền trỏ về Login, mà Login tự đăng xuất: cư dân bấm nhầm link quản lý là mất phiên.
+    [Fact]
+    public async Task ForbiddenPage_ShouldExplainAndKeepSession_WhenTenantOpensAdminArea()
+    {
+        using var client = CreateClient();
+        await LoginAsync(client, "renter@luxehaven.vn", "Renter@123", "/tenant");
+
+        var denied = await client.GetAsync("/admin");
+        Assert.Equal(HttpStatusCode.Redirect, denied.StatusCode);
+        Assert.Contains("/Home/AccessDenied", denied.Headers.Location?.OriginalString);
+
+        var page = await client.GetAsync(denied.Headers.Location);
+        Assert.Equal(HttpStatusCode.Forbidden, page.StatusCode);
+        var html = await page.Content.ReadAsStringAsync();
+        Assert.Contains("không có quyền truy cập", html);
+        Assert.Contains("href=\"/tenant\"", html);
+
+        var stillSignedIn = await client.GetAsync("/tenant");
+        Assert.Equal(HttpStatusCode.OK, stillSignedIn.StatusCode);
     }
 
     [Fact]
@@ -108,7 +129,7 @@ public sealed class AdminSecurityHardeningTests : IClassFixture<TestWebApplicati
             $"/Admin/Apartments/ChangeStatus/{apartmentId}",
             new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["status"] = ApartmentOccupancy.UnderMaintenance.ToString(),
+                ["status"] = ApartmentCondition.UnderMaintenance.ToString(),
                 ["returnUrl"] = "https://evil.example/phishing",
                 ["__RequestVerificationToken"] = token
             }));

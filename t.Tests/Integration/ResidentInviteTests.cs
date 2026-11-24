@@ -76,13 +76,13 @@ public sealed class ResidentInviteTests : IClassFixture<TestWebApplicationFactor
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             db.ApartmentResidents.Add(new ApartmentResident
             {
-                ApartmentId = aptId, FullName = "Chủ thật", Email = email, Role = ResidentRole.Owner, MoveInDate = DateTime.Today
+                ApartmentId = aptId, User = t.Infrastructure.Residents.PendingAccounts.New("Chủ thật", null, email, null), Role = ResidentRole.Owner, MoveInDate = DateTime.Today
             });
             await db.SaveChangesAsync();
         }
 
         using var stranger = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
-        var token = await TokenAsync(stranger, "/Home/Register");
+        var token = await TokenAsync(stranger, "/Home/Login");
         await stranger.PostAsync("/Home/Register", Form(token, new()
         {
             ["FullName"] = "Người lạ", ["Email"] = email, ["Password"] = "La@123456", ["ConfirmPassword"] = "La@123456"
@@ -90,8 +90,8 @@ public sealed class ResidentInviteTests : IClassFixture<TestWebApplicationFactor
 
         using var check = _factory.Services.CreateScope();
         var resident = await check.ServiceProvider.GetRequiredService<AppDbContext>().ApartmentResidents
-            .SingleAsync(r => r.Email == email);
-        Assert.Null(resident.UserId);
+            .SingleAsync(r => r.User.Email == email);
+        Assert.Null(resident.User.PasswordHash); // người lạ không kích hoạt được tài khoản khi không có thư mời
     }
 
     // ── helpers ──
@@ -101,7 +101,7 @@ public sealed class ResidentInviteTests : IClassFixture<TestWebApplicationFactor
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var apt = await db.Apartments.OrderBy(a => a.Id)
-            .FirstAsync(a => a.Occupancy == ApartmentOccupancy.Vacant && !a.Residents.Any(r => r.MoveOutDate == null));
+            .FirstAsync(Apartment.IsVacant);
         return (apt.Id, apt.UnitCode);
     }
 

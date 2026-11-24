@@ -11,6 +11,7 @@ using t.Models.Entities;
 
 namespace t.Areas.Admin.Controllers;
 
+[t.Infrastructure.Security.Permission("maintenance.manage")]
 public class MaintenanceController : AdminBaseController
 {
     private static readonly string[] TechnicianRoles =
@@ -49,7 +50,7 @@ public class MaintenanceController : AdminBaseController
         if (priority.HasValue) query = query.Where(r => r.Priority == priority.Value);
         if (category.HasValue) query = query.Where(r => r.Category == category.Value);
         if (buildingId.HasValue)
-            query = query.Where(r => (r.Apartment != null && r.Apartment.BuildingId == buildingId.Value) || r.CommonBuildingId == buildingId.Value);
+            query = query.Where(r => (r.Apartment != null && r.Apartment.Floor.BuildingId == buildingId.Value) || r.CommonBuildingId == buildingId.Value);
         if (overdue) query = query.Where(MaintenanceWorkflow.IsOverdue(now));
 
         var total = await query.CountAsync();
@@ -62,11 +63,11 @@ public class MaintenanceController : AdminBaseController
                 ApartmentId = r.ApartmentId,
                 UnitCode = r.Apartment != null ? r.Apartment.UnitCode : null,
                 Location = r.Location,
-                BuildingName = r.Apartment != null ? r.Apartment.Building.Name : r.CommonBuilding != null ? r.CommonBuilding.Name : null,
+                BuildingName = r.Apartment != null ? r.Apartment.Floor.Building.Name : r.CommonBuilding != null ? r.CommonBuilding.Name : null,
                 ReporterName = r.Reporter != null ? r.Reporter.FullName : null,
                 AssignedToName = r.AssignedTo != null ? r.AssignedTo.FullName : null,
                 Category = r.Category, Priority = r.Priority, Status = r.Status,
-                ReportedAt = r.ReportedAt, ResolvedAt = r.ResolvedAt, DueAt = r.DueAt
+                ReportedAt = r.ReportedAt, ResolvedAt = (r.Status == MaintenanceStatus.Resolved || r.Status == MaintenanceStatus.Closed ? r.History.Where(h => h.ToStatus == MaintenanceStatus.Resolved).Max(h => (DateTime?)h.ChangedAt) : null), DueAt = r.DueAt
             }).ToListAsync();
 
         ViewBag.Q = q; ViewBag.Status = status; ViewBag.Priority = priority;
@@ -114,7 +115,7 @@ public class MaintenanceController : AdminBaseController
     {
         SetActiveNav("maintenance");
         var r = await Db.MaintenanceRequests
-            .Include(x => x.Apartment).ThenInclude(a => a!.Building)
+            .Include(x => x.Apartment).ThenInclude(a => a!.Floor.Building)
             .Include(x => x.Apartment).ThenInclude(a => a!.Residents)
             .Include(x => x.CommonBuilding)
             .Include(x => x.Reporter).Include(x => x.AssignedTo)
@@ -294,8 +295,8 @@ public class MaintenanceController : AdminBaseController
     private async Task PopulateLookupsAsync(MaintenanceEditVm vm)
     {
         vm.Apartments = await Db.Apartments
-            .OrderBy(a => a.Building.Code).ThenBy(a => a.UnitCode)
-            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + a.Building.Name })
+            .OrderBy(a => a.Floor.Building.Code).ThenBy(a => a.UnitCode)
+            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + a.Floor.Building.Name })
             .ToListAsync();
         vm.Buildings = await Db.Buildings.OrderBy(b => b.Name)
             .Select(b => new ApartmentOption { Id = b.Id, Label = b.Name })

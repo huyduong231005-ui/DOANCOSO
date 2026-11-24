@@ -12,7 +12,7 @@
 <form asp-action="EditType" method="post">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
+    <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
 
     <div class="card">
         <div class="card-body">
@@ -20,29 +20,23 @@
                 <div class="form-field span-3">
                     <label asp-for="Code">Mã</label>
                     <input asp-for="Code" placeholder="ELEC, WATER..." />
+                    <span class="err" asp-validation-for="Code"></span>
                 </div>
                 <div class="form-field span-6">
                     <label asp-for="Name">Tên hiển thị</label>
                     <input asp-for="Name" />
+                    <span class="err" asp-validation-for="Name"></span>
                 </div>
                 <div class="form-field span-3">
                     <label asp-for="Unit">Đơn vị</label>
                     <input asp-for="Unit" placeholder="kWh, m³, tháng..." />
+                    <span class="err" asp-validation-for="Unit"></span>
                 </div>
 
                 <div class="form-field span-4">
-                    <label asp-for="BillingMode">Cách tính</label>
-                    <select asp-for="BillingMode">
-                        @foreach (var m in Enum.GetValues<UtilityBillingMode>()) { <option value="@((int)m)">@m.Vi()</option> }
-                    </select>
-                </div>
-                <div class="form-field span-4">
-                    <label asp-for="DefaultRate">Đơn giá mặc định</label>
+                    <label asp-for="DefaultRate">Đơn giá</label>
                     <input asp-for="DefaultRate" type="number" step="100" />
-                </div>
-                <div class="form-field span-4">
-                    <label asp-for="Icon">Icon (Material Symbols)</label>
-                    <input asp-for="Icon" placeholder="bolt, water_drop, wifi..." />
+                    <span class="err" asp-validation-for="DefaultRate"></span>
                 </div>
             </div>
         </div>

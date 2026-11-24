@@ -11,7 +11,7 @@
 <form asp-action="Edit" method="post">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
+    <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
 
     <div class="card">
         <div class="card-header"><h2>Thông tin</h2></div>
@@ -30,6 +30,7 @@
                 <div class="form-field span-6">
                     <label asp-for="Phone">Số điện thoại</label>
                     <input asp-for="Phone" />
+                    <span class="err" asp-validation-for="Phone"></span>
                 </div>
             </div>
         </div>

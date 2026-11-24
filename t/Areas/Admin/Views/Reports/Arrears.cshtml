@@ -19,7 +19,7 @@
         var color = i == 0 ? "var(--admin-info)" : i == 1 ? "var(--admin-warning)" : i == 2 ? "var(--admin-accent)" : "var(--admin-danger)";
         <div class="kpi-card">
             <div class="kpi-label">@labels[i]</div>
-            <div class="kpi-value" style="color:@color;">@Money(totals[i])</div>
+            <div class="kpi-value" style="color:@color;font-size:clamp(1.15rem, 1.9vw, 1.9rem);white-space:nowrap;">@Money(totals[i])</div>
         </div>
     }
 </section>

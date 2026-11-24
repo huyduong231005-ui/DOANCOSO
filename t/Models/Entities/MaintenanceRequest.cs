@@ -45,6 +45,13 @@ public class MaintenanceRequest : BaseEntity
 {
     public string RequestNumber { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Phiên bản dòng để chặn hai người cùng sửa một yêu cầu (khoá lạc quan): ánh xạ vào cột hệ thống xmin
+    /// của PostgreSQL, tự đổi mỗi lần dòng được cập nhật, không phải cột của bảng. (Cột PhienBan kiểu byte[]
+    /// của BaseEntity không được PostgreSQL tự sinh nên không dùng được cho việc này.)
+    /// </summary>
+    public uint Xmin { get; set; }
+
     // Sự cố nằm ở đúng một nơi: trong một căn (ApartmentId) HOẶC khu vực chung của một toà
     // (CommonBuildingId + Location). Không lưu toà cho sự cố trong căn vì toà suy ra từ căn (3NF).
     public int? ApartmentId { get; set; }
@@ -80,9 +87,15 @@ public class MaintenanceRequest : BaseEntity
     public bool ChargeToTenant { get; set; }
 
     public DateTime ReportedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? AcknowledgedAt { get; set; }
-    public DateTime? ResolvedAt { get; set; }
-    public DateTime? ClosedAt { get; set; }
+
+    // Mốc tiếp nhận, giải quyết, đóng không lưu thành cột: lấy từ lịch sử trạng thái (cần nạp History),
+    // để một thông tin chỉ nằm ở một bảng. Câu truy vấn dùng các biểu thức tương ứng ở MaintenanceMilestones.
+    public DateTime? AcknowledgedAt => History.Where(h => h.ToStatus == MaintenanceStatus.Acknowledged)
+        .Select(h => (DateTime?)h.ChangedAt).Min();
+    public DateTime? ResolvedAt => Status is MaintenanceStatus.Resolved or MaintenanceStatus.Closed
+        ? History.Where(h => h.ToStatus == MaintenanceStatus.Resolved).Select(h => (DateTime?)h.ChangedAt).Max() : null;
+    public DateTime? ClosedAt => Status is MaintenanceStatus.Closed or MaintenanceStatus.Rejected or MaintenanceStatus.Cancelled
+        ? History.Where(h => h.ToStatus == Status).Select(h => (DateTime?)h.ChangedAt).Max() : null;
 
     /// <summary>
     /// Hạn hoàn tất theo SLA, chốt lúc báo (NgayBaoCao + thời hạn của mức ưu tiên), cộng thêm thời gian tạm dừng.
@@ -130,9 +143,11 @@ public class MaintenanceStatusChange
 }
 
 /// <summary>Thời hạn theo mức ưu tiên. Giá trị seed là giả định của nhóm, quản trị chỉnh trong DB.</summary>
+/// <summary>Bảng MucUuTien: danh mục mức ưu tiên của sự cố và thời hạn SLA của từng mức.</summary>
 public class SlaPolicy
 {
     public MaintenancePriority Priority { get; set; }
+    public string Name { get; set; } = string.Empty;
     public int ResponseMinutes { get; set; }
     public int ResolveMinutes { get; set; }
 
@@ -140,9 +155,9 @@ public class SlaPolicy
     // trung bình 2 giờ / 24 giờ, thấp 12 giờ / 3 ngày.
     public static readonly SlaPolicy[] Defaults =
     {
-        new() { Priority = MaintenancePriority.Urgent, ResponseMinutes = 15, ResolveMinutes = 120 },
-        new() { Priority = MaintenancePriority.High, ResponseMinutes = 30, ResolveMinutes = 480 },
-        new() { Priority = MaintenancePriority.Medium, ResponseMinutes = 120, ResolveMinutes = 1440 },
-        new() { Priority = MaintenancePriority.Low, ResponseMinutes = 720, ResolveMinutes = 4320 },
+        new() { Priority = MaintenancePriority.Urgent, Name = "Khẩn cấp", ResponseMinutes = 15, ResolveMinutes = 120 },
+        new() { Priority = MaintenancePriority.High, Name = "Cao", ResponseMinutes = 30, ResolveMinutes = 480 },
+        new() { Priority = MaintenancePriority.Medium, Name = "Trung bình", ResponseMinutes = 120, ResolveMinutes = 1440 },
+        new() { Priority = MaintenancePriority.Low, Name = "Thấp", ResponseMinutes = 720, ResolveMinutes = 4320 },
     };
 }

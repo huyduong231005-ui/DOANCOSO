@@ -7,6 +7,7 @@ using t.Models.Entities;
 namespace t.Areas.Admin.Controllers;
 
 /// <summary>Khu căn hộ — cấp cao nhất của cây Khu → Toà → Tầng → Căn.</summary>
+[t.Infrastructure.Security.Permission("projects.view", "projects.manage")]
 public class ProjectsController : AdminBaseController
 {
     public ProjectsController(AppDbContext db) : base(db) { }
@@ -24,20 +25,19 @@ public class ProjectsController : AdminBaseController
             .OrderBy(p => p.Name)
             .Select(p => new ProjectListVm
             {
-                Id = p.Id, Name = p.Name, Slug = p.Slug,
+                Id = p.Id, Name = p.Name,
                 RegionName = p.Region.Name, Address = p.Address, ThumbnailUrl = p.ThumbnailUrl,
                 BuildingCount = p.Buildings.Count(),
-                ApartmentCount = p.Buildings.SelectMany(b => b.Apartments).Count(),
-                OccupiedCount = p.Buildings.SelectMany(b => b.Apartments).Count(a => a.Occupancy == ApartmentOccupancy.Occupied),
-                ResidentCount = p.Buildings.SelectMany(b => b.Apartments).SelectMany(a => a.Residents).Count(r => r.MoveOutDate == null),
-                Outstanding = p.Buildings.SelectMany(b => b.Apartments).SelectMany(a => a.Invoices)
+                ApartmentCount = p.Buildings.SelectMany(b => b.Floors.SelectMany(f => f.Apartments)).Count(),
+                OccupiedCount = p.Buildings.SelectMany(b => b.Floors.SelectMany(f => f.Apartments)).AsQueryable().Count(Apartment.IsOccupied),
+                ResidentCount = p.Buildings.SelectMany(b => b.Floors.SelectMany(f => f.Apartments)).SelectMany(a => a.Residents).Count(r => r.MoveOutDate == null),
+                Outstanding = p.Buildings.SelectMany(b => b.Floors.SelectMany(f => f.Apartments)).SelectMany(a => a.Invoices)
                     .Where(i => i.Status != InvoiceStatus.Cancelled && i.Status != InvoiceStatus.Draft)
                     .Sum(i => (decimal?)i.Balance) ?? 0
             })
             .ToListAsync();
 
         ViewBag.Q = q;
-        ViewBag.UnassignedBuildings = await Db.Buildings.CountAsync(b => b.ProjectId == null);
         return View(rows);
     }
 
@@ -52,15 +52,6 @@ public class ProjectsController : AdminBaseController
         return View(project);
     }
 
-    /// <summary>Toà chưa gán vào khu nào (dữ liệu cũ hoặc tạo thiếu khu).</summary>
-    public async Task<IActionResult> Unassigned()
-    {
-        SetActiveNav("projects");
-        SetBreadcrumb(("Khu & toà nhà", Url.Action(nameof(Index))), ("Toà chưa thuộc khu", null));
-        ViewBag.Buildings = await BuildingCardsAsync(Db.Buildings.Where(b => b.ProjectId == null));
-        return View("Details", new Project { Name = "Toà chưa thuộc khu", Address = "Gán khu cho toà trong trang sửa toà nhà." });
-    }
-
     private Task<List<BuildingListVm>> BuildingCardsAsync(IQueryable<Building> buildings) =>
         buildings
             .OrderBy(b => b.Code).ThenBy(b => b.Name)
@@ -71,14 +62,14 @@ public class ProjectsController : AdminBaseController
                 FloorCount = b.Floors.Count(),
                 ManagerName = b.Manager != null ? b.Manager.FullName : null,
                 Status = b.Status,
-                UnitsTotal = b.Apartments.Count(),
-                UnitsOccupied = b.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.Occupied),
-                UnitsVacant = b.Apartments.Count(a => a.Occupancy == ApartmentOccupancy.Vacant),
-                Outstanding = b.Apartments.SelectMany(a => a.Invoices)
+                UnitsTotal = b.Floors.SelectMany(f => f.Apartments).Count(),
+                UnitsOccupied = b.Floors.SelectMany(f => f.Apartments).AsQueryable().Count(Apartment.IsOccupied),
+                UnitsVacant = b.Floors.SelectMany(f => f.Apartments).AsQueryable().Count(Apartment.IsVacant),
+                Outstanding = b.Floors.SelectMany(f => f.Apartments).SelectMany(a => a.Invoices)
                     .Where(i => i.Status != InvoiceStatus.Cancelled && i.Status != InvoiceStatus.Draft)
                     .Sum(i => (decimal?)i.Balance) ?? 0,
                 OpenMaintenance = Db.MaintenanceRequests.Count(m =>
-                    ((m.Apartment != null && m.Apartment.BuildingId == b.Id) || m.CommonBuildingId == b.Id)
+                    ((m.Apartment != null && m.Apartment.Floor.BuildingId == b.Id) || m.CommonBuildingId == b.Id)
                     && MaintenanceRequest.ActiveStatuses.Contains(m.Status))
             })
             .ToListAsync();
@@ -100,7 +91,7 @@ public class ProjectsController : AdminBaseController
 
         var vm = new ProjectEditVm
         {
-            Id = p.Id, Name = p.Name, Slug = p.Slug, RegionId = p.RegionId,
+            Id = p.Id, Name = p.Name, RegionId = p.RegionId,
             Address = p.Address, ThumbnailUrl = p.ThumbnailUrl, ShortDescription = p.ShortDescription,
             Regions = await Db.Regions.OrderBy(r => r.Name).ToListAsync()
         };
@@ -110,10 +101,6 @@ public class ProjectsController : AdminBaseController
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(ProjectEditVm input)
     {
-        if (string.IsNullOrWhiteSpace(input.Slug)) input.Slug = Slugify(input.Name);
-        ModelState.Remove(nameof(input.Slug));
-        if (ModelState.IsValid && await Db.Projects.AnyAsync(p => p.Slug == input.Slug && p.Id != input.Id))
-            ModelState.AddModelError(nameof(input.Slug), "Slug đã tồn tại.");
         if (!ModelState.IsValid)
         {
             input.Regions = await Db.Regions.OrderBy(r => r.Name).ToListAsync();
@@ -128,10 +115,10 @@ public class ProjectsController : AdminBaseController
         }
         else
         {
-            p = await Db.Projects.FirstOrDefaultAsync(x => x.Id == input.Id) ?? throw new InvalidOperationException("Not found");
+            if ((p = (await Db.Projects.FirstOrDefaultAsync(x => x.Id == input.Id))!) is null) return NotFound(); // Id gửi lên không tồn tại
         }
 
-        p.Name = input.Name; p.Slug = input.Slug; p.RegionId = input.RegionId;
+        p.Name = input.Name; p.RegionId = input.RegionId;
         p.Address = input.Address; p.ThumbnailUrl = input.ThumbnailUrl ?? string.Empty;
         p.ShortDescription = input.ShortDescription ?? string.Empty;
 

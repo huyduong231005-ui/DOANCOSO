@@ -24,7 +24,7 @@
 }
 
 <section class="page-header">
-    <div><h1>@Model.InvoiceNumber</h1><p class="subtitle">Căn @Model.Apartment.UnitCode · @Model.Apartment.Building.Name</p></div>
+    <div><h1>@Model.InvoiceNumber</h1><p class="subtitle">Căn @Model.Apartment.UnitCode · @Model.Apartment.Floor.Building.Name</p></div>
     <div class="actions">
         <span class="@Pill(Model.Status)">@Model.Status.Vi()</span>
         <a class="btn btn-outline" asp-action="Pdf" asp-route-id="@Model.Id" target="_blank"><span class="material-symbols-outlined">picture_as_pdf</span>Tải PDF</a>
@@ -96,7 +96,6 @@
                     @if (Model.BillingMonth > 0) { <dt>Kỳ</dt><dd>@(Model.BillingMonth/100)/@((Model.BillingMonth%100).ToString("00"))</dd> }
                     <dt>Phát hành</dt><dd>@Model.IssueDate.ToString("dd/MM/yyyy")</dd>
                     <dt>Đến hạn</dt><dd>@Model.DueDate.ToString("dd/MM/yyyy")</dd>
-                    <dt>Tiền tệ</dt><dd>@Model.Currency</dd>
                 </dl>
             </div>
         </div>

@@ -2,7 +2,6 @@
 @{
     ViewData["Title"] = "Khu & toà nhà";
     var q = (string?)ViewBag.Q;
-    var unassigned = (int)ViewBag.UnassignedBuildings;
     string Money(decimal v) => v.ToString("N0");
     var totalUnits = Model.Sum(p => p.ApartmentCount);
     var totalOccupied = Model.Sum(p => p.OccupiedCount);
@@ -22,13 +21,6 @@
     </div>
 </section>
 
-@if (unassigned > 0)
-{
-    <div class="alert alert-warning">
-        <span class="material-symbols-outlined">info</span>
-        <span>Có @unassigned toà chưa thuộc khu nào. <a asp-action="Unassigned" style="text-decoration:underline;">Xem và gán khu</a>.</span>
-    </div>
-}
 
 <div class="entity-grid fill">
     @foreach (var p in Model)

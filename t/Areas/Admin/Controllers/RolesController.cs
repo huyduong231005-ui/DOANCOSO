@@ -7,6 +7,7 @@ using t.Models.Entities;
 
 namespace t.Areas.Admin.Controllers;
 
+[t.Infrastructure.Security.Permission("roles.manage")]
 public class RolesController : AdminBaseController
 {
     private readonly RoleManager<IdentityRole> _roleManager;
@@ -62,7 +63,9 @@ public class RolesController : AdminBaseController
             foreach (var p in perms)
             {
                 var key = $"perm_{role.Id}_{p.Id}";
-                if (form.ContainsKey(key) && form[key].Contains("on"))
+                // Quản trị luôn giữ quyền phân quyền, tránh tự khoá mình khỏi trang này.
+                var keepAdmin = role.Name == SeedData.RoleAdmin && p.Code == "roles.manage";
+                if (keepAdmin || (form.ContainsKey(key) && form[key].Contains("on")))
                     Db.RolePermissions.Add(new RolePermission { RoleId = role.Id, PermissionId = p.Id });
             }
         }

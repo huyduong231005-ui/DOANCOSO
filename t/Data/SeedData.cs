@@ -1,3 +1,4 @@
+using t.Infrastructure.Residents;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using t.Models.Entities;
@@ -48,28 +49,28 @@ public static class SeedData
 
         if (await ctx.Regions.AnyAsync()) return;
 
-        var hcm = new Region { Name = "TP. Hồ Chí Minh", Slug = "tp-ho-chi-minh", ImageUrl = "/img/region-hcm.jpg" };
+        var hcm = new Region { Name = "TP. Hồ Chí Minh", ImageUrl = "/img/region-hcm.jpg" };
         ctx.Regions.AddRange(
-            new Region { Name = "Hà Nội", Slug = "ha-noi", ImageUrl = "/img/region-hanoi.jpg" },
-            new Region { Name = "Đà Nẵng", Slug = "da-nang", ImageUrl = "/img/region-danang.jpg" },
+            new Region { Name = "Hà Nội", ImageUrl = "/img/region-hanoi.jpg" },
+            new Region { Name = "Đà Nẵng", ImageUrl = "/img/region-danang.jpg" },
             hcm);
-        var water = new UtilityType { Code = "WATER", Name = "Nước", Unit = "m³", BillingMode = UtilityBillingMode.Metered, DefaultRate = WaterRate, Icon = "water_drop" };
+        var water = new UtilityType { Code = "NUOC", Name = "Nước", Unit = "m³", DefaultRate = WaterRate };
         ctx.UtilityTypes.AddRange(water,
-            new UtilityType { Code = "ELEC", Name = "Điện", Unit = "kWh", BillingMode = UtilityBillingMode.Metered, DefaultRate = 3_500m, Icon = "bolt" });
+            new UtilityType { Code = "DIEN", Name = "Điện", Unit = "kWh", DefaultRate = 3_500m });
         await ctx.SaveChangesAsync();
 
         var manager = await userMgr.FindByEmailAsync("quanly@luxehaven.vn");
 
         var grandPark = new Project
         {
-            Name = "Luxe Haven Grand Park", Slug = "luxe-haven-grand-park", RegionId = hcm.Id,
+            Name = "Luxe Haven Grand Park", RegionId = hcm.Id,
             Address = "Đường Nguyễn Xiển, Long Thạnh Mỹ, TP. Thủ Đức, TP. HCM",
             ThumbnailUrl = "/img/hero-2.jpg",
             ShortDescription = "Khu căn hộ 3 toà A, B, C quanh công viên nội khu, Ban quản lý đặt tại sảnh toà A."
         };
         var riverside = new Project
         {
-            Name = "Luxe Haven Riverside", Slug = "luxe-haven-riverside", RegionId = hcm.Id,
+            Name = "Luxe Haven Riverside", RegionId = hcm.Id,
             Address = "Đường Nguyễn Hữu Cảnh, P.22, Bình Thạnh, TP. HCM",
             ThumbnailUrl = "/img/rent-2.jpg",
             ShortDescription = "Hai toà ven sông R1, R2; căn hộ 1–3 phòng ngủ."
@@ -91,8 +92,8 @@ public static class SeedData
         var rng = new Random(2026);
         foreach (var b in buildings)
         {
-            var floors = Enumerable.Range(1, b.FloorCount)
-                .Select(n => new Floor { BuildingId = b.Id, Number = n, Label = $"Tầng {n}" }).ToList();
+            var floors = Enumerable.Range(1, FloorsOf[b.Code])
+                .Select(n => new Floor { BuildingId = b.Id, Number = n }).ToList();
             ctx.Floors.AddRange(floors);
             await ctx.SaveChangesAsync();
 
@@ -103,22 +104,35 @@ public static class SeedData
         }
         await ctx.SaveChangesAsync();
 
-        var apartments = await ctx.Apartments.Include(a => a.Building).OrderBy(a => a.Id).ToListAsync();
+        var apartments = await ctx.Apartments.Include(a => a.Floor.Building).OrderBy(a => a.Id).ToListAsync();
         SeedResidentsAndCharges(ctx, apartments, rng);
         await ctx.SaveChangesAsync();
 
         await SeedResidentAccountsAsync(ctx, userMgr, apartments);
         SeedBillingHistory(ctx, apartments, water, rng);
-        SeedMaintenance(ctx, apartments);
+        await SeedMaintenanceAsync(ctx, apartments);
         await ctx.SaveChangesAsync();
     }
 
+    // Căn mẫu sẽ có người ở (CuTru). "Đang ở" không lưu ở căn nên seed tự nhớ danh sách này.
+    private static readonly HashSet<string> OccupiedUnits = new();
+
+    // Số tầng của toà mẫu (toà không lưu số tầng; số tầng là số dòng Tang tạo ra).
+    private static readonly Dictionary<string, int> FloorsOf = new();
+
     private static Building NewBuilding(Project p, string code, string name, int floors, int perFloor,
-                                        decimal feePerM2, string? managerId, string thumb) => new()
+                                        decimal feePerM2, string? managerId, string thumb)
     {
-        Name = name, Code = code, Slug = $"{p.Slug}-{code.ToLowerInvariant()}",
-        ProjectId = p.Id, RegionId = p.RegionId, Address = p.Address,
-        FloorCount = floors, ThumbnailUrl = thumb, ManagerId = managerId,
+        FloorsOf[code] = floors;
+        return NewBuildingCore(p, code, name, floors, perFloor, feePerM2, managerId, thumb);
+    }
+
+    private static Building NewBuildingCore(Project p, string code, string name, int floors, int perFloor,
+                                            decimal feePerM2, string? managerId, string thumb) => new()
+    {
+        Name = name, Code = code,
+        ProjectId = p.Id,
+        ThumbnailUrl = thumb, ManagerId = managerId,
         Description = $"{name} · {floors} tầng · {perFloor} căn/tầng.",
         Status = BuildingStatus.Active,
         DefaultBillingDay = 1, DefaultLateFeeAfterDays = 15, DefaultLateFeePercent = 2,
@@ -133,17 +147,18 @@ public static class SeedData
             : pos > perFloor - 2 ? (52.4, 1, 1)
             : (69.8, 2, 2);
         var roll = rng.NextDouble();
-        var occupancy = f.Number >= b.FloorCount - 1 && roll < 0.6 ? ApartmentOccupancy.NotHandedOver
-            : roll < 0.78 ? ApartmentOccupancy.Occupied
-            : roll < 0.95 ? ApartmentOccupancy.Vacant
-            : ApartmentOccupancy.UnderMaintenance;
+        var unitCode = $"{b.Code}-{f.Number:00}.{pos:00}";
+        var condition = f.Number >= FloorsOf[b.Code] - 1 && roll < 0.6 ? ApartmentCondition.NotHandedOver
+            : roll < 0.95 ? ApartmentCondition.HandedOver
+            : ApartmentCondition.UnderMaintenance;
+        if (condition == ApartmentCondition.HandedOver && roll < 0.78) OccupiedUnits.Add(unitCode);
         return new Apartment
         {
-            BuildingId = b.Id, FloorId = f.Id,
-            UnitCode = $"{b.Code}-{f.Number:00}.{pos:00}",
+            FloorId = f.Id,
+            UnitCode = unitCode,
             Area = area, Bedrooms = bed, Bathrooms = bath,
             HouseDirection = (HouseDirection)((pos + f.Number) % 8),
-            Occupancy = occupancy
+            Condition = condition
         };
     }
 
@@ -159,21 +174,23 @@ public static class SeedData
     private static void SeedResidentsAndCharges(AppDbContext ctx, List<Apartment> apartments, Random rng)
     {
         var today = DateTime.UtcNow.Date;
-        foreach (var a in apartments.Where(a => a.Occupancy == ApartmentOccupancy.Occupied))
+        foreach (var a in apartments.Where(a => OccupiedUnits.Contains(a.UnitCode)))
         {
             var rented = rng.NextDouble() < 0.25;
             var moveIn = today.AddDays(-rng.Next(60, 1500));
             var head = RandomName(rng);
             ctx.ApartmentResidents.Add(new ApartmentResident
             {
-                ApartmentId = a.Id, FullName = head, Phone = RandomPhone(rng),
+                ApartmentId = a.Id,
+                User = PendingAccounts.New(head, RandomPhone(rng), null, $"0{rng.Next(10, 99)}0{rng.Next(10_000_000, 99_999_999)}"),
                 Role = rented ? ResidentRole.Tenant : ResidentRole.Owner, IsPrimary = true,
-                MoveInDate = moveIn, IdNumber = $"0{rng.Next(10, 99)}0{rng.Next(10_000_000, 99_999_999)}"
+                MoveInDate = moveIn
             });
             for (var m = rng.Next(0, a.Bedrooms + 1); m > 0; m--)
                 ctx.ApartmentResidents.Add(new ApartmentResident
                 {
-                    ApartmentId = a.Id, FullName = RandomName(rng), Role = ResidentRole.Member, MoveInDate = moveIn
+                    ApartmentId = a.Id, User = PendingAccounts.New(RandomName(rng), null, null, null),
+                    Role = ResidentRole.Member, MoveInDate = moveIn
                 });
 
             var bikes = rng.Next(0, 3);
@@ -197,7 +214,7 @@ public static class SeedData
         };
         foreach (var (email, name, phone, unit, role) in accounts)
         {
-            var user = new AppUser { UserName = email, Email = email, FullName = name, Phone = phone, EmailConfirmed = true };
+            var user = new AppUser { UserName = email, Email = email, FullName = name, PhoneNumber = phone, EmailConfirmed = true };
             if (!(await userMgr.CreateAsync(user, "Renter@123")).Succeeded) continue;
             await userMgr.AddToRoleAsync(user, RoleTenant);
 
@@ -206,10 +223,11 @@ public static class SeedData
             existing.ForEach(r => r.IsPrimary = false);
             if (existing.Count == 0)
                 ctx.RecurringCharges.Add(new RecurringCharge { ApartmentId = apt.Id, Description = "Gửi xe máy #1", Amount = MotorbikeFee });
-            apt.Occupancy = ApartmentOccupancy.Occupied;
+            apt.Condition = ApartmentCondition.HandedOver;
+            OccupiedUnits.Add(apt.UnitCode);
             ctx.ApartmentResidents.Add(new ApartmentResident
             {
-                ApartmentId = apt.Id, FullName = name, Phone = phone, Email = email, UserId = user.Id,
+                ApartmentId = apt.Id, UserId = user.Id, ConfirmedAt = DateTime.UtcNow.Date.AddMonths(-14),
                 Role = role, IsPrimary = true, MoveInDate = DateTime.UtcNow.Date.AddMonths(-14)
             });
         }
@@ -224,7 +242,7 @@ public static class SeedData
     {
         var today = DateTime.UtcNow.Date;
         var charges = ctx.RecurringCharges.Local.Where(c => c.IsActive).ToLookup(c => c.ApartmentId);
-        var occupied = apartments.Where(a => a.Occupancy == ApartmentOccupancy.Occupied).ToList();
+        var occupied = apartments.Where(a => OccupiedUnits.Contains(a.UnitCode)).ToList();
         var invoiceSeq = new Dictionary<int, int>();
         var paymentSeq = 0;
         var meter = occupied.ToDictionary(a => a.Id, _ => (decimal)rng.Next(80, 400));
@@ -240,8 +258,7 @@ public static class SeedData
                 {
                     ApartmentId = a.Id, UtilityTypeId = water.Id, BillingMonth = billingMonth,
                     PreviousReading = meter[a.Id], CurrentReading = meter[a.Id] + used,
-                    Consumption = used, Rate = WaterRate, Amount = used * WaterRate,
-                    ReadAt = month.AddDays(-1), Billed = true
+                    ReadAt = month.AddDays(-1)
                 };
                 meter[a.Id] += used;
                 ctx.UtilityReadings.Add(reading);
@@ -249,23 +266,23 @@ public static class SeedData
                 var area = (decimal)a.Area;
                 var items = new List<InvoiceItem>
                 {
-                    new() { Description = $"Phí quản lý {a.UnitCode} – {month:MM/yyyy} ({area:0.##} m²)", Quantity = area,
-                            UnitPrice = a.Building.ManagementFeePerM2, LineTotal = Math.Round(area * a.Building.ManagementFeePerM2, 0), SortOrder = 0 },
-                    new() { Description = $"Nước (m³) – {used:0.##}", Quantity = used, UnitPrice = WaterRate, LineTotal = reading.Amount, SortOrder = 1 }
+                    new() { Kind = InvoiceItemKind.ManagementFee, Description = $"Phí quản lý {a.UnitCode} – {month:MM/yyyy} ({area:0.##} m²)", Quantity = area,
+                            UnitPrice = a.Floor.Building.ManagementFeePerM2, LineTotal = Math.Round(area * a.Floor.Building.ManagementFeePerM2, 0), SortOrder = 0 },
+                    new() { Kind = InvoiceItemKind.Utility, UtilityReading = reading, Description = $"Nước (m³) – {used:0.##}", Quantity = used, UnitPrice = WaterRate, LineTotal = used * WaterRate, SortOrder = 1 }
                 };
                 var sort = 2;
                 foreach (var c in charges[a.Id])
-                    items.Add(new InvoiceItem { Description = c.Description, Quantity = 1m, UnitPrice = c.Amount, LineTotal = c.Amount, SortOrder = sort++ });
+                    items.Add(new InvoiceItem { Kind = InvoiceItemKind.Recurring, RecurringCharge = c, Description = c.Description, Quantity = 1m, UnitPrice = c.Amount, LineTotal = c.Amount, SortOrder = sort++ });
 
                 var total = items.Sum(i => i.LineTotal);
                 invoiceSeq[billingMonth] = invoiceSeq.GetValueOrDefault(billingMonth) + 1;
-                var due = month.AddDays(a.Building.DefaultBillingDay + 6);
+                var due = month.AddDays(a.Floor.Building.DefaultBillingDay + 6);
                 var invoice = new Invoice
                 {
-                    InvoiceNumber = $"INV-{billingMonth}-{invoiceSeq[billingMonth]:0000}",
-                    ApartmentId = a.Id, Kind = InvoiceKind.Monthly, BillingMonth = billingMonth, IsRecurring = true,
+                    InvoiceNumber = $"HD-{billingMonth}-{invoiceSeq[billingMonth]:0000}",
+                    ApartmentId = a.Id, Kind = InvoiceKind.Monthly, BillingMonth = billingMonth,
                     IssueDate = month, DueDate = due, SubTotal = total, Total = total, Balance = total,
-                    Status = InvoiceStatus.Issued, Currency = "VND", Items = items
+                    Status = InvoiceStatus.Issued, Items = items
                 };
 
                 var roll = rng.NextDouble();
@@ -277,9 +294,9 @@ public static class SeedData
                     paymentSeq++;
                     invoice.Payments.Add(new Payment
                     {
-                        PaymentNumber = $"PMT-{paidAt:yyyyMMdd}-{paymentSeq:0000}", Amount = total,
+                        PaymentNumber = $"PT-{paidAt:yyyyMMdd}-{paymentSeq:0000}", Amount = total,
                         Method = rng.NextDouble() < 0.8 ? PaymentMethod.BankTransfer : PaymentMethod.Cash,
-                        Status = PaymentStatus.Succeeded, PaidAt = paidAt, Currency = "VND"
+                        Status = PaymentStatus.Succeeded, PaidAt = paidAt
                     });
                     invoice.AmountPaid = total;
                     invoice.Balance = 0;
@@ -299,7 +316,7 @@ public static class SeedData
         }
     }
 
-    private static void SeedMaintenance(AppDbContext ctx, List<Apartment> apartments)
+    private static async Task SeedMaintenanceAsync(AppDbContext ctx, List<Apartment> apartments)
     {
         var now = DateTime.UtcNow;
         var samples = new (string Unit, string Title, string Desc, MaintenanceCategory Cat, MaintenancePriority Pri, MaintenanceStatus Status, int DaysAgo)[]
@@ -314,23 +331,28 @@ public static class SeedData
         foreach (var (unit, title, desc, cat, pri, status, daysAgo) in samples)
         {
             var apt = apartments.FirstOrDefault(a => a.UnitCode == unit);
-            if (apt == null) continue;
+            // Người báo là người đang cư trú tại căn (ưu tiên người đại diện); căn trống thì bỏ mẫu này.
+            var reporterId = await ctx.ApartmentResidents.Where(r => r.ApartmentId == (apt == null ? 0 : apt.Id) && r.MoveOutDate == null)
+                .OrderByDescending(r => r.IsPrimary).Select(r => r.UserId).FirstOrDefaultAsync();
+            if (apt == null || reporterId == null) continue;
             seq++;
             var reported = now.AddDays(-daysAgo);
             var sla = SlaPolicy.Defaults.Single(p => p.Priority == pri);
             var req = new MaintenanceRequest
             {
-                RequestNumber = $"MR-{reported:yyyyMM}-{seq:0000}",
-                ApartmentId = apt.Id, Title = title, Description = desc,
+                RequestNumber = $"YC-{reported:yyyyMM}-{seq:0000}",
+                ApartmentId = apt.Id, ReporterId = reporterId, Title = title, Description = desc,
                 Category = cat, Priority = pri, Status = status, ReportedAt = reported,
-                AcknowledgedAt = status == MaintenanceStatus.Open ? null : reported.AddHours(2),
-                ResolvedAt = status == MaintenanceStatus.Resolved ? reported.AddDays(1) : null,
                 EstimatedCost = 300_000m,
-                DueAt = reported.AddMinutes(sla.ResolveMinutes)
+                DueAt = reported.AddMinutes(sla.ResolveMinutes),
+                // Đã xử lý thì phải có kết quả (CK_YeuCauBaoTri_KetQua).
+                ResolutionNote = status == MaintenanceStatus.Resolved ? "Đã thay gioăng, vệ sinh ống thoát nước dàn lạnh." : null
             };
             req.History.Add(new MaintenanceStatusChange { FromStatus = null, ToStatus = MaintenanceStatus.Open, ChangedAt = reported, Note = "Tạo yêu cầu" });
-            if (status != MaintenanceStatus.Open)
-                req.History.Add(new MaintenanceStatusChange { FromStatus = MaintenanceStatus.Open, ToStatus = status, ChangedAt = reported.AddHours(2), Note = "Dữ liệu mẫu" });
+            // Lịch sử đi đúng bảng chuyển trạng thái: Mới gửi → Đã tiếp nhận → Đang xử lý → Đã xử lý.
+            var path = new[] { MaintenanceStatus.Open, MaintenanceStatus.Acknowledged, MaintenanceStatus.InProgress, MaintenanceStatus.Resolved };
+            for (var k = 1; k < path.Length && path[k - 1] != status; k++)
+                req.History.Add(new MaintenanceStatusChange { FromStatus = path[k - 1], ToStatus = path[k], ChangedAt = reported.AddHours(k * 2), Note = "Dữ liệu mẫu" });
             ctx.MaintenanceRequests.Add(req);
         }
     }
@@ -423,7 +445,7 @@ public static class SeedData
         var admin = new AppUser
         {
             UserName = "admin@luxehaven.vn", Email = "admin@luxehaven.vn",
-            FullName = "Quản trị viên", Phone = "098 000 0001",
+            FullName = "Quản trị viên", PhoneNumber = "098 000 0001",
             EmailConfirmed = true
         };
         var result = await userMgr.CreateAsync(admin, "Admin@123");

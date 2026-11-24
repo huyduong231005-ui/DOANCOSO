@@ -31,7 +31,7 @@
 <section class="page-header">
     <div>
         <h1>Xin chào, @User.Identity!.Name</h1>
-        <p class="subtitle">@(apt == null ? "Tài khoản chưa được gắn với căn hộ" : $"Căn {apt.UnitCode} · {apt.Building.Name} · {apt.Building.Project?.Name}")</p>
+        <p class="subtitle">@(apt == null ? "Tài khoản chưa được gắn với căn hộ" : $"Căn {apt.UnitCode} · {apt.Floor.Building.Name} · {apt.Floor.Building.Project?.Name}")</p>
     </div>
     <div class="actions">
         <a class="btn btn-accent" asp-area="Tenant" asp-controller="Maintenance" asp-action="Create">
@@ -57,19 +57,19 @@
         <div class="kpi-icon"><span class="material-symbols-outlined">door_front</span></div>
         <div class="kpi-label">Căn hộ</div>
         <div class="kpi-value" style="font-size:1.3rem;">@apt.UnitCode</div>
-        <div class="kpi-meta">@apt.Building.Name · Tầng @apt.Floor.Number · @apt.Area.ToString("0.#") m²</div>
+        <div class="kpi-meta">@apt.Floor.Building.Name · Tầng @apt.Floor.Number · @apt.Area.ToString("0.#") m²</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-icon"><span class="material-symbols-outlined">receipt_long</span></div>
         <div class="kpi-label">Phí chưa thanh toán</div>
         <div class="kpi-value">@Money(Model.TotalDue)</div>
-        <div class="kpi-meta">@Model.InvoicesUnpaidCount hoá đơn @(Model.NextDueDate.HasValue ? "· đến hạn " + Model.NextDueDate.Value.ToString("dd/MM") : "")</div>
+        <div class="kpi-meta">@Model.InvoicesUnpaidCount hoá đơn @(Model.NextDueDate.HasValue ? (Model.NextDueDate.Value.Date < t.Infrastructure.Time.VnTime.Today ? "· quá hạn từ " : "· đến hạn ") + Model.NextDueDate.Value.ToString("dd/MM") : "")</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-icon"><span class="material-symbols-outlined">payments</span></div>
         <div class="kpi-label">Phí quản lý / tháng</div>
-        <div class="kpi-value">@Money(Math.Round((decimal)apt.Area * apt.Building.ManagementFeePerM2, 0))</div>
-        <div class="kpi-meta">@Money(apt.Building.ManagementFeePerM2) đ/m² · chốt kỳ ngày @apt.Building.DefaultBillingDay</div>
+        <div class="kpi-value">@Money(Math.Round((decimal)apt.Area * apt.Floor.Building.ManagementFeePerM2, 0))</div>
+        <div class="kpi-meta">@Money(apt.Floor.Building.ManagementFeePerM2) đ/m² · chốt kỳ ngày @apt.Floor.Building.DefaultBillingDay</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-icon"><span class="material-symbols-outlined">build</span></div>
@@ -85,7 +85,7 @@
         <div class="hstack" style="flex-wrap:wrap;gap:.6rem;">
             @foreach (var r in household)
             {
-                <span class="pill @(r.IsPrimary ? "pill-accent" : "pill-neutral")">@r.FullName · @r.Role.Vi()@(r.IsPrimary ? " · đại diện" : "")</span>
+                <span class="pill @(r.IsPrimary ? "pill-accent" : "pill-neutral")">@r.User.FullName · @r.Role.Vi()@(r.IsPrimary ? " · đại diện" : "")</span>
             }
         </div>
     </div>

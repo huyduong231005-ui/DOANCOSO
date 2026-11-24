@@ -6,13 +6,13 @@
 }
 
 <section class="page-header">
-    <div><h1>Báo sự cố mới</h1><p class="subtitle">Căn @apartment.UnitCode · @apartment.Building.Name</p></div>
+    <div><h1>Báo sự cố mới</h1><p class="subtitle">Căn @apartment.UnitCode · @apartment.Floor.Building.Name</p></div>
     <div class="actions"><a class="btn btn-ghost" asp-action="Index">Quay lại</a></div>
 </section>
 
 <form asp-action="Create" method="post">
     @Html.AntiForgeryToken()
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
+    <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex");"></div>
 
     <div class="card">
         <div class="card-body">
@@ -21,7 +21,7 @@
                     <label>Sự cố ở đâu?</label>
                     <div class="hstack" style="gap:1.2rem;flex-wrap:wrap;">
                         <label class="hstack"><input type="radio" name="CommonArea" value="false" checked="@(!Model.CommonArea)" onchange="document.getElementById('loc-field').hidden=true" /> Trong căn @apartment.UnitCode</label>
-                        <label class="hstack"><input type="radio" name="CommonArea" value="true" checked="@Model.CommonArea" onchange="document.getElementById('loc-field').hidden=false" /> Khu vực chung của @apartment.Building.Name</label>
+                        <label class="hstack"><input type="radio" name="CommonArea" value="true" checked="@Model.CommonArea" onchange="document.getElementById('loc-field').hidden=false" /> Khu vực chung của @apartment.Floor.Building.Name</label>
                     </div>
                 </div>
                 <div class="form-field span-12" id="loc-field" hidden="@(!Model.CommonArea)">
@@ -37,18 +37,21 @@
                 <div class="form-field span-12">
                     <label asp-for="Description">Mô tả chi tiết</label>
                     <textarea asp-for="Description" rows="5" placeholder="Mô tả triệu chứng, thời gian phát hiện, đã thử cách xử lý gì..."></textarea>
+                    <span class="err" asp-validation-for="Description"></span>
                 </div>
                 <div class="form-field span-6">
                     <label asp-for="Category">Loại sự cố</label>
                     <select asp-for="Category">
                         @foreach (var c in Enum.GetValues<MaintenanceCategory>()) { <option value="@((int)c)">@c.Vi()</option> }
                     </select>
+                    <span class="err" asp-validation-for="Category"></span>
                 </div>
                 <div class="form-field span-6">
                     <label asp-for="Priority">Mức độ ưu tiên</label>
                     <select asp-for="Priority">
                         @foreach (var p in Enum.GetValues<MaintenancePriority>()) { <option value="@((int)p)">@p.Vi()</option> }
                     </select>
+                    <span class="err" asp-validation-for="Priority"></span>
                 </div>
                 <div class="form-field span-12">
                     <label asp-for="PhotoUrls">Ảnh kèm theo (chụp hiện trạng nếu có)</label>

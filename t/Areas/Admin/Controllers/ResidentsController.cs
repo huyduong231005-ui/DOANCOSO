@@ -7,6 +7,7 @@ using t.Models.Entities;
 namespace t.Areas.Admin.Controllers;
 
 /// <summary>Danh bạ cư dân đang ở. Thêm/chuyển đi thực hiện trong trang chi tiết căn.</summary>
+[t.Infrastructure.Security.Permission("residents.view")]
 public class ResidentsController : AdminBaseController
 {
     public ResidentsController(AppDbContext db) : base(db) { }
@@ -19,22 +20,22 @@ public class ResidentsController : AdminBaseController
         const int pageSize = 30;
         var query = Db.ApartmentResidents.Where(r => r.MoveOutDate == null);
         if (!string.IsNullOrWhiteSpace(q))
-            query = query.Where(r => r.FullName.Contains(q) || (r.Phone != null && r.Phone.Contains(q))
-                                     || (r.Email != null && r.Email.Contains(q)) || r.Apartment.UnitCode.Contains(q));
-        if (buildingId.HasValue) query = query.Where(r => r.Apartment.BuildingId == buildingId);
+            query = query.Where(r => r.User.FullName.Contains(q) || (r.User.PhoneNumber != null && r.User.PhoneNumber.Contains(q))
+                                     || (r.User.Email != null && r.User.Email.Contains(q)) || r.Apartment.UnitCode.Contains(q));
+        if (buildingId.HasValue) query = query.Where(r => r.Apartment.Floor.BuildingId == buildingId);
         if (role.HasValue) query = query.Where(r => r.Role == role);
 
         var total = await query.CountAsync();
         var rows = await query
-            .OrderBy(r => r.Apartment.Building.Code).ThenBy(r => r.Apartment.UnitCode)
+            .OrderBy(r => r.Apartment.Floor.Building.Code).ThenBy(r => r.Apartment.UnitCode)
             .ThenByDescending(r => r.IsPrimary).ThenBy(r => r.Role)
             .Skip((page - 1) * pageSize).Take(pageSize)
             .Select(r => new ResidentListVm
             {
                 Id = r.Id, ApartmentId = r.ApartmentId,
-                FullName = r.FullName, Phone = r.Phone, Email = r.Email,
+                FullName = r.User.FullName, Phone = r.User.PhoneNumber, Email = r.User.Email,
                 Role = r.Role, IsPrimary = r.IsPrimary, HasAccount = r.UserId != null,
-                UnitCode = r.Apartment.UnitCode, BuildingName = r.Apartment.Building.Name,
+                UnitCode = r.Apartment.UnitCode, BuildingName = r.Apartment.Floor.Building.Name,
                 MoveInDate = r.MoveInDate
             })
             .ToListAsync();

@@ -9,6 +9,7 @@ using t.Models.Entities;
 
 namespace t.Areas.Admin.Controllers;
 
+[t.Infrastructure.Security.Permission("projects.view", "projects.manage")]
 public class BuildingsController : AdminBaseController
 {
     private readonly UserManager<AppUser> _userManager;
@@ -58,7 +59,7 @@ public class BuildingsController : AdminBaseController
 
         var today = VnTime.Today;
         var units = await Db.Apartments
-            .Where(a => a.BuildingId == id)
+            .Where(a => a.Floor.BuildingId == id)
             .Select(a => new UnitCellVm
             {
                 Id = a.Id,
@@ -66,12 +67,12 @@ public class BuildingsController : AdminBaseController
                 UnitCode = a.UnitCode,
                 Area = a.Area,
                 Bedrooms = a.Bedrooms,
-                Occupancy = a.Occupancy,
+                Condition = a.Condition,
                 IsRented = a.Residents.Any(r => r.MoveOutDate == null && r.Role == ResidentRole.Tenant),
                 ResidentCount = a.Residents.Count(r => r.MoveOutDate == null),
                 RepresentativeName = a.Residents.Where(r => r.MoveOutDate == null)
                     .OrderByDescending(r => r.IsPrimary).ThenBy(r => r.Role)
-                    .Select(r => r.FullName).FirstOrDefault(),
+                    .Select(r => r.User.FullName).FirstOrDefault(),
                 Balance = a.Invoices.Where(i => i.Status != InvoiceStatus.Cancelled && i.Status != InvoiceStatus.Draft)
                     .Sum(i => (decimal?)i.Balance) ?? 0,
                 HasOverdue = a.Invoices.Any(i => i.Balance > 0 && i.DueDate < today
@@ -90,7 +91,7 @@ public class BuildingsController : AdminBaseController
                 Units = units.Where(u => u.FloorId == f.Id).OrderBy(u => u.UnitCode).ToList()
             }).ToList(),
             ResidentCount = units.Sum(u => u.ResidentCount),
-            MonthlyFeeEstimate = Math.Round(units.Where(u => u.Occupancy != ApartmentOccupancy.NotHandedOver)
+            MonthlyFeeEstimate = Math.Round(units.Where(u => u.Condition != ApartmentCondition.NotHandedOver)
                 .Sum(u => (decimal)u.Area) * b.ManagementFeePerM2, 0)
         };
         return View(vm);
@@ -105,8 +106,6 @@ public class BuildingsController : AdminBaseController
             Status = BuildingStatus.Active, FloorCount = 20, UnitsPerFloor = 8,
             ProjectId = projectId, ManagementFeePerM2 = 15000
         };
-        if (projectId.HasValue)
-            vm.RegionId = await Db.Projects.Where(p => p.Id == projectId).Select(p => p.RegionId).FirstOrDefaultAsync();
         await PopulateLookupsAsync(vm);
         return View("Edit", vm);
     }
@@ -114,15 +113,15 @@ public class BuildingsController : AdminBaseController
     public async Task<IActionResult> Edit(int id)
     {
         SetActiveNav("projects");
-        var b = await Db.Buildings.FirstOrDefaultAsync(x => x.Id == id);
+        var b = await Db.Buildings.Include(x => x.Floors).FirstOrDefaultAsync(x => x.Id == id);
         if (b == null) return NotFound();
         SetBreadcrumb(("Khu & toà nhà", Url.Action("Index", "Projects")), (b.Name, Url.Action(nameof(Details), new { id })), ("Sửa", null));
 
         var vm = new BuildingEditVm
         {
-            Id = b.Id, Name = b.Name, Slug = b.Slug, Code = b.Code,
-            ProjectId = b.ProjectId, RegionId = b.RegionId,
-            Address = b.Address, FloorCount = b.FloorCount,
+            Id = b.Id, Name = b.Name, Code = b.Code,
+            ProjectId = b.ProjectId,
+            FloorCount = b.Floors.Count,
             ThumbnailUrl = b.ThumbnailUrl, Description = b.Description,
             ManagerId = b.ManagerId, Status = b.Status,
             DefaultBillingDay = b.DefaultBillingDay,
@@ -137,10 +136,6 @@ public class BuildingsController : AdminBaseController
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(BuildingEditVm input)
     {
-        if (string.IsNullOrWhiteSpace(input.Slug)) input.Slug = Slugify(input.Name);
-        ModelState.Remove(nameof(input.Slug));
-        if (ModelState.IsValid && await Db.Buildings.AnyAsync(b => b.Slug == input.Slug && b.Id != input.Id))
-            ModelState.AddModelError(nameof(input.Slug), "Slug đã tồn tại.");
         if (!ModelState.IsValid)
         {
             await PopulateLookupsAsync(input);
@@ -156,12 +151,12 @@ public class BuildingsController : AdminBaseController
         }
         else
         {
-            b = await Db.Buildings.FirstOrDefaultAsync(x => x.Id == input.Id) ?? throw new InvalidOperationException();
+            if ((b = (await Db.Buildings.FirstOrDefaultAsync(x => x.Id == input.Id))!) is null) return NotFound(); // Id gửi lên không tồn tại
         }
 
-        b.Name = input.Name; b.Slug = input.Slug; b.Code = input.Code?.Trim() ?? string.Empty;
-        b.ProjectId = input.ProjectId; b.RegionId = input.RegionId;
-        b.Address = input.Address; b.ThumbnailUrl = input.ThumbnailUrl; b.Description = input.Description;
+        b.Name = input.Name; b.Code = input.Code?.Trim() ?? string.Empty;
+        b.ProjectId = input.ProjectId!.Value; // [Required] đã kiểm tra
+        b.ThumbnailUrl = input.ThumbnailUrl; b.Description = input.Description;
         b.ManagerId = string.IsNullOrEmpty(input.ManagerId) ? null : input.ManagerId;
         b.Status = input.Status;
         b.DefaultBillingDay = input.DefaultBillingDay;
@@ -173,9 +168,8 @@ public class BuildingsController : AdminBaseController
         // Thêm tầng còn thiếu khi tăng số tầng (không tự xoá tầng khi giảm để tránh mất căn).
         var existing = await Db.Floors.Where(f => f.BuildingId == b.Id).Select(f => f.Number).ToListAsync();
         var newFloors = Enumerable.Range(1, input.FloorCount).Except(existing)
-            .Select(n => new Floor { BuildingId = b.Id, Number = n, Label = $"Tầng {n}" }).ToList();
+            .Select(n => new Floor { BuildingId = b.Id, Number = n }).ToList();
         Db.Floors.AddRange(newFloors);
-        b.FloorCount = Math.Max(input.FloorCount, existing.DefaultIfEmpty(0).Max());
         await Db.SaveChangesAsync();
 
         if (isNew && input.UnitsPerFloor > 0)
@@ -185,10 +179,10 @@ public class BuildingsController : AdminBaseController
                 for (var u = 1; u <= input.UnitsPerFloor; u++)
                     Db.Apartments.Add(new Apartment
                     {
-                        BuildingId = b.Id, FloorId = f.Id,
+                        FloorId = f.Id,
                         UnitCode = $"{prefix}{f.Number:00}.{u:00}",
                         Area = input.DefaultUnitArea, Bedrooms = 2, Bathrooms = 2,
-                        Occupancy = ApartmentOccupancy.NotHandedOver
+                        Condition = ApartmentCondition.NotHandedOver
                     });
             await Db.SaveChangesAsync();
         }
@@ -201,6 +195,7 @@ public class BuildingsController : AdminBaseController
 
     /// <summary>Phát hành hoá đơn phí tháng hiện tại cho mọi căn đã bàn giao của toà.</summary>
     [HttpPost, ValidateAntiForgeryToken]
+    [t.Infrastructure.Security.Permission("invoices.issue")]
     public async Task<IActionResult> GenerateInvoices(int id)
     {
         if (!await Db.Buildings.AnyAsync(b => b.Id == id)) return NotFound();
@@ -216,7 +211,7 @@ public class BuildingsController : AdminBaseController
     {
         var b = await Db.Buildings.FirstOrDefaultAsync(x => x.Id == id);
         if (b == null) return NotFound();
-        if (await Db.Apartments.AnyAsync(a => a.BuildingId == id))
+        if (await Db.Apartments.AnyAsync(a => a.Floor.BuildingId == id))
         {
             TempData["Danger"] = "Không thể xoá toà nhà còn căn hộ.";
             return RedirectToAction(nameof(Details), new { id });
@@ -225,14 +220,11 @@ public class BuildingsController : AdminBaseController
         Db.Buildings.Remove(b);
         await Db.SaveChangesAsync();
         TempData["Success"] = "Đã xoá toà nhà.";
-        return projectId.HasValue
-            ? RedirectToAction("Details", "Projects", new { id = projectId })
-            : RedirectToAction("Index", "Projects");
+        return RedirectToAction("Details", "Projects", new { id = projectId });
     }
 
     private async Task PopulateLookupsAsync(BuildingEditVm vm)
     {
-        vm.Regions = await Db.Regions.OrderBy(r => r.Name).ToListAsync();
         vm.Projects = await Db.Projects.OrderBy(p => p.Name).ToListAsync();
         var staff = (await _userManager.GetUsersInRoleAsync("Admin"))
             .Concat(await _userManager.GetUsersInRoleAsync("Manager"))

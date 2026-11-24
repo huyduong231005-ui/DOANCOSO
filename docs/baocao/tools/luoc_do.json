@@ -460,7 +460,7 @@
     "unique": false
    },
    {
-    "name": "NgayXacNhan",
+    "name": "NgayXacNhanCuTru",
     "type": "timestamp",
     "null": true,
     "pk": false,
@@ -518,7 +518,7 @@
     "unique": false
    },
    {
-    "name": "AnhDaiDien",
+    "name": "AnhDaiDienNguoiDung",
     "type": "text",
     "null": true,
     "pk": false,
@@ -676,7 +676,7 @@
     "unique": true
    },
    {
-    "name": "PhanHe",
+    "name": "PhanHeQuyen",
     "type": "varchar(60)",
     "null": false,
     "pk": false,
@@ -917,7 +917,7 @@
     "unique": false
    },
    {
-    "name": "NgayBaoCao",
+    "name": "NgayBaoSuCo",
     "type": "timestamp",
     "null": false,
     "pk": false,
@@ -971,7 +971,7 @@
     "unique": false
    },
    {
-    "name": "ViTri",
+    "name": "ViTriKhuVucChung",
     "type": "varchar(200)",
     "null": true,
     "pk": false,
@@ -996,7 +996,11 @@
    },
    {
     "name": "CK_YeuCauBaoTri_HanXuLy",
-    "def": "CHECK (((\"HanXuLy\" IS NULL) OR (\"HanXuLy\" >= \"NgayBaoCao\")))"
+    "def": "CHECK (((\"HanXuLy\" IS NULL) OR (\"HanXuLy\" >= \"NgayBaoSuCo\")))"
+   },
+   {
+    "name": "CK_YeuCauBaoTri_NoiXayRa",
+    "def": "CHECK ((((\"CanHoId\" IS NOT NULL) AND (\"ToaNhaId\" IS NULL)) OR ((\"CanHoId\" IS NULL) AND (\"ToaNhaId\" IS NOT NULL) AND (\"ViTriKhuVucChung\" IS NOT NULL))))"
    },
    {
     "name": "CK_YeuCauBaoTri_KetQua",
@@ -1013,10 +1017,6 @@
    {
     "name": "CK_YeuCauBaoTri_LoaiSuCo",
     "def": "CHECK ((\"LoaiSuCo\" = ANY (ARRAY[0, 1, 2, 3, 4, 5, 6, 99])))"
-   },
-   {
-    "name": "CK_YeuCauBaoTri_NoiXayRa",
-    "def": "CHECK ((((\"CanHoId\" IS NOT NULL) AND (\"ToaNhaId\" IS NULL)) OR ((\"CanHoId\" IS NULL) AND (\"ToaNhaId\" IS NOT NULL) AND (\"ViTri\" IS NOT NULL))))"
    }
   ]
  },
@@ -1157,7 +1157,7 @@
  "NhatKyHeThong": {
   "columns": [
    {
-    "name": "NhatKyId",
+    "name": "NhatKyHeThongId",
     "type": "bigint",
     "null": false,
     "pk": true,
@@ -1184,7 +1184,7 @@
     "unique": false
    },
    {
-    "name": "HanhDong",
+    "name": "LoaiThaoTac",
     "type": "integer",
     "null": false,
     "pk": false,
@@ -1307,7 +1307,7 @@
     "unique": false
    },
    {
-    "name": "DonGia",
+    "name": "DonGiaDichVu",
     "type": "numeric(18,2)",
     "null": false,
     "pk": false,
@@ -1328,7 +1328,7 @@
   "checks": [
    {
     "name": "CK_LoaiDichVu_DonGia",
-    "def": "CHECK ((\"DonGia\" >= (0)::numeric))"
+    "def": "CHECK ((\"DonGiaDichVu\" >= (0)::numeric))"
    }
   ]
  },
@@ -1846,7 +1846,7 @@
     "unique": false
    },
    {
-    "name": "PhuongThuc",
+    "name": "PhuongThucThanhToan",
     "type": "integer",
     "null": false,
     "pk": false,
@@ -1873,7 +1873,7 @@
     "unique": false
    },
    {
-    "name": "NhaCungCap",
+    "name": "DonViThanhToan",
     "type": "varchar(80)",
     "null": true,
     "pk": false,
@@ -1929,16 +1929,16 @@
   ],
   "checks": [
    {
-    "name": "CK_ThanhToan_MaSo",
-    "def": "CHECK ((((\"PhuongThuc\" >= 0) AND (\"PhuongThuc\" <= 4)) AND ((\"TrangThaiThanhToan\" >= 0) AND (\"TrangThaiThanhToan\" <= 5))))"
-   },
-   {
     "name": "CK_ThanhToan_SoTien",
     "def": "CHECK ((\"SoTienThanhToan\" > (0)::numeric))"
    },
    {
     "name": "CK_ThanhToan_HoanTra",
     "def": "CHECK (((\"SoTienHoanTra\" >= (0)::numeric) AND (\"SoTienHoanTra\" <= \"SoTienThanhToan\")))"
+   },
+   {
+    "name": "CK_ThanhToan_MaSo",
+    "def": "CHECK ((((\"PhuongThucThanhToan\" >= 0) AND (\"PhuongThucThanhToan\" <= 4)) AND ((\"TrangThaiThanhToan\" >= 0) AND (\"TrangThaiThanhToan\" <= 5))))"
    }
   ]
  }

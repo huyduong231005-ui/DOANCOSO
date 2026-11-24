@@ -275,21 +275,21 @@ ATTR = {
                 "DonGiaPhiQuanLy"],
     "TANG": ["TangId*", "SoTang"],
     "CAN_HO": ["CanHoId*", "MaCanHo", "DienTich", "SoPhongNgu", "SoPhongTam", "HuongNha", "TinhTrangCanHo", "MoTaCanHo"],
-    "NGUOI_DUNG": ["NguoiDungId*", "TenDangNhap", "Email", "MatKhauBam", "HoTen", "SoDienThoai", "SoGiayTo", "AnhDaiDien",
+    "NGUOI_DUNG": ["NguoiDungId*", "TenDangNhap", "Email", "MatKhauBam", "HoTen", "SoDienThoai", "SoGiayTo", "AnhDaiDienNguoiDung",
                    "NgayDangNhapCuoi"],
     "VAI_TRO": ["VaiTroId*", "TenVaiTro"],
-    "QUYEN": ["QuyenId*", "MaQuyen", "PhanHe", "TenQuyen"],
-    "NHAT_KY_HE_THONG": ["NhatKyId*", "TenBang", "KhoaDong", "HanhDong", "NguoiGhiId", "TenNguoiGhi", "ThoiGianGhi",
+    "QUYEN": ["QuyenId*", "MaQuyen", "PhanHeQuyen", "TenQuyen"],
+    "NHAT_KY_HE_THONG": ["NhatKyHeThongId*", "TenBang", "KhoaDong", "LoaiThaoTac", "NguoiGhiId", "TenNguoiGhi", "ThoiGianGhi",
                          "GiaTriCu", "GiaTriMoi", "CotThayDoi", "DiaChiIp", "TrinhDuyet"],
     "MUC_UU_TIEN": ["MucUuTienId*", "TenMucUuTien", "PhutPhanHoi", "PhutHoanTat"],
-    "YEU_CAU_BAO_TRI": ["YeuCauBaoTriId*", "SoYeuCau", "ViTri", "TieuDeYeuCau", "MoTaYeuCau", "LoaiSuCo",
+    "YEU_CAU_BAO_TRI": ["YeuCauBaoTriId*", "SoYeuCau", "ViTriKhuVucChung", "TieuDeYeuCau", "MoTaYeuCau", "LoaiSuCo",
                         "TrangThaiYeuCau", "KetQuaXuLy", "PhanLoaiAi", "ChiPhiUocTinh", "ChiPhiThucTe",
-                        "TinhPhiCuDan", "NgayBaoCao", "HanXuLy",
+                        "TinhPhiCuDan", "NgayBaoSuCo", "HanXuLy",
                         "DiemDanhGia", "NhanXetCuDan"],
     "ANH_YEU_CAU": ["AnhYeuCauId*", "DuongDanAnh", "GiaiDoanAnh", "NgayTaiLen"],
     "LICH_SU_YEU_CAU": ["LichSuYeuCauId*", "TrangThaiTruoc", "TrangThaiSau", "ThoiDiemChuyen",
                                  "GhiChuChuyen"],
-    "LOAI_DICH_VU": ["LoaiDichVuId*", "MaLoaiDichVu", "TenLoaiDichVu", "DonViTinh", "DonGia"],
+    "LOAI_DICH_VU": ["LoaiDichVuId*", "MaLoaiDichVu", "TenLoaiDichVu", "DonViTinh", "DonGiaDichVu"],
     "CHI_SO_DICH_VU": ["ChiSoDichVuId*", "KyChiSo", "ChiSoCu", "ChiSoMoi",
                        "NgayDocChiSo", "GhiChuChiSo"],
     "PHI_DINH_KY": ["PhiDinhKyId*", "TenKhoanPhi", "SoTienKhoanPhi", "ThuTuKhoanPhi", "DangApDung"],
@@ -298,10 +298,10 @@ ATTR = {
                 "GhiChuHoaDon"],
     "CHI_TIET_HOA_DON": ["ChiTietHoaDonId*", "LoaiKhoan", "NoiDungKhoan", "SoLuongKhoan", "DonGiaKhoan",
                          "ThanhTienKhoan", "ThuTuKhoan"],
-    "THANH_TOAN": ["ThanhToanId*", "SoThanhToan", "SoTienThanhToan", "PhuongThuc", "TrangThaiThanhToan", "MaGiaoDich",
-                   "NhaCungCap", "NgayThanhToan", "NgayHoanTien", "SoTienHoanTra", "GhiChuThanhToan"],
+    "THANH_TOAN": ["ThanhToanId*", "SoThanhToan", "SoTienThanhToan", "PhuongThucThanhToan", "TrangThaiThanhToan", "MaGiaoDich",
+                   "DonViThanhToan", "NgayThanhToan", "NgayHoanTien", "SoTienHoanTra", "GhiChuThanhToan"],
 }
-CU_TRU_ATTR = ["VaiTroTrongHo", "LaDaiDien", "NgayVaoO", "NgayChuyenDi", "NgayXacNhan", "GhiChuCuTru"]
+CU_TRU_ATTR = ["VaiTroTrongHo", "LaDaiDien", "NgayVaoO", "NgayChuyenDi", "NgayXacNhanCuTru", "GhiChuCuTru"]
 
 
 def ent_size(name, attrs):
@@ -385,16 +385,16 @@ def erd_tai_khoan():
 
 def erd_su_co():
     e = Er("Hinh 2.3 ERD su co va bao tri", "ERD sự cố và bảo trì", "ERD – sự cố")
-    e.ent("CAN_HO", 20, 30, short=True)
-    e.ent("TOA_NHA", 20, 250, short=True)
-    e.ent("MUC_UU_TIEN", 20, 420)
+    e.ent("CAN_HO", 20, 30)
+    e.ent("TOA_NHA", 20, 250)
+    e.ent("MUC_UU_TIEN", 20, 500)
     e.ent("YEU_CAU_BAO_TRI", 420, 20)
-    e.ent("NGUOI_DUNG", 900, 250, short=True)
+    e.ent("NGUOI_DUNG", 900, 250)
     e.ent("ANH_YEU_CAU", 1100, 20)
     e.ent("LICH_SU_YEU_CAU", 430, 500)
     e.rel("r1", "xảy ra tại căn", "CAN_HO", "(0,n)", "YEU_CAU_BAO_TRI", "(0,1)", at=(280, 60))
     e.rel("r2", "ở khu vực chung", "TOA_NHA", "(0,n)", "YEU_CAU_BAO_TRI", "(0,1)", at=(280, 270))
-    e.rel("r3", "có mức ưu tiên", "MUC_UU_TIEN", "(0,n)", "YEU_CAU_BAO_TRI", "(1,1)", at=(280, 470))
+    e.rel("r3", "có mức ưu tiên", "MUC_UU_TIEN", "(0,n)", "YEU_CAU_BAO_TRI", "(1,1)", at=(280, 530))
     e.rel("r4", "báo sự cố", "NGUOI_DUNG", "(0,n)", "YEU_CAU_BAO_TRI", "(1,1)", at=(730, 185))
     e.rel("r5", "phụ trách", "NGUOI_DUNG", "(0,n)", "YEU_CAU_BAO_TRI", "(0,1)", at=(735, 300))
     e.rel("r6", "có ảnh", "YEU_CAU_BAO_TRI", "(0,n)", "ANH_YEU_CAU", "(1,1)", at=(880, 50))
@@ -408,15 +408,15 @@ def erd_thu_phi():
     e = Er("Hinh 2.4 ERD thu phi", "ERD phân hệ thu phí", "ERD – thu phí")
     e.ent("LOAI_DICH_VU", 20, 20)
     e.ent("CHI_SO_DICH_VU", 20, 300)
-    e.ent("CAN_HO", 420, 30, short=True)
+    e.ent("CAN_HO", 420, 30)
     e.ent("PHI_DINH_KY", 420, 300)
     e.ent("HOA_DON", 760, 20)
     e.ent("CHI_TIET_HOA_DON", 760, 450)
-    e.ent("YEU_CAU_BAO_TRI", 1170, 470, short=True)
+    e.ent("YEU_CAU_BAO_TRI", 1170, 470)
     e.ent("THANH_TOAN", 1130, 20)
     e.rel("r1", "thuộc loại", "LOAI_DICH_VU", "(0,n)", "CHI_SO_DICH_VU", "(1,1)", at=(100, 235))
     e.rel("r2", "ghi chỉ số", "CAN_HO", "(0,n)", "CHI_SO_DICH_VU", "(1,1)", at=(330, 170))
-    e.rel("r3", "áp phí", "CAN_HO", "(0,n)", "PHI_DINH_KY", "(1,1)", at=(490, 200))
+    e.rel("r3", "áp phí", "CAN_HO", "(0,n)", "PHI_DINH_KY", "(1,1)", at=(490, 250))
     e.rel("r4", "được lập", "CAN_HO", "(0,n)", "HOA_DON", "(1,1)", at=(640, 60))
     e.rel("r5", "gồm khoản", "HOA_DON", "(1,n)", "CHI_TIET_HOA_DON", "(1,1)", at=(850, 392))
     e.rel("r6", "lập từ chỉ số", "CHI_SO_DICH_VU", "(0,n)", "CHI_TIET_HOA_DON", "(0,1)", at=(400, 540))
@@ -554,7 +554,7 @@ def rd_co_cau():
     r.t("Tang", 1120, 40)
     r.t("CanHo", 1080, 360)
     r.t("CuTru", 520, 430)
-    r.t("NguoiDung", 20, 470, short=True)
+    r.t("NguoiDung", 20, 470)
     # Quản lý toà: đi lên trên CuTru rồi sang ToaNha, không cắt qua CuTru.
     r.route("NguoiDung", "ToaNha", "QuanLyId", lambda b: [
         [b("NguoiDung")[0] + 110, b("NguoiDung")[1]], [b("NguoiDung")[0] + 110, 390],
@@ -576,13 +576,13 @@ def rd_tai_khoan():
 def rd_su_co():
     r = Rd("Hinh 2.7 Luoc do quan he su co", "Lược đồ quan hệ sự cố và bảo trì", "RD – sự cố",
            skip=[("NguoiDung", "ToaNha")])
-    r.t("CanHo", 20, 20, short=True)
-    r.t("ToaNha", 20, 200, short=True)
-    r.t("MucUuTien", 20, 380)
+    r.t("CanHo", 20, 20)
+    r.t("ToaNha", 20, 240)
+    r.t("MucUuTien", 20, 510)
     r.t("YeuCauBaoTri", 380, 20)
-    r.t("NguoiDung", 1150, 290, short=True)
+    r.t("NguoiDung", 1150, 290)
     r.t("AnhYeuCau", 1100, 20)
-    r.t("LichSuYeuCau", 1060, 450)
+    r.t("LichSuYeuCau", 1060, 530)
     # Lịch sử: đi xuống dưới rồi sang phải, không cắt hai đường khoá tới NguoiDung.
     r.route("YeuCauBaoTri", "LichSuYeuCau", "YeuCauBaoTriId", lambda b: [
         [b("YeuCauBaoTri")[0] + 250, b("YeuCauBaoTri")[1] + b("YeuCauBaoTri")[3]],
@@ -595,12 +595,12 @@ def rd_thu_phi():
            skip=[("CanHo", "YeuCauBaoTri")])
     r.t("LoaiDichVu", 20, 20)
     r.t("ChiSoDichVu", 20, 300)
-    r.t("CanHo", 420, 20, short=True)
+    r.t("CanHo", 420, 20)
     r.t("PhiDinhKy", 420, 250)
     r.t("HoaDon", 800, 20)
     r.t("ChiTietHoaDon", 800, 480)
     r.t("ThanhToan", 1200, 20)
-    r.t("YeuCauBaoTri", 1220, 520, short=True)
+    r.t("YeuCauBaoTri", 1220, 520)
     # Căn → chỉ số: đi vòng giữa LoaiDichVu và PhiDinhKy, không cắt qua PhiDinhKy.
     r.route("CanHo", "ChiSoDichVu", "CanHoId", lambda b: [
         [b("CanHo")[0], b("CanHo")[1] + 25], [375, b("CanHo")[1] + 25], [375, b("ChiSoDichVu")[1] + 40],
@@ -765,28 +765,28 @@ CLS = {
     "CanHo": ([_p("maCanHo", "string"), _p("dienTich", "double"), _p("soPhongNgu", "int"), _p("tinhTrangCanHo", "int")],
               [_o("taoMoi"), _o("doiTinhTrang"), _o("dangCoNguoiO", ret="bool"), _o("layNguoiDaiDien", ret="CuTru")]),
     "CuTru": ([_p("vaiTroTrongHo", "int"), _p("laDaiDien", "bool"), _p("ngayVaoO", "datetime"),
-               _p("ngayChuyenDi", "datetime"), _p("ngayXacNhan", "datetime")],
+               _p("ngayChuyenDi", "datetime"), _p("ngayXacNhanCuTru", "datetime")],
               [_o("themNguoiCuTru"), _o("xacNhanQuaThuMoi"), _o("chuyenDi"), _o("dangO", ret="bool")]),
     "NguoiDung": ([_p("tenDangNhap", "string"), _p("email", "string"), _p("hoTen", "string"),
                    _p("soDienThoai", "string"), _p("soGiayTo", "string")],
                   [_o("dangNhap"), _o("kichHoat", ["matKhau"]), _o("khoaTaiKhoan"), _o("xemViecDuocGiao")]),
     "VaiTro": ([_p("tenVaiTro", "string")], [_o("luuPhanQuyen")]),
-    "Quyen": ([_p("maQuyen", "string"), _p("phanHe", "string"), _p("tenQuyen", "string")], [_o("dsVaiTro")]),
+    "Quyen": ([_p("maQuyen", "string"), _p("phanHeQuyen", "string"), _p("tenQuyen", "string")], [_o("dsVaiTro")]),
     "YeuCauBaoTri": ([_p("soYeuCau", "string"), _p("tieuDeYeuCau", "string"), _p("moTaYeuCau", "string"),
-                      _p("viTri", "string"), _p("loaiSuCo", "LoaiSuCo"), _p("trangThaiYeuCau", "TrangThaiYeuCau"),
-                      _p("ngayBaoCao", "datetime"), _p("hanXuLy", "datetime"), _p("diemDanhGia", "int")],
+                      _p("viTriKhuVucChung", "string"), _p("loaiSuCo", "LoaiSuCo"), _p("trangThaiYeuCau", "TrangThaiYeuCau"),
+                      _p("ngayBaoSuCo", "datetime"), _p("hanXuLy", "datetime"), _p("diemDanhGia", "int")],
                      [_o("guiYeuCau"), _o("phanLoaiBangAI"), _o("tinhHanXuLy"), _o("giaoViec", ["kyThuatVien"]),
                       _o("chuyenTrangThai", ["trangThaiMoi", "ghiChu"]), _o("hoanTat", ["ketQuaXuLy"]),
                       _o("xacNhanVaDanhGia", ["diem"]), _o("quaHan", ret="bool")]),
     "MucUuTien": ([_p("tenMucUuTien", "string"), _p("phutPhanHoi", "int"), _p("phutHoanTat", "int")],
-                  [_o("tinhHan", ["ngayBaoCao"], "datetime")]),
+                  [_o("tinhHan", ["ngayBaoSuCo"], "datetime")]),
     "AnhYeuCau": ([_p("duongDanAnh", "string"), _p("giaiDoanAnh", "int"), _p("ngayTaiLen", "datetime")], [_o("luuAnh")]),
     "LichSuYeuCau": ([_p("trangThaiTruoc", "TrangThaiYeuCau"), _p("trangThaiSau", "TrangThaiYeuCau"),
                              _p("thoiDiemChuyen", "datetime"), _p("ghiChuChuyen", "string")], [_o("ghiLichSu")]),
-    "NhatKyHeThong": ([_p("tenBang", "string"), _p("hanhDong", "int"), _p("tenNguoiGhi", "string"),
+    "NhatKyHeThong": ([_p("tenBang", "string"), _p("loaiThaoTac", "int"), _p("tenNguoiGhi", "string"),
                        _p("thoiGianGhi", "datetime")], [_o("ghiNhatKy"), _o("xemNhatKy")]),
     "LoaiDichVu": ([_p("maLoaiDichVu", "string"), _p("tenLoaiDichVu", "string"), _p("donViTinh", "string"),
-                    _p("donGia", "decimal")], [_o("capNhatDonGia")]),
+                    _p("donGiaDichVu", "decimal")], [_o("capNhatDonGia")]),
     "ChiSoDichVu": ([_p("kyChiSo", "int"), _p("chiSoCu", "decimal"), _p("chiSoMoi", "decimal")],
                     [_o("ghiChiSo"), _o("nhapTheoToa"), _o("tieuThu", ret="decimal"), _o("daXuatHoaDon", ret="bool")]),
     "PhiDinhKy": ([_p("tenKhoanPhi", "string"), _p("soTienKhoanPhi", "decimal"), _p("dangApDung", "bool")],
@@ -797,7 +797,7 @@ CLS = {
                [_o("lapHoaDonThang", ["canHo", "ky"]), _o("lapHoaDonPhatSinh"), _o("congPhiTre"), _o("huy", ["lyDo"])]),
     "ChiTietHoaDon": ([_p("loaiKhoan", "LoaiKhoan"), _p("noiDungKhoan", "string"), _p("soLuongKhoan", "decimal"),
                        _p("donGiaKhoan", "decimal"), _p("thanhTienKhoan", "decimal")], [_o("tinhThanhTien")]),
-    "ThanhToan": ([_p("soThanhToan", "string"), _p("soTienThanhToan", "decimal"), _p("phuongThuc", "int"),
+    "ThanhToan": ([_p("soThanhToan", "string"), _p("soTienThanhToan", "decimal"), _p("phuongThucThanhToan", "int"),
                    _p("trangThaiThanhToan", "TrangThaiThanhToan"), _p("soTienHoanTra", "decimal")],
                   [_o("guiXacNhan"), _o("ghiNhanTrucTiep"), _o("duyet"), _o("tuChoi", ["lyDo"]), _o("hoanTien", ["soTien"])]),
 }

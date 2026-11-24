@@ -154,7 +154,7 @@ def blocks():
         ["YEU_CAU_BAO_TRI", "Yêu cầu sửa chữa khi có sự cố", "Đối tượng chính của quy trình sự cố", "YeuCauBaoTriId"],
         ["ANH_YEU_CAU", "Ảnh hiện trạng, ảnh nghiệm thu", "Một yêu cầu có nhiều ảnh", "AnhYeuCauId"],
         ["LICH_SU_YEU_CAU", "Mỗi lần đổi trạng thái, giao việc", "Truy vết và tính KPI", "LichSuYeuCauId"],
-        ["NHAT_KY_HE_THONG", "Vết thay đổi dữ liệu", "Kiểm toán", "NhatKyId"],
+        ["NHAT_KY_HE_THONG", "Vết thay đổi dữ liệu", "Kiểm toán", "NhatKyHeThongId"],
         ["LOAI_DICH_VU", "Điện, nước và đơn giá", "Đơn giá dùng chung", "LoaiDichVuId"],
         ["CHI_SO_DICH_VU", "Chỉ số đồng hồ hằng tháng", "Mỗi căn, mỗi loại, mỗi kỳ một dòng", "ChiSoDichVuId"],
         ["PHI_DINH_KY", "Phí cố định của căn (gửi xe…)", "Mỗi căn có số khoản khác nhau", "PhiDinhKyId"],
@@ -167,18 +167,19 @@ def blocks():
     p("Các bảng kỹ thuật của ASP.NET Identity (claim, token, đăng nhập ngoài) và các cột kỹ thuật của Identity trong "
       "NguoiDung không mang thông tin nghiệp vụ nên không đưa vào phân tích.")
 
-    B.append(("h3", "2.1.2. Quy ước đặt tên thuộc tính và chọn khoá"))
-    p("Nhóm đặt tên thuộc tính theo Bảng 2.2 để mỗi tên chỉ thuộc một bảng. Ngoài khoá ngoại (cố ý trùng tên khoá "
-      "chính được tham chiếu) và bảy cột kiểm toán dùng chung, không có hai bảng nào có cột trùng tên.")
-    T("Bảng 2.2. Quy ước đặt tên thuộc tính", ["Loại thuộc tính", "Quy ước", "Ví dụ"], [
-        ["Khoá chính", "Tên bảng + Id", "KhuVucId, NguoiDungId, MucUuTienId"],
-        ["Khoá ngoại", "Trùng tên khoá chính được tham chiếu", "CanHoId trong CuTru, HoaDonId trong ThanhToan"],
-        ["Nhiều khoá ngoại tới một bảng", "Đặt theo vai trò", "NguoiBaoCaoId, NguoiPhuTrachId, QuanLyId"],
-        ["Thuộc tính mô tả", "Nội dung + tên đối tượng", "TenKhuVuc, MoTaCanHo, TrangThaiHoaDon"],
-        ["Mốc thời gian", "Ngay, ThoiDiem, ThoiGian + sự kiện", "NgayBaoCao, NgayVaoO, ThoiDiemChuyen"],
-        ["Cột kiểm toán", "Bảy cột giống nhau, mô tả ở mục 2.6",
-         "NgayTao, NguoiTao, NgayCapNhat, NguoiCapNhat, DaXoa, NgayXoa, NguoiXoa"],
-    ], [3.2, 3.8, 4.2])
+    B.append(("h3", "2.1.2. Quy ước đặt tên và chọn khoá"))
+    p("Tên trong cơ sở dữ liệu theo ba quy ước ở Bảng 2.2, viết liền không dấu, mỗi từ viết hoa chữ đầu. Kết quả: "
+      "không có hai bảng nào có cột trùng tên, trừ khoá ngoại (cố ý trùng tên khoá chính được tham chiếu) và bảy "
+      "cột kiểm toán dùng chung.")
+    T("Bảng 2.2. Ba quy ước đặt tên", ["Quy ước", "Nội dung", "Ví dụ"], [
+        ["1. Tên bảng", "Danh từ chỉ đối tượng nghiệp vụ, số ít, trùng tên thực thể trên ERD",
+         "KhuVuc, CanHo, YeuCauBaoTri, HoaDon"],
+        ["2. Tên thuộc tính", "Rõ nghĩa khi đứng một mình và không trùng giữa các bảng: nội dung + tên đối tượng "
+         "(nội dung có thể gặp ở bảng khác như tên, mô tả, trạng thái, ảnh, đơn giá); mốc thời gian: Ngay, "
+         "ThoiDiem + sự kiện", "TenKhuVuc, TrangThaiHoaDon, DonGiaDichVu, NgayBaoSuCo, NgayXacNhanCuTru"],
+        ["3. Tên khoá", "Khoá chính: tên bảng + Id. Khoá ngoại: trùng tên khoá chính được tham chiếu; nhiều khoá "
+         "ngoại tới cùng một bảng thì đặt theo vai trò", "CanHoId, NhatKyHeThongId; NguoiBaoCaoId, NguoiPhuTrachId"],
+    ], [2.6, 5.2, 3.6])
     p("Cách chọn khoá:")
     b("Thực thể nghiệp vụ dùng khoá số nguyên tự tăng, không đổi khi dữ liệu nghiệp vụ đổi.")
     b("Khoá tự nhiên vẫn khai báo duy nhất: SoYeuCau, SoHoaDon, SoThanhToan, MaToaNha, MaCanHo, MaQuyen, "
@@ -329,7 +330,7 @@ def blocks():
          "Ngày 24/11/2026: 0 hoá đơn lệch."],
     ], [3.4, 3.4, 4.4])
     p("Các KPI và công thức ở Bảng 1.10 được tính từ đúng các nguồn trên. Kỳ chưa có dữ liệu hiển thị “—” thay vì 0%. Các cột hay dùng để lọc có chỉ mục: TrangThaiYeuCau, MucUuTienId, "
-      "NguoiPhuTrachId, HanXuLy, NgayBaoCao và cặp (YeuCauBaoTriId, ThoiDiemChuyen).")
+      "NguoiPhuTrachId, HanXuLy, NgayBaoSuCo và cặp (YeuCauBaoTriId, ThoiDiemChuyen).")
 
     # ------------------------------------------------------------------ 2.8
     B.append(("h2", "2.8. Kết quả đạt được và việc tiếp theo"))
@@ -337,8 +338,22 @@ def blocks():
     p(f"Hết tuần 6, thiết kế dữ liệu gồm 22 bảng, bốn ERD với {n_rel} mối kết hợp và bốn sơ đồ lược đồ quan hệ; cả 22 quan "
       "hệ đạt BCNF. Kèm theo là danh mục ràng buộc toàn vẹn có biểu diễn hình thức, ba trigger, một hàm, một khung "
       "nhìn và từ điển dữ liệu. Theo nhận xét của giảng viên, nhóm đã bỏ mọi thông tin lưu hai nơi và các cột không dùng, gộp cư dân "
-      "vào người dùng, đặt lại tên trùng và áp thay đổi vào cơ sở dữ liệu thật. 116 ca kiểm thử tự động đều đạt, kể "
-      "cả khi chạy trên PostgreSQL với đủ ràng buộc và trigger.")
+      "vào người dùng, đặt lại tên theo ba quy ước và áp thay đổi vào cơ sở dữ liệu thật. Bảng 2.17 đối chiếu thiết "
+      "kế với các tính chất của cơ sở dữ liệu.")
+    T("Bảng 2.17. Thiết kế đáp ứng các tính chất của cơ sở dữ liệu", ["Tính chất", "Cách bảo đảm", "Mục"], [
+        ["Tính cấu trúc", "22 bảng có kiểu dữ liệu, khoá và ràng buộc khai báo trong lược đồ; đi từ ERD sang lược đồ "
+         "quan hệ và từ điển dữ liệu", "2.2, 2.3, 2.6"],
+        ["Tính toàn vẹn", "PK, FK, UNIQUE, CHECK cho ràng buộc trong một bảng; ba trigger cho ràng buộc cần dữ liệu "
+         "nhiều dòng", "2.5"],
+        ["Tính nhất quán", "Các thay đổi liên quan lưu trong một giao dịch; số chốt trên hoá đơn có CHECK công thức "
+         "và khung nhìn đối chiếu; khoá lạc quan chặn hai người ghi đè nhau", "2.4.3, 2.5.6, 2.7"],
+        ["Tính an toàn và bảo mật", "Phân quyền theo vai trò và quyền (VaiTro_Quyen); mật khẩu chỉ lưu dạng băm; nhật "
+         "ký ghi mọi thay đổi dữ liệu; xoá mềm, không xoá dòng", "2.3.4, 2.6"],
+        ["Tính độc lập", "Ứng dụng truy cập qua lớp ánh xạ, tên cột khai báo riêng: đổi tên cột chỉ cần migration, "
+         "không sửa mã nghiệp vụ", "2.6"],
+        ["Tính không dư thừa", "Mọi quan hệ đạt BCNF; mỗi thông tin chỉ lưu một nơi, giá trị dẫn xuất chỉ lưu khi là số "
+         "chốt trên chứng từ", "2.4"],
+    ], [2.8, 6.6, 2.0])
     p("Mọi sơ đồ trong báo cáo được một bộ kiểm tra tự động đối chiếu với khoá ngoại và cột thật của cơ sở dữ liệu "
       "trước khi đưa vào.")
     return B
@@ -364,7 +379,7 @@ MG = [  # (mã, bảng, nội dung, biểu diễn, tên CHECK)
      "CK_YeuCauBaoTri_TrangThai, CK_YeuCauBaoTri_LoaiSuCo, CK_YeuCauBaoTri_DanhGia, CK_YeuCauBaoTri_ChiPhi"),
     ("MG06", "AnhYeuCau", "Giai đoạn ảnh thuộc {0, 1}.", "∀a ∈ AnhYeuCau: a.GiaiDoanAnh ∈ {0, 1}", "CK_AnhYeuCau_GiaiDoan"),
     ("MG07", "LoaiDichVu, PhiDinhKy", "Đơn giá và số tiền khoản phí không âm.",
-     "∀l ∈ LoaiDichVu: l.DonGia ≥ 0; ∀p ∈ PhiDinhKy: p.SoTienKhoanPhi ≥ 0",
+     "∀l ∈ LoaiDichVu: l.DonGiaDichVu ≥ 0; ∀p ∈ PhiDinhKy: p.SoTienKhoanPhi ≥ 0",
      "CK_LoaiDichVu_DonGia, CK_PhiDinhKy_SoTien"),
     ("MG08", "ChiSoDichVu", "Chỉ số cũ không âm; tháng của kỳ từ 1 đến 12.",
      "∀s ∈ ChiSoDichVu: s.ChiSoCu ≥ 0 ∧ 1 ≤ s.KyChiSo mod 100 ≤ 12", "CK_ChiSoDichVu_ChiSo, CK_ChiSoDichVu_Ky"),
@@ -375,7 +390,7 @@ MG = [  # (mã, bảng, nội dung, biểu diễn, tên CHECK)
      "∀d ∈ ChiTietHoaDon: 0 ≤ d.LoaiKhoan ≤ 4 ∧ d.SoLuongKhoan > 0 ∧ d.DonGiaKhoan ≥ 0",
      "CK_ChiTietHoaDon_LoaiKhoan, CK_ChiTietHoaDon_SoTien"),
     ("MG11", "ThanhToan", "Số tiền lớn hơn 0; phương thức thuộc 0–4; trạng thái thuộc 0–5.",
-     "∀p ∈ ThanhToan: p.SoTienThanhToan > 0 ∧ 0 ≤ p.PhuongThuc ≤ 4 ∧ 0 ≤ p.TrangThaiThanhToan ≤ 5",
+     "∀p ∈ ThanhToan: p.SoTienThanhToan > 0 ∧ 0 ≤ p.PhuongThucThanhToan ≤ 4 ∧ 0 ≤ p.TrangThaiThanhToan ≤ 5",
      "CK_ThanhToan_SoTien, CK_ThanhToan_MaSo"),
 ]
 TT = [
@@ -383,9 +398,9 @@ TT = [
      "∀c ∈ CuTru: c.NgayChuyenDi = NULL ∨ c.NgayChuyenDi ≥ c.NgayVaoO", "CK_CuTru_NgayChuyenDi"),
     ("TT02", "YeuCauBaoTri", "Đúng một trong hai cột CanHoId, ToaNhaId có giá trị; sự cố khu vực chung "
      "phải ghi vị trí.", "∀y: (y.CanHoId ≠ NULL ∧ y.ToaNhaId = NULL) ∨ (y.CanHoId = NULL ∧ "
-     "y.ToaNhaId ≠ NULL ∧ y.ViTri ≠ NULL)", "CK_YeuCauBaoTri_NoiXayRa"),
+     "y.ToaNhaId ≠ NULL ∧ y.ViTriKhuVucChung ≠ NULL)", "CK_YeuCauBaoTri_NoiXayRa"),
     ("TT03", "YeuCauBaoTri", "Hạn xử lý (nếu có) không trước ngày báo.", "∀y: y.HanXuLy = NULL ∨ y.HanXuLy ≥ "
-     "y.NgayBaoCao", "CK_YeuCauBaoTri_HanXuLy"),
+     "y.NgayBaoSuCo", "CK_YeuCauBaoTri_HanXuLy"),
     ("TT04", "YeuCauBaoTri", "Đã xử lý hoặc đã đóng thì phải có kết quả xử lý.",
      "∀y: y.TrangThaiYeuCau ∈ {3, 4} ⇒ y.KetQuaXuLy ≠ rỗng", "CK_YeuCauBaoTri_KetQua"),
     ("TT05", "MucUuTien", "Thời hạn hoàn tất không nhỏ hơn thời hạn phản hồi.", "∀m: m.PhutHoanTat ≥ m.PhutPhanHoi",
@@ -422,7 +437,7 @@ LB = [  # (mã, bối cảnh, nội dung, biểu diễn, cách đảm bảo, [(q
      "l.YeuCauBaoTriId = y.YeuCauBaoTriId ∧ l.TrangThaiTruoc = NULL", "Giao dịch ở ứng dụng",
      [("YeuCauBaoTri", "+", "–", "+ (TrangThaiYeuCau, NguoiPhuTrachId)"), ("LichSuYeuCau", "–", "+", "+")]),
     ("LB05", "YeuCauBaoTri, MucUuTien, LichSuYeuCau", "Hạn xử lý = ngày báo + thời hạn hoàn tất của mức ưu tiên, "
-     "chốt lúc báo, cộng thời gian tạm dừng.", "∀y: y.HanXuLy = y.NgayBaoCao + m.PhutHoanTat + Σ thời gian tạm dừng "
+     "chốt lúc báo, cộng thời gian tạm dừng.", "∀y: y.HanXuLy = y.NgayBaoSuCo + m.PhutHoanTat + Σ thời gian tạm dừng "
      "(m ∈ MucUuTien, m.MucUuTienId = y.MucUuTienId lúc báo)", "Ứng dụng, hàm FN1",
      [("YeuCauBaoTri", "+", "–", "+ (MucUuTienId, HanXuLy)"), ("MucUuTien", "–", "–", "– (*)")]),
     ("LB06", "YeuCauBaoTri", "AI chỉ điền loại khi cư dân chọn “Khác”, chỉ được nâng mức ưu tiên.",
@@ -457,8 +472,8 @@ LB = [  # (mã, bối cảnh, nội dung, biểu diễn, cách đảm bảo, [(q
      "Chỉ mục duy nhất có điều kiện (tối đa một) và ứng dụng (ít nhất một)",
      [("CuTru", "+", "+", "+ (LaDaiDien, NgayChuyenDi)")]),
     ("LB15", "CuTru, NguoiDung", "Cư trú chỉ có hiệu lực trên cổng cư dân khi người đó đã xác nhận qua thư mời.",
-     "Căn hiện trên cổng của u ⇔ ∃c ∈ CuTru: c.NguoiDungId = u ∧ c.NgayXacNhan ≠ NULL ∧ c.NgayChuyenDi = NULL",
-     "Ứng dụng, mã mời ký số hạn 14 ngày", [("CuTru", "+", "–", "+ (NgayXacNhan)")]),
+     "Căn hiện trên cổng của u ⇔ ∃c ∈ CuTru: c.NguoiDungId = u ∧ c.NgayXacNhanCuTru ≠ NULL ∧ c.NgayChuyenDi = NULL",
+     "Ứng dụng, mã mời ký số hạn 14 ngày", [("CuTru", "+", "–", "+ (NgayXacNhanCuTru)")]),
     ("LB16", "NguoiDung, NguoiDung_VaiTro", "Mỗi tài khoản có ít nhất một vai trò.",
      "∀u ∈ NguoiDung: ∃v ∈ NguoiDung_VaiTro: v.NguoiDungId = u.NguoiDungId", "Ứng dụng",
      [("NguoiDung", "+", "–", "–"), ("NguoiDung_VaiTro", "–", "+", "+")]),

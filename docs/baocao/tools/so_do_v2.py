@@ -428,7 +428,33 @@ def erd_thu_phi():
 
 # ======================================================================= lược đồ quan hệ (từ CSDL thật)
 SCHEMA = json.loads((HERE / "luoc_do.json").read_text(encoding="utf8"))
-MANY_MIN1 = {("ToaNha", "Tang"), ("HoaDon", "ChiTietHoaDon"), ("YeuCauBaoTri", "LichSuYeuCau")}
+def _table(ent):
+    """Tên thực thể ERD (YEU_CAU_BAO_TRI) → tên bảng (YeuCauBaoTri)."""
+    return "".join(w.capitalize() for w in ent.split("_"))
+
+
+# Bảng trung gian của các mối kết hợp n – n trên ERD.
+JUNCTION = {"đóng vai": "NguoiDung_VaiTro", "được cấp": "VaiTro_Quyen", "cư trú": "CuTru"}
+
+
+def many_min1():
+    """Cặp (bảng cha, bảng con) mà mỗi dòng cha phải có ít nhất một dòng con: đầu (1,n) trên ERD."""
+    out = set()
+    for spec in (erd_co_cau(), erd_tai_khoan(), erd_su_co(), erd_thu_phi()):
+        ends = {}
+        for e in spec["edges"]:
+            if e["kind"] == "assoc":
+                ends.setdefault(e["to"], []).append((e["from"], e.get("mult1", "")))
+        names = {n["key"]: n["name"] for n in spec["nodes"] if n["kind"] == "nary"}
+        for rel, pair in ends.items():
+            (a, ca), (b, cb) = pair
+            for x, cx, y, cy in ((a, ca, b, cb), (b, cb, a, ca)):
+                if cx == "(1,n)":
+                    child = JUNCTION.get(names[rel]) or _table(y)
+                    out.add((_table(x), child))
+    return out
+
+
 
 
 def rd_cols(table, short=False):
@@ -438,13 +464,60 @@ def rd_cols(table, short=False):
     if short:
         order = [c for c in order if c["pk"]]
     return [{"name": c["name"], "type": c["type"], "pk": c["pk"], "fk": bool(c["fk"]),
-             "nullable": c["null"], "unique": c["unique"]} for c in order]
+             "nullable": c["null"], "unique": c["name"] in natural_keys(table)} for c in order]
+
+
+def natural_keys(table):
+    """Cột là khoá duy nhất đơn. Chỉ mục có điều kiện chỉ tính khi điều kiện là xoá mềm hoặc khác NULL;
+    chỉ mục một phần như "mỗi căn một người đại diện" không phải khoá. Khoá ghép nêu ở bảng ràng buộc duy nhất."""
+    keys = set()
+    for u in SCHEMA[table]["unique"]:
+        w = u["where"]
+        if len(u["cols"]) == 1 and not any(k in w for k in ("LaDaiDien", "LoaiHoaDon", "NgayChuyenDi")):
+            keys.add(u["cols"][0].replace("NormalizedEmail", "Email").replace("NormalizedUserName", "TenDangNhap")
+                     .replace("NormalizedName", "TenVaiTro"))
+    return keys
 
 
 class Rd:
     def __init__(self, name, title, model, skip=()):
         self.name, self.title, self.model = name, title, model
         self.nodes, self.keys, self.skip = [], set(), set(skip)
+        self.routes = {}       # (cha, con, cột khoá ngoại) -> hàm(box) trả về danh sách điểm
+
+    def route(self, parent, child, col, fn):
+        self.routes[(parent, child, col)] = fn
+
+    def box(self, key):
+        n = next(n for n in self.nodes if n["key"] == key)
+        return n["x"], n["y"], n["w"], n["h"]
+
+    def anchor(self, parent, child, shift=0):
+        """Nối từ cạnh của bảng cha tới cạnh đối diện của bảng con, qua một điểm giữa.
+        StarUML tự tính lại hai đầu mút theo điểm giữa, nên điểm giữa quyết định đường vẽ; hai khoá ngoại
+        tới cùng một bảng có điểm giữa lệch nhau (shift) để không chồng lên nhau."""
+        p, q = self._ends(parent, child)
+        mid = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2]
+        if abs(p[0] - q[0]) >= abs(p[1] - q[1]):
+            mid[1] += shift * 2.5
+        else:
+            mid[0] += shift * 2.5
+        return [p, [round(mid[0]), round(mid[1])], q]
+
+    def _ends(self, parent, child, shift=0):
+        ax, ay, aw, ah = self.box(parent)
+        bx, by, bw, bh = self.box(child)
+        lo, hi = max(ax, bx), min(ax + aw, bx + bw)
+        if hi - lo > 30:                                   # chồng theo chiều ngang: nối dọc
+            x = (lo + hi) // 2 + shift
+            return [[x, ay + ah], [x, by]] if ay + ah <= by else [[x, ay], [x, by + bh]]
+        lo, hi = max(ay, by), min(ay + ah, by + bh)
+        if hi - lo > 20:                                   # chồng theo chiều dọc: nối ngang
+            y = (lo + hi) // 2 + shift
+            return [[ax + aw, y], [bx, y]] if ax + aw <= bx else [[ax, y], [bx + bw, y]]
+        px = ax + aw if ax + aw <= bx else ax              # chéo: cạnh bên bảng cha -> cạnh trên/dưới bảng con
+        qy = by if ay + ah <= by else by + bh
+        return [[px, ay + ah // 2 + shift], [bx + bw // 2 + shift, qy]]
 
     def t(self, table, x, y, short=False):
         cols = rd_cols(table, short)
@@ -454,14 +527,21 @@ class Rd:
         self.keys.add(table)
 
     def spec(self):
-        edges = []
+        edges, min1 = [], many_min1()
         for child in sorted(self.keys):
-            for c in SCHEMA[child]["columns"]:
+            fks = [c for c in SCHEMA[child]["columns"]
+                   if c["fk"] and c["fk"] in self.keys and (c["fk"], child) not in self.skip]
+            for c in fks:
                 parent = c["fk"]
-                if parent and parent in self.keys and (parent, child) not in self.skip:
-                    many = "1..*" if (parent, child) in MANY_MIN1 else "0..*"
-                    edges.append({"kind": "relation", "from": parent, "to": child, "lineStyle": 1,
-                                  "card1": "0..1" if c["null"] else "1", "card2": many})
+                cung = [x["name"] for x in fks if x["fk"] == parent]       # nhiều khoá tới cùng một bảng cha
+                k = cung.index(c["name"])
+                fn = self.routes.get((parent, child, c["name"]))
+                e = {"kind": "relation", "from": parent, "to": child, "lineStyle": 1,
+                     "card1": "0..1" if c["null"] else "1", "card2": "1..*" if (parent, child) in min1 else "0..*",
+                     "points": fn(self.box) if fn else self.anchor(parent, child, (k - (len(cung) - 1) / 2) * 36)}
+                if len(cung) > 1:
+                    e["name"] = c["name"]
+                edges.append(e)
         return {"kind": "erd", "model": self.model, "name": self.name, "title": self.title, "fontSize": 14,
                 "nodes": self.nodes, "edges": edges}
 
@@ -472,9 +552,13 @@ def rd_co_cau():
     r.t("DuAn", 330, 20)
     r.t("ToaNha", 700, 20)
     r.t("Tang", 1120, 40)
-    r.t("CanHo", 1080, 300)
-    r.t("CuTru", 520, 360)
-    r.t("NguoiDung", 20, 400, short=True)
+    r.t("CanHo", 1080, 360)
+    r.t("CuTru", 520, 430)
+    r.t("NguoiDung", 20, 470, short=True)
+    # Quản lý toà: đi lên trên CuTru rồi sang ToaNha, không cắt qua CuTru.
+    r.route("NguoiDung", "ToaNha", "QuanLyId", lambda b: [
+        [b("NguoiDung")[0] + 110, b("NguoiDung")[1]], [b("NguoiDung")[0] + 110, 390],
+        [b("ToaNha")[0] + 60, 390], [b("ToaNha")[0] + 60, b("ToaNha")[1] + b("ToaNha")[3]]])
     return r.spec()
 
 
@@ -499,6 +583,10 @@ def rd_su_co():
     r.t("NguoiDung", 1150, 290, short=True)
     r.t("AnhYeuCau", 1100, 20)
     r.t("LichSuYeuCau", 1060, 450)
+    # Lịch sử: đi xuống dưới rồi sang phải, không cắt hai đường khoá tới NguoiDung.
+    r.route("YeuCauBaoTri", "LichSuYeuCau", "YeuCauBaoTriId", lambda b: [
+        [b("YeuCauBaoTri")[0] + 250, b("YeuCauBaoTri")[1] + b("YeuCauBaoTri")[3]],
+        [b("YeuCauBaoTri")[0] + 250, b("LichSuYeuCau")[1] + 60], [b("LichSuYeuCau")[0], b("LichSuYeuCau")[1] + 60]])
     return r.spec()
 
 
@@ -513,6 +601,10 @@ def rd_thu_phi():
     r.t("ChiTietHoaDon", 800, 480)
     r.t("ThanhToan", 1200, 20)
     r.t("YeuCauBaoTri", 1220, 520, short=True)
+    # Căn → chỉ số: đi vòng giữa LoaiDichVu và PhiDinhKy, không cắt qua PhiDinhKy.
+    r.route("CanHo", "ChiSoDichVu", "CanHoId", lambda b: [
+        [b("CanHo")[0], b("CanHo")[1] + 25], [375, b("CanHo")[1] + 25], [375, b("ChiSoDichVu")[1] + 40],
+        [b("ChiSoDichVu")[0] + b("ChiSoDichVu")[2], b("ChiSoDichVu")[1] + 40]])
     return r.spec()
 
 

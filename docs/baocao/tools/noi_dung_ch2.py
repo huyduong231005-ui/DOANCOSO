@@ -229,7 +229,18 @@ def blocks():
         if t == "CuTru" and ("rd", "CuTru") in B:
             continue
         B.append(("rd", t))
-    B.append(("h3", "2.3.3. Lý do tạo các bảng trung gian và bảng tách riêng"))
+    B.append(("h3", "2.3.3. Sơ đồ lược đồ quan hệ"))
+    p("Hình 2.5 đến Hình 2.8 vẽ lược đồ quan hệ của 22 bảng theo bốn nhóm như ERD, dùng ký pháp chân gà. Cột đầu "
+      "của mỗi bảng ghi PK (khoá chính), FK (khoá ngoại), U (duy nhất), N (cho phép NULL); cột cuối là kiểu dữ liệu. "
+      "Chân gà nằm ở bảng chứa khoá ngoại, kèm vòng tròn nếu dòng cha có thể chưa có dòng con, kèm vạch nếu phải có ít "
+      "nhất một (đầu (1,n) trên ERD). Đầu phía bảng cha có hai vạch nếu khoá ngoại bắt buộc, vòng tròn và vạch nếu cho "
+      "phép NULL. Hai khoá ngoại tới cùng một bảng được vẽ thành hai đường có ghi tên khoá. Khoá duy nhất ghép, như "
+      "(ToaNhaId, SoTang), không ghi được trên từng cột nên được liệt kê ở mục 2.5.4.")
+    for i, cap in enumerate(["Lược đồ quan hệ cơ cấu chung cư và cư trú", "Lược đồ quan hệ tài khoản và phân quyền",
+                             "Lược đồ quan hệ sự cố và bảo trì", "Lược đồ quan hệ phân hệ thu phí"]):
+        spec = [sd.rd_co_cau, sd.rd_tai_khoan, sd.rd_su_co, sd.rd_thu_phi][i]()
+        B.append(("fig", f"Hình 2.{5 + i}. {cap}", IMG / (spec["name"] + ".png")))
+    B.append(("h3", "2.3.4. Lý do tạo các bảng trung gian và bảng tách riêng"))
     b("CuTru: mối kết hợp cư trú giữa người và căn. Đây là liên kết thường, không phải hợp thành: căn còn người cư "
       "trú thì không xoá được, xoá căn không xoá người.")
     b("NguoiDung_VaiTro: một người có thể giữ nhiều vai trò.")
@@ -323,7 +334,7 @@ def blocks():
     # ------------------------------------------------------------------ 2.8
     B.append(("h2", "2.8. Kết quả đạt được và việc tiếp theo"))
     n_rel = sum(len(erd_relations(s)) for s in erd_specs)
-    p(f"Hết tuần 6, thiết kế dữ liệu gồm 22 bảng, bốn ERD với {n_rel} mối kết hợp và lược đồ quan hệ của 22 bảng; cả 22 quan "
+    p(f"Hết tuần 6, thiết kế dữ liệu gồm 22 bảng, bốn ERD với {n_rel} mối kết hợp và bốn sơ đồ lược đồ quan hệ; cả 22 quan "
       "hệ đạt BCNF. Kèm theo là danh mục ràng buộc toàn vẹn có biểu diễn hình thức, ba trigger, một hàm, một khung "
       "nhìn và từ điển dữ liệu. Theo nhận xét của giảng viên, nhóm đã bỏ mọi thông tin lưu hai nơi và các cột không dùng, gộp cư dân "
       "vào người dùng, đặt lại tên trùng và áp thay đổi vào cơ sở dữ liệu thật. 116 ca kiểm thử tự động đều đạt, kể "

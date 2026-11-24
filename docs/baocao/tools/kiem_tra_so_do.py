@@ -49,6 +49,72 @@ def seg_hits_box(p, q, box, pad=3):
     return False
 
 
+def seg_cross_box(p, q, box, pad=4):
+    """Đoạn thẳng bất kỳ p-q có đi qua phần trong của hộp không (cắt Liang–Barsky)."""
+    x, y, w, h = box
+    x1, y1, x2, y2 = x + pad, y + pad, x + w - pad, y + h - pad
+    (px, py), (qx, qy) = p, q
+    dx, dy = qx - px, qy - py
+    t0, t1 = 0.0, 1.0
+    for pk, qk in ((-dx, px - x1), (dx, x2 - px), (-dy, py - y1), (dy, y2 - py)):
+        if pk == 0:
+            if qk < 0:
+                return False
+            continue
+        t = qk / pk
+        if pk < 0:
+            t0 = max(t0, t)
+        else:
+            t1 = min(t1, t)
+        if t0 > t1:
+            return False
+    return True
+
+
+def seg_cross(p1, q1, p2, q2):
+    """Giao điểm trong của hai đoạn thẳng (không tính chạm đầu mút), hoặc None."""
+    def o(a, b, c):
+        return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+    d1, d2, d3, d4 = o(p2, q2, p1), o(p2, q2, q1), o(p1, q1, p2), o(p1, q1, q2)
+    if not (d1 * d2 < 0 and d3 * d4 < 0):
+        return None
+    t = d3 / (d3 - d4)
+    return p2[0] + t * (q2[0] - p2[0]), p2[1] + t * (q2[1] - p2[1])
+
+
+def check_rd(d):
+    """Lược đồ quan hệ: đường nối không cắt qua bảng khác; hai khoá ngoại cùng cặp bảng phải tách và có tên."""
+    b = boxes(d, ("entity",))
+    center = {k: (x + w / 2, y + h / 2) for k, (x, y, w, h) in b.items()}
+    seen = {}
+    for e in d["edges"]:
+        pts = e.get("points") or [center[e["from"]], center[e["to"]]]
+        for p, q in zip(pts, pts[1:]):
+            for k, box in b.items():
+                if k not in (e["from"], e["to"]) and seg_cross_box(p, q, box):
+                    err(d, f"đường {e['from']} → {e['to']} cắt qua bảng {k}")
+        seen.setdefault((e["from"], e["to"]), []).append(e)
+    segs = []
+    for i, e in enumerate(d["edges"]):
+        pts = e.get("points") or [center[e["from"]], center[e["to"]]]
+        segs += [(i, e, p, q) for p, q in zip(pts, pts[1:])]
+    for i1, e1, p1, q1 in segs:
+        for i2, e2, p2, q2 in segs:
+            x = seg_cross(p1, q1, p2, q2) if i1 < i2 else None
+            if not x:
+                continue
+            chung = {e1["from"], e1["to"]} & {e2["from"], e2["to"]}
+            # hai đường cùng nối vào một bảng được gặp nhau sát bảng đó (trong 60px), không được cắt nhau ở xa
+            if any(b[k][0] - 60 < x[0] < b[k][0] + b[k][2] + 60 and b[k][1] - 60 < x[1] < b[k][1] + b[k][3] + 60
+                   for k in chung):
+                continue
+            err(d, f"đường {e1['from']} → {e1['to']} cắt đường {e2['from']} → {e2['to']}")
+    for (a, c), es in seen.items():
+        if len(es) > 1:
+            if len({str(e.get("points")) for e in es}) < len(es) or not all(e.get("name") for e in es):
+                err(d, f"{len(es)} khoá ngoại {c} → {a} vẽ chồng nhau hoặc thiếu tên khoá")
+
+
 def check_overlaps(d, kinds):
     b = boxes(d, kinds)
     ks = list(b)
@@ -297,6 +363,7 @@ def main():
             classes.append(d)
         elif d["kind"] == "erd":
             check_overlaps(d, ("entity",))
+            check_rd(d)
     check_erds(erds)
     check_classes(classes)
     check_attributes(erds, classes)

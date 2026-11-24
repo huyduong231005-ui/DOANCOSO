@@ -18,6 +18,9 @@ def run(mutate):
             kt.check_sequence(d)
         elif d["kind"] == "usecase":
             kt.check_usecase(d)
+        elif d["kind"] == "erd":
+            kt.check_overlaps(d, ("entity",))
+            kt.check_rd(d)
     kt.check_erds([d for d in ds if d["kind"] == "class" and "ERD" in d["name"]])
     kt.check_classes([d for d in ds if d["kind"] == "class" and "ERD" not in d["name"]])
     kt.check_attributes([d for d in ds if d["kind"] == "class" and "ERD" in d["name"]],
@@ -43,6 +46,16 @@ def diamond_to_diamond(ds):
             e["to"], e["points"] = "m1", []   # nhánh AI tắt đi thẳng vào nút gộp
     d["edges"] = [e for e in d["edges"] if e["from"] != "w9"]
     d["nodes"] = [n for n in d["nodes"] if n["key"] != "w9"]
+
+
+def rd_crossing_lines(ds):
+    import so_do_v2 as sd
+    d = find("Hinh 2.7", ds)
+    r = sd.Rd("x", "x", "x")
+    r.nodes, r.keys = d["nodes"], {n["key"] for n in d["nodes"]}
+    for e in d["edges"]:
+        if e["from"] == "YeuCauBaoTri" and e["to"] == "LichSuYeuCau":
+            e["points"] = r.anchor("YeuCauBaoTri", "LichSuYeuCau")   # đường thẳng cắt qua khoá tới NguoiDung
 
 
 def message_without_activation(ds):
@@ -79,7 +92,7 @@ def test_each_injected_bug_is_caught():
     for mutate, needle in [(drop_check_before_decision, "Kiểm tra"), (message_without_activation, "thanh kích hoạt"),
                            (composite_on_restrict, "hợp thành"), (wrong_cardinality, "MucUuTien"),
                            (internal_use_case, "bước nội bộ"), (stale_attribute, "SoLuongTang"),
-                           (diamond_to_diamond, "hai hình thoi")]:
+                           (diamond_to_diamond, "hai hình thoi"), (rd_crossing_lines, "cắt đường")]:
         errs = run(mutate)
         assert any(needle in e for e in errs), (mutate.__name__, errs)
 
@@ -87,4 +100,4 @@ def test_each_injected_bug_is_caught():
 if __name__ == "__main__":
     test_clean()
     test_each_injected_bug_is_caught()
-    print("ok: sơ đồ sạch, 7/7 lỗi cấy đều bị bắt")
+    print("ok: sơ đồ sạch, 8/8 lỗi cấy đều bị bắt")

@@ -75,3 +75,18 @@ Riêng B4 (bỏ 4 hình RD) là quyết định lớn nhất: nếu thầy muố
   chiếu "Bảng x.y" đổi theo. Kiểm trên PDF: không có số trùng, không có tham chiếu tới bảng hay hình không tồn tại.
 - Sửa thêm một lỗi có sẵn: phép thay chữ dành cho phần chữ gốc của nhóm từng chạy cả lên Chương 2, làm câu "Ba trigger
   và một hàm ở Bảng …" trỏ nhầm bảng. Nay Chương 2 không bị áp các phép thay này.
+
+## G. Đưa RD trở lại sau khi rà theo chuẩn (25/11/2026) — 124 → 128 trang
+
+Lỗi tìm thấy ở 4 hình RD cũ và cách sửa:
+
+| Lỗi | Ở đâu | Sửa |
+|---|---|---|
+| Đường nối cắt ngang qua bảng khác | 2.5 (QuanLyId qua CuTru), 2.8 (CanHo → ChiSoDichVu qua PhiDinhKy) | Đường đi vòng có điểm giữa chỉ định |
+| Hai khoá ngoại tới cùng bảng vẽ chồng thành một đường | 2.7 (NguoiBaoCaoId, NguoiPhuTrachId → NguoiDung) | Hai đường riêng, ghi tên khoá |
+| Hai đường nối cắt nhau | 2.7 (lịch sử cắt đường người phụ trách) | Đường lịch sử đi vòng phía dưới |
+| Bản số "ít nhất một" lệch ERD | 2.6 (người dùng có ít nhất một vai trò) | Suy từ mọi đầu (1,n) trên ERD, bỏ danh sách gõ tay |
+| Thiếu dấu U của khoá tự nhiên | MaToaNha, MaCanHo, Email, TenDangNhap, TenVaiTro | Đánh dấu U cho khoá duy nhất đơn; khoá ghép nêu ở mục 2.5.4 |
+
+Bộ kiểm tra thêm luật cho RD: đường không cắt qua bảng, không cắt nhau (trừ khi gặp sát bảng chung), khoá trùng
+cặp bảng phải tách và có tên; lỗi cấy tương ứng bị bắt (8/8).

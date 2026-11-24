@@ -192,7 +192,6 @@ CAU += [
     ("Bảng 1.10 nêu công thức và nguồn dữ liệu; cách tính từ dữ liệu ở mục 2.7.",
      "Bảng 1.10 nêu công thức và nguồn dữ liệu."),
     ("CSAT (cách tính ở mục 2.7)", "CSAT (cách tính ở Bảng 1.10)"),
-    ("đúng như thiết kế ở mục 2.3.4", "đúng như thiết kế ở mục 2.3.3"),
     (" Bảng 3.9 mô tả ý nghĩa của các thao tác trên sơ đồ lớp.", ""),
     ("Kèm giao việc; ghi mốc tiếp nhận", "Kèm giao việc; ghi dòng lịch sử"),
     ("NgayBaoCao, mốc giải quyết", "NgayBaoCao, LichSuYeuCau"),

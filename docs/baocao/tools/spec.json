@@ -1,0 +1,27 @@
+{"project":"Thu","output":"","diagrams":[
+ {"kind":"usecase","model":"UC","name":"UC test","fontSize":13,"nodes":[
+   {"key":"sub","kind":"subject","name":"He thong","x":150,"y":20,"w":300,"h":250},
+   {"key":"a","kind":"actor","name":"Cư dân","x":30,"y":80,"w":40,"h":80},
+   {"key":"u1","kind":"usecase","name":"Gửi yêu cầu sự cố","x":200,"y":60,"w":180,"h":50},
+   {"key":"u2","kind":"usecase","name":"Phân loại AI","x":200,"y":180,"w":180,"h":50}],
+  "edges":[{"kind":"assoc","from":"a","to":"u1"},{"kind":"include","from":"u1","to":"u2"}]},
+ {"kind":"activity","model":"ACT","name":"Act test","fontSize":13,"nodes":[
+   {"key":"p1","kind":"partition","name":"Cư dân","x":20,"y":20,"w":200,"h":400},
+   {"key":"p2","kind":"partition","name":"Hệ thống","x":220,"y":20,"w":200,"h":400},
+   {"key":"i","kind":"initial","x":110,"y":70,"w":20,"h":20},
+   {"key":"a1","kind":"action","name":"Tạo yêu cầu","x":60,"y":120,"w":120,"h":50},
+   {"key":"d","kind":"decision","x":305,"y":200,"w":30,"h":40},
+   {"key":"a2","kind":"action","name":"Giao thợ","x":260,"y":300,"w":120,"h":50},
+   {"key":"f","kind":"final","x":310,"y":380,"w":26,"h":26}],
+  "edges":[{"kind":"flow","from":"i","to":"a1"},{"kind":"flow","from":"a1","to":"d"},{"kind":"flow","from":"d","to":"a2","guard":"rõ"},{"kind":"flow","from":"a2","to":"f"}]},
+ {"kind":"state","model":"ST","name":"State test","fontSize":13,"nodes":[
+   {"key":"i","kind":"pseudo","x":40,"y":40,"w":20,"h":20},
+   {"key":"s1","kind":"state","name":"Mới gửi","x":100,"y":30,"w":120,"h":40},
+   {"key":"s2","kind":"state","name":"Đã tiếp nhận","x":300,"y":30,"w":120,"h":40},
+   {"key":"f","kind":"finalstate","x":480,"y":38,"w":26,"h":26}],
+  "edges":[{"kind":"transition","from":"i","to":"s1"},{"kind":"transition","from":"s1","to":"s2","name":"QL: tiếp nhận"},{"kind":"transition","from":"s2","to":"f"}]},
+ {"kind":"erd","model":"ERD","name":"ERD test","fontSize":13,"nodes":[
+   {"key":"a","kind":"entity","name":"TOA_NHA","x":20,"y":20,"columns":[{"name":"Id","type":"integer","pk":true},{"name":"Ten","type":"varchar(200)"}]},
+   {"key":"b","kind":"entity","name":"TANG","x":300,"y":20,"columns":[{"name":"Id","type":"integer","pk":true},{"name":"ToaNhaId","type":"integer","fk":true}]}],
+  "edges":[{"kind":"relation","from":"a","to":"b","name":"có","card1":"1","card2":"1..*"}]}
+]}

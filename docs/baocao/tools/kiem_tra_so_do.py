@@ -1,0 +1,311 @@
+"""Kiểm tra tự động các sơ đồ của so_do_v2.py theo quy cách UML/ERD và theo CSDL thật (luoc_do.json).
+Chạy: python kiem_tra_so_do.py   -> in danh sách lỗi, mã thoát 1 nếu còn lỗi.
+
+Quy tắc (theo góp ý GVHD và UML 2.5):
+  Hoạt động: nút quyết định có đúng 1 luồng vào, >= 2 luồng ra đều có điều kiện, trước nó là hành động "Kiểm tra ...",
+             có câu hỏi; nút gộp >= 2 vào, 1 ra; hành động 1 vào 1 ra, tên ngắn, không diễn giải (không có , ; ( : );
+             mọi nút đi được từ nút bắt đầu và tới được nút kết thúc; đường gấp không cắt qua nút khác.
+  Tuần tự:   mọi thông điệp trừ thông điệp đầu đi ra từ thanh kích hoạt đang mở; lời gọi đồng bộ có trả về;
+             thanh của bên được gọi kết thúc trước thanh của bên gọi.
+  Use case:  tên là động từ + đối tượng theo mục tiêu tác nhân, không là bước nội bộ; use case nào cũng nối tới
+             tác nhân hoặc qua include/extend.
+  ERD:       mỗi mối kết hợp có 2 nhánh với bản số (min,max); khớp từng khoá ngoại của CSDL (bên (x,1) giữ khoá ngoại,
+             min = 0 thì khoá ngoại cho phép NULL); n–n ứng với bảng trung gian.
+  Lớp:       bội số khớp khoá ngoại (1 khi NOT NULL, 0..1 khi NULL); hợp thành chỉ khi xoá cha thì xoá con (CASCADE).
+  Chung:     các hộp không chồng lên nhau.
+"""
+import re
+import sys
+from collections import defaultdict
+
+import so_do_v2 as sd
+
+ERRORS = []
+
+
+def err(d, msg):
+    ERRORS.append(f"[{d['name']}] {msg}")
+
+
+def boxes(d, kinds):
+    return {n["key"]: (n["x"], n["y"], n.get("w", 0), n.get("h", 0)) for n in d["nodes"] if n["kind"] in kinds}
+
+
+def overlap(a, b, pad=2):
+    ax, ay, aw, ah = a
+    bx, by, bw, bh = b
+    return ax + pad < bx + bw and bx + pad < ax + aw and ay + pad < by + bh and by + pad < ay + ah
+
+
+def seg_hits_box(p, q, box, pad=3):
+    """Đoạn thẳng ngang/dọc p-q có đi xuyên qua hộp không (chỉ xét đoạn vuông góc)."""
+    x, y, w, h = box
+    x1, y1, x2, y2 = x + pad, y + pad, x + w - pad, y + h - pad
+    (px, py), (qx, qy) = p, q
+    if py == qy and y1 < py < y2:
+        return min(px, qx) < x2 and max(px, qx) > x1
+    if px == qx and x1 < px < x2:
+        return min(py, qy) < y2 and max(py, qy) > y1
+    return False
+
+
+def check_overlaps(d, kinds):
+    b = boxes(d, kinds)
+    ks = list(b)
+    for i, k in enumerate(ks):
+        for k2 in ks[i + 1:]:
+            if overlap(b[k], b[k2]):
+                err(d, f"hộp {k} chồng lên {k2}")
+
+
+# ------------------------------------------------------------------ hoạt động
+BAD_ACTION = re.compile(r"[,;:(]")
+
+
+def check_activity(d):
+    kind = {n["key"]: n["kind"] for n in d["nodes"]}
+    name = {n["key"]: n.get("name", "") for n in d["nodes"]}
+    inc, out = defaultdict(list), defaultdict(list)
+    for e in d["edges"]:
+        out[e["from"]].append(e)
+        inc[e["to"]].append(e)
+    diamond = ("decision", "merge")
+    for e in d["edges"]:
+        if kind.get(e["from"]) in diamond and kind.get(e["to"]) in diamond:
+            err(d, f"hai hình thoi nối liền {e['from']} → {e['to']}: giữa chúng phải có một hành động")
+    for k, kd in kind.items():
+        if kd == "decision":
+            if len(inc[k]) != 1:
+                err(d, f"nút quyết định {k} có {len(inc[k])} luồng vào (phải đúng 1)")
+            if len(out[k]) < 2 or any(not e.get("guard") for e in out[k]):
+                err(d, f"nút quyết định {k} phải có >= 2 nhánh ra, mỗi nhánh có điều kiện")
+            prev = inc[k][0]["from"] if inc[k] else None
+            if prev and not (kind[prev] == "action" and name[prev].startswith("Kiểm tra")):
+                err(d, f"trước nút quyết định {k} phải là hành động 'Kiểm tra ...' (đang là {prev})")
+            if k + "_q" not in kind:
+                err(d, f"nút quyết định {k} thiếu câu hỏi")
+        elif kd == "merge":
+            if len(inc[k]) < 2 or len(out[k]) != 1:
+                err(d, f"nút gộp {k}: {len(inc[k])} vào, {len(out[k])} ra (phải >= 2 vào, 1 ra)")
+        elif kd == "action":
+            if len(inc[k]) != 1 or len(out[k]) != 1:
+                err(d, f"hành động '{name[k]}': {len(inc[k])} vào, {len(out[k])} ra (phải 1 vào, 1 ra)")
+            if BAD_ACTION.search(name[k]) or len(name[k].split()) > 6:
+                err(d, f"hành động '{name[k]}' không phải một hành động ngắn gọn")
+        elif kd == "initial" and (inc[k] or len(out[k]) != 1):
+            err(d, f"nút bắt đầu {k} sai số luồng")
+        elif kd == "final" and (not inc[k] or out[k]):
+            err(d, f"nút kết thúc {k} sai số luồng")
+    flowing = [k for k, kd in kind.items() if kd in ("action", "decision", "merge", "initial", "final")]
+    start = [k for k in flowing if kind[k] == "initial"]
+    seen, stack = set(start), list(start)
+    while stack:
+        for e in out[stack.pop()]:
+            if e["to"] not in seen:
+                seen.add(e["to"])
+                stack.append(e["to"])
+    for k in flowing:
+        if k not in seen:
+            err(d, f"nút {k} ({name[k]}) không đi tới được từ nút bắt đầu")
+    finals = [k for k in flowing if kind[k] == "final"]
+    back, stack = set(finals), list(finals)
+    while stack:
+        for e in inc[stack.pop()]:
+            if e["from"] not in back:
+                back.add(e["from"])
+                stack.append(e["from"])
+    for k in flowing:
+        if k not in back:
+            err(d, f"nút {k} ({name[k]}) không tới được nút kết thúc")
+    b = boxes(d, ("action", "decision", "merge", "initial", "final"))
+    for e in d["edges"]:
+        pts = e.get("points") or []
+        for p, q in zip(pts, pts[1:]):
+            for k, box in b.items():
+                if k not in (e["from"], e["to"]) and seg_hits_box(p, q, box):
+                    err(d, f"luồng {e['from']}->{e['to']} cắt qua {k} ({name[k]})")
+    check_overlaps(d, ("action", "decision", "merge", "initial", "final", "text"))
+
+
+# ------------------------------------------------------------------ tuần tự
+def check_sequence(d):
+    msgs = [e for e in d["edges"] if e["kind"] == "message"]
+    acts = []          # (lifeline, y bắt đầu, y kết thúc)
+    for i, m in enumerate(msgs):
+        a, c, y = m["from"], m["to"], m["y"]
+        if i > 0:
+            active = any(l == a and y0 <= y <= y1 + 1 for l, y0, y1 in acts)
+            if not active:
+                err(d, f"thông điệp {i + 1} '{m['name']}' không đi ra từ thanh kích hoạt của {a}")
+        if m.get("sort", "synchCall") != "reply" and a != c:
+            h = m.get("activationHeight")
+            if not h:
+                err(d, f"lời gọi {i + 1} '{m['name']}' không có thông điệp trả về")
+                h = 20
+            acts.append((c, y, y + h))
+        elif a == c:
+            acts.append((c, y, y + 30))
+    for l, y0, y1 in acts:
+        for l2, z0, z1 in acts:
+            if l != l2 and z0 < y0 < z1 and y1 > z1 + 1:
+                err(d, f"thanh kích hoạt của {l} ({y0}-{y1}) kết thúc sau thanh của bên gọi {l2} ({z0}-{z1})")
+
+
+# ------------------------------------------------------------------ use case
+INTERNAL = ("Ghi nhận", "Hỏi lại", "Kiểm tra", "Tính ", "Lưu ", "Cảnh báo", "Gửi thư", "Làm rõ", "Áp dụng")
+
+
+def check_usecase(d):
+    ucs = {n["key"]: n["name"] for n in d["nodes"] if n["kind"] == "usecase"}
+    actors = {n["key"] for n in d["nodes"] if n["kind"] == "actor"}
+    linked = set()
+    for e in d["edges"]:
+        if e["kind"] == "assoc":
+            linked |= {e["from"], e["to"]}
+        if e["kind"] in ("include", "extend"):
+            linked |= {e["from"], e["to"]}
+            if e["from"] in actors or e["to"] in actors:
+                err(d, "include/extend không được nối với tác nhân")
+    for k, n in ucs.items():
+        bare = re.sub(r"^UC\d+b?\s+", "", n)
+        if bare.startswith(INTERNAL):
+            err(d, f"use case '{n}' là bước nội bộ của hệ thống, không phải mục tiêu của tác nhân")
+        if k not in linked:
+            err(d, f"use case '{n}' không nối tới tác nhân hay use case nào")
+    check_overlaps(d, ("usecase", "actor"))
+
+
+# ------------------------------------------------------------------ ERD / lớp so với CSDL
+def table_of(ent):
+    m = {"YEU_CAU_BAO_TRI": "YeuCauBaoTri", "LICH_SU_YEU_CAU": "LichSuYeuCau"}
+    return m.get(ent) or "".join(w.capitalize() for w in ent.lower().split("_"))
+
+
+def fks():
+    out = []
+    for t, v in sd.SCHEMA.items():
+        for c in v["columns"]:
+            if c["fk"] and not t.endswith("_VaiTro") and not t.endswith("_Quyen"):
+                out.append((c["fk"], t, c["name"], c["null"], c["on_delete"]))
+    return out
+
+
+def check_erds(erds):
+    rels = []      # (A, cardA, B, cardB, diagram)
+    for d in erds:
+        by = defaultdict(list)
+        for e in d["edges"]:
+            if e["kind"] == "assoc":
+                by[e["to"]].append((table_of(e["from"]), e.get("mult1", "")))
+        for key, ends in by.items():
+            if len(ends) != 2 or any(not re.fullmatch(r"\([01],[1n]\)", c) for _, c in ends):
+                err(d, f"mối kết hợp {key} phải có đúng 2 nhánh với bản số (min,max): {ends}")
+                continue
+            (a, ca), (b, cb) = ends
+            rels.append((a, ca, b, cb, d))
+        check_overlaps(d, ("class", "nary", "note"))
+    used = set()
+    for parent, child, col, nullable, _ in fks():
+        if child == "CuTru":   # bảng của mối kết hợp n–n "cư trú" giữa NGUOI_DUNG và CAN_HO
+            if not any({r[0], r[2]} == {"NguoiDung", "CanHo"} and r[1].endswith("n)") and r[3].endswith("n)")
+                       for r in rels):
+                ERRORS.append("[ERD] thiếu mối kết hợp n–n cư trú NGUOI_DUNG–CAN_HO")
+            continue
+        ok = False
+        for i, (a, ca, b, cb, d) in enumerate(rels):
+            if {a, b} != {parent, child} or i in used:
+                continue
+            card_child, card_parent = (ca, cb) if a == child else (cb, ca)
+            if card_child.endswith("1)") and card_parent.endswith("n)") and (card_child == "(0,1)") == nullable:
+                used.add(i)
+                ok = True
+                break
+        if not ok:
+            ERRORS.append(f"[ERD] khoá ngoại {child}.{col} -> {parent} (NULL={nullable}) không có mối kết hợp với bản số khớp")
+    # n–n: cư trú, đóng vai, được cấp
+    nn = {frozenset(("NguoiDung", "CanHo")), frozenset(("NguoiDung", "VaiTro")), frozenset(("VaiTro", "Quyen"))}
+    for a, ca, b, cb, d in rels:
+        if ca.endswith("n)") and cb.endswith("n)") and frozenset((a, b)) not in nn:
+            err(d, f"mối kết hợp n–n {a}–{b} không có bảng trung gian trong CSDL")
+
+
+def check_attributes(erds, classes):
+    """Thuộc tính trên ERD phải là cột thật (không gồm khoá ngoại); mỗi cột không phải khoá ngoại phải có trên ERD.
+    Thuộc tính của lớp là tên cột viết kiểu camelCase."""
+    shown = defaultdict(set)
+    for d in erds:
+        for n in d["nodes"]:
+            if n["kind"] == "class":
+                t = table_of(n["key"])
+                cols = {c["name"]: c for c in sd.SCHEMA[t]["columns"]}
+                for a in n["attrs"]:
+                    shown[t].add(a["name"])
+                    if a["name"] not in cols:
+                        err(d, f"thuộc tính {n['key']}.{a['name']} không có trong bảng {t}")
+                    elif cols[a["name"]]["fk"]:
+                        err(d, f"ERD không vẽ khoá ngoại: {n['key']}.{a['name']}")
+    for t, v in sd.SCHEMA.items():
+        if t in ("CuTru", "NguoiDung_VaiTro", "VaiTro_Quyen"):
+            continue
+        for c in v["columns"]:
+            if not c["fk"] and c["name"] not in shown[t]:
+                ERRORS.append(f"[ERD] cột {t}.{c['name']} chưa có trên ERD")
+    cu = {c["name"] for c in sd.SCHEMA["CuTru"]["columns"] if not c["fk"] and not c["pk"]}
+    if cu != set(sd.CU_TRU_ATTR):
+        ERRORS.append(f"[ERD] thuộc tính của mối kết hợp cư trú lệch bảng CuTru: {cu ^ set(sd.CU_TRU_ATTR)}")
+    for d in classes:
+        for n in d["nodes"]:
+            if n["kind"] != "class" or n["key"] not in sd.SCHEMA:
+                continue
+            cols = {c["name"][0].lower() + c["name"][1:] for c in sd.SCHEMA[n["key"]]["columns"]}
+            for a in n.get("attrs", []):
+                if a["name"] not in cols:
+                    err(d, f"thuộc tính lớp {n['key']}.{a['name']} không ứng với cột nào")
+
+
+def check_classes(classes):
+    for d in classes:
+        check_overlaps(d, ("class", "enum"))
+        for e in d["edges"]:
+            a, b = e["from"], e["to"]
+            cols = [c for c in sd.SCHEMA.get(b, {}).get("columns", []) if c["fk"] == a]
+            if not cols:
+                continue
+            nullable = any(c["null"] for c in cols)
+            if len(cols) == 1 and e.get("mult1") != ("0..1" if nullable else "1"):
+                err(d, f"liên kết {a}–{b}: bội số phía {a} là {e.get('mult1')} nhưng khoá ngoại NULL={nullable}")
+            cascade = all(c["on_delete"] == "CASCADE" for c in cols)
+            if e.get("agg1") == "composite" and not cascade:
+                err(d, f"{a}◆{b} là hợp thành nhưng CSDL không xoá theo (ON DELETE {cols[0]['on_delete']})")
+            if cascade and e.get("agg1") != "composite" and b not in ("NguoiDung_VaiTro", "VaiTro_Quyen"):
+                err(d, f"{a}–{b}: CSDL xoá theo (CASCADE) nhưng sơ đồ lớp không vẽ hợp thành")
+
+
+def main():
+    ds = sd.diagrams()
+    erds, classes = [], []
+    for d in ds:
+        if d["kind"] == "activity":
+            check_activity(d)
+        elif d["kind"] == "sequence":
+            check_sequence(d)
+        elif d["kind"] == "usecase":
+            check_usecase(d)
+        elif d["kind"] == "class" and "ERD" in d["name"]:
+            erds.append(d)
+        elif d["kind"] == "class":
+            classes.append(d)
+        elif d["kind"] == "erd":
+            check_overlaps(d, ("entity",))
+    check_erds(erds)
+    check_classes(classes)
+    check_attributes(erds, classes)
+    sys.stdout.reconfigure(encoding="utf-8")
+    for e in ERRORS:
+        print(e)
+    print(f"{len(ERRORS)} lỗi trên {len(ds)} sơ đồ")
+    return 1 if ERRORS else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

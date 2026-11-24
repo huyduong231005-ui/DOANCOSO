@@ -1,0 +1,5 @@
+Lớp/enum/interface trên sơ đồ lớp: 25; thông điệp tuần tự: 68; chuyển trạng thái: 11; bảng trên ERD/RD: 44; cột trong từ điển dữ liệu: 141; sơ đồ hoạt động: 3; use case có mã: 30
+LỖI: 0
+GHI CHÚ: 2
+[Hinh 1.3 So do trang thai yeu cau su co] 2 chuyển không ghi nhãn (dùng chung nhãn với cạnh song song): [('Open', 'Cancelled'), ('Acknowledged', 'Rejected')]
+[Hinh 2.1 ERD] AppUser – MaintenanceRequest: bản số 1 / 0..* không khớp khoá ngoại [('MaintenanceRequest', 'AssignedToId', 'NULL'), ('MaintenanceRequest', 'ReporterId', 'NULL')] (quy tắc nghiệp vụ chặt hơn CSDL)

@@ -1,0 +1,7 @@
+{
+  "name": "baocao-uml-builder",
+  "title": "Báo cáo DACN - dựng sơ đồ UML/ERD từ JSON",
+  "description": "Dựng sơ đồ use case, activity, state machine, ERD bằng factory của StarUML từ file mô tả JSON",
+  "version": "1.0.0",
+  "engines": { "staruml": ">=5.0.0" }
+}

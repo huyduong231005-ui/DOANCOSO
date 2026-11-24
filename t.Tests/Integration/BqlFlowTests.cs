@@ -240,7 +240,7 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         var apt = new Apartment { FloorId = f.Id, UnitCode = code + "-01.01", Area = area, Bedrooms = 2, Condition = condition };
         db.Apartments.Add(apt);
         await db.SaveChangesAsync();
-        return (apt, await db.UtilityTypes.SingleAsync(t => t.Code == "WATER"));
+        return (apt, await db.UtilityTypes.SingleAsync(t => t.Code == "NUOC"));
     }
 
     private async Task<HttpClient> AdminClientAsync()

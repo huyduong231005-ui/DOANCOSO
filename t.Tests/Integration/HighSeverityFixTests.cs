@@ -247,7 +247,7 @@ public sealed class HighSeverityFixTests : IClassFixture<TestWebApplicationFacto
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             aptId = (await NewApartmentAsync(db)).Id;
-            waterId = (await db.UtilityTypes.SingleAsync(t => t.Code == "WATER")).Id;
+            waterId = (await db.UtilityTypes.SingleAsync(t => t.Code == "NUOC")).Id;
             Assert.True((await scope.ServiceProvider.GetRequiredService<InvoiceGenerator>()
                 .GenerateMonthlyInvoiceAsync(aptId, new DateTime(2031, 6, 1))).Success);
         }

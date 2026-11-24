@@ -98,7 +98,7 @@ public class MaintenanceRequest : BaseEntity
         ? History.Where(h => h.ToStatus == Status).Select(h => (DateTime?)h.ChangedAt).Max() : null;
 
     /// <summary>
-    /// Hạn hoàn tất theo SLA, chốt lúc báo (NgayBaoCao + thời hạn của mức ưu tiên), cộng thêm thời gian tạm dừng.
+    /// Hạn hoàn tất theo SLA, chốt lúc báo (NgayBaoSuCo + thời hạn của mức ưu tiên), cộng thêm thời gian tạm dừng.
     /// Lưu lại chứ không tính lại từ bảng MucSla vì SLA có thể đổi về sau, hạn đã cam kết với cư dân thì không.
     /// </summary>
     public DateTime? DueAt { get; set; }

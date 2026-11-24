@@ -273,7 +273,7 @@ namespace t.Migrations
 
                     b.Property<DateTime?>("ConfirmedAt")
                         .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayXacNhan");
+                        .HasColumnName("NgayXacNhanCuTru");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -365,7 +365,7 @@ namespace t.Migrations
 
                     b.Property<string>("AvatarUrl")
                         .HasColumnType("text")
-                        .HasColumnName("AnhDaiDien");
+                        .HasColumnName("AnhDaiDienNguoiDung");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -482,13 +482,13 @@ namespace t.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasColumnName("NhatKyId");
+                        .HasColumnName("NhatKyHeThongId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<int>("Action")
                         .HasColumnType("integer")
-                        .HasColumnName("HanhDong");
+                        .HasColumnName("LoaiThaoTac");
 
                     b.Property<string>("ChangedColumns")
                         .HasColumnType("text")
@@ -1079,7 +1079,7 @@ namespace t.Migrations
                     b.Property<string>("Location")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
-                        .HasColumnName("ViTri");
+                        .HasColumnName("ViTriKhuVucChung");
 
                     b.Property<int>("Priority")
                         .HasColumnType("integer")
@@ -1096,7 +1096,7 @@ namespace t.Migrations
 
                     b.Property<DateTime>("ReportedAt")
                         .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayBaoCao");
+                        .HasColumnName("NgayBaoSuCo");
 
                     b.Property<string>("ReporterId")
                         .IsRequired()
@@ -1166,13 +1166,13 @@ namespace t.Migrations
 
                             t.HasCheckConstraint("CK_YeuCauBaoTri_DanhGia", "\"DiemDanhGia\" IS NULL OR \"DiemDanhGia\" BETWEEN 1 AND 5");
 
-                            t.HasCheckConstraint("CK_YeuCauBaoTri_HanXuLy", "\"HanXuLy\" IS NULL OR \"HanXuLy\" >= \"NgayBaoCao\"");
+                            t.HasCheckConstraint("CK_YeuCauBaoTri_HanXuLy", "\"HanXuLy\" IS NULL OR \"HanXuLy\" >= \"NgayBaoSuCo\"");
 
                             t.HasCheckConstraint("CK_YeuCauBaoTri_KetQua", "\"TrangThaiYeuCau\" NOT IN (3, 4) OR coalesce(btrim(\"KetQuaXuLy\"), '') <> ''");
 
                             t.HasCheckConstraint("CK_YeuCauBaoTri_LoaiSuCo", "\"LoaiSuCo\" IN (0, 1, 2, 3, 4, 5, 6, 99)");
 
-                            t.HasCheckConstraint("CK_YeuCauBaoTri_NoiXayRa", "(\"CanHoId\" IS NOT NULL AND \"ToaNhaId\" IS NULL) OR (\"CanHoId\" IS NULL AND \"ToaNhaId\" IS NOT NULL AND \"ViTri\" IS NOT NULL)");
+                            t.HasCheckConstraint("CK_YeuCauBaoTri_NoiXayRa", "(\"CanHoId\" IS NOT NULL AND \"ToaNhaId\" IS NULL) OR (\"CanHoId\" IS NULL AND \"ToaNhaId\" IS NOT NULL AND \"ViTriKhuVucChung\" IS NOT NULL)");
 
                             t.HasCheckConstraint("CK_YeuCauBaoTri_TrangThai", "\"TrangThaiYeuCau\" BETWEEN 0 AND 7");
                         });
@@ -1262,7 +1262,7 @@ namespace t.Migrations
 
                     b.Property<int>("Method")
                         .HasColumnType("integer")
-                        .HasColumnName("PhuongThuc");
+                        .HasColumnName("PhuongThucThanhToan");
 
                     b.Property<string>("Note")
                         .HasColumnType("text")
@@ -1281,7 +1281,7 @@ namespace t.Migrations
                     b.Property<string>("Provider")
                         .HasMaxLength(80)
                         .HasColumnType("character varying(80)")
-                        .HasColumnName("NhaCungCap");
+                        .HasColumnName("DonViThanhToan");
 
                     b.Property<decimal>("RefundedAmount")
                         .HasColumnType("decimal(18,0)")
@@ -1324,7 +1324,7 @@ namespace t.Migrations
                         {
                             t.HasCheckConstraint("CK_ThanhToan_HoanTra", "\"SoTienHoanTra\" >= 0 AND \"SoTienHoanTra\" <= \"SoTienThanhToan\"");
 
-                            t.HasCheckConstraint("CK_ThanhToan_MaSo", "\"PhuongThuc\" BETWEEN 0 AND 4 AND \"TrangThaiThanhToan\" BETWEEN 0 AND 5");
+                            t.HasCheckConstraint("CK_ThanhToan_MaSo", "\"PhuongThucThanhToan\" BETWEEN 0 AND 4 AND \"TrangThaiThanhToan\" BETWEEN 0 AND 5");
 
                             t.HasCheckConstraint("CK_ThanhToan_SoTien", "\"SoTienThanhToan\" > 0");
                         });
@@ -1377,7 +1377,7 @@ namespace t.Migrations
                         .IsRequired()
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)")
-                        .HasColumnName("PhanHe");
+                        .HasColumnName("PhanHeQuyen");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1807,7 +1807,7 @@ namespace t.Migrations
 
                     b.Property<decimal>("DefaultRate")
                         .HasColumnType("decimal(18,2)")
-                        .HasColumnName("DonGia");
+                        .HasColumnName("DonGiaDichVu");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp without time zone")
@@ -1850,7 +1850,7 @@ namespace t.Migrations
 
                     b.ToTable("LoaiDichVu", null, t =>
                         {
-                            t.HasCheckConstraint("CK_LoaiDichVu_DonGia", "\"DonGia\" >= 0");
+                            t.HasCheckConstraint("CK_LoaiDichVu_DonGia", "\"DonGiaDichVu\" >= 0");
                         });
                 });
 

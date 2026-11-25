@@ -78,11 +78,6 @@
                     </select>
                     <span class="err" asp-validation-for="Priority"></span>
                 </div>
-                <div class="form-field span-4">
-                    <label asp-for="EstimatedCost">Chi phí ước tính (VND)</label>
-                    <input asp-for="EstimatedCost" type="number" step="10000" />
-                    <span class="err" asp-validation-for="EstimatedCost"></span>
-                </div>
                 <div class="form-field span-12">
                     <label asp-for="PhotoUrls">Ảnh</label>
                     <input type="file" multiple accept="image/*" data-upload="maintenance" data-target="#mt-photos" />

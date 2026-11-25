@@ -23,7 +23,17 @@ public static class SeedData
     private const decimal MotorbikeFee = 120_000m;    // đ/xe/tháng
     private const decimal CarFee = 1_500_000m;        // đ/xe/tháng
 
+    // Dữ liệu mẫu dùng các tập tĩnh (FloorsOf, OccupiedUnits): nhiều CSDL test seed song song thì phải chạy lần lượt.
+    private static readonly SemaphoreSlim SeedLock = new(1, 1);
+
     public static async Task InitializeAsync(IServiceProvider services)
+    {
+        await SeedLock.WaitAsync();
+        try { await InitializeCoreAsync(services); }
+        finally { SeedLock.Release(); }
+    }
+
+    private static async Task InitializeCoreAsync(IServiceProvider services)
     {
         using var scope = services.CreateScope();
         var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -47,13 +57,8 @@ public static class SeedData
 
         await SeedMaintenanceStaffAsync(userMgr);
 
-        if (await ctx.Regions.AnyAsync()) return;
+        if (await ctx.Projects.AnyAsync()) return;
 
-        var hcm = new Region { Name = "TP. Hồ Chí Minh", ImageUrl = "/img/region-hcm.jpg" };
-        ctx.Regions.AddRange(
-            new Region { Name = "Hà Nội", ImageUrl = "/img/region-hanoi.jpg" },
-            new Region { Name = "Đà Nẵng", ImageUrl = "/img/region-danang.jpg" },
-            hcm);
         var water = new UtilityType { Code = "NUOC", Name = "Nước", Unit = "m³", DefaultRate = WaterRate };
         ctx.UtilityTypes.AddRange(water,
             new UtilityType { Code = "DIEN", Name = "Điện", Unit = "kWh", DefaultRate = 3_500m });
@@ -63,28 +68,24 @@ public static class SeedData
 
         var grandPark = new Project
         {
-            Name = "Luxe Haven Grand Park", RegionId = hcm.Id,
-            Address = "Đường Nguyễn Xiển, Long Thạnh Mỹ, TP. Thủ Đức, TP. HCM",
-            ThumbnailUrl = "/img/hero-2.jpg",
-            ShortDescription = "Khu căn hộ 3 toà A, B, C quanh công viên nội khu, Ban quản lý đặt tại sảnh toà A."
+            Name = "Luxe Haven Grand Park",
+            Address = "Đường Nguyễn Xiển, Long Thạnh Mỹ, TP. Thủ Đức, TP. HCM"
         };
         var riverside = new Project
         {
-            Name = "Luxe Haven Riverside", RegionId = hcm.Id,
-            Address = "Đường Nguyễn Hữu Cảnh, P.22, Bình Thạnh, TP. HCM",
-            ThumbnailUrl = "/img/rent-2.jpg",
-            ShortDescription = "Hai toà ven sông R1, R2; căn hộ 1–3 phòng ngủ."
+            Name = "Luxe Haven Riverside",
+            Address = "Đường Nguyễn Hữu Cảnh, P.22, Bình Thạnh, TP. HCM"
         };
         ctx.Projects.AddRange(grandPark, riverside);
         await ctx.SaveChangesAsync();
 
         var buildings = new[]
         {
-            NewBuilding(grandPark, "A", "Toà A", 20, 8, 15_000m, manager?.Id, "/img/hero-1.jpg"),
-            NewBuilding(grandPark, "B", "Toà B", 18, 8, 15_000m, manager?.Id, "/img/hero-3.jpg"),
-            NewBuilding(grandPark, "C", "Toà C", 15, 6, 15_000m, manager?.Id, "/img/hero-4.jpg"),
-            NewBuilding(riverside, "R1", "Toà R1", 12, 6, 18_000m, manager?.Id, "/img/rent-2.jpg"),
-            NewBuilding(riverside, "R2", "Toà R2", 12, 6, 18_000m, manager?.Id, "/img/rent-4.jpg"),
+            NewBuilding(grandPark, "A", 20, 8, 15_000m, manager?.Id),
+            NewBuilding(grandPark, "B", 18, 8, 15_000m, manager?.Id),
+            NewBuilding(grandPark, "C", 15, 6, 15_000m, manager?.Id),
+            NewBuilding(riverside, "R1", 12, 6, 18_000m, manager?.Id),
+            NewBuilding(riverside, "R2", 12, 6, 18_000m, manager?.Id),
         };
         ctx.Buildings.AddRange(buildings);
         await ctx.SaveChangesAsync();
@@ -120,20 +121,17 @@ public static class SeedData
     // Số tầng của toà mẫu (toà không lưu số tầng; số tầng là số dòng Tang tạo ra).
     private static readonly Dictionary<string, int> FloorsOf = new();
 
-    private static Building NewBuilding(Project p, string code, string name, int floors, int perFloor,
-                                        decimal feePerM2, string? managerId, string thumb)
+    private static Building NewBuilding(Project p, string code, int floors, int perFloor, decimal feePerM2, string? managerId)
     {
         FloorsOf[code] = floors;
-        return NewBuildingCore(p, code, name, floors, perFloor, feePerM2, managerId, thumb);
+        return NewBuildingCore(p, code, feePerM2, managerId);
     }
 
-    private static Building NewBuildingCore(Project p, string code, string name, int floors, int perFloor,
-                                            decimal feePerM2, string? managerId, string thumb) => new()
+    private static Building NewBuildingCore(Project p, string code, decimal feePerM2, string? managerId) => new()
     {
-        Name = name, Code = code,
+        Code = code,
         ProjectId = p.Id,
-        ThumbnailUrl = thumb, ManagerId = managerId,
-        Description = $"{name} · {floors} tầng · {perFloor} căn/tầng.",
+        ManagerId = managerId,
         Status = BuildingStatus.Active,
         DefaultBillingDay = 1, DefaultLateFeeAfterDays = 15, DefaultLateFeePercent = 2,
         ManagementFeePerM2 = feePerM2
@@ -142,10 +140,10 @@ public static class SeedData
     // Vị trí căn trên tầng quyết định loại căn: 2 căn góc đầu là 3PN, 2 căn cuối 1PN/studio, giữa là 2PN.
     private static Apartment NewApartment(Building b, Floor f, int pos, int perFloor, Random rng)
     {
-        var (area, bed, bath) = pos <= 2 ? (95.5, 3, 2)
-            : pos > perFloor - 1 ? (35.2, 1, 1)
-            : pos > perFloor - 2 ? (52.4, 1, 1)
-            : (69.8, 2, 2);
+        var (area, bed) = pos <= 2 ? (95.5m, 3)
+            : pos > perFloor - 1 ? (35.2m, 1)
+            : pos > perFloor - 2 ? (52.4m, 1)
+            : (69.8m, 2);
         var roll = rng.NextDouble();
         var unitCode = $"{b.Code}-{f.Number:00}.{pos:00}";
         var condition = f.Number >= FloorsOf[b.Code] - 1 && roll < 0.6 ? ApartmentCondition.NotHandedOver
@@ -156,8 +154,7 @@ public static class SeedData
         {
             FloorId = f.Id,
             UnitCode = unitCode,
-            Area = area, Bedrooms = bed, Bathrooms = bath,
-            HouseDirection = (HouseDirection)((pos + f.Number) % 8),
+            Area = area, Bedrooms = bed,
             Condition = condition
         };
     }
@@ -194,11 +191,10 @@ public static class SeedData
                 });
 
             var bikes = rng.Next(0, 3);
-            var sort = 0;
             for (var i = 1; i <= bikes; i++)
-                ctx.RecurringCharges.Add(new RecurringCharge { ApartmentId = a.Id, Description = $"Gửi xe máy #{i}", Amount = MotorbikeFee, SortOrder = sort++ });
+                ctx.RecurringCharges.Add(new RecurringCharge { ApartmentId = a.Id, Description = $"Gửi xe máy #{i}", Amount = MotorbikeFee });
             if (a.Bedrooms >= 2 && rng.NextDouble() < 0.3)
-                ctx.RecurringCharges.Add(new RecurringCharge { ApartmentId = a.Id, Description = "Gửi ô tô", Amount = CarFee, SortOrder = sort });
+                ctx.RecurringCharges.Add(new RecurringCharge { ApartmentId = a.Id, Description = "Gửi ô tô", Amount = CarFee });
         }
     }
 
@@ -267,12 +263,11 @@ public static class SeedData
                 var items = new List<InvoiceItem>
                 {
                     new() { Kind = InvoiceItemKind.ManagementFee, Description = $"Phí quản lý {a.UnitCode} – {month:MM/yyyy} ({area:0.##} m²)", Quantity = area,
-                            UnitPrice = a.Floor.Building.ManagementFeePerM2, LineTotal = Math.Round(area * a.Floor.Building.ManagementFeePerM2, 0), SortOrder = 0 },
-                    new() { Kind = InvoiceItemKind.Utility, UtilityReading = reading, Description = $"Nước (m³) – {used:0.##}", Quantity = used, UnitPrice = WaterRate, LineTotal = used * WaterRate, SortOrder = 1 }
+                            UnitPrice = a.Floor.Building.ManagementFeePerM2, LineTotal = Math.Round(area * a.Floor.Building.ManagementFeePerM2, 0) },
+                    new() { Kind = InvoiceItemKind.Utility, UtilityReading = reading, Description = $"Nước (m³) – {used:0.##}", Quantity = used, UnitPrice = WaterRate, LineTotal = used * WaterRate }
                 };
-                var sort = 2;
                 foreach (var c in charges[a.Id])
-                    items.Add(new InvoiceItem { Kind = InvoiceItemKind.Recurring, RecurringCharge = c, Description = c.Description, Quantity = 1m, UnitPrice = c.Amount, LineTotal = c.Amount, SortOrder = sort++ });
+                    items.Add(new InvoiceItem { Kind = InvoiceItemKind.Recurring, RecurringCharge = c, Description = c.Description, Quantity = 1m, UnitPrice = c.Amount, LineTotal = c.Amount });
 
                 var total = items.Sum(i => i.LineTotal);
                 invoiceSeq[billingMonth] = invoiceSeq.GetValueOrDefault(billingMonth) + 1;
@@ -343,16 +338,15 @@ public static class SeedData
                 RequestNumber = $"YC-{reported:yyyyMM}-{seq:0000}",
                 ApartmentId = apt.Id, ReporterId = reporterId, Title = title, Description = desc,
                 Category = cat, Priority = pri, Status = status, ReportedAt = reported,
-                EstimatedCost = 300_000m,
                 DueAt = reported.AddMinutes(sla.ResolveMinutes),
                 // Đã xử lý thì phải có kết quả (CK_YeuCauBaoTri_KetQua).
                 ResolutionNote = status == MaintenanceStatus.Resolved ? "Đã thay gioăng, vệ sinh ống thoát nước dàn lạnh." : null
             };
-            req.History.Add(new MaintenanceStatusChange { FromStatus = null, ToStatus = MaintenanceStatus.Open, ChangedAt = reported, Note = "Tạo yêu cầu" });
+            req.History.Add(new MaintenanceStatusChange { ToStatus = MaintenanceStatus.Open, ChangedAt = reported, Note = "Tạo yêu cầu" });
             // Lịch sử đi đúng bảng chuyển trạng thái: Mới gửi → Đã tiếp nhận → Đang xử lý → Đã xử lý.
             var path = new[] { MaintenanceStatus.Open, MaintenanceStatus.Acknowledged, MaintenanceStatus.InProgress, MaintenanceStatus.Resolved };
             for (var k = 1; k < path.Length && path[k - 1] != status; k++)
-                req.History.Add(new MaintenanceStatusChange { FromStatus = path[k - 1], ToStatus = path[k], ChangedAt = reported.AddHours(k * 2), Note = "Dữ liệu mẫu" });
+                req.History.Add(new MaintenanceStatusChange { ToStatus = path[k], ChangedAt = reported.AddHours(k * 2), Note = "Dữ liệu mẫu" });
             ctx.MaintenanceRequests.Add(req);
         }
     }

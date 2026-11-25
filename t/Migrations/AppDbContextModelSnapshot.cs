@@ -25,7 +25,8 @@ namespace t.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("text")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("VaiTroId");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -66,7 +67,8 @@ namespace t.Migrations
 
                     b.Property<string>("RoleId")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("VaiTroId");
 
                     b.HasKey("Id");
@@ -92,7 +94,8 @@ namespace t.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiDungId");
 
                     b.HasKey("Id");
@@ -115,7 +118,8 @@ namespace t.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiDungId");
 
                     b.HasKey("LoginProvider", "ProviderKey");
@@ -128,11 +132,13 @@ namespace t.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("text")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiDungId");
 
                     b.Property<string>("RoleId")
-                        .HasColumnType("text")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("VaiTroId");
 
                     b.HasKey("UserId", "RoleId");
@@ -145,7 +151,8 @@ namespace t.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("text")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiDungId");
 
                     b.Property<string>("LoginProvider")
@@ -171,13 +178,9 @@ namespace t.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<double>("Area")
-                        .HasColumnType("double precision")
+                    b.Property<decimal>("Area")
+                        .HasColumnType("numeric(8,2)")
                         .HasColumnName("DienTich");
-
-                    b.Property<int>("Bathrooms")
-                        .HasColumnType("integer")
-                        .HasColumnName("SoPhongTam");
 
                     b.Property<int>("Bedrooms")
                         .HasColumnType("integer")
@@ -192,8 +195,8 @@ namespace t.Migrations
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiTao");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -201,25 +204,17 @@ namespace t.Migrations
                         .HasColumnName("NgayXoa");
 
                     b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiXoa");
 
                     b.Property<int>("FloorId")
                         .HasColumnType("integer")
                         .HasColumnName("TangId");
 
-                    b.Property<int?>("HouseDirection")
-                        .HasColumnType("integer")
-                        .HasColumnName("HuongNha");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("text")
-                        .HasColumnName("MoTaCanHo");
 
                     b.Property<string>("UnitCode")
                         .IsRequired()
@@ -232,8 +227,8 @@ namespace t.Migrations
                         .HasColumnName("NgayCapNhat");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiCapNhat");
 
                     b.HasKey("Id");
@@ -250,9 +245,7 @@ namespace t.Migrations
                         {
                             t.HasCheckConstraint("CK_CanHo_DienTich", "\"DienTich\" > 0");
 
-                            t.HasCheckConstraint("CK_CanHo_HuongNha", "\"HuongNha\" IS NULL OR \"HuongNha\" BETWEEN 0 AND 7");
-
-                            t.HasCheckConstraint("CK_CanHo_SoPhong", "\"SoPhongNgu\" >= 0 AND \"SoPhongTam\" >= 0");
+                            t.HasCheckConstraint("CK_CanHo_SoPhongNgu", "\"SoPhongNgu\" >= 0");
 
                             t.HasCheckConstraint("CK_CanHo_TinhTrangCanHo", "\"TinhTrangCanHo\" IN (0, 1, 3)");
                         });
@@ -273,15 +266,15 @@ namespace t.Migrations
 
                     b.Property<DateTime?>("ConfirmedAt")
                         .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayXacNhanCuTru");
+                        .HasColumnName("NgayXacNhan");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiTao");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -289,8 +282,8 @@ namespace t.Migrations
                         .HasColumnName("NgayXoa");
 
                     b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiXoa");
 
                     b.Property<bool>("IsDeleted")
@@ -302,17 +295,12 @@ namespace t.Migrations
                         .HasColumnName("LaDaiDien");
 
                     b.Property<DateTime>("MoveInDate")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("date")
                         .HasColumnName("NgayVaoO");
 
                     b.Property<DateTime?>("MoveOutDate")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("date")
                         .HasColumnName("NgayChuyenDi");
-
-                    b.Property<string>("Note")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
-                        .HasColumnName("GhiChuCuTru");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer")
@@ -323,13 +311,14 @@ namespace t.Migrations
                         .HasColumnName("NgayCapNhat");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiCapNhat");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiDungId");
 
                     b.HasKey("Id");
@@ -357,15 +346,12 @@ namespace t.Migrations
             modelBuilder.Entity("t.Models.Entities.AppUser", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("text")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiDungId");
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
-
-                    b.Property<string>("AvatarUrl")
-                        .HasColumnType("text")
-                        .HasColumnName("AnhDaiDienNguoiDung");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -376,8 +362,8 @@ namespace t.Migrations
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiTao");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -385,8 +371,8 @@ namespace t.Migrations
                         .HasColumnName("NgayXoa");
 
                     b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiXoa");
 
                     b.Property<string>("Email")
@@ -398,7 +384,8 @@ namespace t.Migrations
 
                     b.Property<string>("FullName")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("HoTen");
 
                     b.Property<string>("IdNumber")
@@ -409,10 +396,6 @@ namespace t.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
-
-                    b.Property<DateTime?>("LastLoginAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayDangNhapCuoi");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -429,11 +412,13 @@ namespace t.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("text")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
                         .HasColumnName("MatKhauBam");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("text")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("SoDienThoai");
 
                     b.Property<bool>("PhoneNumberConfirmed")
@@ -450,8 +435,8 @@ namespace t.Migrations
                         .HasColumnName("NgayCapNhat");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiCapNhat");
 
                     b.Property<string>("UserName")
@@ -490,10 +475,6 @@ namespace t.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("LoaiThaoTac");
 
-                    b.Property<string>("ChangedColumns")
-                        .HasColumnType("text")
-                        .HasColumnName("CotThayDoi");
-
                     b.Property<string>("EntityKey")
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)")
@@ -520,22 +501,12 @@ namespace t.Migrations
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp without time zone")
-                        .HasColumnName("ThoiGianGhi");
-
-                    b.Property<string>("UserAgent")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)")
-                        .HasColumnName("TrinhDuyet");
+                        .HasColumnName("ThoiDiem");
 
                     b.Property<string>("UserId")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiGhiId");
-
-                    b.Property<string>("UserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)")
-                        .HasColumnName("TenNguoiGhi");
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
+                        .HasColumnName("NguoiThaoTacId");
 
                     b.HasKey("Id");
 
@@ -568,15 +539,15 @@ namespace t.Migrations
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiTao");
 
                     b.Property<int>("DefaultBillingDay")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasDefaultValue(1)
-                        .HasColumnName("NgayChotKy");
+                        .HasColumnName("NgayLapPhi");
 
                     b.Property<int>("DefaultLateFeeAfterDays")
                         .ValueGeneratedOnAdd()
@@ -588,20 +559,16 @@ namespace t.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasDefaultValue(5)
-                        .HasColumnName("PhanTramPhiTre");
+                        .HasColumnName("TiLePhiTre");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayXoa");
 
                     b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiXoa");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("MoTaToaNha");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
@@ -609,37 +576,28 @@ namespace t.Migrations
 
                     b.Property<decimal>("ManagementFeePerM2")
                         .HasColumnType("decimal(18,0)")
-                        .HasColumnName("DonGiaPhiQuanLy");
+                        .HasColumnName("PhiQuanLyM2");
 
                     b.Property<string>("ManagerId")
-                        .HasColumnType("text")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("QuanLyId");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("TenToaNha");
 
                     b.Property<int>("ProjectId")
                         .HasColumnType("integer")
-                        .HasColumnName("DuAnId");
+                        .HasColumnName("KhuId");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer")
                         .HasColumnName("TrangThaiToaNha");
-
-                    b.Property<string>("ThumbnailUrl")
-                        .HasColumnType("text")
-                        .HasColumnName("AnhDaiDienToaNha");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayCapNhat");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiCapNhat");
 
                     b.HasKey("Id");
@@ -656,11 +614,11 @@ namespace t.Migrations
 
                     b.ToTable("ToaNha", null, t =>
                         {
-                            t.HasCheckConstraint("CK_ToaNha_DonGiaPhiQuanLy", "\"DonGiaPhiQuanLy\" >= 0");
+                            t.HasCheckConstraint("CK_ToaNha_NgayLapPhi", "\"NgayLapPhi\" BETWEEN 1 AND 28");
 
-                            t.HasCheckConstraint("CK_ToaNha_NgayChotKy", "\"NgayChotKy\" BETWEEN 1 AND 28");
+                            t.HasCheckConstraint("CK_ToaNha_PhiQuanLyM2", "\"PhiQuanLyM2\" >= 0");
 
-                            t.HasCheckConstraint("CK_ToaNha_PhiTre", "\"SoNgayAnHan\" >= 0 AND \"PhanTramPhiTre\" BETWEEN 0 AND 100");
+                            t.HasCheckConstraint("CK_ToaNha_PhiTre", "\"SoNgayAnHan\" >= 0 AND \"TiLePhiTre\" BETWEEN 0 AND 100");
 
                             t.HasCheckConstraint("CK_ToaNha_TrangThai", "\"TrangThaiToaNha\" BETWEEN 0 AND 2");
                         });
@@ -684,8 +642,8 @@ namespace t.Migrations
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiTao");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -693,8 +651,8 @@ namespace t.Migrations
                         .HasColumnName("NgayXoa");
 
                     b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiXoa");
 
                     b.Property<bool>("IsDeleted")
@@ -710,8 +668,8 @@ namespace t.Migrations
                         .HasColumnName("NgayCapNhat");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiCapNhat");
 
                     b.HasKey("Id");
@@ -733,27 +691,29 @@ namespace t.Migrations
 
                     b.Property<decimal>("AmountPaid")
                         .HasColumnType("decimal(18,0)")
-                        .HasColumnName("DaThanhToan");
+                        .HasColumnName("DaThu");
 
                     b.Property<int>("ApartmentId")
                         .HasColumnType("integer")
                         .HasColumnName("CanHoId");
 
                     b.Property<decimal>("Balance")
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("decimal(18,0)")
-                        .HasColumnName("ConLai");
+                        .HasColumnName("ConNo")
+                        .HasComputedColumnSql("\"TienPhi\" + \"PhiTreHan\" - \"DaThu\"", true);
 
                     b.Property<int>("BillingMonth")
                         .HasColumnType("integer")
-                        .HasColumnName("KyHoaDon");
+                        .HasColumnName("Ky");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiTao");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -761,17 +721,13 @@ namespace t.Migrations
                         .HasColumnName("NgayXoa");
 
                     b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiXoa");
 
-                    b.Property<decimal>("Discount")
-                        .HasColumnType("decimal(18,0)")
-                        .HasColumnName("GiamGia");
-
                     b.Property<DateTime>("DueDate")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayDenHan");
+                        .HasColumnType("date")
+                        .HasColumnName("HanThanhToan");
 
                     b.Property<string>("InvoiceNumber")
                         .IsRequired()
@@ -784,8 +740,8 @@ namespace t.Migrations
                         .HasColumnName("DaXoa");
 
                     b.Property<DateTime>("IssueDate")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayPhatHanh");
+                        .HasColumnType("date")
+                        .HasColumnName("NgayLap");
 
                     b.Property<int>("Kind")
                         .HasColumnType("integer")
@@ -796,8 +752,9 @@ namespace t.Migrations
                         .HasColumnName("PhiTreHan");
 
                     b.Property<string>("Note")
-                        .HasColumnType("text")
-                        .HasColumnName("GhiChuHoaDon");
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("GhiChu");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer")
@@ -805,23 +762,21 @@ namespace t.Migrations
 
                     b.Property<decimal>("SubTotal")
                         .HasColumnType("decimal(18,0)")
-                        .HasColumnName("TamTinh");
-
-                    b.Property<decimal>("Tax")
-                        .HasColumnType("decimal(18,0)")
-                        .HasColumnName("Thue");
+                        .HasColumnName("TienPhi");
 
                     b.Property<decimal>("Total")
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("decimal(18,0)")
-                        .HasColumnName("TongTien");
+                        .HasColumnName("TongTien")
+                        .HasComputedColumnSql("\"TienPhi\" + \"PhiTreHan\"", true);
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayCapNhat");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiCapNhat");
 
                     b.HasKey("Id");
@@ -842,15 +797,13 @@ namespace t.Migrations
 
                     b.ToTable("HoaDon", null, t =>
                         {
-                            t.HasCheckConstraint("CK_HoaDon_ConLai", "\"ConLai\" >= 0 AND \"ConLai\" <= \"TongTien\"");
+                            t.HasCheckConstraint("CK_HoaDon_DaThu", "\"DaThu\" <= \"TienPhi\" + \"PhiTreHan\"");
 
-                            t.HasCheckConstraint("CK_HoaDon_CongThuc", "\"TongTien\" = \"TamTinh\" - \"GiamGia\" + \"Thue\" + \"PhiTreHan\" AND \"ConLai\" = \"TongTien\" - \"DaThanhToan\"");
+                            t.HasCheckConstraint("CK_HoaDon_HanThanhToan", "\"HanThanhToan\" >= \"NgayLap\"");
 
-                            t.HasCheckConstraint("CK_HoaDon_HanThanhToan", "\"NgayDenHan\" >= \"NgayPhatHanh\"");
+                            t.HasCheckConstraint("CK_HoaDon_Ky", "\"Ky\" % 100 BETWEEN 1 AND 12");
 
-                            t.HasCheckConstraint("CK_HoaDon_Ky", "\"KyHoaDon\" % 100 BETWEEN 1 AND 12");
-
-                            t.HasCheckConstraint("CK_HoaDon_SoTien", "\"TongTien\" >= 0 AND \"DaThanhToan\" >= 0 AND \"GiamGia\" >= 0 AND \"Thue\" >= 0 AND \"PhiTreHan\" >= 0");
+                            t.HasCheckConstraint("CK_HoaDon_SoTien", "\"TienPhi\" >= 0 AND \"PhiTreHan\" >= 0 AND \"DaThu\" >= 0");
 
                             t.HasCheckConstraint("CK_HoaDon_TrangThai", "\"TrangThaiHoaDon\" BETWEEN 0 AND 6");
                         });
@@ -870,8 +823,8 @@ namespace t.Migrations
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiTao");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -879,15 +832,15 @@ namespace t.Migrations
                         .HasColumnName("NgayXoa");
 
                     b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiXoa");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
-                        .HasColumnName("NoiDungKhoan");
+                        .HasColumnName("NoiDung");
 
                     b.Property<int>("InvoiceId")
                         .HasColumnType("integer")
@@ -902,8 +855,10 @@ namespace t.Migrations
                         .HasColumnName("LoaiKhoan");
 
                     b.Property<decimal>("LineTotal")
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("decimal(18,0)")
-                        .HasColumnName("ThanhTienKhoan");
+                        .HasColumnName("ThanhTien")
+                        .HasComputedColumnSql("round(\"SoLuong\" * \"DonGia\")", true);
 
                     b.Property<int?>("MaintenanceRequestId")
                         .HasColumnType("integer")
@@ -911,27 +866,23 @@ namespace t.Migrations
 
                     b.Property<decimal>("Quantity")
                         .HasColumnType("decimal(18,2)")
-                        .HasColumnName("SoLuongKhoan");
+                        .HasColumnName("SoLuong");
 
                     b.Property<int?>("RecurringChargeId")
                         .HasColumnType("integer")
                         .HasColumnName("PhiDinhKyId");
 
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("ThuTuKhoan");
-
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(18,0)")
-                        .HasColumnName("DonGiaKhoan");
+                        .HasColumnName("DonGia");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayCapNhat");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiCapNhat");
 
                     b.Property<int?>("UtilityReadingId")
@@ -954,9 +905,7 @@ namespace t.Migrations
 
                             t.HasCheckConstraint("CK_ChiTietHoaDon_Nguon", "(\"LoaiKhoan\" = 1) = (\"ChiSoDichVuId\" IS NOT NULL) AND (\"LoaiKhoan\" = 2) = (\"PhiDinhKyId\" IS NOT NULL) AND (\"YeuCauBaoTriId\" IS NULL OR \"LoaiKhoan\" = 3)");
 
-                            t.HasCheckConstraint("CK_ChiTietHoaDon_SoTien", "\"SoLuongKhoan\" > 0 AND \"DonGiaKhoan\" >= 0");
-
-                            t.HasCheckConstraint("CK_ChiTietHoaDon_ThanhTien", "\"ThanhTienKhoan\" = round(\"SoLuongKhoan\" * \"DonGiaKhoan\")");
+                            t.HasCheckConstraint("CK_ChiTietHoaDon_SoTien", "\"SoLuong\" > 0 AND \"DonGia\" >= 0");
                         });
                 });
 
@@ -975,21 +924,22 @@ namespace t.Migrations
 
                     b.Property<int>("Stage")
                         .HasColumnType("integer")
-                        .HasColumnName("GiaiDoanAnh");
+                        .HasColumnName("GiaiDoan");
 
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTaiLen");
+                        .HasColumnName("NgayTai");
 
                     b.Property<string>("UploadedById")
-                        .HasColumnType("text")
-                        .HasColumnName("NguoiTaiLenId");
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
+                        .HasColumnName("NguoiTaiId");
 
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
-                        .HasColumnName("DuongDanAnh");
+                        .HasColumnName("DuongDan");
 
                     b.HasKey("Id");
 
@@ -999,7 +949,7 @@ namespace t.Migrations
 
                     b.ToTable("AnhYeuCau", null, t =>
                         {
-                            t.HasCheckConstraint("CK_AnhYeuCau_GiaiDoan", "\"GiaiDoanAnh\" IN (0, 1)");
+                            t.HasCheckConstraint("CK_AnhYeuCau_GiaiDoan", "\"GiaiDoan\" IN (0, 1)");
                         });
                 });
 
@@ -1014,7 +964,7 @@ namespace t.Migrations
 
                     b.Property<decimal>("ActualCost")
                         .HasColumnType("decimal(18,0)")
-                        .HasColumnName("ChiPhiThucTe");
+                        .HasColumnName("ChiPhiSuaChua");
 
                     b.Property<string>("AiTriageJson")
                         .HasColumnType("text")
@@ -1025,7 +975,8 @@ namespace t.Migrations
                         .HasColumnName("CanHoId");
 
                     b.Property<string>("AssignedToId")
-                        .HasColumnType("text")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiPhuTrachId");
 
                     b.Property<int>("Category")
@@ -1045,8 +996,8 @@ namespace t.Migrations
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiTao");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -1054,23 +1005,19 @@ namespace t.Migrations
                         .HasColumnName("NgayXoa");
 
                     b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiXoa");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)")
-                        .HasColumnName("MoTaYeuCau");
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("MoTa");
 
                     b.Property<DateTime?>("DueAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("HanXuLy");
-
-                    b.Property<decimal>("EstimatedCost")
-                        .HasColumnType("decimal(18,0)")
-                        .HasColumnName("ChiPhiUocTinh");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
@@ -1079,7 +1026,7 @@ namespace t.Migrations
                     b.Property<string>("Location")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
-                        .HasColumnName("ViTriKhuVucChung");
+                        .HasColumnName("ViTri");
 
                     b.Property<int>("Priority")
                         .HasColumnType("integer")
@@ -1092,16 +1039,17 @@ namespace t.Migrations
                     b.Property<string>("RatingComment")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
-                        .HasColumnName("NhanXetCuDan");
+                        .HasColumnName("NhanXet");
 
                     b.Property<DateTime>("ReportedAt")
                         .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayBaoSuCo");
+                        .HasColumnName("NgayBao");
 
                     b.Property<string>("ReporterId")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("NguoiBaoCaoId");
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
+                        .HasColumnName("NguoiBaoId");
 
                     b.Property<string>("RequestNumber")
                         .IsRequired()
@@ -1120,17 +1068,17 @@ namespace t.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)")
-                        .HasColumnName("TieuDeYeuCau");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("TieuDe");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayCapNhat");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiCapNhat");
 
                     b.Property<uint>("Xmin")
@@ -1162,17 +1110,17 @@ namespace t.Migrations
 
                     b.ToTable("YeuCauBaoTri", null, t =>
                         {
-                            t.HasCheckConstraint("CK_YeuCauBaoTri_ChiPhi", "\"ChiPhiUocTinh\" >= 0 AND \"ChiPhiThucTe\" >= 0");
+                            t.HasCheckConstraint("CK_YeuCauBaoTri_ChiPhi", "\"ChiPhiSuaChua\" >= 0");
 
                             t.HasCheckConstraint("CK_YeuCauBaoTri_DanhGia", "\"DiemDanhGia\" IS NULL OR \"DiemDanhGia\" BETWEEN 1 AND 5");
 
-                            t.HasCheckConstraint("CK_YeuCauBaoTri_HanXuLy", "\"HanXuLy\" IS NULL OR \"HanXuLy\" >= \"NgayBaoSuCo\"");
+                            t.HasCheckConstraint("CK_YeuCauBaoTri_HanXuLy", "\"HanXuLy\" IS NULL OR \"HanXuLy\" >= \"NgayBao\"");
 
                             t.HasCheckConstraint("CK_YeuCauBaoTri_KetQua", "\"TrangThaiYeuCau\" NOT IN (3, 4) OR coalesce(btrim(\"KetQuaXuLy\"), '') <> ''");
 
                             t.HasCheckConstraint("CK_YeuCauBaoTri_LoaiSuCo", "\"LoaiSuCo\" IN (0, 1, 2, 3, 4, 5, 6, 99)");
 
-                            t.HasCheckConstraint("CK_YeuCauBaoTri_NoiXayRa", "(\"CanHoId\" IS NOT NULL AND \"ToaNhaId\" IS NULL) OR (\"CanHoId\" IS NULL AND \"ToaNhaId\" IS NOT NULL AND \"ViTriKhuVucChung\" IS NOT NULL)");
+                            t.HasCheckConstraint("CK_YeuCauBaoTri_NoiXayRa", "(\"CanHoId\" IS NOT NULL AND \"ToaNhaId\" IS NULL) OR (\"CanHoId\" IS NULL AND \"ToaNhaId\" IS NOT NULL AND \"ViTri\" IS NOT NULL)");
 
                             t.HasCheckConstraint("CK_YeuCauBaoTri_TrangThai", "\"TrangThaiYeuCau\" BETWEEN 0 AND 7");
                         });
@@ -1189,15 +1137,12 @@ namespace t.Migrations
 
                     b.Property<DateTime>("ChangedAt")
                         .HasColumnType("timestamp without time zone")
-                        .HasColumnName("ThoiDiemChuyen");
+                        .HasColumnName("ThoiDiem");
 
                     b.Property<string>("ChangedById")
-                        .HasColumnType("text")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiThucHienId");
-
-                    b.Property<int?>("FromStatus")
-                        .HasColumnType("integer")
-                        .HasColumnName("TrangThaiTruoc");
 
                     b.Property<int>("MaintenanceRequestId")
                         .HasColumnType("integer")
@@ -1206,11 +1151,11 @@ namespace t.Migrations
                     b.Property<string>("Note")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
-                        .HasColumnName("GhiChuChuyen");
+                        .HasColumnName("GhiChu");
 
                     b.Property<int>("ToStatus")
                         .HasColumnType("integer")
-                        .HasColumnName("TrangThaiSau");
+                        .HasColumnName("TrangThaiMoi");
 
                     b.HasKey("Id");
 
@@ -1232,15 +1177,15 @@ namespace t.Migrations
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,0)")
-                        .HasColumnName("SoTienThanhToan");
+                        .HasColumnName("SoTien");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiTao");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -1248,8 +1193,8 @@ namespace t.Migrations
                         .HasColumnName("NgayXoa");
 
                     b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiXoa");
 
                     b.Property<int>("InvoiceId")
@@ -1262,11 +1207,12 @@ namespace t.Migrations
 
                     b.Property<int>("Method")
                         .HasColumnType("integer")
-                        .HasColumnName("PhuongThucThanhToan");
+                        .HasColumnName("PhuongThuc");
 
                     b.Property<string>("Note")
-                        .HasColumnType("text")
-                        .HasColumnName("GhiChuThanhToan");
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("GhiChu");
 
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("timestamp without time zone")
@@ -1277,11 +1223,6 @@ namespace t.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)")
                         .HasColumnName("SoThanhToan");
-
-                    b.Property<string>("Provider")
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)")
-                        .HasColumnName("DonViThanhToan");
 
                     b.Property<decimal>("RefundedAmount")
                         .HasColumnType("decimal(18,0)")
@@ -1305,8 +1246,8 @@ namespace t.Migrations
                         .HasColumnName("NgayCapNhat");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiCapNhat");
 
                     b.HasKey("Id");
@@ -1322,11 +1263,13 @@ namespace t.Migrations
 
                     b.ToTable("ThanhToan", null, t =>
                         {
-                            t.HasCheckConstraint("CK_ThanhToan_HoanTra", "\"SoTienHoanTra\" >= 0 AND \"SoTienHoanTra\" <= \"SoTienThanhToan\"");
+                            t.HasCheckConstraint("CK_ThanhToan_HoanTra", "\"SoTienHoanTra\" >= 0 AND \"SoTienHoanTra\" <= \"SoTien\"");
 
-                            t.HasCheckConstraint("CK_ThanhToan_MaSo", "\"PhuongThucThanhToan\" BETWEEN 0 AND 4 AND \"TrangThaiThanhToan\" BETWEEN 0 AND 5");
+                            t.HasCheckConstraint("CK_ThanhToan_PhuongThuc", "\"PhuongThuc\" BETWEEN 0 AND 4");
 
-                            t.HasCheckConstraint("CK_ThanhToan_SoTien", "\"SoTienThanhToan\" > 0");
+                            t.HasCheckConstraint("CK_ThanhToan_SoTien", "\"SoTien\" > 0");
+
+                            t.HasCheckConstraint("CK_ThanhToan_TrangThai", "\"TrangThaiThanhToan\" BETWEEN 0 AND 5");
                         });
                 });
 
@@ -1341,8 +1284,8 @@ namespace t.Migrations
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
                         .HasColumnName("MaQuyen");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1350,8 +1293,8 @@ namespace t.Migrations
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiTao");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -1359,8 +1302,8 @@ namespace t.Migrations
                         .HasColumnName("NgayXoa");
 
                     b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiXoa");
 
                     b.Property<string>("DisplayName")
@@ -1377,15 +1320,15 @@ namespace t.Migrations
                         .IsRequired()
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)")
-                        .HasColumnName("PhanHeQuyen");
+                        .HasColumnName("PhanHe");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayCapNhat");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiCapNhat");
 
                     b.HasKey("Id");
@@ -1403,22 +1346,23 @@ namespace t.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("DuAnId");
+                        .HasColumnName("KhuId");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("DiaChiDuAn");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("DiaChi");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiTao");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -1426,8 +1370,8 @@ namespace t.Migrations
                         .HasColumnName("NgayXoa");
 
                     b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiXoa");
 
                     b.Property<bool>("IsDeleted")
@@ -1438,36 +1382,20 @@ namespace t.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
-                        .HasColumnName("TenDuAn");
-
-                    b.Property<int>("RegionId")
-                        .HasColumnType("integer")
-                        .HasColumnName("KhuVucId");
-
-                    b.Property<string>("ShortDescription")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("MoTaDuAn");
-
-                    b.Property<string>("ThumbnailUrl")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("AnhDaiDienDuAn");
+                        .HasColumnName("TenKhu");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayCapNhat");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiCapNhat");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RegionId");
-
-                    b.ToTable("DuAn", (string)null);
+                    b.ToTable("Khu", (string)null);
                 });
 
             modelBuilder.Entity("t.Models.Entities.RecurringCharge", b =>
@@ -1481,7 +1409,7 @@ namespace t.Migrations
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,0)")
-                        .HasColumnName("SoTienKhoanPhi");
+                        .HasColumnName("SoTien");
 
                     b.Property<int>("ApartmentId")
                         .HasColumnType("integer")
@@ -1492,8 +1420,8 @@ namespace t.Migrations
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiTao");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -1501,15 +1429,15 @@ namespace t.Migrations
                         .HasColumnName("NgayXoa");
 
                     b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiXoa");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)")
-                        .HasColumnName("TenKhoanPhi");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("TenPhi");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
@@ -1519,17 +1447,13 @@ namespace t.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
 
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("ThuTuKhoanPhi");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayCapNhat");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiCapNhat");
 
                     b.HasKey("Id");
@@ -1538,69 +1462,15 @@ namespace t.Migrations
 
                     b.ToTable("PhiDinhKy", null, t =>
                         {
-                            t.HasCheckConstraint("CK_PhiDinhKy_SoTien", "\"SoTienKhoanPhi\" >= 0");
+                            t.HasCheckConstraint("CK_PhiDinhKy_SoTien", "\"SoTien\" >= 0");
                         });
-                });
-
-            modelBuilder.Entity("t.Models.Entities.Region", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("KhuVucId");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTao");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiTao");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayXoa");
-
-                    b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiXoa");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text")
-                        .HasColumnName("AnhKhuVuc");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("DaXoa");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)")
-                        .HasColumnName("TenKhuVuc");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayCapNhat");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("NguoiCapNhat");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("KhuVuc", (string)null);
                 });
 
             modelBuilder.Entity("t.Models.Entities.RolePermission", b =>
                 {
                     b.Property<string>("RoleId")
-                        .HasColumnType("text")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("VaiTroId");
 
                     b.Property<int>("PermissionId")
@@ -1612,8 +1482,8 @@ namespace t.Migrations
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiTao");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -1621,8 +1491,8 @@ namespace t.Migrations
                         .HasColumnName("NgayCapNhat");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiCapNhat");
 
                     b.HasKey("RoleId", "PermissionId");
@@ -1640,8 +1510,8 @@ namespace t.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("TenMucUuTien");
 
                     b.Property<int>("ResolveMinutes")
@@ -1710,15 +1580,15 @@ namespace t.Migrations
 
                     b.Property<int>("BillingMonth")
                         .HasColumnType("integer")
-                        .HasColumnName("KyChiSo");
+                        .HasColumnName("Ky");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiTao");
 
                     b.Property<decimal>("CurrentReading")
@@ -1730,33 +1600,29 @@ namespace t.Migrations
                         .HasColumnName("NgayXoa");
 
                     b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiXoa");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
 
-                    b.Property<string>("Note")
-                        .HasColumnType("text")
-                        .HasColumnName("GhiChuChiSo");
-
                     b.Property<decimal>("PreviousReading")
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("ChiSoCu");
 
                     b.Property<DateTime?>("ReadAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayDocChiSo");
+                        .HasColumnType("date")
+                        .HasColumnName("NgayDoc");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayCapNhat");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiCapNhat");
 
                     b.Property<int>("UtilityTypeId")
@@ -1777,7 +1643,7 @@ namespace t.Migrations
                         {
                             t.HasCheckConstraint("CK_ChiSoDichVu_ChiSo", "\"ChiSoCu\" >= 0 AND \"ChiSoMoi\" >= \"ChiSoCu\"");
 
-                            t.HasCheckConstraint("CK_ChiSoDichVu_Ky", "\"KyChiSo\" % 100 BETWEEN 1 AND 12");
+                            t.HasCheckConstraint("CK_ChiSoDichVu_Ky", "\"Ky\" % 100 BETWEEN 1 AND 12");
                         });
                 });
 
@@ -1801,21 +1667,21 @@ namespace t.Migrations
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("CreatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiTao");
 
                     b.Property<decimal>("DefaultRate")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("DonGiaDichVu");
+                        .HasColumnType("numeric(18,0)")
+                        .HasColumnName("DonGia");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayXoa");
 
                     b.Property<string>("DeletedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiXoa");
 
                     b.Property<bool>("IsDeleted")
@@ -1824,8 +1690,8 @@ namespace t.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("TenLoaiDichVu");
 
                     b.Property<string>("Unit")
@@ -1839,8 +1705,8 @@ namespace t.Migrations
                         .HasColumnName("NgayCapNhat");
 
                     b.Property<string>("UpdatedBy")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiCapNhat");
 
                     b.HasKey("Id");
@@ -1850,7 +1716,7 @@ namespace t.Migrations
 
                     b.ToTable("LoaiDichVu", null, t =>
                         {
-                            t.HasCheckConstraint("CK_LoaiDichVu_DonGia", "\"DonGiaDichVu\" >= 0");
+                            t.HasCheckConstraint("CK_LoaiDichVu_DonGia", "\"DonGia\" >= 0");
                         });
                 });
 
@@ -2090,17 +1956,6 @@ namespace t.Migrations
                     b.Navigation("Invoice");
                 });
 
-            modelBuilder.Entity("t.Models.Entities.Project", b =>
-                {
-                    b.HasOne("t.Models.Entities.Region", "Region")
-                        .WithMany("Projects")
-                        .HasForeignKey("RegionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Region");
-                });
-
             modelBuilder.Entity("t.Models.Entities.RecurringCharge", b =>
                 {
                     b.HasOne("t.Models.Entities.Apartment", "Apartment")
@@ -2202,11 +2057,6 @@ namespace t.Migrations
             modelBuilder.Entity("t.Models.Entities.Project", b =>
                 {
                     b.Navigation("Buildings");
-                });
-
-            modelBuilder.Entity("t.Models.Entities.Region", b =>
-                {
-                    b.Navigation("Projects");
                 });
 
             modelBuilder.Entity("t.Models.Entities.UtilityReading", b =>

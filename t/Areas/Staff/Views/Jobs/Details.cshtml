@@ -107,10 +107,10 @@
             <div class="card-header"><h2>Lịch sử</h2></div>
             <div class="card-body">
                 <div class="mini-list">
-                    @foreach (var h in Model.History.OrderBy(h => h.ChangedAt))
+                    @foreach (var (h, from) in MaintenanceStatusChange.WithFrom(Model.History))
                     {
                         <div class="row">
-                            <span>@(h.FromStatus == null ? "Tạo yêu cầu" : h.FromStatus == h.ToStatus ? "Giao việc" : h.ToStatus.Vi())@(h.Note != null && h.FromStatus != null ? " · " + h.Note : "")</span>
+                            <span>@(from == null ? "Tạo yêu cầu" : from == h.ToStatus ? "Giao việc" : h.ToStatus.Vi())@(h.Note != null && from != null ? " · " + h.Note : "")</span>
                             <span class="muted no-wrap">@Local(h.ChangedAt)</span>
                         </div>
                     }

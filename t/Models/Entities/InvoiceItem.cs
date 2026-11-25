@@ -33,5 +33,4 @@ public class InvoiceItem : BaseEntity
     public decimal Quantity { get; set; } = 1m;
     public decimal UnitPrice { get; set; }
     public decimal LineTotal { get; set; }
-    public int SortOrder { get; set; }
 }

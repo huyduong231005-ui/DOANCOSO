@@ -1,11 +1,11 @@
 @model t.Areas.Admin.Models.BuildingEditVm
 @using t.Models.Entities
 @{
-    ViewData["Title"] = Model.Id == 0 ? "Thêm toà nhà" : Model.Name;
+    ViewData["Title"] = Model.Id == 0 ? "Thêm toà nhà" : "Toà " + Model.Code;
 }
 
 <section class="page-header">
-    <div><h1>@(Model.Id == 0 ? "Thêm toà nhà" : Model.Name)</h1></div>
+    <div><h1>@(Model.Id == 0 ? "Thêm toà nhà" : "Toà " + Model.Code)</h1></div>
     <div class="actions"><a class="btn btn-ghost" href="@(Model.Id == 0 ? Url.Action("Index", "Projects") : Url.Action("Details", new { id = Model.Id }))">Quay lại</a></div>
 </section>
 
@@ -18,16 +18,11 @@
         <div class="card-header"><h2>Thông tin toà nhà</h2></div>
         <div class="card-body">
             <div class="form-grid">
-                <div class="form-field span-8">
-                    <label asp-for="Name">Tên toà nhà</label>
-                    <input asp-for="Name" />
-                    <span class="err" asp-validation-for="Name"></span>
-                </div>
                 <div class="form-field span-4">
                     <label asp-for="Code">Mã toà</label>
                     <input asp-for="Code" placeholder="A, B, R1…" />
                     <span class="err" asp-validation-for="Code"></span>
-                    <span class="hint">Dùng làm tiền tố mã căn: A-12.05</span>
+                    <span class="hint">Tên toà là "Toà" + mã; mã cũng là tiền tố mã căn: A-12.05</span>
                 </div>
                 <div class="form-field span-4">
                     <label asp-for="FloorCount">Số tầng</label>
@@ -53,16 +48,6 @@
                     <span class="err" asp-validation-for="ManagerId"></span>
                 </div>
 
-                <div class="form-field span-12">
-                    <label asp-for="ThumbnailUrl">URL ảnh đại diện</label>
-                    <input asp-for="ThumbnailUrl" />
-                    <span class="err" asp-validation-for="ThumbnailUrl"></span>
-                </div>
-                <div class="form-field span-12">
-                    <label asp-for="Description">Mô tả</label>
-                    <textarea asp-for="Description" rows="3"></textarea>
-                    <span class="err" asp-validation-for="Description"></span>
-                </div>
                 <div class="form-field span-4">
                     <label asp-for="Status">Trạng thái</label>
                     <select asp-for="Status">

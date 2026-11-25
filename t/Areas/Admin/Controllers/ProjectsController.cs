@@ -26,7 +26,7 @@ public class ProjectsController : AdminBaseController
             .Select(p => new ProjectListVm
             {
                 Id = p.Id, Name = p.Name,
-                RegionName = p.Region.Name, Address = p.Address, ThumbnailUrl = p.ThumbnailUrl,
+                Address = p.Address,
                 BuildingCount = p.Buildings.Count(),
                 ApartmentCount = p.Buildings.SelectMany(b => b.Floors.SelectMany(f => f.Apartments)).Count(),
                 OccupiedCount = p.Buildings.SelectMany(b => b.Floors.SelectMany(f => f.Apartments)).AsQueryable().Count(Apartment.IsOccupied),
@@ -44,7 +44,7 @@ public class ProjectsController : AdminBaseController
     public async Task<IActionResult> Details(int id)
     {
         SetActiveNav("projects");
-        var project = await Db.Projects.Include(p => p.Region).FirstOrDefaultAsync(p => p.Id == id);
+        var project = await Db.Projects.FirstOrDefaultAsync(p => p.Id == id);
         if (project == null) return NotFound();
         SetBreadcrumb(("Khu & toà nhà", Url.Action(nameof(Index))), (project.Name, null));
 
@@ -54,11 +54,10 @@ public class ProjectsController : AdminBaseController
 
     private Task<List<BuildingListVm>> BuildingCardsAsync(IQueryable<Building> buildings) =>
         buildings
-            .OrderBy(b => b.Code).ThenBy(b => b.Name)
+            .OrderBy(b => b.Code)
             .Select(b => new BuildingListVm
             {
-                Id = b.Id, Name = b.Name, Code = b.Code,
-                ThumbnailUrl = b.ThumbnailUrl,
+                Id = b.Id, Name = "Toà " + b.Code, Code = b.Code,
                 FloorCount = b.Floors.Count(),
                 ManagerName = b.Manager != null ? b.Manager.FullName : null,
                 Status = b.Status,
@@ -78,7 +77,7 @@ public class ProjectsController : AdminBaseController
     {
         SetActiveNav("projects");
         SetBreadcrumb(("Khu & toà nhà", Url.Action(nameof(Index))), ("Thêm khu", null));
-        var vm = new ProjectEditVm { Regions = await Db.Regions.OrderBy(r => r.Name).ToListAsync() };
+        var vm = new ProjectEditVm();
         return View("Edit", vm);
     }
 
@@ -91,9 +90,7 @@ public class ProjectsController : AdminBaseController
 
         var vm = new ProjectEditVm
         {
-            Id = p.Id, Name = p.Name, RegionId = p.RegionId,
-            Address = p.Address, ThumbnailUrl = p.ThumbnailUrl, ShortDescription = p.ShortDescription,
-            Regions = await Db.Regions.OrderBy(r => r.Name).ToListAsync()
+            Id = p.Id, Name = p.Name, Address = p.Address
         };
         return View(vm);
     }
@@ -101,11 +98,7 @@ public class ProjectsController : AdminBaseController
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(ProjectEditVm input)
     {
-        if (!ModelState.IsValid)
-        {
-            input.Regions = await Db.Regions.OrderBy(r => r.Name).ToListAsync();
-            return View(input);
-        }
+        if (!ModelState.IsValid) return View(input);
 
         Project p;
         if (input.Id == 0)
@@ -118,9 +111,7 @@ public class ProjectsController : AdminBaseController
             if ((p = (await Db.Projects.FirstOrDefaultAsync(x => x.Id == input.Id))!) is null) return NotFound(); // Id gửi lên không tồn tại
         }
 
-        p.Name = input.Name; p.RegionId = input.RegionId;
-        p.Address = input.Address; p.ThumbnailUrl = input.ThumbnailUrl ?? string.Empty;
-        p.ShortDescription = input.ShortDescription ?? string.Empty;
+        p.Name = input.Name; p.Address = input.Address;
 
         await Db.SaveChangesAsync();
         TempData["Success"] = input.Id == 0 ? "Đã tạo khu." : "Đã cập nhật khu.";

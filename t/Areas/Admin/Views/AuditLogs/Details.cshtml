@@ -17,10 +17,8 @@
                 <dt>Đối tượng</dt><dd>@Model.EntityName</dd>
                 <dt>Khoá</dt><dd>@(Model.EntityKey ?? "—")</dd>
                 <dt>Hành động</dt><dd>@Model.Action.Vi()</dd>
-                <dt>Người dùng</dt><dd>@(Model.UserName ?? "—") <span class="text-muted">@(Model.UserId ?? "")</span></dd>
+                <dt>Người dùng</dt><dd>@(ViewBag.UserName ?? "—") <span class="text-muted">@(Model.UserId ?? "")</span></dd>
                 <dt>IP</dt><dd>@(Model.IpAddress ?? "—")</dd>
-                <dt>User-Agent</dt><dd class="text-muted" style="word-break:break-all;">@(Model.UserAgent ?? "—")</dd>
-                <dt>Cột đổi</dt><dd>@(Model.ChangedColumns ?? "—")</dd>
             </dl>
         </div>
     </div>

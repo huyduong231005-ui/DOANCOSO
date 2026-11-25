@@ -44,11 +44,11 @@
 <div class="card">
     <div class="table-wrap">
         <table class="data-table">
-            <thead><tr><th>Lúc</th><th>Hành động</th><th>Đối tượng</th><th>Khoá</th><th>Người dùng</th><th>IP</th><th>Cột đổi</th><th></th></tr></thead>
+            <thead><tr><th>Lúc</th><th>Hành động</th><th>Đối tượng</th><th>Khoá</th><th>Người dùng</th><th>IP</th><th></th></tr></thead>
             <tbody>
             @if (!Model.Any())
             {
-                <tr><td colspan="8"><div class="empty-state"><span class="material-symbols-outlined">history</span><h3>Không có log</h3></div></td></tr>
+                <tr><td colspan="7"><div class="empty-state"><span class="material-symbols-outlined">history</span><h3>Không có log</h3></div></td></tr>
             }
             else
             {
@@ -61,7 +61,6 @@
                         <td>@(l.EntityKey ?? "—")</td>
                         <td>@(l.UserName ?? "—")</td>
                         <td class="text-muted">@(l.IpAddress ?? "—")</td>
-                        <td class="text-muted" style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@(l.ChangedColumns ?? "—")</td>
                         <td class="actions-cell"><a class="btn btn-ghost btn-sm" asp-action="Details" asp-route-id="@l.Id"><span class="material-symbols-outlined">visibility</span></a></td>
                     </tr>
                 }

@@ -22,7 +22,6 @@ public class UtilityReading : BaseEntity
     public decimal EstimatedAmount => Math.Round(Consumption * UtilityType.DefaultRate, 0);
 
     public DateTime? ReadAt { get; set; }
-    public string? Note { get; set; }
 
     /// <summary>
     /// Các dòng hoá đơn lập từ chỉ số này. Chỉ số đã xuất hoá đơn khi có dòng thuộc hoá đơn chưa huỷ

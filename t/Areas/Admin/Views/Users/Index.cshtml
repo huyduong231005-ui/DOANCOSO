@@ -27,11 +27,11 @@
 <div class="card">
     <div class="table-wrap">
         <table class="data-table">
-            <thead><tr><th>Tài khoản</th><th>Vai trò</th><th>SĐT</th><th>Căn đang ở</th><th>Đăng nhập gần nhất</th><th>Trạng thái</th><th></th></tr></thead>
+            <thead><tr><th>Tài khoản</th><th>Vai trò</th><th>SĐT</th><th>Căn đang ở</th><th>Trạng thái</th><th></th></tr></thead>
             <tbody>
             @if (!Model.Any())
             {
-                <tr><td colspan="7"><div class="empty-state"><span class="material-symbols-outlined">group</span><h3>Không có người dùng</h3></div></td></tr>
+                <tr><td colspan="6"><div class="empty-state"><span class="material-symbols-outlined">group</span><h3>Không có người dùng</h3></div></td></tr>
             }
             else
             {
@@ -48,7 +48,6 @@
                         </td>
                         <td>@(u.Phone ?? "—")</td>
                         <td>@(u.ApartmentCodes ?? "—")</td>
-                        <td class="text-muted">@(u.LastLoginAt?.ToString("dd/MM/yyyy") ?? "—")</td>
                         <td>
                             @if (u.LockedOut) { <span class="pill pill-danger">Đã khoá</span> } else { <span class="pill pill-success">Hoạt động</span> }
                         </td>

@@ -40,15 +40,13 @@
                 <table class="data-table">
                     <thead><tr><th>Mô tả</th><th class="num">SL</th><th class="num">Đơn giá</th><th class="num">Thành tiền</th></tr></thead>
                     <tbody>
-                    @foreach (var item in Model.Items.OrderBy(x => x.SortOrder))
+                    @foreach (var item in Model.Items.OrderBy(x => x.Id))
                     {
                         <tr><td>@item.Description</td><td class="num">@item.Quantity</td><td class="num">@Money(item.UnitPrice)</td><td class="num">@Money(item.LineTotal)</td></tr>
                     }
                     </tbody>
                     <tfoot>
-                        <tr><td colspan="3" class="num">Tạm tính</td><td class="num">@Money(Model.SubTotal)</td></tr>
-                        @if (Model.Discount > 0) { <tr><td colspan="3" class="num">Giảm giá</td><td class="num">-@Money(Model.Discount)</td></tr> }
-                        @if (Model.Tax > 0) { <tr><td colspan="3" class="num">Thuế</td><td class="num">@Money(Model.Tax)</td></tr> }
+                        <tr><td colspan="3" class="num">Tiền phí</td><td class="num">@Money(Model.SubTotal)</td></tr>
                         @if (Model.LateFee > 0) { <tr><td colspan="3" class="num">Phí trễ</td><td class="num">@Money(Model.LateFee)</td></tr> }
                         <tr><td colspan="3" class="num"><strong>Tổng cộng</strong></td><td class="num"><strong>@Money(Model.Total)</strong></td></tr>
                         <tr><td colspan="3" class="num">Đã thanh toán</td><td class="num">@Money(Model.AmountPaid)</td></tr>

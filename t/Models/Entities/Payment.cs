@@ -29,12 +29,10 @@ public class Payment : BaseEntity
     public Invoice Invoice { get; set; } = null!;
 
     public decimal Amount { get; set; }
-    // Đơn vị tiền tệ lấy theo hoá đơn (Invoice.Currency), không lưu lại ở thanh toán.
     public PaymentMethod Method { get; set; } = PaymentMethod.BankTransfer;
     public PaymentStatus Status { get; set; } = PaymentStatus.Pending;
 
     public string? TransactionRef { get; set; }
-    public string? Provider { get; set; }
     public DateTime? PaidAt { get; set; }
     public DateTime? RefundedAt { get; set; }
     public decimal RefundedAmount { get; set; }

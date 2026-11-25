@@ -97,7 +97,7 @@ public class MaintenanceWorkflowTests
         await db.SaveChangesAsync();
         db.MaintenanceStatusChanges.Add(new MaintenanceStatusChange
         {
-            MaintenanceRequestId = r.Id, FromStatus = MaintenanceStatus.InProgress, ToStatus = MaintenanceStatus.OnHold,
+            MaintenanceRequestId = r.Id, ToStatus = MaintenanceStatus.OnHold,
             ChangedAt = DateTime.UtcNow.AddHours(-2), Note = "Chờ vật tư"
         });
         await db.SaveChangesAsync();

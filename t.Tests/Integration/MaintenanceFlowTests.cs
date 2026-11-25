@@ -58,7 +58,7 @@ public sealed class MaintenanceFlowTests : IClassFixture<TestWebApplicationFacto
         Assert.Equal(5, r.Rating);
         Assert.Equal(
             new MaintenanceStatus?[] { null, MaintenanceStatus.Open, MaintenanceStatus.Acknowledged, MaintenanceStatus.InProgress, MaintenanceStatus.Resolved },
-            r.History.OrderBy(h => h.ChangedAt).ThenBy(h => h.Id).Select(h => h.FromStatus));
+            MaintenanceStatusChange.WithFrom(r.History).Select(x => x.From));
     }
 
     [Fact]

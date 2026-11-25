@@ -38,7 +38,7 @@ public class ReportsController : AdminBaseController
         var rows = await query.Select(r => new MaintenanceKpiRow
         {
             Id = r.Id, Status = r.Status, Priority = r.Priority, Category = r.Category,
-            BuildingName = r.Apartment != null ? r.Apartment.Floor.Building.Name : r.CommonBuilding != null ? r.CommonBuilding.Name : null,
+            BuildingName = r.Apartment != null ? "Toà " + r.Apartment.Floor.Building.Code : r.CommonBuilding != null ? "Toà " + r.CommonBuilding.Code : null,
             TechnicianName = r.AssignedTo != null ? r.AssignedTo.FullName : null,
             // Mốc tiếp nhận, giải quyết lấy từ lịch sử trạng thái (không lưu cột riêng).
             ReportedAt = r.ReportedAt, AcknowledgedAt = r.History.Where(h => h.ToStatus == MaintenanceStatus.Acknowledged).Min(h => (DateTime?)h.ChangedAt),
@@ -46,13 +46,17 @@ public class ReportsController : AdminBaseController
             ResponseSlaMinutes = Db.SlaPolicies.Where(s => s.Priority == r.Priority).Select(s => s.ResponseMinutes).FirstOrDefault(),
             Rating = r.Rating,
             AutoAssigned = r.History.Any(h => h.ChangedById == null && h.Note != null && h.Note.Contains(MaintenanceDispatcher.AutoAssignNote)),
-            Reassigned = r.History.Any(h => h.FromStatus == h.ToStatus && h.ChangedById != null),
+            // Giao lại = dòng do người thực hiện mà trạng thái giữ nguyên so với dòng liền trước.
+            Reassigned = r.History.Any(h => h.ChangedById != null && r.History
+                .Where(p => p.ChangedAt < h.ChangedAt || (p.ChangedAt == h.ChangedAt && p.Id < h.Id))
+                .OrderByDescending(p => p.ChangedAt).ThenByDescending(p => p.Id)
+                .Select(p => (MaintenanceStatus?)p.ToStatus).FirstOrDefault() == h.ToStatus),
         }).ToListAsync();
 
         ViewBag.From = fromDate;
         ViewBag.To = toDate;
         ViewBag.BuildingId = buildingId;
-        ViewBag.Buildings = await Db.Buildings.AsNoTracking().OrderBy(b => b.Name).ToListAsync();
+        ViewBag.Buildings = await Db.Buildings.AsNoTracking().OrderBy(b => b.Code).ToListAsync();
         return View(MaintenanceKpi.Compute(rows, DateTime.UtcNow));
     }
 
@@ -65,7 +69,7 @@ public class ReportsController : AdminBaseController
             .Select(b => new OccupancyRow
             {
                 BuildingId = b.Id,
-                BuildingName = b.Name,
+                BuildingName = "Toà " + b.Code,
                 Total = b.Floors.SelectMany(f => f.Apartments).Count(),
                 Occupied = b.Floors.SelectMany(f => f.Apartments).AsQueryable().Count(Apartment.IsOccupied),
                 Vacant = b.Floors.SelectMany(f => f.Apartments).AsQueryable().Count(Apartment.IsVacant),
@@ -146,7 +150,7 @@ public class ReportsController : AdminBaseController
         // Top debtors
         var topDebtors = await Db.Invoices
             .Where(i => i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
-            .GroupBy(i => new { i.ApartmentId, i.Apartment.UnitCode, BuildingName = i.Apartment.Floor.Building.Name })
+            .GroupBy(i => new { i.ApartmentId, i.Apartment.UnitCode, BuildingName = "Toà " + i.Apartment.Floor.Building.Code })
             .Select(g => new TopDebtorRow
             {
                 ApartmentId = g.Key.ApartmentId,
@@ -210,7 +214,7 @@ public class ReportsController : AdminBaseController
                 InvoiceId = i.Id, InvoiceNumber = i.InvoiceNumber,
                 ApartmentId = i.ApartmentId,
                 UnitCode = i.Apartment.UnitCode,
-                BuildingName = i.Apartment.Floor.Building.Name,
+                BuildingName = "Toà " + i.Apartment.Floor.Building.Code,
                 RepresentativeName = i.Apartment.PrimaryResident?.User.FullName,
                 DueDate = i.DueDate, DaysLate = Math.Max(0, days),
                 Balance = i.Balance,

@@ -20,7 +20,7 @@ public class AuditLogsController : AdminBaseController
         var query = Db.AuditLogs.AsQueryable();
         if (!string.IsNullOrWhiteSpace(entity)) query = query.Where(l => l.EntityName == entity);
         if (action.HasValue) query = query.Where(l => l.Action == action.Value);
-        if (!string.IsNullOrWhiteSpace(user)) query = query.Where(l => l.UserName != null && l.UserName.Contains(user));
+        if (!string.IsNullOrWhiteSpace(user)) query = query.Where(l => Db.Users.Any(u => u.Id == l.UserId && u.FullName.Contains(user)));
         // Ngày lọc là ngày giờ Việt Nam, cột Timestamp lưu UTC; "đến ngày" tính trọn ngày đó.
         if (from.HasValue) { var f = t.Infrastructure.Time.VnTime.ToUtc(from.Value.Date); query = query.Where(l => l.Timestamp >= f); }
         if (to.HasValue) { var e = t.Infrastructure.Time.VnTime.ToUtc(to.Value.Date.AddDays(1)); query = query.Where(l => l.Timestamp < e); }
@@ -32,8 +32,9 @@ public class AuditLogsController : AdminBaseController
             .Select(l => new AuditListVm
             {
                 Id = l.Id, EntityName = l.EntityName, EntityKey = l.EntityKey,
-                Action = l.Action, UserName = l.UserName, Timestamp = l.Timestamp,
-                IpAddress = l.IpAddress, ChangedColumns = l.ChangedColumns
+                Action = l.Action, Timestamp = l.Timestamp, IpAddress = l.IpAddress,
+                // Tên người thao tác lấy từ NguoiDung, nhật ký chỉ lưu mã người dùng.
+                UserName = Db.Users.Where(u => u.Id == l.UserId).Select(u => u.FullName).FirstOrDefault()
             }).ToListAsync();
 
         ViewBag.Entity = entity; ViewBag.Action = action; ViewBag.User = user;
@@ -53,6 +54,7 @@ public class AuditLogsController : AdminBaseController
         var log = await Db.AuditLogs.FirstOrDefaultAsync(l => l.Id == id);
         if (log == null) return NotFound();
         SetBreadcrumb(("Audit log", Url.Action(nameof(Index))), ($"#{id}", null));
+        ViewBag.UserName = await Db.Users.Where(u => u.Id == log.UserId).Select(u => u.FullName).FirstOrDefaultAsync();
         return View(log);
     }
 }

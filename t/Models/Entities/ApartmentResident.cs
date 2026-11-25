@@ -37,7 +37,6 @@ public class ApartmentResident : BaseEntity
     /// </summary>
     public DateTime? ConfirmedAt { get; set; }
 
-    public string? Note { get; set; }
 
     public bool IsActive => MoveOutDate == null;
 }

@@ -22,12 +22,12 @@
         _ => "pill pill-neutral"
     };
     // Cư dân không thấy tên người thao tác nội bộ, chỉ thấy bước tiến độ.
-    string StepText(MaintenanceStatusChange h) => h.FromStatus == null ? "Đã gửi yêu cầu"
-        : h.FromStatus == h.ToStatus ? "Đã phân công kỹ thuật viên"
+    string StepText(MaintenanceStatusChange h, MaintenanceStatus? from) => from == null ? "Đã gửi yêu cầu"
+        : from == h.ToStatus ? "Đã phân công kỹ thuật viên"
         : h.ToStatus switch
         {
             MaintenanceStatus.Acknowledged => "Ban quản lý đã tiếp nhận",
-            MaintenanceStatus.InProgress => h.FromStatus == MaintenanceStatus.Resolved ? "Mở lại: chưa khắc phục" : "Kỹ thuật viên đang xử lý",
+            MaintenanceStatus.InProgress => from == MaintenanceStatus.Resolved ? "Mở lại: chưa khắc phục" : "Kỹ thuật viên đang xử lý",
             MaintenanceStatus.OnHold => "Tạm dừng",
             MaintenanceStatus.Resolved => "Đã sửa xong, chờ bạn xác nhận",
             MaintenanceStatus.Closed => "Đã đóng",
@@ -101,13 +101,13 @@
         <div class="card">
             <div class="card-header"><h2>Tiến độ</h2></div>
             <div class="card-body vstack">
-                @foreach (var h in Model.History.OrderBy(h => h.ChangedAt))
+                @foreach (var (h, from) in MaintenanceStatusChange.WithFrom(Model.History))
                 {
                     <div class="hstack">
                         <span class="material-symbols-outlined" style="color:var(--admin-muted);">radio_button_checked</span>
                         <div>
-                            <strong>@StepText(h)</strong>
-                            <div class="text-muted">@Local(h.ChangedAt)@(h.Note != null && h.FromStatus != null && h.FromStatus != h.ToStatus ? " · " + h.Note : "")</div>
+                            <strong>@StepText(h, from)</strong>
+                            <div class="text-muted">@Local(h.ChangedAt)@(h.Note != null && from != null && from != h.ToStatus ? " · " + h.Note : "")</div>
                         </div>
                     </div>
                 }

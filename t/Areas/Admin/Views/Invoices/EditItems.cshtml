@@ -45,21 +45,9 @@
         <div class="card-header"><h2>Tổng cộng</h2></div>
         <div class="card-body">
             <div class="form-grid">
-                <div class="form-field span-4">
-                    <label>Tạm tính</label>
-                    <input id="subTotal" readonly />
-                </div>
-                <div class="form-field span-4">
-                    <label asp-for="Discount">Giảm giá</label>
-                    <input asp-for="Discount" type="number" step="1000" />
-                </div>
-                <div class="form-field span-4">
-                    <label asp-for="Tax">Thuế</label>
-                    <input asp-for="Tax" type="number" step="1000" />
-                </div>
                 <div class="form-field span-12">
-                    <label>Tổng cộng (Tạm tính - Giảm + Thuế + Phí trễ)</label>
-                    <input id="grandTotal" readonly style="font-weight:700;color:var(--admin-primary);" />
+                    <label>Tiền phí (tổng các dòng, chưa gồm phí trễ hạn)</label>
+                    <input id="subTotal" readonly style="font-weight:700;color:var(--admin-primary);" />
                 </div>
                 <div class="form-field span-12">
                     <label asp-for="Note">Ghi chú</label>
@@ -79,8 +67,6 @@
     <script>
         (function () {
             const tbody = document.querySelector('#linesTable tbody');
-            const discount = document.querySelector('input[name="Discount"]');
-            const tax = document.querySelector('input[name="Tax"]');
             function recompute() {
                 let subtotal = 0;
                 tbody.querySelectorAll('.line-row').forEach(row => {
@@ -91,9 +77,6 @@
                     subtotal += lt;
                 });
                 document.getElementById('subTotal').value = subtotal.toLocaleString('vi-VN');
-                const d = parseFloat(discount.value) || 0;
-                const t = parseFloat(tax.value) || 0;
-                document.getElementById('grandTotal').value = (subtotal - d + t).toLocaleString('vi-VN');
             }
             function bindRow(row) {
                 row.querySelectorAll('input').forEach(i => i.addEventListener('input', recompute));
@@ -107,8 +90,6 @@
                 });
             }
             tbody.querySelectorAll('.line-row').forEach(bindRow);
-            discount.addEventListener('input', recompute);
-            tax.addEventListener('input', recompute);
             document.getElementById('addLineBtn').addEventListener('click', () => {
                 const idx = tbody.querySelectorAll('.line-row').length;
                 const tr = document.createElement('tr');

@@ -125,7 +125,7 @@
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="Id" value="@Model.Id" />
                         <label class="full">Nguyên nhân và cách xử lý<textarea name="ResolutionNote" rows="3" required></textarea></label>
-                        <label>Chi phí thực tế (VND)<input type="number" name="ActualCost" value="@Model.EstimatedCost" min="0" step="10000" /></label>
+                        <label>Chi phí thực tế (VND)<input type="number" name="ActualCost" value="0" min="0" step="10000" /></label>
                         @if (Model.ApartmentId != null)
                         {
                             <label class="check"><input type="checkbox" name="ChargeToTenant" value="true" /> Lập hoá đơn phát sinh cho căn (lỗi thuộc phần riêng của căn)</label>
@@ -170,13 +170,13 @@
             <summary class="card-header"><h2>Lịch sử xử lý</h2><span class="text-muted">@Model.History.Count bước</span></summary>
             <div class="card-body">
                 <div class="mini-list">
-                    @foreach (var h in Model.History.OrderBy(h => h.ChangedAt))
+                    @foreach (var (h, from) in MaintenanceStatusChange.WithFrom(Model.History))
                     {
                         <div class="row">
                             <span>
-                                <b>@(h.FromStatus == null ? "Tạo yêu cầu" : h.FromStatus == h.ToStatus ? "Giao việc" : h.FromStatus.Value.Vi() + " → " + h.ToStatus.Vi())</b>
+                                <b>@(from == null ? "Tạo yêu cầu" : from == h.ToStatus ? "Giao việc" : from.Value.Vi() + " → " + h.ToStatus.Vi())</b>
                                 @if (h.Note != null && h.Note != "Tạo yêu cầu") { <span class="muted"> · @h.Note</span> }
-                                <br /><span class="muted">@(h.ChangedBy?.FullName ?? (h.FromStatus == null ? Model.Reporter?.FullName : "Hệ thống điều phối"))</span>
+                                <br /><span class="muted">@(h.ChangedBy?.FullName ?? (from == null ? Model.Reporter?.FullName : "Hệ thống điều phối"))</span>
                             </span>
                             <span class="muted no-wrap">@Local(h.ChangedAt)</span>
                         </div>
@@ -207,7 +207,6 @@
                     @if (Model.AcknowledgedAt.HasValue) { <dt>Tiếp nhận</dt><dd>@Local(Model.AcknowledgedAt.Value)</dd> }
                     @if (Model.ResolvedAt.HasValue) { <dt>Hoàn tất</dt><dd>@Local(Model.ResolvedAt.Value)</dd> }
                     @if (Model.ClosedAt.HasValue) { <dt>Đóng</dt><dd>@Local(Model.ClosedAt.Value)</dd> }
-                    <dt>Chi phí ước</dt><dd>@Money(Model.EstimatedCost) đ</dd>
                 </dl>
             </div>
         </div>

@@ -57,7 +57,7 @@ public class ApartmentsController : AdminBaseController
             {
                 Id = a.Id,
                 UnitCode = a.UnitCode,
-                BuildingName = a.Floor.Building.Name,
+                BuildingName = "Toà " + a.Floor.Building.Code,
                 ProjectName = a.Floor.Building.Project != null ? a.Floor.Building.Project.Name : "",
                 FloorNumber = a.Floor.Number,
                 Area = a.Area,
@@ -96,7 +96,7 @@ public class ApartmentsController : AdminBaseController
             .Select(a => new
             {
                 title = a.UnitCode,
-                subtitle = a.Floor.Building.Name + " · Tầng " + a.Floor.Number,
+                subtitle = "Toà " + a.Floor.Building.Code + " · Tầng " + a.Floor.Number,
                 url = Url.Action(nameof(Details), new { id = a.Id }) ?? "#",
                 icon = "apartment"
             })
@@ -134,7 +134,7 @@ public class ApartmentsController : AdminBaseController
             .Include(a => a.Floor)
             .Include(a => a.Residents.OrderBy(r => r.MoveOutDate != null).ThenByDescending(r => r.IsPrimary).ThenBy(r => r.Role))
                 .ThenInclude(r => r.User)
-            .Include(a => a.RecurringCharges.OrderBy(c => c.SortOrder))
+            .Include(a => a.RecurringCharges.OrderBy(c => c.Id))
             .AsSplitQuery()
             .FirstOrDefaultAsync(a => a.Id == id);
         if (apt == null) return null;
@@ -162,7 +162,7 @@ public class ApartmentsController : AdminBaseController
     {
         SetActiveNav("apartments");
         SetBreadcrumb(("Căn hộ", Url.Action(nameof(Index))), ("Thêm căn", null));
-        var vm = new ApartmentEditVm { BuildingId = buildingId ?? 0, FloorId = floorId ?? 0, Area = 70, Bedrooms = 2, Bathrooms = 2 };
+        var vm = new ApartmentEditVm { BuildingId = buildingId ?? 0, FloorId = floorId ?? 0, Area = 70, Bedrooms = 2 };
         await PopulateLookupsAsync(vm);
         return View("Edit", vm);
     }
@@ -177,8 +177,7 @@ public class ApartmentsController : AdminBaseController
         var vm = new ApartmentEditVm
         {
             Id = apt.Id, UnitCode = apt.UnitCode, BuildingId = apt.Floor.BuildingId, FloorId = apt.FloorId,
-            Area = apt.Area, Bedrooms = apt.Bedrooms, Bathrooms = apt.Bathrooms,
-            HouseDirection = apt.HouseDirection, Condition = apt.Condition, Note = apt.Note
+            Area = apt.Area, Bedrooms = apt.Bedrooms, Condition = apt.Condition
         };
         await PopulateLookupsAsync(vm);
         return View(vm);
@@ -212,8 +211,7 @@ public class ApartmentsController : AdminBaseController
         }
 
         apt.UnitCode = input.UnitCode; apt.Floor.BuildingId = input.BuildingId; apt.FloorId = input.FloorId;
-        apt.Area = input.Area; apt.Bedrooms = input.Bedrooms; apt.Bathrooms = input.Bathrooms;
-        apt.HouseDirection = input.HouseDirection; apt.Condition = input.Condition; apt.Note = input.Note;
+        apt.Area = input.Area; apt.Bedrooms = input.Bedrooms; apt.Condition = input.Condition;
 
         await Db.SaveChangesAsync();
         TempData["Success"] = input.Id == 0 ? $"Đã thêm căn {apt.UnitCode}." : $"Đã cập nhật căn {apt.UnitCode}.";
@@ -315,8 +313,7 @@ public class ApartmentsController : AdminBaseController
             User = person,
             Role = input.Role,
             IsPrimary = input.IsPrimary || active.Count == 0,
-            MoveInDate = input.MoveInDate,
-            Note = input.Note
+            MoveInDate = input.MoveInDate
         };
         if (resident.IsPrimary) active.ForEach(r => r.IsPrimary = false);
         Db.ApartmentResidents.Add(resident);
@@ -398,12 +395,10 @@ public class ApartmentsController : AdminBaseController
             TempData["Danger"] = "Khoản phí không hợp lệ.";
             return RedirectToAction(nameof(Details), new { id = input.ApartmentId });
         }
-        var nextSort = await Db.RecurringCharges.Where(c => c.ApartmentId == input.ApartmentId)
-            .Select(c => (int?)c.SortOrder).MaxAsync() ?? -1;
         Db.RecurringCharges.Add(new RecurringCharge
         {
             ApartmentId = input.ApartmentId, Description = input.Description.Trim(),
-            Amount = input.Amount, SortOrder = nextSort + 1, IsActive = true
+            Amount = input.Amount, IsActive = true
         });
         await Db.SaveChangesAsync();
         TempData["Success"] = "Đã thêm khoản phí cố định.";

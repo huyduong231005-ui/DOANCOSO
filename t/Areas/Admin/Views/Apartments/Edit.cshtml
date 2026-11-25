@@ -64,19 +64,6 @@
                     <input asp-for="Bedrooms" type="number" min="0" max="20" />
                     <span class="err" asp-validation-for="Bedrooms"></span>
                 </div>
-                <div class="form-field span-3">
-                    <label asp-for="Bathrooms">Phòng tắm</label>
-                    <input asp-for="Bathrooms" type="number" min="0" max="20" />
-                    <span class="err" asp-validation-for="Bathrooms"></span>
-                </div>
-                <div class="form-field span-3">
-                    <label asp-for="HouseDirection">Hướng</label>
-                    <select asp-for="HouseDirection">
-                        <option value="">—</option>
-                        @foreach (var d in Enum.GetValues<HouseDirection>()) { <option value="@d">@d.Vi()</option> }
-                    </select>
-                    <span class="err" asp-validation-for="HouseDirection"></span>
-                </div>
                 <div class="form-field span-4">
                     <label asp-for="Condition">Tình trạng</label>
                     <select asp-for="Condition">
@@ -84,11 +71,6 @@
                     </select>
                     <span class="err" asp-validation-for="Condition"></span>
                     <span class="hint">"Đang ở" / "Để trống" tự suy ra từ danh sách cư dân</span>
-                </div>
-                <div class="form-field span-8">
-                    <label asp-for="Note">Ghi chú</label>
-                    <textarea asp-for="Note" rows="2" placeholder="Hiện trạng bàn giao, lưu ý kỹ thuật…"></textarea>
-                    <span class="err" asp-validation-for="Note"></span>
                 </div>
             </div>
         </div>

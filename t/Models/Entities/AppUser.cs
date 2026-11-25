@@ -6,7 +6,6 @@ namespace t.Models.Entities;
 public class AppUser : IdentityUser, IAuditable, ISoftDeletable
 {
     public string FullName { get; set; } = string.Empty;
-    public string? AvatarUrl { get; set; }
     // Số điện thoại dùng PhoneNumber của Identity (cột SoDienThoai), không có cột thứ hai.
     /// <summary>Số giấy tờ tuỳ thân khai báo cư trú (thông tin của người, nên nằm ở NguoiDung).</summary>
     public string? IdNumber { get; set; }
@@ -23,7 +22,6 @@ public class AppUser : IdentityUser, IAuditable, ISoftDeletable
     public DateTime? DeletedAt { get; set; }
     public string? DeletedBy { get; set; }
 
-    public DateTime? LastLoginAt { get; set; }
 
     public ICollection<Building> ManagedBuildings { get; set; } = new List<Building>();
     public ICollection<ApartmentResident> Residencies { get; set; } = new List<ApartmentResident>();

@@ -66,7 +66,7 @@ public class DashboardController : AdminBaseController
         vm.TopBuildings = await Db.Buildings
             .Select(b => new TopBuildingRow
             {
-                Id = b.Id, Name = b.Name,
+                Id = b.Id, Name = "Toà " + b.Code,
                 Units = b.Floors.SelectMany(f => f.Apartments).Count(),
                 Occupied = b.Floors.SelectMany(f => f.Apartments).AsQueryable().Count(Apartment.IsOccupied),
                 MonthlyRevenue = b.Floors.SelectMany(f => f.Apartments).SelectMany(a => a.Invoices)

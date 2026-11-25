@@ -2,18 +2,6 @@ using t.Models.Entities.Common;
 
 namespace t.Models.Entities;
 
-public enum HouseDirection
-{
-    East = 0,
-    West = 1,
-    South = 2,
-    North = 3,
-    NorthEast = 4,
-    SouthEast = 5,
-    NorthWest = 6,
-    SouthWest = 7
-}
-
 // Tình trạng của căn do Ban quản lý đặt (cột TinhTrangCanHo).
 public enum ApartmentCondition
 {
@@ -39,12 +27,9 @@ public enum ApartmentOccupancy
 public class Apartment : BaseEntity
 {
     public string UnitCode { get; set; } = string.Empty;
-    public double Area { get; set; }
+    public decimal Area { get; set; }
     public int Bedrooms { get; set; }
-    public int Bathrooms { get; set; }
-    public HouseDirection? HouseDirection { get; set; }
     public ApartmentCondition Condition { get; set; } = ApartmentCondition.HandedOver;
-    public string? Note { get; set; }
 
     public int FloorId { get; set; }
     public Floor Floor { get; set; } = null!;

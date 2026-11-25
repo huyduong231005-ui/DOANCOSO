@@ -112,18 +112,18 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
     public async Task CreateBuilding_GeneratesFloorsAndUnitCodes()
     {
         using var client = await AdminClientAsync();
-        int projectId, regionId;
+        int projectId;
         using (var scope = _factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var p = await db.Projects.OrderBy(x => x.Id).FirstAsync();
-            projectId = p.Id; regionId = p.RegionId;
+            projectId = p.Id;
         }
         var token = await TokenAsync(client, $"/Admin/Buildings/Create?projectId={projectId}");
 
         var res = await client.PostAsync("/Admin/Buildings/Edit", Form(token, new()
         {
-            ["Name"] = "Toà Test", ["Code"] = "T9", ["ProjectId"] = projectId.ToString(), ["RegionId"] = regionId.ToString(),
+            ["Code"] = "T9", ["ProjectId"] = projectId.ToString(),
             ["Address"] = "x", ["FloorCount"] = "3", ["UnitsPerFloor"] = "4", ["DefaultUnitArea"] = "55",
             ["Status"] = "0", ["DefaultBillingDay"] = "1", ["DefaultLateFeeAfterDays"] = "7", ["DefaultLateFeePercent"] = "2",
             ["ManagementFeePerM2"] = "15000"
@@ -186,11 +186,47 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
     [InlineData("/Admin/Reports/Arrears")]
     [InlineData("/Admin/Reports/Maintenance")]
     [InlineData("/Admin/Maintenance?overdue=true")]
+    [InlineData("/Admin/Maintenance")]
+    [InlineData("/Admin/Invoices")]
+    [InlineData("/Admin/Utilities")]
+    [InlineData("/Admin/Users")]
+    [InlineData("/Admin/AuditLogs")]
+    [InlineData("/Admin/AuditLogs?user=Quản")]
+    [InlineData("/Admin/Buildings/Suggest?q=A")]
+    [InlineData("/")]
     public async Task AdminPages_Render(string path)
     {
         using var client = await AdminClientAsync();
         var res = await client.GetAsync(path);
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+    }
+
+    // Các trang chi tiết dùng cột đã gọn (tên toà suy ra từ mã, lịch sử không lưu trạng thái trước, tiền tự tính).
+    [Fact]
+    public async Task DetailAndEditPages_Render()
+    {
+        int projectId, buildingId, invoiceId, requestId;
+        long auditId;
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            projectId = await db.Projects.Select(x => x.Id).FirstAsync();
+            buildingId = await db.Buildings.Select(x => x.Id).FirstAsync();
+            invoiceId = await db.Invoices.Where(i => i.Status == InvoiceStatus.Issued).Select(x => x.Id).FirstAsync();
+            requestId = await db.MaintenanceRequests.Where(r => r.History.Count > 1).Select(x => x.Id).FirstAsync();
+            auditId = await db.AuditLogs.Select(x => x.Id).FirstAsync();
+        }
+        using var client = await AdminClientAsync();
+        foreach (var path in new[]
+                 {
+                     $"/Admin/Projects/Edit/{projectId}", $"/Admin/Buildings/Edit/{buildingId}",
+                     $"/Admin/Invoices/Details/{invoiceId}", $"/Admin/Invoices/EditItems/{invoiceId}",
+                     $"/Admin/Maintenance/Details/{requestId}", $"/Admin/AuditLogs/Details/{auditId}"
+                 })
+        {
+            var res = await client.GetAsync(path);
+            Assert.True(res.StatusCode == HttpStatusCode.OK, path + " → " + res.StatusCode);
+        }
     }
 
     [Fact]
@@ -223,13 +259,13 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
     // ── helpers ──
 
     private static async Task<(Apartment Apartment, UtilityType Water)> NewApartmentAsync(
-        AppDbContext db, double area, decimal feePerM2, ApartmentCondition condition = ApartmentCondition.HandedOver)
+        AppDbContext db, decimal area, decimal feePerM2, ApartmentCondition condition = ApartmentCondition.HandedOver)
     {
         var code = "X" + Guid.NewGuid().ToString("N")[..6];
         var project = await db.Projects.FirstAsync();
         var b = new Building
         {
-            Name = "Toà " + code, Code = code, ProjectId = project.Id,
+            Code = code, ProjectId = project.Id,
             DefaultBillingDay = 1, ManagementFeePerM2 = feePerM2
         };
         db.Buildings.Add(b);

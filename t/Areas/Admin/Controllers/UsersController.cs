@@ -46,7 +46,7 @@ public class UsersController : AdminBaseController
                 Id = u.Id, Email = u.Email!, FullName = u.FullName,
                 Phone = u.PhoneNumber,
                 LockedOut = u.LockoutEnd != null && u.LockoutEnd > DateTimeOffset.UtcNow,
-                CreatedAt = u.CreatedAt, LastLoginAt = u.LastLoginAt,
+                CreatedAt = u.CreatedAt,
                 Roles = roles.ToList(), ApartmentCodes = units.Count == 0 ? null : string.Join(", ", units)
             });
         }

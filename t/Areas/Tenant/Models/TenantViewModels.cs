@@ -39,7 +39,7 @@ public class TenantMaintenanceRow
 
 public class CreateMaintenanceVm
 {
-    [Required, StringLength(250)] public string Title { get; set; } = string.Empty;
+    [Required, StringLength(200)] public string Title { get; set; } = string.Empty;
     [Required] public string Description { get; set; } = string.Empty;
     public MaintenanceCategory Category { get; set; } = MaintenanceCategory.Other;
     public MaintenancePriority Priority { get; set; } = MaintenancePriority.Medium;
@@ -64,5 +64,4 @@ public class TenantProfileVm
     [Required] public string FullName { get; set; } = string.Empty;
     [EmailAddress] public string Email { get; set; } = string.Empty;
     public string? Phone { get; set; }
-    public string? AvatarUrl { get; set; }
 }

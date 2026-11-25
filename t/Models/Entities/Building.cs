@@ -6,17 +6,15 @@ public enum BuildingStatus { Active = 0, UnderMaintenance = 1, Closed = 2 }
 
 public class Building : BaseEntity
 {
-    public string Name { get; set; } = string.Empty;
+    // Tên toà không lưu: luôn là "Toà " + mã toà.
+    public string Name => "Toà " + Code;
     public string Code { get; set; } = string.Empty;
 
-    // Khu vực của toà là khu vực của dự án chứa nó (Project.Region), không lưu lại ở toà.
     public int ProjectId { get; set; }
     public Project Project { get; set; } = null!;
 
     // Địa chỉ của toà là địa chỉ của dự án (Project.Address), không lưu lại ở toà.
     // Số tầng không lưu ở toà: là số dòng Tang của toà (Floors.Count).
-    public string? ThumbnailUrl { get; set; }
-    public string? Description { get; set; }
 
     public string? ManagerId { get; set; }
     public AppUser? Manager { get; set; }

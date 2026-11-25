@@ -35,7 +35,7 @@ public class ResidentsController : AdminBaseController
                 Id = r.Id, ApartmentId = r.ApartmentId,
                 FullName = r.User.FullName, Phone = r.User.PhoneNumber, Email = r.User.Email,
                 Role = r.Role, IsPrimary = r.IsPrimary, HasAccount = r.UserId != null,
-                UnitCode = r.Apartment.UnitCode, BuildingName = r.Apartment.Floor.Building.Name,
+                UnitCode = r.Apartment.UnitCode, BuildingName = "Toà " + r.Apartment.Floor.Building.Code,
                 MoveInDate = r.MoveInDate
             })
             .ToListAsync();

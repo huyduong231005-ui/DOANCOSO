@@ -52,7 +52,6 @@ public class InvoiceGenerator
         var dueDate = forDate.Date.AddDays(PaymentTermDays);
 
         var items = new List<InvoiceItem>();
-        var sort = 0;
         var area = (decimal)apt.Area;
         if (apt.Floor.Building.ManagementFeePerM2 > 0 && area > 0)
         {
@@ -61,7 +60,7 @@ public class InvoiceGenerator
                 Kind = InvoiceItemKind.ManagementFee,
                 Description = $"Phí quản lý {apt.UnitCode} – {forDate:MM/yyyy} ({area:0.##} m²)",
                 Quantity = area, UnitPrice = apt.Floor.Building.ManagementFeePerM2,
-                LineTotal = Math.Round(area * apt.Floor.Building.ManagementFeePerM2, 0), SortOrder = sort++
+                LineTotal = Math.Round(area * apt.Floor.Building.ManagementFeePerM2, 0)
             });
         }
 
@@ -73,17 +72,17 @@ public class InvoiceGenerator
                 Kind = InvoiceItemKind.Utility, UtilityReading = r,
                 Description = $"{r.UtilityType.Name} ({r.UtilityType.Unit}) – {r.Consumption:0.##}",
                 Quantity = r.Consumption, UnitPrice = r.UtilityType.DefaultRate,
-                LineTotal = Math.Round(r.Consumption * r.UtilityType.DefaultRate, 0), SortOrder = sort++
+                LineTotal = Math.Round(r.Consumption * r.UtilityType.DefaultRate, 0)
             });
         }
 
-        foreach (var c in apt.RecurringCharges.Where(c => c.IsActive).OrderBy(c => c.SortOrder))
+        foreach (var c in apt.RecurringCharges.Where(c => c.IsActive).OrderBy(c => c.Id))
         {
             items.Add(new InvoiceItem
             {
                 Kind = InvoiceItemKind.Recurring, RecurringCharge = c,
                 Description = c.Description,
-                Quantity = 1m, UnitPrice = c.Amount, LineTotal = c.Amount, SortOrder = sort++
+                Quantity = 1m, UnitPrice = c.Amount, LineTotal = c.Amount
             });
         }
 
@@ -150,13 +149,12 @@ public class InvoiceGenerator
 
         var now = VnTime.Now;
         var items = new List<InvoiceItem>();
-        var sort = 0;
         foreach (var (desc, qty, price) in lines)
         {
             var lineTotal = Math.Round(qty * price, 0);
             items.Add(new InvoiceItem
             {
-                Description = desc, Quantity = qty, UnitPrice = price, LineTotal = lineTotal, SortOrder = sort++
+                Description = desc, Quantity = qty, UnitPrice = price, LineTotal = lineTotal
             });
         }
         var subTotal = items.Sum(x => x.LineTotal);

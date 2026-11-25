@@ -34,8 +34,6 @@ public class Invoice : BaseEntity
     public DateTime DueDate { get; set; }
 
     public decimal SubTotal { get; set; }
-    public decimal Discount { get; set; }
-    public decimal Tax { get; set; }
     public decimal LateFee { get; set; }
     public decimal Total { get; set; }
     public decimal AmountPaid { get; set; }

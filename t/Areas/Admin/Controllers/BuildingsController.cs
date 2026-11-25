@@ -29,12 +29,12 @@ public class BuildingsController : AdminBaseController
         if (string.IsNullOrWhiteSpace(q)) return Json(Array.Empty<object>());
         q = q.Trim();
         var rows = await Db.Buildings
-            .Where(b => b.Name.Contains(q) || b.Code.Contains(q))
-            .OrderBy(b => b.Name)
+            .Where(b => b.Code.Contains(q))
+            .OrderBy(b => b.Code)
             .Take(limit)
             .Select(b => new
             {
-                title = b.Code + " · " + b.Name,
+                title = "Toà " + b.Code,
                 subtitle = b.Project != null ? b.Project.Name : "Chưa thuộc khu",
                 url = Url.Action(nameof(Details), new { id = b.Id }) ?? "#",
                 icon = "domain"
@@ -119,10 +119,9 @@ public class BuildingsController : AdminBaseController
 
         var vm = new BuildingEditVm
         {
-            Id = b.Id, Name = b.Name, Code = b.Code,
+            Id = b.Id, Code = b.Code,
             ProjectId = b.ProjectId,
             FloorCount = b.Floors.Count,
-            ThumbnailUrl = b.ThumbnailUrl, Description = b.Description,
             ManagerId = b.ManagerId, Status = b.Status,
             DefaultBillingDay = b.DefaultBillingDay,
             DefaultLateFeeAfterDays = b.DefaultLateFeeAfterDays,
@@ -154,9 +153,8 @@ public class BuildingsController : AdminBaseController
             if ((b = (await Db.Buildings.FirstOrDefaultAsync(x => x.Id == input.Id))!) is null) return NotFound(); // Id gửi lên không tồn tại
         }
 
-        b.Name = input.Name; b.Code = input.Code?.Trim() ?? string.Empty;
+        b.Code = input.Code?.Trim() ?? string.Empty;
         b.ProjectId = input.ProjectId!.Value; // [Required] đã kiểm tra
-        b.ThumbnailUrl = input.ThumbnailUrl; b.Description = input.Description;
         b.ManagerId = string.IsNullOrEmpty(input.ManagerId) ? null : input.ManagerId;
         b.Status = input.Status;
         b.DefaultBillingDay = input.DefaultBillingDay;
@@ -181,7 +179,7 @@ public class BuildingsController : AdminBaseController
                     {
                         FloorId = f.Id,
                         UnitCode = $"{prefix}{f.Number:00}.{u:00}",
-                        Area = input.DefaultUnitArea, Bedrooms = 2, Bathrooms = 2,
+                        Area = input.DefaultUnitArea, Bedrooms = 2,
                         Condition = ApartmentCondition.NotHandedOver
                     });
             await Db.SaveChangesAsync();

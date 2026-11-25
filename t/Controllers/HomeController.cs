@@ -50,8 +50,6 @@ public class HomeController : Controller
             {
                 Name = p.Name,
                 Address = p.Address,
-                ThumbnailUrl = p.ThumbnailUrl,
-                ShortDescription = p.ShortDescription,
                 BuildingCount = _db.Buildings.Count(b => b.ProjectId == p.Id),
                 ApartmentCount = _db.Apartments.Count(a => a.Floor.Building != null && a.Floor.Building.ProjectId == p.Id)
             })

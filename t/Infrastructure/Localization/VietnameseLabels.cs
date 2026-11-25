@@ -8,19 +8,6 @@ namespace t.Infrastructure.Localization;
 /// </summary>
 public static class VietnameseLabels
 {
-    public static string Vi(this HouseDirection value) => value switch
-    {
-        HouseDirection.East => "Đông",
-        HouseDirection.West => "Tây",
-        HouseDirection.South => "Nam",
-        HouseDirection.North => "Bắc",
-        HouseDirection.NorthEast => "Đông Bắc",
-        HouseDirection.SouthEast => "Đông Nam",
-        HouseDirection.NorthWest => "Tây Bắc",
-        HouseDirection.SouthWest => "Tây Nam",
-        _ => value.ToString()
-    };
-
     public static string Vi(this BuildingStatus s) => s switch
     {
         BuildingStatus.Active => "Đang vận hành",

@@ -31,10 +31,6 @@
     }
 </section>
 
-@if (!string.IsNullOrWhiteSpace(Model.ShortDescription))
-{
-    <p class="text-muted" style="margin:0;">@Model.ShortDescription</p>
-}
 
 <div class="entity-grid fill">
     @foreach (var b in buildings)
@@ -42,7 +38,7 @@
         var occPct = b.UnitsTotal == 0 ? 0 : b.UnitsOccupied * 100.0 / b.UnitsTotal;
         var vacPct = b.UnitsTotal == 0 ? 0 : b.UnitsVacant * 100.0 / b.UnitsTotal;
         <a class="entity-card" asp-controller="Buildings" asp-action="Details" asp-route-id="@b.Id">
-            <div class="cover" style="background-image:url('@(string.IsNullOrEmpty(b.ThumbnailUrl) ? "/img/hero-1.jpg" : b.ThumbnailUrl)')">
+            <div class="cover" style="background-image:url('/img/hero-1.jpg')">
                 <span class="code-badge">@(string.IsNullOrEmpty(b.Code) ? "?" : b.Code)</span>
                 <div class="cover-title">
                     <h3>@b.Name</h3>

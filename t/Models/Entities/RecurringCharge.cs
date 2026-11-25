@@ -15,6 +15,5 @@ public class RecurringCharge : BaseEntity
     public string Description { get; set; } = string.Empty;
     public decimal Amount { get; set; }
 
-    public int SortOrder { get; set; }
     public bool IsActive { get; set; } = true;
 }

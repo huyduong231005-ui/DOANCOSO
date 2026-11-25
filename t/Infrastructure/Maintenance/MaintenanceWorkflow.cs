@@ -109,7 +109,7 @@ public class MaintenanceWorkflow
         }
 
         r.Status = to;
-        AddHistory(r, from, to, userId, note);
+        AddHistory(r, to, userId, note);
         return await SaveOrConflictAsync(ct);
     }
 
@@ -153,7 +153,7 @@ public class MaintenanceWorkflow
         if (r.Status == MaintenanceStatus.Open)
             return await TransitionAsync(r, MaintenanceStatus.Acknowledged, actor, userId, text, ct: ct);
 
-        AddHistory(r, r.Status, r.Status, userId, text);
+        AddHistory(r, r.Status, userId, text);
         return await SaveOrConflictAsync(ct);
     }
 
@@ -163,7 +163,7 @@ public class MaintenanceWorkflow
         await RecalculateDueAsync(r, ct);
         r.History.Add(new MaintenanceStatusChange
         {
-            FromStatus = null, ToStatus = r.Status, ChangedById = userId, ChangedAt = r.ReportedAt, Note = "Tạo yêu cầu"
+            ToStatus = r.Status, ChangedById = userId, ChangedAt = r.ReportedAt, Note = "Tạo yêu cầu"
         });
     }
 
@@ -187,10 +187,10 @@ public class MaintenanceWorkflow
              (r.Status == MaintenanceStatus.Open || r.Status == MaintenanceStatus.Acknowledged ||
               r.Status == MaintenanceStatus.InProgress || r.Status == MaintenanceStatus.OnHold);
 
-    private void AddHistory(MaintenanceRequest r, MaintenanceStatus from, MaintenanceStatus to, string? userId, string? note) =>
+    private void AddHistory(MaintenanceRequest r, MaintenanceStatus to, string? userId, string? note) =>
         _db.MaintenanceStatusChanges.Add(new MaintenanceStatusChange
         {
-            MaintenanceRequestId = r.Id, MaintenanceRequest = r, FromStatus = from, ToStatus = to,
+            MaintenanceRequestId = r.Id, MaintenanceRequest = r, ToStatus = to,
             ChangedById = userId, ChangedAt = DateTime.UtcNow, Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim()
         });
 }

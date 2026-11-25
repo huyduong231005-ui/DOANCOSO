@@ -27,7 +27,7 @@
     {
         var occPct = p.ApartmentCount == 0 ? 0 : p.OccupiedCount * 100.0 / p.ApartmentCount;
         <a class="entity-card" asp-action="Details" asp-route-id="@p.Id">
-            <div class="cover" style="background-image:url('@(string.IsNullOrEmpty(p.ThumbnailUrl) ? "/img/hero-2.jpg" : p.ThumbnailUrl)')">
+            <div class="cover" style="background-image:url('/img/hero-2.jpg')">
                 <div class="cover-title">
                     <h3>@p.Name</h3>
                     <small><span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">location_on</span> @p.Address</small>
@@ -46,7 +46,7 @@
                     <div class="occ-bar"><span class="occ" style="width:@occPct.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></span></div>
                 </div>
                 <div class="foot">
-                    <span>@p.RegionName</span>
+                    <span>@p.BuildingCount toà</span>
                     @if (p.Outstanding > 0)
                     {
                         <span style="color:var(--st-debt);font-weight:600;">Còn thu @Money(p.Outstanding) đ</span>

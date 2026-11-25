@@ -50,14 +50,10 @@
                     @foreach (var p in Model)
                     {
                         <article class="landing-project reveal-item fx-up">
-                            <img src="@(string.IsNullOrEmpty(p.ThumbnailUrl) ? "/img/hero-2.jpg" : p.ThumbnailUrl)" alt="@p.Name" loading="lazy" />
+                            <img src="/img/hero-2.jpg" alt="@p.Name" loading="lazy" />
                             <div class="landing-project-body">
                                 <h3>@p.Name</h3>
                                 <p class="landing-project-addr"><span class="material-symbols-outlined">location_on</span>@p.Address</p>
-                                @if (!string.IsNullOrWhiteSpace(p.ShortDescription))
-                                {
-                                    <p>@p.ShortDescription</p>
-                                }
                                 <div class="landing-project-stats">
                                     <span><strong>@p.BuildingCount</strong> toà</span>
                                     <span><strong>@p.ApartmentCount</strong> căn hộ</span>

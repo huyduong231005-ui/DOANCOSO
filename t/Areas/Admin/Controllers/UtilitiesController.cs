@@ -35,7 +35,7 @@ public class UtilitiesController : AdminBaseController
             {
                 Id = r.Id, ApartmentId = r.ApartmentId,
                 UnitCode = r.Apartment.UnitCode,
-                BuildingName = r.Apartment.Floor.Building.Name,
+                BuildingName = "Toà " + r.Apartment.Floor.Building.Code,
                 UtilityName = r.UtilityType.Name,
                 BillingMonth = r.BillingMonth,
                 Previous = r.PreviousReading, Current = r.CurrentReading,
@@ -91,8 +91,7 @@ public class UtilitiesController : AdminBaseController
         {
             Id = r.Id, ApartmentId = r.ApartmentId, UtilityTypeId = r.UtilityTypeId,
             BillingMonth = r.BillingMonth,
-            PreviousReading = r.PreviousReading, CurrentReading = r.CurrentReading,
-            Note = r.Note
+            PreviousReading = r.PreviousReading, CurrentReading = r.CurrentReading
         };
         await PopulateReadingLookupsAsync(vm);
         return View(vm);
@@ -164,7 +163,6 @@ public class UtilitiesController : AdminBaseController
         r.ApartmentId = input.ApartmentId;
         r.UtilityTypeId = input.UtilityTypeId;
         r.BillingMonth = input.BillingMonth;
-        r.Note = input.Note;
         r.ReadAt = DateTime.UtcNow;
         r.PreviousReading = input.PreviousReading;
         r.CurrentReading = input.CurrentReading;
@@ -372,7 +370,7 @@ public class UtilitiesController : AdminBaseController
         vm.Apartments = await Db.Apartments
             .Where(a => a.Condition != ApartmentCondition.NotHandedOver || a.Id == vm.ApartmentId)
             .OrderBy(a => a.Floor.Building.Code).ThenBy(a => a.UnitCode)
-            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + a.Floor.Building.Name })
+            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + "Toà " + a.Floor.Building.Code })
             .ToListAsync();
         vm.UtilityTypes = await Db.UtilityTypes.OrderBy(x => x.Name).ToListAsync();
     }

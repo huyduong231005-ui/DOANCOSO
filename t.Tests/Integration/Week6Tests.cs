@@ -37,7 +37,7 @@ public sealed class Week6Tests : IClassFixture<TestWebApplicationFactory>
         foreach (var r in await db.MaintenanceRequests.Where(MaintenanceWorkflow.IsOverdue(now)).ToListAsync())
             db.MaintenanceStatusChanges.Add(new MaintenanceStatusChange
             {
-                MaintenanceRequestId = r.Id, FromStatus = r.Status, ToStatus = r.Status, ChangedAt = now,
+                MaintenanceRequestId = r.Id, ToStatus = r.Status, ChangedAt = now,
                 Note = MaintenanceOverdueAlertService.AlertNote
             });
         await db.SaveChangesAsync();

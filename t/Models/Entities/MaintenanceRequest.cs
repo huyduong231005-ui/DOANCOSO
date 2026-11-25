@@ -82,7 +82,6 @@ public class MaintenanceRequest : BaseEntity
     /// </summary>
     public string? AiTriageJson { get; set; }
 
-    public decimal EstimatedCost { get; set; }
     public decimal ActualCost { get; set; }
     public bool ChargeToTenant { get; set; }
 
@@ -128,18 +127,28 @@ public class MaintenancePhoto
     public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 }
 
-/// <summary>Một lần đổi trạng thái (hoặc giao việc). FromStatus null = lúc tạo yêu cầu.</summary>
+/// <summary>Một lần đổi trạng thái (hoặc giao việc). Trạng thái trước không lưu: là trạng thái mới của dòng liền trước.</summary>
 public class MaintenanceStatusChange
 {
     public int Id { get; set; }
     public int MaintenanceRequestId { get; set; }
     public MaintenanceRequest MaintenanceRequest { get; set; } = null!;
-    public MaintenanceStatus? FromStatus { get; set; }
     public MaintenanceStatus ToStatus { get; set; }
     public string? ChangedById { get; set; } // null = hệ thống (AI điều phối)
     public AppUser? ChangedBy { get; set; }
     public DateTime ChangedAt { get; set; } = DateTime.UtcNow;
     public string? Note { get; set; }
+
+    /// <summary>Ghép mỗi dòng với trạng thái trước (null = dòng tạo yêu cầu; bằng ToStatus = giao việc, không đổi trạng thái).</summary>
+    public static IEnumerable<(MaintenanceStatusChange Step, MaintenanceStatus? From)> WithFrom(IEnumerable<MaintenanceStatusChange> history)
+    {
+        MaintenanceStatus? from = null;
+        foreach (var h in history.OrderBy(h => h.ChangedAt).ThenBy(h => h.Id))
+        {
+            yield return (h, from);
+            from = h.ToStatus;
+        }
+    }
 }
 
 /// <summary>Thời hạn theo mức ưu tiên. Giá trị seed là giả định của nhóm, quản trị chỉnh trong DB.</summary>

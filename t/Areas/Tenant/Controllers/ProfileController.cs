@@ -25,7 +25,7 @@ public class ProfileController : TenantBaseController
         var vm = new TenantProfileVm
         {
             FullName = u.FullName, Email = u.Email!,
-            Phone = u.PhoneNumber, AvatarUrl = u.AvatarUrl
+            Phone = u.PhoneNumber
         };
         return View(vm);
     }
@@ -39,8 +39,6 @@ public class ProfileController : TenantBaseController
 
         u.FullName = input.FullName;
         u.PhoneNumber = input.Phone;
-        u.PhoneNumber = input.Phone;
-        u.AvatarUrl = input.AvatarUrl;
         await _userManager.UpdateAsync(u);
 
         TempData["Success"] = "Đã cập nhật hồ sơ.";

@@ -59,7 +59,7 @@ public class InvoicesController : AdminBaseController
                 Id = i.Id, InvoiceNumber = i.InvoiceNumber,
                 ApartmentId = i.ApartmentId,
                 UnitCode = i.Apartment.UnitCode,
-                BuildingName = i.Apartment.Floor.Building.Name,
+                BuildingName = "Toà " + i.Apartment.Floor.Building.Code,
                 Kind = i.Kind, BillingMonth = i.BillingMonth,
                 IssueDate = i.IssueDate, DueDate = i.DueDate,
                 Total = i.Total, AmountPaid = i.AmountPaid, Balance = i.Balance,
@@ -359,10 +359,8 @@ public class InvoicesController : AdminBaseController
         {
             InvoiceId = inv.Id,
             InvoiceNumber = inv.InvoiceNumber,
-            Discount = inv.Discount,
-            Tax = inv.Tax,
             Note = inv.Note,
-            Lines = inv.Items.OrderBy(x => x.SortOrder)
+            Lines = inv.Items.OrderBy(x => x.Id)
                 .Select(x => new OneOffInvoiceLine
                 {
                     Id = x.Id, Description = x.Description, Quantity = x.Quantity, UnitPrice = x.UnitPrice
@@ -390,7 +388,6 @@ public class InvoicesController : AdminBaseController
             Db.InvoiceItems.Remove(existing);
         }
 
-        var sort = 0;
         foreach (var line in input.Lines.Where(l => !string.IsNullOrWhiteSpace(l.Description) && l.Quantity > 0))
         {
             var lineTotal = Math.Round(line.Quantity * line.UnitPrice, 0);
@@ -403,7 +400,6 @@ public class InvoicesController : AdminBaseController
                     item.Quantity = line.Quantity;
                     item.UnitPrice = line.UnitPrice;
                     item.LineTotal = lineTotal;
-                    item.SortOrder = sort++;
                 }
             }
             else
@@ -411,13 +407,11 @@ public class InvoicesController : AdminBaseController
                 inv.Items.Add(new InvoiceItem
                 {
                     Description = line.Description!, Quantity = line.Quantity,
-                    UnitPrice = line.UnitPrice, LineTotal = lineTotal, SortOrder = sort++
+                    UnitPrice = line.UnitPrice, LineTotal = lineTotal
                 });
             }
         }
 
-        inv.Discount = Math.Max(0, input.Discount);
-        inv.Tax = Math.Max(0, input.Tax);
         inv.Note = input.Note;
         RecomputeTotals(inv);
         if (inv.Total < inv.AmountPaid)
@@ -466,7 +460,7 @@ public class InvoicesController : AdminBaseController
     private static void RecomputeTotals(Invoice inv)
     {
         inv.SubTotal = inv.Items.Sum(x => x.LineTotal);
-        inv.Total = Math.Max(0, inv.SubTotal - inv.Discount + inv.Tax + inv.LateFee);
+        inv.Total = inv.SubTotal + inv.LateFee; // CSDL tự tính lại khi lưu; gán ở đây để kiểm tra ngay
         inv.Balance = Math.Max(0, inv.Total - inv.AmountPaid);
         if (inv.Balance == 0 && inv.AmountPaid > 0) inv.Status = InvoiceStatus.Paid;
         else if (inv.AmountPaid > 0) inv.Status = InvoiceStatus.PartiallyPaid;
@@ -478,7 +472,7 @@ public class InvoicesController : AdminBaseController
         vm.Apartments = await Db.Apartments
             .Where(a => a.Condition != ApartmentCondition.NotHandedOver || a.Id == vm.ApartmentId)
             .OrderBy(a => a.Floor.Building.Code).ThenBy(a => a.UnitCode)
-            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + a.Floor.Building.Name })
+            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + "Toà " + a.Floor.Building.Code })
             .ToListAsync();
     }
 }

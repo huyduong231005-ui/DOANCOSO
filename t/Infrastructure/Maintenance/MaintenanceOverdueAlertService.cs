@@ -89,7 +89,7 @@ public class MaintenanceOverdueAlertService : BackgroundService
         foreach (var r in due)
             db.MaintenanceStatusChanges.Add(new MaintenanceStatusChange
             {
-                MaintenanceRequestId = r.Id, FromStatus = r.Status, ToStatus = r.Status,
+                MaintenanceRequestId = r.Id, ToStatus = r.Status,
                 ChangedById = null, ChangedAt = nowUtc, Note = AlertNote
             });
         await db.SaveChangesAsync(ct);

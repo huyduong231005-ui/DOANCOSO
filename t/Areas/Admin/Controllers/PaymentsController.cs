@@ -81,7 +81,7 @@ public class PaymentsController : AdminBaseController
                 InvoiceNumber = i.InvoiceNumber,
                 ApartmentId = i.ApartmentId,
                 UnitCode = i.Apartment.UnitCode,
-                BuildingName = i.Apartment.Floor.Building.Name,
+                BuildingName = "Toà " + i.Apartment.Floor.Building.Code,
                 Kind = i.Kind,
                 BillingMonth = i.BillingMonth,
                 IssueDate = i.IssueDate,

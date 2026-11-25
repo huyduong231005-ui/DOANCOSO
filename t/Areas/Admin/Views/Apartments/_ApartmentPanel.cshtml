@@ -37,8 +37,7 @@
 
 <div class="facts">
     <div class="fact"><b>@a.Area.ToString("0.#") m²</b><span>Diện tích</span></div>
-    <div class="fact"><b>@a.Bedrooms PN · @a.Bathrooms WC</b><span>Loại căn</span></div>
-    <div class="fact"><b>@(a.HouseDirection?.Vi() ?? "—")</b><span>Hướng</span></div>
+    <div class="fact"><b>@a.Bedrooms</b><span>Phòng ngủ</span></div>
     <div class="fact"><b>@Money(Model.MonthlyFixed)</b><span>Phí cố định/tháng</span></div>
     <div class="fact @(Model.Balance > 0 ? "alert" : "")"><b>@Money(Model.Balance)</b><span>Còn phải thu</span></div>
     <div class="fact"><b>@living.Count</b><span>Cư dân</span></div>

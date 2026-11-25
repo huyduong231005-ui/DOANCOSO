@@ -63,7 +63,7 @@ public class MaintenanceController : AdminBaseController
                 ApartmentId = r.ApartmentId,
                 UnitCode = r.Apartment != null ? r.Apartment.UnitCode : null,
                 Location = r.Location,
-                BuildingName = r.Apartment != null ? r.Apartment.Floor.Building.Name : r.CommonBuilding != null ? r.CommonBuilding.Name : null,
+                BuildingName = r.Apartment != null ? "Toà " + r.Apartment.Floor.Building.Code : r.CommonBuilding != null ? "Toà " + r.CommonBuilding.Code : null,
                 ReporterName = r.Reporter != null ? r.Reporter.FullName : null,
                 AssignedToName = r.AssignedTo != null ? r.AssignedTo.FullName : null,
                 Category = r.Category, Priority = r.Priority, Status = r.Status,
@@ -72,7 +72,7 @@ public class MaintenanceController : AdminBaseController
 
         ViewBag.Q = q; ViewBag.Status = status; ViewBag.Priority = priority;
         ViewBag.Category = category; ViewBag.BuildingId = buildingId; ViewBag.Overdue = overdue;
-        ViewBag.Buildings = await Db.Buildings.AsNoTracking().OrderBy(b => b.Name).ToListAsync();
+        ViewBag.Buildings = await Db.Buildings.AsNoTracking().OrderBy(b => b.Code).ToListAsync();
         ViewBag.Pager = new PageInfo
         {
             Page = page, PageSize = pageSize, TotalCount = total,
@@ -172,7 +172,6 @@ public class MaintenanceController : AdminBaseController
             Description = input.Description,
             Category = input.Category,
             Priority = input.Priority,
-            EstimatedCost = input.EstimatedCost,
         };
         req.Photos.AddRange(MaintenanceWorkflow.PhotosFrom(input.PhotoUrls, MaintenancePhotoStage.Report, Me));
         await _workflow.InitializeNewAsync(req, Me);
@@ -296,10 +295,10 @@ public class MaintenanceController : AdminBaseController
     {
         vm.Apartments = await Db.Apartments
             .OrderBy(a => a.Floor.Building.Code).ThenBy(a => a.UnitCode)
-            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + a.Floor.Building.Name })
+            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + "Toà " + a.Floor.Building.Code })
             .ToListAsync();
-        vm.Buildings = await Db.Buildings.OrderBy(b => b.Name)
-            .Select(b => new ApartmentOption { Id = b.Id, Label = b.Name })
+        vm.Buildings = await Db.Buildings.OrderBy(b => b.Code)
+            .Select(b => new ApartmentOption { Id = b.Id, Label = "Toà " + b.Code })
             .ToListAsync();
         vm.Reporters = await _userManager.Users.OrderBy(u => u.FullName)
             .Select(u => new HostOption { Id = u.Id, Label = u.FullName + " · " + u.Email })

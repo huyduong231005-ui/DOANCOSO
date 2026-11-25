@@ -142,7 +142,7 @@ public class InvoicePdfGenerator
                     h.Cell().Element(HeaderCell).AlignRight().Text("Đơn giá");
                     h.Cell().Element(HeaderCell).AlignRight().Text("Thành tiền");
                 });
-                foreach (var it in inv.Items.OrderBy(x => x.SortOrder))
+                foreach (var it in inv.Items.OrderBy(x => x.Id))
                 {
                     t.Cell().Element(BodyCell).Text(it.Description);
                     t.Cell().Element(BodyCell).AlignRight().Text(it.Quantity.ToString("0.##"));
@@ -173,9 +173,7 @@ public class InvoicePdfGenerator
 
                 row.RelativeItem().AlignRight().Width(260).Column(t =>
                 {
-                    t.Item().Row(r => { r.RelativeItem().Text("Tạm tính"); r.ConstantItem(110).AlignRight().Text(inv.SubTotal.ToString("N0")); });
-                    if (inv.Discount > 0) t.Item().Row(r => { r.RelativeItem().Text("Giảm giá"); r.ConstantItem(110).AlignRight().Text("-" + inv.Discount.ToString("N0")); });
-                    if (inv.Tax > 0) t.Item().Row(r => { r.RelativeItem().Text("Thuế"); r.ConstantItem(110).AlignRight().Text(inv.Tax.ToString("N0")); });
+                    t.Item().Row(r => { r.RelativeItem().Text("Tiền phí"); r.ConstantItem(110).AlignRight().Text(inv.SubTotal.ToString("N0")); });
                     if (inv.LateFee > 0) t.Item().Row(r => { r.RelativeItem().Text("Phí trễ"); r.ConstantItem(110).AlignRight().Text(inv.LateFee.ToString("N0")); });
                     t.Item().PaddingVertical(4).LineHorizontal(0.5f).LineColor(Colors.Grey.Lighten2);
                     t.Item().Row(r =>

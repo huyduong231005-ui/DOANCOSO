@@ -30,7 +30,7 @@
     <div>
         <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:16px;">door_front</span>@a.Floor.Building.Name · Tầng @a.Floor.Number</span>
         <h1>Căn @a.UnitCode</h1>
-        <p class="subtitle">@a.Area.ToString("0.#") m² · @a.Bedrooms PN · @a.Bathrooms WC · hướng @(a.HouseDirection?.Vi() ?? "—")</p>
+        <p class="subtitle">@a.Area.ToString("0.#") m² · @a.Bedrooms phòng ngủ</p>
         <div class="hstack" style="margin-top:.45rem;flex-wrap:wrap;">
             <span class="@Pill(a.Occupancy)">@a.Occupancy.Vi()</span>
             @if (rented) { <span class="pill pill-info">Cho thuê</span> }
@@ -288,13 +288,6 @@
             </div>
         </details>
 
-        @if (!string.IsNullOrWhiteSpace(a.Note))
-        {
-            <div class="card">
-                <div class="card-header"><h2>Ghi chú</h2></div>
-                <div class="card-body" style="white-space:pre-line;">@a.Note</div>
-            </div>
-        }
 
         <form asp-action="Delete" asp-route-id="@a.Id" method="post" data-confirm="Chỉ xoá được căn chưa có cư dân và hoá đơn. Xoá căn @a.UnitCode?" data-confirm-title="Xoá căn" data-confirm-ok="Xoá" data-confirm-tone="danger">
             @Html.AntiForgeryToken()

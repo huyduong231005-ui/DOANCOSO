@@ -35,8 +35,7 @@ FIG_FILE = {
     "Hình 3.4.": "Hinh 3.4 Use case UC16 Cap nhat tien do xu ly",
     "Hình 3.5.": "Hinh 3.5 Use case UC06 Xac nhan ket qua xu ly", "Hình 3.6.": "Hinh 3.6 Use case UC20 Xu ly thanh toan",
     "Hình 3.7.": "Hinh 3.7 Hoat dong bao su co AI dieu phoi",
-    "Hình 3.8.": "Hinh 3.8 So do lop co cau nguoi dung phan quyen", "Hình 3.9.": "Hinh 3.9 So do lop su co",
-    "Hình 3.10.": "Hinh 3.10 So do lop thu phi", "Hình 3.11.": "Hinh 3.11 Tuan tu bao su co AI phan loai",
+    "Hình 3.8.": "Hinh 3.8 So do lop tong", "Hình 3.11.": "Hinh 3.11 Tuan tu bao su co AI phan loai",
     "Hình 3.12.": "Hinh 3.12 Tuan tu dieu phoi sau khi luu", "Hình 3.13.": "Hinh 3.13 Tuan tu ky thuat vien hoan tat",
     "Hình 3.14.": "Hinh 3.14 Tuan tu quan ly duyet thanh toan",
 }
@@ -50,7 +49,7 @@ NEW_CAPTION = {
     "Hình 4.5.": "Hình 4.5. Bảng điều khiển của quản lý ngày 25/11/2026",
     "Hình 4.6.": "Hình 4.6. Báo cáo công nợ phân tuổi ngày 25/11/2026",
     "Hình 4.7.": "Hình 4.7. Báo cáo KPI sự cố từ 01/11/2026 đến 25/11/2026",
-    "Hình 3.8.": "Hình 3.8. Sơ đồ lớp nơi chốn, cư trú, người dùng và phân quyền",
+    "Hình 3.8.": "Hình 3.8. Sơ đồ lớp của hệ thống",
     "Hình 3.14.": "Hình 3.14. Sơ đồ tuần tự quản lý duyệt xác nhận chuyển khoản",
 }
 
@@ -530,6 +529,8 @@ def main():
     gon_bao_cao.gop_uc_vao_fr(body, new_table, set_text)
     gon_bao_cao.bo_bang_chuong3(body, set_text)
     gon_bao_cao.dua_uc_ve_chuong1(body, set_text, new_p)
+    gon_bao_cao.bo_muc_uc_chuong3(body, set_text)
+    gon_bao_cao.gop_so_do_lop(body, set_text)
     treo, doi = gon_bao_cao.danh_so_lai(body, set_text)
     print(f"đánh số lại {doi} bảng; tham chiếu treo: {treo or 'không'}")
     treo, doi = gon_bao_cao.danh_so_hinh(body, set_text, {"3.2": "1", "3.4": "1"})

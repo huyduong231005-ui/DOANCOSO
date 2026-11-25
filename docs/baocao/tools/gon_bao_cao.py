@@ -146,11 +146,14 @@ def danh_so_lai(body, set_text):
 # ====================================================================== UC03, UC16 về Chương 1
 # Hình use case chi tiết đặt ngay trên bảng đặc tả; đặc tả bỏ phần hình đã thể hiện (tác nhân, quan hệ include/extend).
 MO_TA_UC = {
-    "UC03": "Hình 3.2: UC03 luôn bao gồm UC07 Phân loại sự cố (tác nhân phụ Mô hình AI) và UC08 Điều phối sự cố (tác "
-            "nhân phụ Dịch vụ email); đính kèm ảnh hiện trạng là phần mở rộng. Hỏi lại khi mô tả mơ hồ và các thư cảnh "
-            "báo là bước bên trong UC07, UC08 nên ghi ở luồng thay thế của bảng đặc tả.",
-    "UC16": "Hình 3.4: cập nhật tiến độ luôn gồm xem việc được giao (UC15) và ghi kết quả xử lý; tạm dừng xử lý (khi "
-            "chờ vật tư, hẹn lịch) và tải ảnh nghiệm thu là phần mở rộng.",
+    "UC03": "Hình 3.2: cư dân luôn nhập mô tả và chọn nơi xảy ra sự cố (khu vực chung thì ghi thêm vị trí); chọn "
+            "loại, mức ưu tiên và đính kèm ảnh là tuỳ chọn. UC03 luôn bao gồm UC07 Phân loại sự cố, trong đó Mô hình "
+            "AI xác định loại, mức ưu tiên và nhận diện sự cố nguy hiểm, và UC08 Điều phối sự cố, trong đó hệ thống "
+            "giao kỹ thuật viên phù hợp rồi thông báo giao việc qua Dịch vụ email; khi không tự giao được hoặc sự cố "
+            "khẩn cấp thì báo quản lý.",
+    "UC16": "Hình 3.4: kỹ thuật viên xem việc được giao (có thể mở chi tiết từng yêu cầu), bắt đầu rồi hoàn tất xử "
+            "lý; hoàn tất luôn ghi kết quả, có thể kèm ảnh nghiệm thu. Tạm dừng (luôn ghi lý do) và tiếp tục xử lý chỉ "
+            "xảy ra khi phải chờ vật tư hoặc hẹn lịch.",
 }
 DAC_TA_UC = {
     "UC03": [
@@ -200,8 +203,7 @@ DAN_3_2 = ("Sơ đồ use case tổng quát (Hình 1.6) cho biết tác nhân n�
 
 def _p_bat_dau(body, prefix, style=None):
     for p in body.iter(qn("w:p")):
-        muc_luc = any(p.find(".//" + qn(t)) is not None for t in ("w:hyperlink", "w:tab", "w:fldChar", "w:instrText"))
-        if _text(p).startswith(prefix) and not muc_luc:
+        if _text(p).startswith(prefix) and not _la_muc_luc(p):
             st = p.find(qn("w:pPr") + "/" + qn("w:pStyle"))
             if style is None or (st is not None and st.get(qn("w:val")) == style):
                 return p
@@ -289,3 +291,99 @@ def danh_so_hinh(body, set_text, doi_chuong):
             if n != t:
                 set_text(p, n)
     return sorted(treo), sum(1 for k, v in moi.items() if k != v)
+
+
+# ====================================================================== use case chỉ ở một chỗ (mục 1.8)
+DOAN_UC_MOI = {   # đoạn bắt đầu bằng ... -> nội dung mới (số hình theo bản gốc, đánh số lại sau)
+    "Chương này là sản phẩm tuần 4, gồm bộ mô hình thiết kế":
+        "Chương này là sản phẩm tuần 4, gồm bộ mô hình thiết kế: kiến trúc, sơ đồ hoạt động, sơ đồ lớp và sơ đồ tuần "
+        "tự; use case đã trình bày ở mục 1.8. Mục 3.5 trình bày cách nhóm rà soát sự nhất quán giữa các mô hình.",
+    "Đến tuần 4, bộ mô hình thiết kế gồm":
+        "Đến tuần 4, bộ mô hình thiết kế gồm: sơ đồ kiến trúc; sơ đồ use case tổng quát, hai sơ đồ use case chi tiết "
+        "kèm đặc tả (mục 1.8); ba sơ đồ hoạt động; sơ đồ trạng thái; sơ đồ lớp; bốn sơ đồ tuần tự. ERD và lược đồ "
+        "quan hệ ở Chương 2. Các mô hình đã được đối chiếu với nhau theo mục 3.5.",
+    "Tuần 6 bổ sung phân hệ thu phí vào bộ mô hình thiết kế":
+        "Tuần 6 bổ sung phân hệ thu phí vào bộ mô hình thiết kế: các lớp thu phí trong sơ đồ lớp (Hình 3.8) và sơ đồ tuần tự cư dân "
+        "gửi xác nhận chuyển khoản, quản lý duyệt (Hình 3.14). Chương 4 trình bày việc xây dựng, kiểm thử theo quy "
+        "trình nghiệp vụ và đánh giá AI trên bộ 120 ca có nhãn.",
+    "–Chương 3 – Thiết kế hệ thống (tuần 4)":
+        "–Chương 3 – Thiết kế hệ thống (tuần 4): kiến trúc, sơ đồ hoạt động, lớp, tuần tự và rà soát nhất quán giữa "
+        "các mô hình.",
+    "–Chương 1 – Tổng quan và phân tích nghiệp vụ":
+        "–Chương 1 – Tổng quan và phân tích nghiệp vụ: bối cảnh, vấn đề, AS-IS/TO-BE, quy tắc nghiệp vụ, KPI, SRS, use "
+        "case tổng quát và đặc tả hai use case trọng tâm.",
+    "–Chương 2 – Phân tích và thiết kế dữ liệu":
+        "–Chương 2 – Phân tích và thiết kế dữ liệu: thực thể, ERD, lược đồ quan hệ, chuẩn hoá và ràng buộc toàn vẹn.",
+    "1.8. Use case sơ bộ": "1.8. Use case",
+    "1.8.2. Đặc tả use case trọng tâm": "1.8.2. Use case trọng tâm",
+}
+
+
+SUA_SAU = [   # thay chuỗi con, chạy sau cùng trên mọi đoạn (kể cả ô bảng), trừ mục lục
+    ("yêu cầu và use case sơ bộ.", "yêu cầu và use case."),
+    ("ràng buộc toàn vẹn (CHECK, trigger, hàm); kiểu dữ liệu và bảng mã", "ràng buộc toàn vẹn (CHECK, trigger, hàm)"),
+]
+
+
+def _la_muc_luc(p):
+    """Dòng mục lục: có liên kết/trường, hoặc có tab và kết thúc bằng số trang (gạch đầu dòng cũng có tab)."""
+    if any(p.find(".//" + qn(t)) is not None for t in ("w:hyperlink", "w:fldChar", "w:instrText")):
+        return True
+    return p.find(".//" + qn("w:tab")) is not None and re.search(r"[0-9ivx]$", _text(p).strip()) is not None
+
+
+def bo_muc_uc_chuong3(body, set_text):
+    """Use case chỉ trình bày một lần ở mục 1.8 (UC03, UC16 là trọng tâm): bỏ mục 3.2 Use case chi tiết (ba sơ đồ,
+    sáu bảng đặc tả), đánh số lại các mục sau của Chương 3, sửa các câu nhắc tới use case."""
+    dau = next(p for p in body.iter(qn("w:p")) if _text(p).startswith("3.2. Use case chi tiết") and not _la_muc_luc(p))
+    el = dau
+    while el is not None and not (el.tag == qn("w:p") and re.match(r"3\.3\. ", _text(el)) and not _la_muc_luc(el)):
+        nxt = el.getnext()
+        el.getparent().remove(el)
+        el = nxt
+    for p in list(body.iter(qn("w:p"))):
+        if _la_muc_luc(p):
+            continue
+        t = _text(p)
+        m = re.match(r"3\.([3-9])\. ", t)
+        if m:
+            set_text(p, f"3.{int(m.group(1)) - 1}. " + t[len(m.group(0)):])
+            continue
+        for k, v in DOAN_UC_MOI.items():
+            if t.startswith(k):
+                set_text(p, v)
+                break
+        else:
+            n = t
+            for x, y in SUA_SAU:
+                n = n.replace(x, y)
+            if n != t:
+                set_text(p, n)
+
+
+# ====================================================================== một sơ đồ lớp tổng
+DOAN_LOP = ("Hình 3.8 là sơ đồ lớp của toàn hệ thống ở mức phân tích, cùng bố cục với ERD. Mỗi lớp là một đối tượng nghiệp "
+            "vụ, hộp lớp chia ba ngăn: tên lớp, thuộc tính (dấu - là riêng tư) và thao tác (dấu + là công khai). Mỗi lớp "
+            "chỉ ghi những thuộc tính chính. Giá trị tính ra từ dữ liệu khác (tên toà, trạng thái trước, tổng tiền, còn "
+            "nợ, thành tiền) ghi thành thao tác trả về giá trị, không phải thuộc tính.")
+
+
+def gop_so_do_lop(body, set_text):
+    """Ba sơ đồ lớp theo nhóm gộp thành một (Hình 3.8): bỏ hình 3.9, 3.10 cũ và câu dẫn tới chúng."""
+    for p in list(body.iter(qn("w:p"))):
+        if _la_muc_luc(p):
+            continue
+        t = _text(p)
+        if t.startswith("Hình 3.8 là sơ đồ lớp"):
+            set_text(p, DOAN_LOP)
+        elif t.startswith("Hình 3.9 gồm các lớp") or t.startswith("Hình 3.10 vẽ riêng"):
+            p.getparent().remove(p)
+        elif (t.startswith("Hình 3.9.") or t.startswith("Hình 3.10.")) and _kieu(p) == "ChuthichHinh":
+            prev = p.getprevious()
+            while prev is not None and prev.tag == qn("w:p") and prev.find(".//" + qn("w:sectPr")) is None and (
+                    prev.find(".//" + qn("w:drawing")) is not None
+                    or prev.find(".//{urn:schemas-microsoft-com:vml}imagedata") is not None or not _text(prev).strip()):
+                nxt = prev.getprevious()
+                prev.getparent().remove(prev)
+                prev = nxt
+            p.getparent().remove(p)

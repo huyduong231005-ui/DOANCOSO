@@ -41,15 +41,16 @@ def blocks():
     B.append(("h2", "2.1. Thực thể"))
     p(f"Từ quy trình TO-BE và các chứng từ ở Bảng 1.4, nhóm xác định 16 thực thể và 5 mối kết hợp nhiều – nhiều "
       f"(Bảng 2.1). Mỗi mối kết hợp nhiều – nhiều thành một bảng riêng, nên cơ sở dữ liệu có {n_bang} bảng.")
-    T("Bảng 2.1. Thực thể, mối kết hợp và lý do cần bảng riêng", ["Thực thể", "Nghiệp vụ", "Lý do cần bảng riêng"], [
+    T("Bảng 2.1. Thực thể, mối kết hợp và lý do cần bảng riêng", ["Tên", "Nghiệp vụ", "Lý do cần bảng riêng"], [
         ["KHU", "Khu căn hộ gồm nhiều toà", "Địa chỉ chung của các toà"],
         ["TOA_NHA", "Toà nhà, ngày lập phí, mức phí trễ", "Có quản lý riêng, có sự cố khu vực chung"],
         ["TANG", "Tầng của toà", "Toà có nhiều tầng, căn nằm trên tầng"],
         ["CAN_HO", "Căn hộ", "Nơi ở và nơi tính phí"],
         ["NGUOI_DUNG", "Cư dân, quản lý, kỹ thuật viên, quản trị", "Một người là một tài khoản"],
-        ["cư trú (CuTru)", "Ai ở căn nào, từ ngày nào", "Mối kết hợp n – n có thuộc tính riêng"],
-        ["VAI_TRO, QUYEN", "Nhóm người dùng và quyền theo phân hệ (mối kết hợp đóng vai, được cấp)",
-         "Phân quyền, chọn thợ theo chuyên môn"],
+        ["CU_TRU", "Ai ở căn nào, từ ngày nào", "Mối kết hợp n – n “cư trú” giữa người dùng và căn hộ, có thuộc tính riêng"],
+        ["VAI_TRO, QUYEN", "Nhóm người dùng và quyền theo phân hệ", "Phân quyền, chọn thợ theo chuyên môn"],
+        ["NGUOI_DUNG_VAI_TRO", "Ai giữ vai trò nào", "Mối kết hợp n – n “đóng vai”"],
+        ["VAI_TRO_QUYEN", "Vai trò có quyền nào", "Mối kết hợp n – n “được cấp”"],
         ["MUC_UU_TIEN", "Mức ưu tiên và thời hạn xử lý", "Đổi thời hạn không cần sửa chương trình"],
         ["YEU_CAU_BAO_TRI", "Yêu cầu sửa chữa khi có sự cố", "Đối tượng chính của quy trình sự cố"],
         ["ANH_YEU_CAU", "Ảnh lúc báo, ảnh nghiệm thu", "Một yêu cầu có nhiều ảnh"],
@@ -58,13 +59,13 @@ def blocks():
         ["LOAI_DICH_VU", "Bảng giá: phí quản lý, điện, nước, gửi xe, sửa chữa", "Mỗi khoản thu một đơn giá, đổi giá "
          "ở một nơi"],
         ["CHI_SO_DICH_VU", "Chỉ số đồng hồ hằng tháng của điện, nước", "Mỗi căn, mỗi loại, mỗi kỳ một dòng"],
-        ["đăng ký (DangKyDichVu)", "Căn dùng dịch vụ cố định nào, bao nhiêu (gửi 2 xe máy)",
-         "Mối kết hợp n – n giữa căn và loại dịch vụ, có số lượng"],
+        ["DANG_KY_DICH_VU", "Căn dùng dịch vụ cố định nào, bao nhiêu (gửi 2 xe máy)",
+         "Mối kết hợp n – n “đăng ký” giữa căn hộ và loại dịch vụ, có số lượng"],
         ["HOA_DON", "Giấy báo phí của căn", "Chứng từ công nợ của căn"],
-        ["gồm dịch vụ (ChiTietHoaDon)", "Các dòng của hoá đơn, mỗi dòng một dịch vụ",
-         "Mối kết hợp n – n giữa hoá đơn và loại dịch vụ, có số lượng, đơn giá"],
+        ["CHI_TIET_HOA_DON", "Các dòng của hoá đơn, mỗi dòng một dịch vụ",
+         "Mối kết hợp n – n “gồm dịch vụ” giữa hoá đơn và loại dịch vụ, có số lượng, đơn giá"],
         ["THANH_TOAN", "Lần nộp tiền", "Một hoá đơn nộp nhiều lần"],
-    ], [3.4, 4.0, 4.0])
+    ], [4.4, 3.6, 3.6])
     p("Bảng kỹ thuật của ASP.NET Identity (claim, token, đăng nhập ngoài) không mang thông tin nghiệp vụ nên không "
       "đưa vào phân tích. Bảng nghiệp vụ dùng khoá số nguyên tự tăng; khoá tự nhiên (SoHoaDon, MaCanHo, MaToaNha…) vẫn "
       "khai báo duy nhất. NguoiDungId, VaiTroId là chuỗi do ASP.NET Identity sinh.")

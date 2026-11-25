@@ -523,45 +523,46 @@ class Rd:
 
 def rd_tong():
     """Lược đồ quan hệ toàn hệ thống, cùng bố cục với ERD tổng: NguoiDung và YeuCauBaoTri ở giữa, ToaNha trên,
-    CanHo dưới; nhóm phân quyền dọc bên trái; thu phí dưới bên phải."""
+    CanHo dưới; nhóm phân quyền dọc bên trái; thu phí dưới bên phải. Bảng đặt thưa (KX, KY) cho đường nối dễ theo."""
+    KX, KY = 1.45, 1.3
     r = Rd("Hinh 2.2 Luoc do quan he toan he thong", "Lược đồ quan hệ toàn hệ thống", "RD – toàn hệ thống")
-    r.t("Khu", 20, 20)
-    r.t("ToaNha", 280, 20)
-    r.t("Tang", 1150, 20)
-    r.t("AnhYeuCau", 360, 200)
-    r.t("NguoiDung", 20, 360)
-    r.t("YeuCauBaoTri", 640, 340)
-    r.t("MucUuTien", 960, 560)
-    r.t("LichSuYeuCau", 300, 560)
-    r.t("NguoiDung_VaiTro", 20, 520)
-    r.t("VaiTro", 20, 630)
-    r.t("VaiTro_Quyen", 20, 740)
-    r.t("Quyen", 20, 850)
-    r.t("ThanhToan", 20, 980)
-    r.t("NhatKyHeThong", 20, 1140)
-    r.t("CuTru", 230, 820)
-    r.t("CanHo", 480, 860)
-    r.t("ChiSoDichVu", 780, 860)
-    r.t("DangKyDichVu", 780, 1040)
-    r.t("LoaiDichVu", 1080, 1100)
-    r.t("HoaDon", 480, 1040)
-    r.t("ChiTietHoaDon", 780, 1230)
+    for t, x, y in [("Khu", 20, 20), ("ToaNha", 280, 20), ("Tang", 1150, 20), ("AnhYeuCau", 360, 200),
+                    ("NguoiDung", 20, 360), ("YeuCauBaoTri", 640, 340), ("MucUuTien", 960, 560),
+                    ("LichSuYeuCau", 300, 560), ("NguoiDung_VaiTro", 20, 520), ("VaiTro", 20, 630),
+                    ("VaiTro_Quyen", 20, 740), ("Quyen", 20, 850), ("ThanhToan", 20, 980), ("NhatKyHeThong", 20, 1140),
+                    ("CuTru", 230, 820), ("CanHo", 480, 860), ("ChiSoDichVu", 780, 860), ("DangKyDichVu", 780, 1040),
+                    ("LoaiDichVu", 1080, 1100), ("HoaDon", 480, 1040), ("ChiTietHoaDon", 780, 1230)]:
+        r.t(t, 20 + round((x - 20) * KX), 20 + round((y - 20) * KY))
+    R = lambda b, k: b(k)[0] + b(k)[2]          # cạnh phải
+    D = lambda b, k: b(k)[1] + b(k)[3]          # cạnh dưới
     # Yêu cầu → ảnh: ra cạnh trái YeuCauBaoTri phía trên đường người báo, lên rồi sang cạnh phải AnhYeuCau.
     r.route("YeuCauBaoTri", "AnhYeuCau", "YeuCauBaoTriId", lambda b: [
-        [b("YeuCauBaoTri")[0], 370], [580, 370], [580, 270], [b("AnhYeuCau")[0] + b("AnhYeuCau")[2], 270]])
-    # Căn → đăng ký: ra cạnh phải CanHo dưới bảng ChiSoDichVu, xuống rồi vào cạnh trái DangKyDichVu.
-    r.route("CanHo", "DangKyDichVu", "CanHoId", lambda b: [[672, 970], [740, 970], [740, 1100], [780, 1100]])
+        [b("YeuCauBaoTri")[0], b("YeuCauBaoTri")[1] + 30], [(R(b, "AnhYeuCau") + b("YeuCauBaoTri")[0]) // 2,
+                                                           b("YeuCauBaoTri")[1] + 30],
+        [(R(b, "AnhYeuCau") + b("YeuCauBaoTri")[0]) // 2, b("AnhYeuCau")[1] + 70], [R(b, "AnhYeuCau"), b("AnhYeuCau")[1] + 70]])
+    # Dải ngang giữa nhóm sự cố và nhóm căn hộ, thu phí.
+    dai = lambda b: (max(D(b, "LichSuYeuCau"), D(b, "MucUuTien")) + b("CanHo")[1]) // 2
+    # Tầng → căn: vòng bên phải nhóm sự cố, đi ngang dải giữa rồi xuống đỉnh bảng CanHo.
+    r.route("Tang", "CanHo", "TangId", lambda b: [
+        [b("Tang")[0] + 90, D(b, "Tang")], [b("Tang")[0] + 90, dai(b) + 20], [b("CanHo")[0] + 150, dai(b) + 20],
+        [b("CanHo")[0] + 150, b("CanHo")[1]]])
+    # Căn → yêu cầu: lên từ đỉnh CanHo, rẽ phải trên dải giữa, lên đáy YeuCauBaoTri.
+    r.route("CanHo", "YeuCauBaoTri", "CanHoId", lambda b: [
+        [b("CanHo")[0] + 80, b("CanHo")[1]], [b("CanHo")[0] + 80, dai(b) - 20], [b("YeuCauBaoTri")[0] + 40, dai(b) - 20],
+        [b("YeuCauBaoTri")[0] + 40, D(b, "YeuCauBaoTri")]])
+    # Căn → đăng ký: ra cạnh phải CanHo, xuống rồi vào cạnh trái DangKyDichVu.
+    giua = lambda b: (R(b, "HoaDon") + b("DangKyDichVu")[0]) // 2
+    r.route("CanHo", "DangKyDichVu", "CanHoId", lambda b: [
+        [R(b, "CanHo"), b("CanHo")[1] + 110], [giua(b) + 15, b("CanHo")[1] + 110],
+        [giua(b) + 15, b("DangKyDichVu")[1] + 60], [b("DangKyDichVu")[0], b("DangKyDichVu")[1] + 60]])
     # Loại dịch vụ → chỉ số: lên từ đỉnh LoaiDichVu rồi sang cạnh phải ChiSoDichVu, không cắt DangKyDichVu.
     r.route("LoaiDichVu", "ChiSoDichVu", "LoaiDichVuId", lambda b: [
-        [1170, b("LoaiDichVu")[1]], [1170, 930], [b("ChiSoDichVu")[0] + b("ChiSoDichVu")[2], 930]])
+        [b("LoaiDichVu")[0] + 90, b("LoaiDichVu")[1]], [b("LoaiDichVu")[0] + 90, b("ChiSoDichVu")[1] + 70],
+        [R(b, "ChiSoDichVu"), b("ChiSoDichVu")[1] + 70]])
     # Hoá đơn → dòng chi tiết.
-    r.route("HoaDon", "ChiTietHoaDon", "HoaDonId", lambda b: [[679, 1200], [725, 1200], [725, 1290], [780, 1290]])
-    # Tầng → căn: vòng bên phải nhóm sự cố, đi ngang phía trên nhóm thu phí rồi xuống đỉnh bảng CanHo.
-    r.route("Tang", "CanHo", "TangId", lambda b: [
-        [1240, b("Tang")[1] + b("Tang")[3]], [1240, 800], [630, 800], [630, b("CanHo")[1]]])
-    # Căn → yêu cầu: lên từ đỉnh CanHo, rẽ phải dưới bảng LichSuYeuCau, lên đáy YeuCauBaoTri.
-    r.route("CanHo", "YeuCauBaoTri", "CanHoId", lambda b: [
-        [560, b("CanHo")[1]], [560, 760], [680, 760], [680, b("YeuCauBaoTri")[1] + b("YeuCauBaoTri")[3]]])
+    r.route("HoaDon", "ChiTietHoaDon", "HoaDonId", lambda b: [
+        [R(b, "HoaDon"), D(b, "HoaDon") - 30], [giua(b) - 15, D(b, "HoaDon") - 30],
+        [giua(b) - 15, b("ChiTietHoaDon")[1] + 60], [b("ChiTietHoaDon")[0], b("ChiTietHoaDon")[1] + 60]])
     return r.spec()
 
 
@@ -654,13 +655,29 @@ def uc_detail(name, title, ucs, rels, actors, links, w, h):
 
 
 def uc03():
-    ucs = {"root": ("UC03 Báo sự cố", 420, 160),
-           "u7": ("UC07 Phân loại sự cố", 720, 80), "u8": ("UC08 Điều phối sự cố", 720, 240),
-           "anh": ("Đính kèm ảnh hiện trạng", 420, 320)}
-    rels = [("include", "root", "u7"), ("include", "root", "u8"), ("extend", "anh", "root")]
-    actors = {"cd": ("Cư dân", 70, 120), "ai": ("Mô hình AI", 1000, 40), "mail": ("Dịch vụ email", 1000, 200)}
+    """UC03 phân rã tới chức năng lá: phần cư dân làm (bên trái) và hai use case hệ thống được bao gồm (bên phải),
+    mỗi use case hệ thống tách tiếp thành các chức năng con."""
+    X = 100   # dời cả hình vào trong khung hệ thống
+    ucs = {"root": ("UC03 Báo sự cố", 360 + X, 420),
+           "mota": ("Nhập mô tả sự cố", 220 + X, 150), "noi": ("Chọn nơi xảy ra sự cố", 480 + X, 150),
+           "vitri": ("Ghi vị trí khu vực chung", 480 + X, 50),
+           "loai": ("Chọn loại và mức ưu tiên", 220 + X, 690), "anh": ("Đính kèm ảnh hiện trạng", 480 + X, 690),
+           "u7": ("UC07 Phân loại sự cố", 900 + X, 300),
+           "xdloai": ("Xác định loại sự cố", 720 + X, 150), "xdmuc": ("Xác định mức ưu tiên", 940 + X, 150),
+           "nguyhiem": ("Nhận diện sự cố nguy hiểm", 1160 + X, 150),
+           "u8": ("UC08 Điều phối sự cố", 900 + X, 520),
+           "giao": ("Giao kỹ thuật viên phù hợp", 720 + X, 690), "tbgiao": ("Thông báo giao việc", 940 + X, 690),
+           "phancong": ("Báo quản lý phân công", 1160 + X, 690),
+           "khancap": ("Báo quản lý sự cố khẩn cấp", 1160 + X, 590)}
+    rels = [("include", "root", "mota"), ("include", "root", "noi"), ("extend", "vitri", "noi"),
+            ("extend", "loai", "root"), ("extend", "anh", "root"),
+            ("include", "root", "u7"), ("include", "root", "u8"),
+            ("include", "u7", "xdloai"), ("include", "u7", "xdmuc"), ("include", "u7", "nguyhiem"),
+            ("include", "u8", "giao"), ("include", "u8", "tbgiao"),
+            ("extend", "phancong", "u8"), ("extend", "khancap", "u8")]
+    actors = {"cd": ("Cư dân", 60, 380), "ai": ("Mô hình AI", 1500, 260), "mail": ("Dịch vụ email", 1500, 480)}
     return uc_detail("Hinh 3.2 Use case UC03 Bao su co", "UC03 – Báo sự cố", ucs, rels, actors,
-                     [("cd", "root"), ("ai", "u7"), ("mail", "u8")], 720, 380)
+                     [("cd", "root"), ("ai", "u7"), ("mail", "u8")], 1280, 760)
 
 
 def uc11():
@@ -675,12 +692,19 @@ def uc11():
 
 
 def uc16():
-    ucs = {"root": ("UC16 Cập nhật tiến độ xử lý", 470, 70),
-           "u15": ("UC15 Xem việc được giao", 300, 200), "kq": ("Ghi kết quả xử lý", 640, 200),
-           "td": ("Tạm dừng xử lý", 300, 330), "anh": ("Tải ảnh nghiệm thu", 640, 330)}
-    rels = [("include", "root", "u15"), ("include", "root", "kq"), ("extend", "td", "root"), ("extend", "anh", "kq")]
+    """UC16 phân rã tới chức năng lá: xem việc, bắt đầu, hoàn tất (ghi kết quả, ảnh), tạm dừng và tiếp tục."""
+    X = 100
+    ucs = {"root": ("UC16 Cập nhật tiến độ xử lý", 340 + X, 320),
+           "u15": ("UC15 Xem việc được giao", 340 + X, 110), "ct": ("Xem chi tiết yêu cầu", 680 + X, 110),
+           "bd": ("Bắt đầu xử lý", 640 + X, 200), "ht": ("Hoàn tất xử lý", 640 + X, 400),
+           "kq": ("Ghi kết quả xử lý", 920 + X, 340), "anh": ("Tải ảnh nghiệm thu", 920 + X, 470),
+           "td": ("Tạm dừng xử lý", 260 + X, 560), "lydo": ("Ghi lý do tạm dừng", 260 + X, 680),
+           "tt": ("Tiếp tục xử lý", 560 + X, 600)}
+    rels = [("include", "root", "u15"), ("extend", "ct", "u15"), ("include", "root", "bd"), ("include", "root", "ht"),
+            ("include", "ht", "kq"), ("extend", "anh", "ht"), ("extend", "td", "root"), ("include", "td", "lydo"),
+            ("extend", "tt", "root")]
     return uc_detail("Hinh 3.4 Use case UC16 Cap nhat tien do xu ly", "UC16 – Cập nhật tiến độ xử lý", ucs, rels,
-                     {"ktv": ("Kỹ thuật viên", 70, 30)}, [("ktv", "root")], 700, 390)
+                     {"ktv": ("Kỹ thuật viên", 60, 280)}, [("ktv", "root")], 1000, 740)
 
 
 def uc06():
@@ -798,16 +822,21 @@ class Cls:
                 "nodes": self.nodes, "edges": self.edges}
 
 
-def class_co_cau():
-    k = Cls("Hinh 3.8 So do lop co cau nguoi dung phan quyen", "Sơ đồ lớp nơi chốn, cư trú, người dùng và phân quyền")
-    k.c("Khu", 20, 20)
-    k.c("ToaNha", 300, 20)
-    k.c("Tang", 680, 40)
-    k.c("CanHo", 740, 300)
-    k.c("CuTru", 520, 330)
-    k.c("NguoiDung", 120, 330)
-    k.c("VaiTro", 20, 600)
-    k.c("Quyen", 360, 600)
+def class_tong():
+    """Sơ đồ lớp toàn hệ thống, cùng bố cục với ERD tổng: người dùng và yêu cầu sự cố ở giữa, toà ở trên, căn hộ ở
+    dưới; phân quyền bên trái; thu phí dưới bên phải; kiểu liệt kê đặt cạnh lớp dùng nó."""
+    k = Cls("Hinh 3.8 So do lop tong", "Sơ đồ lớp của hệ thống")
+    for key, x, y in [("Khu", 20, 20), ("ToaNha", 420, 20), ("Tang", 1700, 20),
+                      ("NguoiDung", 300, 420), ("VaiTro", 20, 450), ("Quyen", 20, 650),
+                      ("AnhYeuCau", 700, 610), ("YeuCauBaoTri", 900, 380), ("MucUuTien", 1250, 200),
+                      ("TrangThaiYeuCau", 1200, 690), ("LoaiSuCo", 1350, 690),
+                      ("LichSuYeuCau", 620, 760), ("CuTru", 300, 800), ("NhatKyHeThong", 20, 1300),
+                      ("CanHo", 720, 1000), ("ChiSoDichVu", 1050, 1050), ("LoaiDichVu", 1400, 1150),
+                      ("CachTinh", 1650, 1150), ("DangKyDichVu", 1050, 1280), ("HoaDon", 720, 1300),
+                      ("ChiTietHoaDon", 1050, 1450), ("ThanhToan", 300, 1350),
+                      ("TrangThaiHoaDon", 1400, 1400), ("TrangThaiThanhToan", 300, 1580)]:
+        k.c(key, x, y)
+    # cơ cấu, cư trú, phân quyền
     k.a("Khu", "ToaNha", "1", "0..*")
     k.a("ToaNha", "Tang", "1", "1..*")
     k.a("Tang", "CanHo", "1", "0..*")
@@ -816,49 +845,18 @@ def class_co_cau():
     k.a("NguoiDung", "ToaNha", "0..1", "0..*", name="quanLy")
     k.a("NguoiDung", "VaiTro", "0..*", "1..*")
     k.a("VaiTro", "Quyen", "0..*", "0..*")
-    return k.spec()
-
-
-def class_su_co():
-    k = Cls("Hinh 3.9 So do lop su co", "Sơ đồ lớp sự cố và bảo trì")
-    k.c("CanHo", 20, 30, short=True)
-    k.c("ToaNha", 20, 200, short=True)
-    k.c("MucUuTien", 20, 380)
-    k.c("YeuCauBaoTri", 360, 20)
-    k.c("NguoiDung", 470, 380, short=True)
-    k.c("AnhYeuCau", 1060, 20)
-    k.c("LichSuYeuCau", 1020, 380)
-    k.c("NhatKyHeThong", 20, 560)
-    k.c("TrangThaiYeuCau", 640, 470)
-    k.c("LoaiSuCo", 800, 470)
+    # sự cố: hai liên kết người dùng – yêu cầu đi song song để không chồng nhau
     k.a("CanHo", "YeuCauBaoTri", "0..1", "0..*")
     k.a("ToaNha", "YeuCauBaoTri", "0..1", "0..*", name="toaNha")
     k.a("MucUuTien", "YeuCauBaoTri", "1", "0..*")
-    # Hai liên kết giữa NguoiDung (đặt dưới) và YeuCauBaoTri: một đường dọc, một đường vòng sang cạnh phải.
-    ytop = 290        # đáy thật của hộp YeuCauBaoTri (StarUML tự co hộp theo nội dung)
-    k.a("NguoiDung", "YeuCauBaoTri", "1", "0..*", name="nguoiBao", pts=[[500, 380], [500, ytop]])
-    k.a("NguoiDung", "YeuCauBaoTri", "0..1", "0..*", name="nguoiPhuTrach",
-        pts=[[538, 395], [650, 395], [650, 268], [566, 268]])
+    k.a("NguoiDung", "YeuCauBaoTri", "1", "0..*", name="nguoiBao", pts=[[452, 460], [900, 460]])
+    k.a("NguoiDung", "YeuCauBaoTri", "0..1", "0..*", name="nguoiPhuTrach", pts=[[452, 540], [900, 540]])
     k.edges[-1]["lineStyle"] = k.edges[-2]["lineStyle"] = 0
     k.a("YeuCauBaoTri", "AnhYeuCau", "1", "0..*", comp=True)
     k.a("YeuCauBaoTri", "LichSuYeuCau", "1", "1..*", comp=True)
     k.a("NguoiDung", "AnhYeuCau", "0..1", "0..*", name="nguoiTai")
     k.a("NguoiDung", "LichSuYeuCau", "0..1", "0..*", name="nguoiThucHien")
-    return k.spec()
-
-
-def class_thu_phi():
-    k = Cls("Hinh 3.10 So do lop thu phi", "Sơ đồ lớp phân hệ thu phí")
-    k.c("CanHo", 20, 380, short=True)
-    k.c("ChiSoDichVu", 260, 20)
-    k.c("DangKyDichVu", 300, 380)
-    k.c("LoaiDichVu", 700, 200)
-    k.c("CachTinh", 1060, 20)
-    k.c("HoaDon", 260, 640)
-    k.c("ChiTietHoaDon", 780, 700)
-    k.c("ThanhToan", 780, 950)
-    k.c("TrangThaiHoaDon", 1300, 640)
-    k.c("TrangThaiThanhToan", 1300, 950)
+    # thu phí
     k.a("CanHo", "ChiSoDichVu", "1", "0..*")
     k.a("LoaiDichVu", "ChiSoDichVu", "1", "0..*")
     k.a("CanHo", "DangKyDichVu", "1", "0..*", comp=True)
@@ -1016,7 +1014,7 @@ def build(diagrams, only=None):
 
 def diagrams():
     return [as_is(), to_be(), state_machine(), use_case_overview(), deployment(), uc03(), uc11(), uc16(), uc06(), uc20(),
-            activity_ai(), erd_tong(), rd_tong(), class_co_cau(), class_su_co(), class_thu_phi(),
+            activity_ai(), erd_tong(), rd_tong(), class_tong(),
             seq_bao_su_co(), seq_dieu_phoi(), seq_hoan_tat(), seq_duyet_thanh_toan()]
 
 

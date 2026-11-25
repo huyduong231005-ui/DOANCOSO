@@ -322,6 +322,8 @@ DOAN_UC_MOI = {   # đoạn bắt đầu bằng ... -> nội dung mới (số h�
 SUA_SAU = [   # thay chuỗi con, chạy sau cùng trên mọi đoạn (kể cả ô bảng), trừ mục lục
     ("yêu cầu và use case sơ bộ.", "yêu cầu và use case."),
     ("ràng buộc toàn vẹn (CHECK, trigger, hàm); kiểu dữ liệu và bảng mã", "ràng buộc toàn vẹn (CHECK, trigger, hàm)"),
+    (" Đây là kiểm tra thiết kế, việc chạy thử trên cơ sở dữ liệu sau khi đồng bộ lược đồ mới thuộc phần việc tiếp "
+     "theo.", ""),
 ]
 
 
@@ -376,7 +378,8 @@ def gop_so_do_lop(body, set_text):
         t = _text(p)
         if t.startswith("Hình 3.8 là sơ đồ lớp"):
             set_text(p, DOAN_LOP)
-        elif t.startswith("Hình 3.9 gồm các lớp") or t.startswith("Hình 3.10 vẽ riêng"):
+        elif (t.startswith("Hình 3.9 gồm các lớp") or t.startswith("Hình 3.10 vẽ riêng")
+              or t.startswith("Bội số ghi ở hai đầu mỗi liên kết")):
             p.getparent().remove(p)
         elif (t.startswith("Hình 3.9.") or t.startswith("Hình 3.10.")) and _kieu(p) == "ChuthichHinh":
             prev = p.getprevious()
@@ -387,3 +390,14 @@ def gop_so_do_lop(body, set_text):
                 prev.getparent().remove(prev)
                 prev = nxt
             p.getparent().remove(p)
+
+
+VIET_TAT_THUA = {"GUID", "HTTT", "LLM", "RD"}   # không còn dùng trong thân bài
+
+
+def bo_viet_tat_thua(body):
+    """Bỏ các dòng của danh mục chữ viết tắt mà thân bài không còn dùng."""
+    for tr in list(body.iter(qn("w:tr"))):
+        tcs = tr.findall(qn("w:tc"))
+        if len(tcs) == 2 and _text(tcs[0]).strip() in VIET_TAT_THUA:
+            tr.getparent().remove(tr)

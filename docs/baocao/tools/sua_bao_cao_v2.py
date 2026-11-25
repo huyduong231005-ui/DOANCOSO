@@ -407,10 +407,9 @@ REWRITE = {  # đoạn bắt đầu bằng ... -> nội dung mới
         "lưu; hợp lệ thì lưu thanh toán Thành công, số đã trả và trạng thái hoá đơn trong cùng một giao dịch.",
     "Bốn sơ đồ tuần tự mô tả":
         "Bốn sơ đồ tuần tự mô tả ba luồng: cư dân báo sự cố có AI phân loại (tách làm hai hình: phân loại và lưu, "
-        "điều phối sau khi lưu), kỹ thuật viên hoàn tất xử lý, và quản lý duyệt xác nhận chuyển khoản của cư dân. Mỗi "
-        "lời gọi mở một thanh kích hoạt ở đối tượng nhận, kéo dài tới lúc trả về; mọi mũi tên, trừ mũi tên đầu tiên "
-        "của tác nhân, đi ra từ thanh kích hoạt. Khung opt là đoạn chỉ chạy khi điều kiện đúng, khung alt là các nhánh "
-        "loại trừ nhau; thông điệp nét đứt là giá trị trả về.",
+        "điều phối sau khi lưu), kỹ thuật viên hoàn tất xử lý, và quản lý duyệt xác nhận chuyển khoản của cư dân. Khung "
+        "opt là đoạn chỉ chạy khi điều kiện đúng, khung alt là các nhánh loại trừ nhau; thông điệp nét đứt là giá trị "
+        "trả về.",
 }
 BR_MECH = {  # mã ràng buộc theo Chương 2 bản gọn (RB: trên một bảng, LB: liên bộ, liên quan hệ)
     "BR-SC-01": "Ứng dụng, kiểm tra trước khi lưu (LB01)", "BR-SC-02": "CHECK (RB06)",
@@ -531,6 +530,7 @@ def main():
     gon_bao_cao.dua_uc_ve_chuong1(body, set_text, new_p)
     gon_bao_cao.bo_muc_uc_chuong3(body, set_text)
     gon_bao_cao.gop_so_do_lop(body, set_text)
+    gon_bao_cao.bo_viet_tat_thua(body)
     treo, doi = gon_bao_cao.danh_so_lai(body, set_text)
     print(f"đánh số lại {doi} bảng; tham chiếu treo: {treo or 'không'}")
     treo, doi = gon_bao_cao.danh_so_hinh(body, set_text, {"3.2": "1", "3.4": "1"})

@@ -48,7 +48,8 @@ def blocks():
         ["CAN_HO", "Căn hộ", "Nơi ở và nơi tính phí"],
         ["NGUOI_DUNG", "Cư dân, quản lý, kỹ thuật viên, quản trị", "Một người là một tài khoản"],
         ["CU_TRU", "Ai ở căn nào, từ ngày nào", "Mối kết hợp n – n “cư trú” giữa người dùng và căn hộ, có thuộc tính riêng"],
-        ["VAI_TRO, QUYEN", "Nhóm người dùng và quyền theo phân hệ", "Phân quyền, chọn thợ theo chuyên môn"],
+        ["VAI_TRO", "Nhóm người dùng (quản lý, từng loại thợ, cư dân…)", "Phân quyền, chọn thợ theo chuyên môn"],
+        ["QUYEN", "Quyền xem, thao tác theo phân hệ", "Cấp, thu quyền không cần sửa chương trình"],
         ["NGUOI_DUNG_VAI_TRO", "Ai giữ vai trò nào", "Mối kết hợp n – n “đóng vai”"],
         ["VAI_TRO_QUYEN", "Vai trò có quyền nào", "Mối kết hợp n – n “được cấp”"],
         ["MUC_UU_TIEN", "Mức ưu tiên và thời hạn xử lý", "Đổi thời hạn không cần sửa chương trình"],
@@ -67,8 +68,7 @@ def blocks():
         ["THANH_TOAN", "Lần nộp tiền", "Một hoá đơn nộp nhiều lần"],
     ], [4.4, 3.6, 3.6])
     p("Bảng kỹ thuật của ASP.NET Identity (claim, token, đăng nhập ngoài) không mang thông tin nghiệp vụ nên không "
-      "đưa vào phân tích. Bảng nghiệp vụ dùng khoá số nguyên tự tăng; khoá tự nhiên (SoHoaDon, MaCanHo, MaToaNha…) vẫn "
-      "khai báo duy nhất. NguoiDungId, VaiTroId là chuỗi do ASP.NET Identity sinh.")
+      "đưa vào phân tích.")
     p("Phân hệ thu phí có sáu bảng, mỗi bảng do một người ghi vào một thời điểm và giữ một loại thông tin (Bảng 2.2). "
       "Tên và đơn giá của mọi khoản thu chỉ nằm ở LoaiDichVu; các bảng khác chỉ trỏ tới loại dịch vụ.")
     T("Bảng 2.2. Vai trò của các bảng thu phí", ["Bảng", "Ai ghi, khi nào", "Lưu gì", "Không lưu"], [
@@ -112,10 +112,7 @@ def blocks():
     p("Hình 2.2 vẽ lược đồ quan hệ theo ký pháp chân gà, cùng bố cục với ERD. Cột trái của mỗi bảng ghi PK (khoá "
       "chính), FK (khoá ngoại), U (duy nhất), N (cho phép rỗng). Chân gà nằm ở bảng chứa "
       "khoá ngoại, kèm vòng tròn nếu dòng cha có thể chưa có dòng con, kèm vạch nếu phải có ít nhất một. Hai khoá "
-      "ngoại tới cùng một bảng được vẽ thành hai đường có ghi tên khoá. Mỗi bảng ghi đủ khoá và các cột chính, không ghi "
-      "kiểu dữ liệu để hình đủ lớn. Kiểu dữ liệu chọn theo loại thông tin: tiền là numeric(18,0) vì đồng Việt Nam "
-      "không có phần lẻ; diện tích, chỉ số, số lượng là numeric có hai chữ số lẻ; ngày là date, thời điểm là "
-      "timestamp; trạng thái, loại là integer kèm CHECK; chuỗi là varchar có giới hạn độ dài.")
+      "ngoại tới cùng một bảng được vẽ thành hai đường có ghi tên khoá. Mỗi bảng ghi đủ khoá và các cột chính.")
     B.append(("fig", "Hình 2.2. Lược đồ quan hệ toàn hệ thống", IMG / (sd.rd_tong()["name"] + ".png")))
     p("CuTru là liên kết thường, không phải hợp thành: căn còn người cư trú thì không xoá được, xoá căn không xoá "
       "người. Khi xoá dòng cha, khoá ngoại tới bộ phận của nó (ảnh, lịch sử, dòng hoá đơn, đăng ký dịch vụ) xoá theo; "
@@ -273,9 +270,8 @@ def rbtv_blocks():
     p = lambda s: B.append(("p", s))
     T = lambda cap, head, rows, w: B.append(("table", cap, head, rows, w))
     B.append(("h2", "2.5. Ràng buộc toàn vẹn"))
-    p("Mỗi ràng buộc ghi bối cảnh (các quan hệ liên quan), nội dung và cách cài đặt; ràng buộc liên bộ, liên quan hệ "
-      "ghi thêm biểu diễn hình thức. Khoá chính, khoá ngoại và khoá duy nhất đã thể hiện trên lược đồ quan hệ (PK, FK, "
-      "U) nên không liệt kê lại.")
+    p("Mỗi ràng buộc ghi bối cảnh (các bảng liên quan), nội dung và cách bảo đảm. Khoá chính, khoá ngoại và khoá duy "
+      "nhất đã thể hiện trên lược đồ quan hệ (PK, FK, U) nên không liệt kê lại.")
     B.append(("h3", "2.5.1. Ràng buộc trên một bảng"))
     p("Ràng buộc miền giá trị và liên thuộc tính chỉ xét các cột của cùng một dòng, nên đều khai báo bằng CHECK trên "
       "bảng đó (Bảng 2.3); chỉ thao tác Thêm và Sửa trên chính bảng đó mới có thể vi phạm.")
@@ -288,26 +284,26 @@ def rbtv_blocks():
       "thêm trigger. Bảng 2.5 cho tầm ảnh hưởng: thao tác Thêm (T), Xoá (X), Sửa (S) nào trên quan hệ nào có thể làm "
       "vi phạm. Dấu + là phải kiểm tra, – là không ảnh hưởng, + (cột) là chỉ khi sửa các cột đó, (*) là chỉ cần kiểm "
       "tra lúc tạo dòng.")
-    T("Bảng 2.4. Ràng buộc liên bộ, liên quan hệ", ["Mã", "Bối cảnh", "Nội dung", "Biểu diễn", "Cách đảm bảo"],
-      [[m, bc, nd, bd, cd] for m, bc, nd, bd, cd, _ in LB], [1.1, 2.2, 2.9, 3.6, 1.7])
+    T("Bảng 2.4. Ràng buộc liên bộ, liên quan hệ", ["Mã", "Bối cảnh", "Nội dung", "Cách bảo đảm"],
+      [[m, bc, nd, cd] for m, bc, nd, bd, cd, _ in LB], [1.1, 2.6, 5.2, 2.6])
     T("Bảng 2.5. Tầm ảnh hưởng của các ràng buộc liên bộ, liên quan hệ", ["Mã", "Quan hệ", "Thêm", "Xoá", "Sửa"],
       [[m if j == 0 else "", r, tt, x, ss] for m, *_, rows in LB for j, (r, tt, x, ss) in enumerate(rows)],
       [1.0, 3.6, 1.1, 1.1, 4.4])
     B.append(("h3", "2.5.3. Trigger và hàm"))
     p("Ba trigger và một hàm ở Bảng 2.6 chỉ kiểm tra rồi chấp nhận hoặc từ chối lệnh ghi, không tự ghi thêm dữ liệu; "
-      "mỗi cái đã được thử bằng lệnh vi phạm cố ý. Khung nhìn vw_doi_chieu_hoa_don tính lại tiền phí và số đã thu từ "
-      "dòng chi tiết và thanh toán để phát hiện chênh lệch (ngày 25/11/2026: 0 hoá đơn lệch).")
+      "mỗi cái đã được thử bằng lệnh vi phạm cố ý. Ngoài ra, một khung nhìn tính lại tiền phí và số đã thu của từng hoá "
+      "đơn từ các dòng chi tiết và các lần thanh toán để phát hiện chênh lệch (ngày 25/11/2026: không hoá đơn nào lệch).")
     T("Bảng 2.6. Trigger và hàm ở tầng cơ sở dữ liệu",
-      ["Mã", "Loại, đối tượng", "Điều kiện kiểm tra", "Khi vi phạm", "Ràng buộc"], [
-          ["TG1", "Trigger BEFORE UPDATE OF TrangThaiYeuCau trên YeuCauBaoTri",
-           "Cặp (trạng thái cũ, mới) thuộc bảng chuyển; chuyển sang Đang xử lý phải có NguoiPhuTrachId",
-           "Huỷ lệnh, báo số yêu cầu và hai trạng thái", "LB03"],
-          ["TG2", "Trigger BEFORE UPDATE, DELETE trên ChiSoDichVu",
-           "Căn đã có hoá đơn phí tháng chưa huỷ của kỳ thì chỉ số kỳ đó không sửa, không xoá", "Huỷ lệnh, báo lỗi",
-           "LB08"],
-          ["TG3", "Trigger AFTER INSERT, UPDATE trên ThanhToan",
-           "Tổng thu thành công trừ phần hoàn của hoá đơn ≤ TongTien", "Huỷ cả giao dịch, báo lỗi", "LB06"],
-          ["FN1", "Hàm fn_han_xu_ly(ngày báo, mức)", "Trả về ngày báo + PhutHoanTat của mức trong MucUuTien",
+      ["Mã", "Chạy khi", "Kiểm tra", "Khi vi phạm", "Ràng buộc"], [
+          ["TG1", "Trước khi đổi trạng thái một yêu cầu",
+           "Trạng thái cũ được phép chuyển sang trạng thái mới; chuyển sang Đang xử lý thì phải có người phụ trách",
+           "Từ chối, báo số yêu cầu và hai trạng thái", "LB03"],
+          ["TG2", "Trước khi sửa hoặc xoá một chỉ số điện nước",
+           "Căn đã có hoá đơn phí tháng chưa huỷ của kỳ đó thì không cho sửa, xoá chỉ số", "Từ chối, báo lỗi", "LB08"],
+          ["TG3", "Sau khi thêm hoặc sửa một lần thanh toán",
+           "Tổng tiền thu thành công (trừ phần đã hoàn) không vượt tổng tiền hoá đơn", "Huỷ cả giao dịch, báo lỗi",
+           "LB06"],
+          ["FN1", "Khi tính hạn xử lý của yêu cầu", "Trả về ngày báo cộng thời hạn hoàn tất của mức ưu tiên",
            "Không có", "LB05"],
-      ], [1.1, 3.2, 3.5, 2.2, 1.3])
+      ], [1.1, 2.8, 4.0, 2.2, 1.3])
     return B

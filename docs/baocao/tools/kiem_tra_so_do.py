@@ -83,7 +83,15 @@ def seg_cross(p1, q1, p2, q2):
 
 
 def check_rd(d):
-    """Lược đồ quan hệ: đường nối không cắt qua bảng khác; hai khoá ngoại cùng cặp bảng phải tách và có tên."""
+    """Lược đồ quan hệ: đủ khoá chính, khoá ngoại; đường nối không cắt qua bảng khác; hai khoá ngoại cùng cặp bảng
+    phải tách và có tên."""
+    for n in d["nodes"]:
+        if n["kind"] != "entity":
+            continue
+        shown = {c["name"].lstrip("/") for c in n["columns"]}
+        for c in sd.SCHEMA[n["key"]]["columns"]:
+            if (c["pk"] or c["fk"]) and c["name"] not in shown:
+                err(d, f"bảng {n['key']} thiếu khoá {c['name']}")
     b = boxes(d, ("entity",))
     center = {k: (x + w / 2, y + h / 2) for k, (x, y, w, h) in b.items()}
     seen = {}
@@ -247,11 +255,17 @@ def table_of(ent):
     return m.get(ent) or "".join(w.capitalize() for w in ent.lower().split("_"))
 
 
+# Bảng của mối kết hợp n – n trên ERD: (thực thể hai đầu, thuộc tính ghi trên khung của mối kết hợp).
+NN = {"CuTru": (("NguoiDung", "CanHo"), sd.CU_TRU_ATTR), "NguoiDung_VaiTro": (("NguoiDung", "VaiTro"), []),
+      "VaiTro_Quyen": (("VaiTro", "Quyen"), []), "DangKyDichVu": (("CanHo", "LoaiDichVu"), sd.DANG_KY_ATTR),
+      "ChiTietHoaDon": (("HoaDon", "LoaiDichVu"), sd.CHI_TIET_ATTR)}
+
+
 def fks():
     out = []
     for t, v in sd.SCHEMA.items():
         for c in v["columns"]:
-            if c["fk"] and not t.endswith("_VaiTro") and not t.endswith("_Quyen"):
+            if c["fk"] and t not in NN:
                 out.append((c["fk"], t, c["name"], c["null"], c["on_delete"]))
     return out
 
@@ -272,11 +286,6 @@ def check_erds(erds):
         check_overlaps(d, ("class", "nary", "note"))
     used = set()
     for parent, child, col, nullable, _ in fks():
-        if child == "CuTru":   # bảng của mối kết hợp n–n "cư trú" giữa NGUOI_DUNG và CAN_HO
-            if not any({r[0], r[2]} == {"NguoiDung", "CanHo"} and r[1].endswith("n)") and r[3].endswith("n)")
-                       for r in rels):
-                ERRORS.append("[ERD] thiếu mối kết hợp n–n cư trú NGUOI_DUNG–CAN_HO")
-            continue
         ok = False
         for i, (a, ca, b, cb, d) in enumerate(rels):
             if {a, b} != {parent, child} or i in used:
@@ -288,16 +297,18 @@ def check_erds(erds):
                 break
         if not ok:
             ERRORS.append(f"[ERD] khoá ngoại {child}.{col} -> {parent} (NULL={nullable}) không có mối kết hợp với bản số khớp")
-    # n–n: cư trú, đóng vai, được cấp
-    nn = {frozenset(("NguoiDung", "CanHo")), frozenset(("NguoiDung", "VaiTro")), frozenset(("VaiTro", "Quyen"))}
+    nn = {frozenset(ends) for ends, _ in NN.values()}
+    for t, (ends, _) in NN.items():
+        if not any({r[0], r[2]} == set(ends) and r[1].endswith("n)") and r[3].endswith("n)") for r in rels):
+            ERRORS.append(f"[ERD] thiếu mối kết hợp n–n {ends[0]}–{ends[1]} (bảng {t})")
     for a, ca, b, cb, d in rels:
         if ca.endswith("n)") and cb.endswith("n)") and frozenset((a, b)) not in nn:
             err(d, f"mối kết hợp n–n {a}–{b} không có bảng trung gian trong CSDL")
 
 
 def check_attributes(erds, classes):
-    """Thuộc tính trên ERD phải là cột thật (không gồm khoá ngoại); mỗi cột không phải khoá ngoại phải có trên ERD.
-    Thuộc tính của lớp là tên cột viết kiểu camelCase."""
+    """Thuộc tính trên ERD phải là cột thật (không gồm khoá ngoại), thuộc tính đầu là khoá chính; ERD tổng chỉ ghi
+    các thuộc tính chính nên không đòi đủ cột. Thuộc tính của lớp là tên cột viết kiểu camelCase."""
     shown = defaultdict(set)
     for d in erds:
         for n in d["nodes"]:
@@ -314,14 +325,21 @@ def check_attributes(erds, classes):
                     elif cols[name].get("generated") != a["name"].startswith("/"):
                         err(d, f"{n['key']}.{a['name']}: dấu / phải đi đúng với cột tự tính")
     for t, v in sd.SCHEMA.items():
-        if t in ("CuTru", "NguoiDung_VaiTro", "VaiTro_Quyen"):
+        if t in NN:
             continue
-        for c in v["columns"]:
-            if not c["fk"] and c["name"] not in shown[t]:
-                ERRORS.append(f"[ERD] cột {t}.{c['name']} chưa có trên ERD")
-    cu = {c["name"] for c in sd.SCHEMA["CuTru"]["columns"] if not c["fk"] and not c["pk"]}
-    if cu != set(sd.CU_TRU_ATTR):
-        ERRORS.append(f"[ERD] thuộc tính của mối kết hợp cư trú lệch bảng CuTru: {cu ^ set(sd.CU_TRU_ATTR)}")
+        pk = [c["name"] for c in v["columns"] if c["pk"]]
+        if not shown[t]:
+            ERRORS.append(f"[ERD] bảng {t} không có thực thể trên ERD")
+        elif any(k not in shown[t] for k in pk):
+            ERRORS.append(f"[ERD] thực thể của {t} thiếu khoá chính {pk}")
+    for t, (_, attrs) in NN.items():
+        cols = {c["name"]: c for c in sd.SCHEMA[t]["columns"]}
+        for a in attrs:
+            c = cols.get(a.lstrip("/"))
+            if c is None or c["fk"]:
+                ERRORS.append(f"[ERD] thuộc tính {a} của mối kết hợp ứng với bảng {t} không phải cột thường")
+            elif c.get("generated") != a.startswith("/"):
+                ERRORS.append(f"[ERD] {t}.{a}: dấu / phải đi đúng với cột tự tính")
     for d in classes:
         for n in d["nodes"]:
             if n["kind"] != "class" or n["key"] not in sd.SCHEMA:

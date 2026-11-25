@@ -6,6 +6,7 @@
 Sau đó chạy cap_nhat_word.ps1 để Word cập nhật mục lục, danh mục bảng/hình và xuất PDF.
 """
 import copy
+import os
 import re
 import sys
 from pathlib import Path
@@ -20,7 +21,7 @@ import noi_dung_ch2
 import so_do_v2 as sd
 
 SRC = Path(r"C:\Users\ACER\Downloads\BaoCao_DACN_Tuan1-6_sua.docx")
-OUT = Path(r"C:\Users\ACER\Downloads\BaoCao_DACN_Tuan1-6_sua_v2.docx")
+OUT = Path(os.environ.get("BAOCAO_OUT", r"C:\Users\ACER\Downloads\BaoCao_DACN_Tuan1-6_sua_v2.docx"))
 IMG = sd.IMG
 
 PORTRAIT = (453, 610)     # vùng ảnh tối đa trên trang dọc (pt), chừa chỗ chú thích
@@ -340,7 +341,7 @@ REPL = [
     ("–TrangThaiSuCo, MucDoUuTien, LoaiBaoTri là các kiểu liệt kê",
      "–TrangThaiYeuCau, LoaiSuCo là các kiểu liệt kê (mức ưu tiên là lớp MucUuTien)"),
     ("–TrangThaiHoaDon, TrangThaiThanhToan là các kiểu liệt kê",
-     "–TrangThaiHoaDon, TrangThaiThanhToan, LoaiKhoan là các kiểu liệt kê"),
+     "–TrangThaiHoaDon, TrangThaiThanhToan, CachTinh là các kiểu liệt kê"),
     ("là tài khoản của bản ghi cư dân", "có thể có nhiều lần cư trú (CuTru)"),
 ]
 # Câu viết lại cho gọn (so khớp chữ đã qua các phép thay ở trên), rồi mới đổi tên bảng.
@@ -349,6 +350,15 @@ import gon_bao_cao  # noqa: E402
 import ten_moi_tuan8  # noqa: E402
 REPL = REPL + CAU + TEN_MOI
 REWRITE = {  # đoạn bắt đầu bằng ... -> nội dung mới
+    "Về kỹ thuật, phân loại văn bản tự do":
+        "Về kỹ thuật, mô tả sự cố do cư dân tự viết thường ngắn, viết tắt, không dấu và gộp nhiều ý, nên khó phân loại "
+        "bằng từ khoá; mô hình ngôn ngữ lớn hiểu được kiểu văn bản này. Đề tài dùng mô hình mở Qwen3-4B [12] và dạy "
+        "thêm cho mô hình trên bộ mô tả sự cố do nhóm tự xây dựng. Cách dạy thêm là QLoRA [5], một cách tinh chỉnh tốn "
+        "ít bộ nhớ dựa trên LoRA [6]. Sau khi tinh chỉnh, mô hình trả lời theo một khuôn cố định gồm loại sự cố, mức ưu "
+        "tiên, có nguy hiểm hay không, câu hỏi cần hỏi lại cư dân và nhóm thợ xử lý. Mô hình chạy ngay trên máy chủ "
+        "của Ban quản lý bằng phần mềm Ollama [9], nên mô tả của cư dân không phải gửi ra dịch vụ bên ngoài. Phần thiết "
+        "kế dữ liệu dựa trên mô hình quan hệ của Codd [3] và lý thuyết chuẩn hoá trong giáo trình của Elmasri và "
+        "Navathe [4]. Phần đặc tả yêu cầu theo hướng dẫn của Wiegers và Beatty [13]; các sơ đồ vẽ theo chuẩn UML [8].",
     "Hình 1.6 là sơ đồ use case tổng quát.":
         "Hình 1.6 là sơ đồ use case tổng quát. Cư dân, quản lý BQL và kỹ thuật viên đều là người dùng (quan hệ tổng "
         "quát hoá) nên cùng dùng UC01 Đăng nhập; quản trị viên có mọi quyền của quản lý. UC03 “Báo sự cố” luôn bao "
@@ -374,10 +384,11 @@ REWRITE = {  # đoạn bắt đầu bằng ... -> nội dung mới
         "một tầng và toà của căn suy ra từ tầng. NguoiDung và CanHo liên kết qua lớp CuTru (người nào ở căn nào, từ "
         "ngày nào đến ngày nào). Đây là liên kết thường, không phải hợp thành: xoá căn không xoá người.",
     "–CanHo gồm các PhiDinhKy và ChiSoDichVu":
-        "–CanHo có các PhiDinhKy và ChiSoDichVu (liên kết thường: căn còn chỉ số hay khoản phí thì không xoá được); "
-        "mỗi chỉ số thuộc đúng một LoaiDichVu. Mỗi ChiTietHoaDon có thể trỏ về chỉ số, khoản phí định kỳ hoặc sự cố "
-        "đã lập ra nó. Hoá đơn tháng của căn được lập từ diện tích nhân đơn giá phí quản lý của toà, các chỉ số chưa "
-        "xuất hoá đơn và các khoản phí định kỳ đang áp dụng (BR-TP-01).",
+        "–LoaiDichVu là bảng giá: mỗi khoản thu (phí quản lý, điện, nước, gửi xe, sửa chữa) là một loại dịch vụ "
+        "có đơn giá và cách tính. CanHo có các ChiSoDichVu cho dịch vụ tính theo chỉ số và các DangKyDichVu cho dịch "
+        "vụ căn đăng ký (chỉ ghi số lượng; xoá căn thì đăng ký xoá theo nên là hợp thành). Mỗi ChiTietHoaDon là một "
+        "loại dịch vụ trên một hoá đơn: số lượng là diện tích, lượng tiêu thụ hoặc số đăng ký, đơn giá lấy từ bảng "
+        "giá lúc lập (BR-TP-01).",
     "Hình 3.11:":
         "Hình 3.11: cư dân gửi yêu cầu; hệ thống kiểm tra cư dân đang ở căn đó và dữ liệu nhập. Không hợp lệ thì báo "
         "lỗi và dừng. Hợp lệ thì phân loại: chỉ khi AI bật mới gọi mô hình AI, kết quả được gộp với lựa chọn của cư "
@@ -411,13 +422,19 @@ BR_MECH = {  # mã ràng buộc theo Chương 2 bản gọn (RB: trên một b�
     "BR-CH-01": "UNIQUE (ToaNhaId, SoTang), UNIQUE (MaCanHo)", "BR-CH-02": "CHECK (RB01)",
     "BR-CD-01": "CHECK (RB03), UNIQUE có điều kiện và ứng dụng (LB13)",
     "BR-CD-02": "Ứng dụng: mã mời ký số (LB14); email duy nhất",
-    "BR-TP-01": "UNIQUE có điều kiện và ứng dụng (LB11)",
-    "BR-TP-02": "CHECK (RB10), UNIQUE (CanHoId, LoaiDichVuId, Ky), trigger TG2 (LB08)",
+    "BR-TP-01": "UNIQUE có điều kiện, khoá chính (HoaDonId, LoaiDichVuId) và ứng dụng (LB10, LB11)",
+    "BR-TP-02": "CHECK (RB10), UNIQUE (CanHoId, LoaiDichVuId, Ky), trigger TG2 (LB08), ứng dụng (LB16)",
     "BR-TP-03": "CHECK (RB13), trigger TG3 (LB06) và ứng dụng", "BR-TP-05": "CHECK (RB13), ứng dụng (LB12)",
     "BR-TP-06": "UNIQUE (SoHoaDon), UNIQUE (SoThanhToan)",
     "BR-TP-07": "Cột tự tính TongTien, ConNo; CHECK (RB11); trigger TG3; khung nhìn đối chiếu (LB07)",
 }
 BR_TEXT = {
+    "BR-SC-01": "Chỉ cư dân đang ở (cư trú chưa chuyển đi, đã xác nhận qua thư mời) mới được báo sự cố, cho căn của "
+                "mình hoặc khu vực chung của toà mình.",
+    "BR-TP-01": "Mỗi căn, mỗi kỳ chỉ có một hoá đơn phí tháng chưa huỷ; căn chưa bàn giao không lập. Hoá đơn có mỗi "
+                "loại dịch vụ một dòng: phí quản lý (số lượng là diện tích căn), điện nước (lượng tiêu thụ theo chỉ "
+                "số của kỳ), dịch vụ căn đăng ký (số lượng đăng ký); đơn giá lấy từ bảng giá và chốt trên dòng. Hạn "
+                "thanh toán = ngày lập + 7 ngày.",
     "BR-CH-01": "Số tầng không trùng trong một toà; mã căn không trùng.",
     "BR-CD-02": "Mỗi người một tài khoản (NguoiDung). Cư trú chỉ có hiệu lực trên cổng cư dân khi người đó bấm thư mời "
                 "do BQL gửi (hạn 14 ngày) để kích hoạt tài khoản hoặc xác nhận căn.",
@@ -447,10 +464,11 @@ OPS_DESC = {
     "quaHan": "Cho biết yêu cầu đã quá hạn chưa", "luuAnh": "Lưu một ảnh hiện trạng hoặc nghiệm thu",
     "ghiLichSu": "Ghi một dòng cho mỗi lần đổi trạng thái hoặc giao việc", "ghiNhatKy": "Ghi thao tác thay đổi dữ liệu",
     "xemNhatKy": "Tra cứu nhật ký", "capNhatDonGia": "Đổi đơn giá", "ghiChiSo": "Ghi chỉ số của căn trong kỳ",
-    "nhapTheoToa": "Nhập chỉ số nhiều căn của một toà", "daXuatHoaDon": "Có dòng thuộc hoá đơn chưa huỷ hay không",
+    "nhapTheoToa": "Nhập chỉ số nhiều căn của một toà",
+    "daXuatHoaDon": "Căn đã có hoá đơn phí tháng chưa huỷ của kỳ này hay không",
     "tieuThu": "Chỉ số mới trừ chỉ số cũ",
-    "themKhoan": "Thêm khoản phí cố định", "batTat": "Bật hoặc tắt áp dụng khoản phí",
-    "lapHoaDonThang": "Lập hoá đơn tháng từ phí quản lý, chỉ số, phí định kỳ",
+    "dangKy": "Đăng ký dịch vụ cho căn hoặc đổi số lượng", "huyDangKy": "Huỷ đăng ký dịch vụ của căn",
+    "lapHoaDonThang": "Lập hoá đơn tháng: phí quản lý, điện nước theo chỉ số, dịch vụ đã đăng ký",
     "lapHoaDonPhatSinh": "Lập hoá đơn phát sinh (chi phí sửa chữa…)", "congPhiTre": "Cộng phí trễ hạn theo tỉ lệ của toà",
     "huy": "Huỷ hoá đơn chưa có thanh toán thành công", "tinhThanhTien": "Số lượng nhân đơn giá",
     "guiXacNhan": "Cư dân gửi xác nhận đã chuyển khoản", "ghiNhanTrucTiep": "Quản lý thu tiền mặt hoặc chuyển khoản",
@@ -511,14 +529,19 @@ def main():
     fix_text()
     gon_bao_cao.gop_uc_vao_fr(body, new_table, set_text)
     gon_bao_cao.bo_bang_chuong3(body, set_text)
+    gon_bao_cao.dua_uc_ve_chuong1(body, set_text, new_p)
     treo, doi = gon_bao_cao.danh_so_lai(body, set_text)
     print(f"đánh số lại {doi} bảng; tham chiếu treo: {treo or 'không'}")
+    treo, doi = gon_bao_cao.danh_so_hinh(body, set_text, {"3.2": "1", "3.4": "1"})
+    print(f"đánh số lại {doi} hình; tham chiếu hình treo: {treo or 'không'}")
     groups, nland = landscape_sections()
     doc.save(str(OUT))
     leftovers = [w for w in ("MucSla", "CuDan", "MUC_SLA", "YEU_CAU_SU_CO", "[P1]", "NgayTiepNhan", "SoLuongTang",
                              "DaKichHoat", "KhuVuc", "DuAn", "GiamGia", "ThueHoaDon", "TrangThaiTruoc", "NgayBaoSuCo",
                              "HanXuLyYeuCau", "TongTienHoaDon", "ConLaiHoaDon", "DaThanhToanHoaDon", "SoPhongTam", "HuongNha",
-                             "ChiPhiUocTinh", "TenNguoiGhi", "TamTinh", "mục 2.5.7", "mục 2.4.3", "mục 2.3.4") if w in "".join(text(p) for p in body.iter(qn("w:p")))]
+                             "ChiPhiUocTinh", "TenNguoiGhi", "TamTinh", "mục 2.5.7", "mục 2.4.3", "mục 2.3.4",
+                             "PhiDinhKy", "PHI_DINH_KY", "phí định kỳ", "LoaiKhoan", "PhiQuanLyM2", "đơn giá của toà",
+                             "mục 2.7", "Hình 2.3", "Hình 2.8", "bốn ERD", "Bảng 2.8", "Bảng 2.9", "quy ước đặt tên") if w in "".join(text(p) for p in body.iter(qn("w:p")))]
     print(f"đã ghi {OUT}; {nland} hình trên trang ngang ({groups} nhóm); chữ cũ còn sót: {leftovers}")
 
 

@@ -116,16 +116,6 @@
     "on_delete": null,
     "unique": false,
     "generated": false
-   },
-   {
-    "name": "PhiQuanLyM2",
-    "type": "numeric(18,0)",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false,
-    "generated": false
    }
   ],
   "unique": [
@@ -141,10 +131,6 @@
    {
     "name": "CK_ToaNha_NgayLapPhi",
     "def": "CHECK (((\"NgayLapPhi\" >= 1) AND (\"NgayLapPhi\" <= 28)))"
-   },
-   {
-    "name": "CK_ToaNha_PhiQuanLyM2",
-    "def": "CHECK ((\"PhiQuanLyM2\" >= (0)::numeric))"
    },
    {
     "name": "CK_ToaNha_PhiTre",
@@ -1220,6 +1206,16 @@
     "on_delete": null,
     "unique": false,
     "generated": false
+   },
+   {
+    "name": "CachTinh",
+    "type": "integer",
+    "null": false,
+    "pk": false,
+    "fk": null,
+    "on_delete": null,
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [
@@ -1235,6 +1231,10 @@
    {
     "name": "CK_LoaiDichVu_DonGia",
     "def": "CHECK ((\"DonGia\" >= (0)::numeric))"
+   },
+   {
+    "name": "CK_LoaiDichVu_CachTinh",
+    "def": "CHECK (((\"CachTinh\" >= 0) AND (\"CachTinh\" <= 3)))"
    }
   ]
  },
@@ -1333,51 +1333,31 @@
    }
   ]
  },
- "PhiDinhKy": {
+ "DangKyDichVu": {
   "columns": [
-   {
-    "name": "PhiDinhKyId",
-    "type": "integer",
-    "null": false,
-    "pk": true,
-    "fk": null,
-    "on_delete": null,
-    "unique": false,
-    "generated": false
-   },
    {
     "name": "CanHoId",
     "type": "integer",
     "null": false,
-    "pk": false,
+    "pk": true,
     "fk": "CanHo",
+    "on_delete": "CASCADE",
+    "unique": false,
+    "generated": false
+   },
+   {
+    "name": "LoaiDichVuId",
+    "type": "integer",
+    "null": false,
+    "pk": true,
+    "fk": "LoaiDichVu",
     "on_delete": "RESTRICT",
     "unique": false,
     "generated": false
    },
    {
-    "name": "TenPhi",
-    "type": "varchar(200)",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false,
-    "generated": false
-   },
-   {
-    "name": "SoTien",
-    "type": "numeric(18,0)",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false,
-    "generated": false
-   },
-   {
-    "name": "DangApDung",
-    "type": "boolean",
+    "name": "SoLuong",
+    "type": "integer",
     "null": false,
     "pk": false,
     "fk": null,
@@ -1389,8 +1369,8 @@
   "unique": [],
   "checks": [
    {
-    "name": "CK_PhiDinhKy_SoTien",
-    "def": "CHECK ((\"SoTien\" >= (0)::numeric))"
+    "name": "CK_DangKyDichVu_SoLuong",
+    "def": "CHECK ((\"SoLuong\" > 0))"
    }
   ]
  },
@@ -1580,32 +1560,22 @@
  "ChiTietHoaDon": {
   "columns": [
    {
-    "name": "ChiTietHoaDonId",
-    "type": "integer",
-    "null": false,
-    "pk": true,
-    "fk": null,
-    "on_delete": null,
-    "unique": false,
-    "generated": false
-   },
-   {
     "name": "HoaDonId",
     "type": "integer",
     "null": false,
-    "pk": false,
+    "pk": true,
     "fk": "HoaDon",
     "on_delete": "CASCADE",
     "unique": false,
     "generated": false
    },
    {
-    "name": "NoiDung",
-    "type": "varchar(500)",
+    "name": "LoaiDichVuId",
+    "type": "integer",
     "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
+    "pk": true,
+    "fk": "LoaiDichVu",
+    "on_delete": "RESTRICT",
     "unique": false,
     "generated": false
    },
@@ -1630,46 +1600,6 @@
     "generated": false
    },
    {
-    "name": "ChiSoDichVuId",
-    "type": "integer",
-    "null": true,
-    "pk": false,
-    "fk": "ChiSoDichVu",
-    "on_delete": "RESTRICT",
-    "unique": false,
-    "generated": false
-   },
-   {
-    "name": "LoaiKhoan",
-    "type": "integer",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false,
-    "generated": false
-   },
-   {
-    "name": "PhiDinhKyId",
-    "type": "integer",
-    "null": true,
-    "pk": false,
-    "fk": "PhiDinhKy",
-    "on_delete": "RESTRICT",
-    "unique": false,
-    "generated": false
-   },
-   {
-    "name": "YeuCauBaoTriId",
-    "type": "integer",
-    "null": true,
-    "pk": false,
-    "fk": "YeuCauBaoTri",
-    "on_delete": "RESTRICT",
-    "unique": false,
-    "generated": false
-   },
-   {
     "name": "ThanhTien",
     "type": "numeric(18,0)",
     "null": false,
@@ -1685,14 +1615,6 @@
    {
     "name": "CK_ChiTietHoaDon_SoTien",
     "def": "CHECK (((\"SoLuong\" > (0)::numeric) AND (\"DonGia\" >= (0)::numeric)))"
-   },
-   {
-    "name": "CK_ChiTietHoaDon_LoaiKhoan",
-    "def": "CHECK (((\"LoaiKhoan\" >= 0) AND (\"LoaiKhoan\" <= 4)))"
-   },
-   {
-    "name": "CK_ChiTietHoaDon_Nguon",
-    "def": "CHECK ((((\"LoaiKhoan\" = 1) = (\"ChiSoDichVuId\" IS NOT NULL)) AND ((\"LoaiKhoan\" = 2) = (\"PhiDinhKyId\" IS NOT NULL)) AND ((\"YeuCauBaoTriId\" IS NULL) OR (\"LoaiKhoan\" = 3))))"
    }
   ]
  },

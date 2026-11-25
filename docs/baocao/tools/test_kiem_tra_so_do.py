@@ -50,12 +50,12 @@ def diamond_to_diamond(ds):
 
 def rd_crossing_lines(ds):
     import so_do_v2 as sd
-    d = find("Hinh 2.7", ds)
+    d = find("Hinh 2.2", ds)
     r = sd.Rd("x", "x", "x")
     r.nodes, r.keys = d["nodes"], {n["key"] for n in d["nodes"]}
     for e in d["edges"]:
-        if e["from"] == "YeuCauBaoTri" and e["to"] == "LichSuYeuCau":
-            e["points"] = r.anchor("YeuCauBaoTri", "LichSuYeuCau")   # đường thẳng cắt qua khoá tới NguoiDung
+        if e["from"] == "YeuCauBaoTri" and e["to"] == "AnhYeuCau":
+            e["points"] = r.anchor("YeuCauBaoTri", "AnhYeuCau")   # đường thẳng cắt đường người báo
 
 
 def message_without_activation(ds):
@@ -70,8 +70,14 @@ def composite_on_restrict(ds):
 
 
 def wrong_cardinality(ds):
-    d = find("Hinh 2.3", ds)
+    d = find("Hinh 2.1", ds)
     next(e for e in d["edges"] if e["from"] == "MUC_UU_TIEN")["mult1"] = "(1,1)"
+
+
+def rd_missing_key(ds):
+    d = find("Hinh 2.2", ds)
+    n = next(n for n in d["nodes"] if n["key"] == "ChiTietHoaDon")
+    n["columns"] = [c for c in n["columns"] if c["name"] != "LoaiDichVuId"]
 
 
 def internal_use_case(ds):
@@ -92,7 +98,8 @@ def test_each_injected_bug_is_caught():
     for mutate, needle in [(drop_check_before_decision, "Kiểm tra"), (message_without_activation, "thanh kích hoạt"),
                            (composite_on_restrict, "hợp thành"), (wrong_cardinality, "MucUuTien"),
                            (internal_use_case, "bước nội bộ"), (stale_attribute, "SoLuongTang"),
-                           (diamond_to_diamond, "hai hình thoi"), (rd_crossing_lines, "cắt đường")]:
+                           (diamond_to_diamond, "hai hình thoi"), (rd_crossing_lines, "cắt đường"),
+                           (rd_missing_key, "thiếu khoá LoaiDichVuId")]:
         errs = run(mutate)
         assert any(needle in e for e in errs), (mutate.__name__, errs)
 
@@ -100,4 +107,4 @@ def test_each_injected_bug_is_caught():
 if __name__ == "__main__":
     test_clean()
     test_each_injected_bug_is_caught()
-    print("ok: sơ đồ sạch, 8/8 lỗi cấy đều bị bắt")
+    print("ok: sơ đồ sạch, 9/9 lỗi cấy đều bị bắt")

@@ -267,32 +267,29 @@ def activity_ai():
 
 
 # ======================================================================= ERD (thực thể – mối kết hợp)
+# Mỗi thực thể chỉ ghi khoá và các thuộc tính chính để ERD tổng vừa một trang.
 ATTR = {
     "KHU": ["KhuId*", "TenKhu", "DiaChi"],
-    "TOA_NHA": ["ToaNhaId*", "MaToaNha", "TrangThaiToaNha", "NgayLapPhi", "PhiQuanLyM2", "SoNgayAnHan", "TiLePhiTre"],
+    "TOA_NHA": ["ToaNhaId*", "MaToaNha", "NgayLapPhi", "TiLePhiTre"],
     "TANG": ["TangId*", "SoTang"],
-    "CAN_HO": ["CanHoId*", "MaCanHo", "DienTich", "SoPhongNgu", "TinhTrangCanHo"],
-    "NGUOI_DUNG": ["NguoiDungId*", "TenDangNhap", "Email", "MatKhauBam", "HoTen", "SoDienThoai", "SoGiayTo"],
+    "CAN_HO": ["CanHoId*", "MaCanHo", "DienTich", "TinhTrangCanHo"],
+    "NGUOI_DUNG": ["NguoiDungId*", "HoTen", "Email", "SoDienThoai"],
     "VAI_TRO": ["VaiTroId*", "TenVaiTro"],
-    "QUYEN": ["QuyenId*", "MaQuyen", "PhanHe", "TenQuyen"],
-    "NHAT_KY_HE_THONG": ["NhatKyHeThongId*", "TenBang", "KhoaDong", "LoaiThaoTac", "NguoiThaoTacId", "ThoiDiem",
-                         "GiaTriCu", "GiaTriMoi", "DiaChiIp"],
-    "MUC_UU_TIEN": ["MucUuTienId*", "TenMucUuTien", "PhutPhanHoi", "PhutHoanTat"],
-    "YEU_CAU_BAO_TRI": ["YeuCauBaoTriId*", "SoYeuCau", "ViTri", "TieuDe", "MoTa", "LoaiSuCo", "TrangThaiYeuCau",
-                        "NgayBao", "HanXuLy", "KetQuaXuLy", "ChiPhiSuaChua", "TinhPhiCuDan", "DiemDanhGia", "NhanXet",
-                        "PhanLoaiAi"],
-    "ANH_YEU_CAU": ["AnhYeuCauId*", "DuongDan", "GiaiDoan", "NgayTai"],
-    "LICH_SU_YEU_CAU": ["LichSuYeuCauId*", "TrangThaiMoi", "ThoiDiem", "GhiChu"],
-    "LOAI_DICH_VU": ["LoaiDichVuId*", "MaLoaiDichVu", "TenLoaiDichVu", "DonViTinh", "DonGia"],
-    "CHI_SO_DICH_VU": ["ChiSoDichVuId*", "Ky", "ChiSoCu", "ChiSoMoi", "NgayDoc"],
-    "PHI_DINH_KY": ["PhiDinhKyId*", "TenPhi", "SoTien", "DangApDung"],
-    "HOA_DON": ["HoaDonId*", "SoHoaDon", "LoaiHoaDon", "Ky", "NgayLap", "HanThanhToan", "TienPhi", "PhiTreHan",
-                "/TongTien", "DaThu", "/ConNo", "TrangThaiHoaDon", "GhiChu"],
-    "CHI_TIET_HOA_DON": ["ChiTietHoaDonId*", "LoaiKhoan", "NoiDung", "SoLuong", "DonGia", "/ThanhTien"],
-    "THANH_TOAN": ["ThanhToanId*", "SoThanhToan", "SoTien", "PhuongThuc", "TrangThaiThanhToan", "MaGiaoDich",
-                   "NgayThanhToan", "NgayHoanTien", "SoTienHoanTra", "GhiChu"],
+    "QUYEN": ["QuyenId*", "MaQuyen", "TenQuyen"],
+    "NHAT_KY_HE_THONG": ["NhatKyHeThongId*", "TenBang", "LoaiThaoTac", "ThoiDiem"],
+    "MUC_UU_TIEN": ["MucUuTienId*", "TenMucUuTien", "PhutHoanTat"],
+    "YEU_CAU_BAO_TRI": ["YeuCauBaoTriId*", "SoYeuCau", "LoaiSuCo", "TrangThaiYeuCau", "NgayBao", "HanXuLy"],
+    "ANH_YEU_CAU": ["AnhYeuCauId*", "DuongDan", "GiaiDoan"],
+    "LICH_SU_YEU_CAU": ["LichSuYeuCauId*", "TrangThaiMoi", "ThoiDiem"],
+    "LOAI_DICH_VU": ["LoaiDichVuId*", "TenLoaiDichVu", "DonViTinh", "DonGia", "CachTinh"],
+    "CHI_SO_DICH_VU": ["ChiSoDichVuId*", "Ky", "ChiSoCu", "ChiSoMoi"],
+    "HOA_DON": ["HoaDonId*", "SoHoaDon", "Ky", "TienPhi", "PhiTreHan", "DaThu", "/ConNo", "TrangThaiHoaDon"],
+    "THANH_TOAN": ["ThanhToanId*", "SoTien", "PhuongThuc", "TrangThaiThanhToan"],
 }
-CU_TRU_ATTR = ["VaiTroTrongHo", "LaDaiDien", "NgayVaoO", "NgayChuyenDi", "NgayXacNhan"]
+# Thuộc tính của các mối kết hợp n – n (ghi trong khung nối vào hình thoi).
+CU_TRU_ATTR = ["VaiTroTrongHo", "NgayVaoO", "NgayChuyenDi"]
+DANG_KY_ATTR = ["SoLuong"]
+CHI_TIET_ATTR = ["SoLuong", "DonGia", "/ThanhTien"]
 
 
 def ent_size(name, attrs):
@@ -346,72 +343,52 @@ class Er:
                 "nodes": self.nodes, "edges": self.edges}
 
 
-def erd_co_cau():
-    e = Er("Hinh 2.1 ERD co cau chung cu va cu tru", "ERD cơ cấu chung cư và cư trú", "ERD – cơ cấu chung cư")
-    e.ent("KHU", 20, 40)
-    e.ent("TOA_NHA", 330, 20)
-    e.ent("TANG", 760, 40)
-    e.ent("CAN_HO", 740, 330)
-    e.ent("NGUOI_DUNG", 20, 330)
+def erd_tong():
+    """ERD toàn hệ thống. Người dùng và yêu cầu sự cố nằm giữa; toà ở trên, căn ở dưới hai thực thể này
+    (toà và căn đều nối với cả hai); ảnh, lịch sử kẹp giữa; tầng vòng bên phải; thu phí dưới căn."""
+    e = Er("Hinh 2.1 ERD toan he thong", "ERD toàn hệ thống", "ERD – toàn hệ thống")
+    e.ent("KHU", 16, 16)
+    e.ent("TOA_NHA", 416, 16)
+    e.ent("ANH_YEU_CAU", 432, 179)
+    e.ent("NGUOI_DUNG", 240, 335)
+    e.ent("YEU_CAU_BAO_TRI", 736, 312)
+    e.ent("VAI_TRO", 16, 351)
+    e.ent("QUYEN", 16, 562)
+    e.ent("NHAT_KY_HE_THONG", 16, 780)
+    e.ent("LICH_SU_YEU_CAU", 448, 577)
+    e.ent("MUC_UU_TIEN", 1024, 234)
+    e.ent("TANG", 1248, 140)
+    e.ent("CAN_HO", 448, 749)
+    e.ent("CHI_SO_DICH_VU", 768, 749)
+    e.ent("LOAI_DICH_VU", 1120, 858)
+    e.ent("HOA_DON", 448, 975)
+    e.ent("THANH_TOAN", 128, 1014)
+    # cơ cấu
     e.rel("r1", "gồm toà", "KHU", "(0,n)", "TOA_NHA", "(1,1)")
-    e.rel("r2", "có tầng", "TOA_NHA", "(1,n)", "TANG", "(1,1)")
-    e.rel("r3", "có căn", "TANG", "(0,n)", "CAN_HO", "(1,1)")
-    e.rel("r4", "quản lý toà", "NGUOI_DUNG", "(0,n)", "TOA_NHA", "(0,1)", at=(300, 260))
-    e.rel("r5", "cư trú", "NGUOI_DUNG", "(0,n)", "CAN_HO", "(0,n)", at=(520, 420), attrs=CU_TRU_ATTR)
-    return e.spec()
-
-
-def erd_tai_khoan():
-    e = Er("Hinh 2.2 ERD tai khoan va phan quyen", "ERD tài khoản và phân quyền", "ERD – tài khoản, phân quyền")
-    e.ent("NGUOI_DUNG", 20, 20)
-    e.ent("VAI_TRO", 400, 50)
-    e.ent("QUYEN", 700, 20)
-    e.ent("NHAT_KY_HE_THONG", 960, 20)
-    e.rel("r1", "đóng vai", "NGUOI_DUNG", "(1,n)", "VAI_TRO", "(0,n)")
-    e.rel("r2", "được cấp", "VAI_TRO", "(0,n)", "QUYEN", "(0,n)")
-    return e.spec()
-
-
-def erd_su_co():
-    e = Er("Hinh 2.3 ERD su co va bao tri", "ERD sự cố và bảo trì", "ERD – sự cố")
-    e.ent("CAN_HO", 20, 30)
-    e.ent("TOA_NHA", 20, 250)
-    e.ent("MUC_UU_TIEN", 20, 500)
-    e.ent("YEU_CAU_BAO_TRI", 420, 20)
-    e.ent("NGUOI_DUNG", 900, 250)
-    e.ent("ANH_YEU_CAU", 1100, 20)
-    e.ent("LICH_SU_YEU_CAU", 430, 500)
-    e.rel("r1", "xảy ra tại căn", "CAN_HO", "(0,n)", "YEU_CAU_BAO_TRI", "(0,1)", at=(280, 60))
-    e.rel("r2", "ở khu vực chung", "TOA_NHA", "(0,n)", "YEU_CAU_BAO_TRI", "(0,1)", at=(280, 270))
-    e.rel("r3", "có mức ưu tiên", "MUC_UU_TIEN", "(0,n)", "YEU_CAU_BAO_TRI", "(1,1)", at=(280, 530))
-    e.rel("r4", "báo sự cố", "NGUOI_DUNG", "(0,n)", "YEU_CAU_BAO_TRI", "(1,1)", at=(730, 185))
-    e.rel("r5", "phụ trách", "NGUOI_DUNG", "(0,n)", "YEU_CAU_BAO_TRI", "(0,1)", at=(735, 300))
-    e.rel("r6", "có ảnh", "YEU_CAU_BAO_TRI", "(0,n)", "ANH_YEU_CAU", "(1,1)", at=(880, 50))
-    e.rel("r7", "tải ảnh", "NGUOI_DUNG", "(0,n)", "ANH_YEU_CAU", "(0,1)", at=(1120, 190))
-    e.rel("r8", "có lịch sử", "YEU_CAU_BAO_TRI", "(1,n)", "LICH_SU_YEU_CAU", "(1,1)", at=(540, 432))
-    e.rel("r9", "thực hiện", "NGUOI_DUNG", "(0,n)", "LICH_SU_YEU_CAU", "(0,1)", at=(820, 470))
-    return e.spec()
-
-
-def erd_thu_phi():
-    e = Er("Hinh 2.4 ERD thu phi", "ERD phân hệ thu phí", "ERD – thu phí")
-    e.ent("LOAI_DICH_VU", 20, 20)
-    e.ent("CHI_SO_DICH_VU", 20, 300)
-    e.ent("CAN_HO", 420, 30)
-    e.ent("PHI_DINH_KY", 420, 300)
-    e.ent("HOA_DON", 760, 20)
-    e.ent("CHI_TIET_HOA_DON", 760, 450)
-    e.ent("YEU_CAU_BAO_TRI", 1170, 470)
-    e.ent("THANH_TOAN", 1130, 20)
-    e.rel("r1", "thuộc loại", "LOAI_DICH_VU", "(0,n)", "CHI_SO_DICH_VU", "(1,1)", at=(100, 235))
-    e.rel("r2", "ghi chỉ số", "CAN_HO", "(0,n)", "CHI_SO_DICH_VU", "(1,1)", at=(330, 170))
-    e.rel("r3", "áp phí", "CAN_HO", "(0,n)", "PHI_DINH_KY", "(1,1)", at=(490, 250))
-    e.rel("r4", "được lập", "CAN_HO", "(0,n)", "HOA_DON", "(1,1)", at=(640, 60))
-    e.rel("r5", "gồm khoản", "HOA_DON", "(1,n)", "CHI_TIET_HOA_DON", "(1,1)", at=(850, 392))
-    e.rel("r6", "lập từ chỉ số", "CHI_SO_DICH_VU", "(0,n)", "CHI_TIET_HOA_DON", "(0,1)", at=(400, 540))
-    e.rel("r7", "lập từ phí", "PHI_DINH_KY", "(0,n)", "CHI_TIET_HOA_DON", "(0,1)", at=(640, 470))
-    e.rel("r8", "tính phí sửa chữa", "YEU_CAU_BAO_TRI", "(0,n)", "CHI_TIET_HOA_DON", "(0,1)", at=(1080, 520))
-    e.rel("r9", "được thanh toán", "HOA_DON", "(0,n)", "THANH_TOAN", "(1,1)", at=(1030, 90))
+    e.rel("r2", "có tầng", "TOA_NHA", "(1,n)", "TANG", "(1,1)", at=(880, 86))
+    e.rel("r3", "có căn", "TANG", "(0,n)", "CAN_HO", "(1,1)", at=(1040, 562))
+    e.rel("r4", "quản lý toà", "NGUOI_DUNG", "(0,n)", "TOA_NHA", "(0,1)", at=(320, 195))
+    e.rel("r5", "cư trú", "NGUOI_DUNG", "(0,n)", "CAN_HO", "(0,n)", at=(304, 593), attrs=CU_TRU_ATTR)
+    # tài khoản
+    e.rel("r6", "đóng vai", "NGUOI_DUNG", "(1,n)", "VAI_TRO", "(0,n)")
+    e.rel("r7", "được cấp", "VAI_TRO", "(0,n)", "QUYEN", "(0,n)")
+    # sự cố
+    e.rel("r8", "xảy ra tại căn", "CAN_HO", "(0,n)", "YEU_CAU_BAO_TRI", "(0,1)", at=(744, 624))
+    e.rel("r9", "ở khu vực chung", "TOA_NHA", "(0,n)", "YEU_CAU_BAO_TRI", "(0,1)", at=(720, 195))
+    e.rel("r10", "có mức ưu tiên", "MUC_UU_TIEN", "(0,n)", "YEU_CAU_BAO_TRI", "(1,1)", at=(960, 367))
+    e.rel("r11", "báo sự cố", "NGUOI_DUNG", "(0,n)", "YEU_CAU_BAO_TRI", "(1,1)", at=(544, 351))
+    e.rel("r12", "phụ trách", "NGUOI_DUNG", "(0,n)", "YEU_CAU_BAO_TRI", "(0,1)", at=(544, 437))
+    e.rel("r13", "có ảnh", "YEU_CAU_BAO_TRI", "(0,n)", "ANH_YEU_CAU", "(1,1)", at=(688, 257))
+    e.rel("r14", "tải ảnh", "NGUOI_DUNG", "(0,n)", "ANH_YEU_CAU", "(0,1)", at=(395, 300))
+    e.rel("r15", "có lịch sử", "YEU_CAU_BAO_TRI", "(1,n)", "LICH_SU_YEU_CAU", "(1,1)", at=(704, 515))
+    e.rel("r16", "thực hiện", "NGUOI_DUNG", "(0,n)", "LICH_SU_YEU_CAU", "(0,1)", at=(376, 515))
+    # thu phí
+    e.rel("r17", "ghi chỉ số", "CAN_HO", "(0,n)", "CHI_SO_DICH_VU", "(1,1)")
+    e.rel("r18", "thuộc loại", "LOAI_DICH_VU", "(0,n)", "CHI_SO_DICH_VU", "(1,1)")
+    e.rel("r19", "đăng ký", "CAN_HO", "(0,n)", "LOAI_DICH_VU", "(0,n)", at=(800, 905), attrs=DANG_KY_ATTR)
+    e.rel("r20", "được lập", "CAN_HO", "(0,n)", "HOA_DON", "(1,1)")
+    e.rel("r21", "gồm dịch vụ", "HOA_DON", "(1,n)", "LOAI_DICH_VU", "(0,n)", at=(864, 1092), attrs=CHI_TIET_ATTR)
+    e.rel("r22", "được thanh toán", "HOA_DON", "(0,n)", "THANH_TOAN", "(1,1)")
     return e.spec()
 
 
@@ -423,13 +400,14 @@ def _table(ent):
 
 
 # Bảng trung gian của các mối kết hợp n – n trên ERD.
-JUNCTION = {"đóng vai": "NguoiDung_VaiTro", "được cấp": "VaiTro_Quyen", "cư trú": "CuTru"}
+JUNCTION = {"đóng vai": "NguoiDung_VaiTro", "được cấp": "VaiTro_Quyen", "cư trú": "CuTru",
+            "đăng ký": "DangKyDichVu", "gồm dịch vụ": "ChiTietHoaDon"}
 
 
 def many_min1():
     """Cặp (bảng cha, bảng con) mà mỗi dòng cha phải có ít nhất một dòng con: đầu (1,n) trên ERD."""
     out = set()
-    for spec in (erd_co_cau(), erd_tai_khoan(), erd_su_co(), erd_thu_phi()):
+    for spec in (erd_tong(),):
         ends = {}
         for e in spec["edges"]:
             if e["kind"] == "assoc":
@@ -446,14 +424,21 @@ def many_min1():
 
 
 
+# Cột thường hiện trên lược đồ quan hệ tổng: các thuộc tính chính như ERD (khoá chính, khoá ngoại luôn hiện).
+RD_COT = {_table(k): [a.lstrip("/").rstrip("*") for a in v[1:]] for k, v in ATTR.items()}
+RD_COT.update(CuTru=CU_TRU_ATTR, DangKyDichVu=DANG_KY_ATTR, ChiTietHoaDon=[a.lstrip("/") for a in CHI_TIET_ATTR])
+
+
 def rd_cols(table, short=False):
     cols = SCHEMA[table]["columns"]
+    keep = RD_COT.get(table, [])
     order = [c for c in cols if c["pk"]] + [c for c in cols if c["fk"] and not c["pk"]] + \
-            [c for c in cols if not c["pk"] and not c["fk"]]
+            [c for n in keep for c in cols if c["name"] == n and not c["pk"] and not c["fk"]]
     if short:
         order = [c for c in order if c["pk"]]
     # "/" trước tên: cột CSDL tự tính (thuộc tính suy diễn), cùng ký hiệu với ERD.
-    return [{"name": ("/" if c.get("generated") else "") + c["name"], "type": c["type"], "pk": c["pk"], "fk": bool(c["fk"]),
+    # Không ghi kiểu dữ liệu để lược đồ tổng gọn, chữ đủ lớn khi in.
+    return [{"name": ("/" if c.get("generated") else "") + c["name"], "type": "", "pk": c["pk"], "fk": bool(c["fk"]),
              "nullable": c["null"], "unique": c["name"] in natural_keys(table)} for c in order]
 
 
@@ -536,60 +521,47 @@ class Rd:
                 "nodes": self.nodes, "edges": edges}
 
 
-def rd_co_cau():
-    r = Rd("Hinh 2.5 Luoc do quan he co cau chung cu", "Lược đồ quan hệ cơ cấu chung cư và cư trú", "RD – cơ cấu")
+def rd_tong():
+    """Lược đồ quan hệ toàn hệ thống, cùng bố cục với ERD tổng: NguoiDung và YeuCauBaoTri ở giữa, ToaNha trên,
+    CanHo dưới; nhóm phân quyền dọc bên trái; thu phí dưới bên phải."""
+    r = Rd("Hinh 2.2 Luoc do quan he toan he thong", "Lược đồ quan hệ toàn hệ thống", "RD – toàn hệ thống")
     r.t("Khu", 20, 20)
-    r.t("ToaNha", 360, 20)
-    r.t("Tang", 800, 40)
-    r.t("CanHo", 780, 360)
-    r.t("CuTru", 420, 430)
-    r.t("NguoiDung", 20, 470)
-    return r.spec()
-
-
-def rd_tai_khoan():
-    r = Rd("Hinh 2.6 Luoc do quan he tai khoan", "Lược đồ quan hệ tài khoản và phân quyền", "RD – tài khoản")
-    r.t("NguoiDung", 20, 20)
-    r.t("NguoiDung_VaiTro", 400, 40)
-    r.t("VaiTro", 760, 40)
-    r.t("VaiTro_Quyen", 760, 230)
-    r.t("Quyen", 400, 260)
-    r.t("NhatKyHeThong", 1080, 20)
-    return r.spec()
-
-
-def rd_su_co():
-    r = Rd("Hinh 2.7 Luoc do quan he su co", "Lược đồ quan hệ sự cố và bảo trì", "RD – sự cố",
-           skip=[("NguoiDung", "ToaNha")])
-    r.t("CanHo", 20, 20)
-    r.t("ToaNha", 20, 240)
-    r.t("MucUuTien", 20, 510)
-    r.t("YeuCauBaoTri", 380, 20)
-    r.t("NguoiDung", 1150, 290)
-    r.t("AnhYeuCau", 1100, 20)
-    r.t("LichSuYeuCau", 1060, 530)
-    # Lịch sử: đi xuống dưới rồi sang phải, không cắt hai đường khoá tới NguoiDung.
-    r.route("YeuCauBaoTri", "LichSuYeuCau", "YeuCauBaoTriId", lambda b: [
-        [b("YeuCauBaoTri")[0] + 250, b("YeuCauBaoTri")[1] + b("YeuCauBaoTri")[3]],
-        [b("YeuCauBaoTri")[0] + 250, b("LichSuYeuCau")[1] + 60], [b("LichSuYeuCau")[0], b("LichSuYeuCau")[1] + 60]])
-    return r.spec()
-
-
-def rd_thu_phi():
-    r = Rd("Hinh 2.8 Luoc do quan he thu phi", "Lược đồ quan hệ phân hệ thu phí", "RD – thu phí",
-           skip=[("CanHo", "YeuCauBaoTri")])
-    r.t("LoaiDichVu", 20, 20)
-    r.t("ChiSoDichVu", 20, 300)
-    r.t("CanHo", 420, 20)
-    r.t("PhiDinhKy", 420, 250)
-    r.t("HoaDon", 800, 20)
-    r.t("ChiTietHoaDon", 800, 480)
-    r.t("ThanhToan", 1200, 20)
-    r.t("YeuCauBaoTri", 1220, 520)
-    # Căn → chỉ số: đi vòng giữa LoaiDichVu và PhiDinhKy, không cắt qua PhiDinhKy.
-    r.route("CanHo", "ChiSoDichVu", "CanHoId", lambda b: [
-        [b("CanHo")[0], b("CanHo")[1] + 25], [375, b("CanHo")[1] + 25], [375, b("ChiSoDichVu")[1] + 40],
-        [b("ChiSoDichVu")[0] + b("ChiSoDichVu")[2], b("ChiSoDichVu")[1] + 40]])
+    r.t("ToaNha", 280, 20)
+    r.t("Tang", 1150, 20)
+    r.t("AnhYeuCau", 360, 200)
+    r.t("NguoiDung", 20, 360)
+    r.t("YeuCauBaoTri", 640, 340)
+    r.t("MucUuTien", 960, 560)
+    r.t("LichSuYeuCau", 300, 560)
+    r.t("NguoiDung_VaiTro", 20, 520)
+    r.t("VaiTro", 20, 630)
+    r.t("VaiTro_Quyen", 20, 740)
+    r.t("Quyen", 20, 850)
+    r.t("ThanhToan", 20, 980)
+    r.t("NhatKyHeThong", 20, 1140)
+    r.t("CuTru", 230, 820)
+    r.t("CanHo", 480, 860)
+    r.t("ChiSoDichVu", 780, 860)
+    r.t("DangKyDichVu", 780, 1040)
+    r.t("LoaiDichVu", 1080, 1100)
+    r.t("HoaDon", 480, 1040)
+    r.t("ChiTietHoaDon", 780, 1230)
+    # Yêu cầu → ảnh: ra cạnh trái YeuCauBaoTri phía trên đường người báo, lên rồi sang cạnh phải AnhYeuCau.
+    r.route("YeuCauBaoTri", "AnhYeuCau", "YeuCauBaoTriId", lambda b: [
+        [b("YeuCauBaoTri")[0], 370], [580, 370], [580, 270], [b("AnhYeuCau")[0] + b("AnhYeuCau")[2], 270]])
+    # Căn → đăng ký: ra cạnh phải CanHo dưới bảng ChiSoDichVu, xuống rồi vào cạnh trái DangKyDichVu.
+    r.route("CanHo", "DangKyDichVu", "CanHoId", lambda b: [[672, 970], [740, 970], [740, 1100], [780, 1100]])
+    # Loại dịch vụ → chỉ số: lên từ đỉnh LoaiDichVu rồi sang cạnh phải ChiSoDichVu, không cắt DangKyDichVu.
+    r.route("LoaiDichVu", "ChiSoDichVu", "LoaiDichVuId", lambda b: [
+        [1170, b("LoaiDichVu")[1]], [1170, 930], [b("ChiSoDichVu")[0] + b("ChiSoDichVu")[2], 930]])
+    # Hoá đơn → dòng chi tiết.
+    r.route("HoaDon", "ChiTietHoaDon", "HoaDonId", lambda b: [[679, 1200], [725, 1200], [725, 1290], [780, 1290]])
+    # Tầng → căn: vòng bên phải nhóm sự cố, đi ngang phía trên nhóm thu phí rồi xuống đỉnh bảng CanHo.
+    r.route("Tang", "CanHo", "TangId", lambda b: [
+        [1240, b("Tang")[1] + b("Tang")[3]], [1240, 800], [630, 800], [630, b("CanHo")[1]]])
+    # Căn → yêu cầu: lên từ đỉnh CanHo, rẽ phải dưới bảng LichSuYeuCau, lên đáy YeuCauBaoTri.
+    r.route("CanHo", "YeuCauBaoTri", "CanHoId", lambda b: [
+        [560, b("CanHo")[1]], [560, 760], [680, 760], [680, b("YeuCauBaoTri")[1] + b("YeuCauBaoTri")[3]]])
     return r.spec()
 
 
@@ -742,7 +714,7 @@ def _o(name, params=(), ret=None):
 CLS = {
     "Khu": ([_p("tenKhu", "string"), _p("diaChi", "string")], [_o("taoMoi"), _o("capNhat")]),
     "ToaNha": ([_p("maToaNha", "string"), _p("trangThaiToaNha", "int"), _p("ngayLapPhi", "int"),
-                _p("phiQuanLyM2", "decimal"), _p("soNgayAnHan", "int"), _p("tiLePhiTre", "int")],
+                _p("soNgayAnHan", "int"), _p("tiLePhiTre", "int")],
                [_o("taoMoi"), _o("capNhat"), _o("tenToa", ret="string")]),
     "Tang": ([_p("soTang", "int")], [_o("dsCanCuaTang")]),
     "CanHo": ([_p("maCanHo", "string"), _p("dienTich", "decimal"), _p("soPhongNgu", "int"), _p("tinhTrangCanHo", "int")],
@@ -769,18 +741,16 @@ CLS = {
     "NhatKyHeThong": ([_p("tenBang", "string"), _p("loaiThaoTac", "int"), _p("thoiDiem", "datetime")],
                       [_o("ghiNhatKy"), _o("xemNhatKy")]),
     "LoaiDichVu": ([_p("maLoaiDichVu", "string"), _p("tenLoaiDichVu", "string"), _p("donViTinh", "string"),
-                    _p("donGia", "decimal")], [_o("capNhatDonGia")]),
+                    _p("donGia", "decimal"), _p("cachTinh", "CachTinh")], [_o("capNhatDonGia")]),
     "ChiSoDichVu": ([_p("ky", "int"), _p("chiSoCu", "decimal"), _p("chiSoMoi", "decimal")],
                     [_o("ghiChiSo"), _o("nhapTheoToa"), _o("tieuThu", ret="decimal"), _o("daXuatHoaDon", ret="bool")]),
-    "PhiDinhKy": ([_p("tenPhi", "string"), _p("soTien", "decimal"), _p("dangApDung", "bool")],
-                  [_o("themKhoan"), _o("batTat")]),
+    "DangKyDichVu": ([_p("soLuong", "int")], [_o("dangKy"), _o("huyDangKy")]),
     "HoaDon": ([_p("soHoaDon", "string"), _p("ky", "int"), _p("ngayLap", "date"), _p("hanThanhToan", "date"),
                 _p("tienPhi", "decimal"), _p("phiTreHan", "decimal"), _p("daThu", "decimal"),
                 _p("trangThaiHoaDon", "TrangThaiHoaDon")],
                [_o("lapHoaDonThang", ["canHo", "ky"]), _o("lapHoaDonPhatSinh"), _o("congPhiTre"), _o("huy", ["lyDo"]),
                 _o("tongTien", ret="decimal"), _o("conNo", ret="decimal")]),
-    "ChiTietHoaDon": ([_p("loaiKhoan", "LoaiKhoan"), _p("noiDung", "string"), _p("soLuong", "decimal"),
-                       _p("donGia", "decimal")], [_o("thanhTien", ret="decimal")]),
+    "ChiTietHoaDon": ([_p("soLuong", "decimal"), _p("donGia", "decimal")], [_o("thanhTien", ret="decimal")]),
     "ThanhToan": ([_p("soThanhToan", "string"), _p("soTien", "decimal"), _p("phuongThuc", "int"),
                    _p("trangThaiThanhToan", "TrangThaiThanhToan"), _p("soTienHoanTra", "decimal")],
                   [_o("guiXacNhan"), _o("ghiNhanTrucTiep"), _o("duyet"), _o("tuChoi", ["lyDo"]), _o("hoanTien", ["soTien"])]),
@@ -790,7 +760,7 @@ ENUMS = {
     "LoaiSuCo": ["Nuoc", "Dien", "ThietBi", "KetCau", "VeSinh", "ConTrung", "Mang", "Khac"],
     "TrangThaiHoaDon": ["BanNhap", "DaPhatHanh", "TraMotPhan", "DaThanhToan", "QuaHan", "DaHuy", "DaHoanTien"],
     "TrangThaiThanhToan": ["ChoXacNhan", "ThanhCong", "ThatBai", "DaHoan", "HoanMotPhan", "DaHuy"],
-    "LoaiKhoan": ["PhiQuanLy", "DienNuoc", "PhiDinhKy", "SuaChua", "Khac"],
+    "CachTinh": ["TheoDienTich", "TheoChiSo", "TheoDangKy", "TheoLan"],
 }
 
 
@@ -879,26 +849,24 @@ def class_su_co():
 
 def class_thu_phi():
     k = Cls("Hinh 3.10 So do lop thu phi", "Sơ đồ lớp phân hệ thu phí")
-    k.c("LoaiDichVu", 20, 20)
-    k.c("ChiSoDichVu", 20, 260)
-    k.c("CanHo", 400, 40, short=True)
-    k.c("PhiDinhKy", 380, 250)
-    k.c("HoaDon", 720, 20)
-    k.c("ThanhToan", 1100, 20)
-    k.c("ChiTietHoaDon", 720, 420)
-    k.c("YeuCauBaoTri", 1120, 470, short=True)
-    k.c("TrangThaiHoaDon", 1100, 260)
-    k.c("TrangThaiThanhToan", 1280, 260)
-    k.c("LoaiKhoan", 380, 470)
-    k.a("LoaiDichVu", "ChiSoDichVu", "1", "0..*")
+    k.c("CanHo", 20, 380, short=True)
+    k.c("ChiSoDichVu", 260, 20)
+    k.c("DangKyDichVu", 300, 380)
+    k.c("LoaiDichVu", 700, 200)
+    k.c("CachTinh", 1060, 20)
+    k.c("HoaDon", 260, 640)
+    k.c("ChiTietHoaDon", 780, 700)
+    k.c("ThanhToan", 780, 950)
+    k.c("TrangThaiHoaDon", 1300, 640)
+    k.c("TrangThaiThanhToan", 1300, 950)
     k.a("CanHo", "ChiSoDichVu", "1", "0..*")
-    k.a("CanHo", "PhiDinhKy", "1", "0..*")
+    k.a("LoaiDichVu", "ChiSoDichVu", "1", "0..*")
+    k.a("CanHo", "DangKyDichVu", "1", "0..*", comp=True)
+    k.a("LoaiDichVu", "DangKyDichVu", "1", "0..*")
     k.a("CanHo", "HoaDon", "1", "0..*")
     k.a("HoaDon", "ChiTietHoaDon", "1", "1..*", comp=True)
+    k.a("LoaiDichVu", "ChiTietHoaDon", "1", "0..*")
     k.a("HoaDon", "ThanhToan", "1", "0..*")
-    k.a("ChiSoDichVu", "ChiTietHoaDon", "0..1", "0..*")
-    k.a("PhiDinhKy", "ChiTietHoaDon", "0..1", "0..*")
-    k.a("YeuCauBaoTri", "ChiTietHoaDon", "0..1", "0..*")
     return k.spec()
 
 
@@ -1048,8 +1016,7 @@ def build(diagrams, only=None):
 
 def diagrams():
     return [as_is(), to_be(), state_machine(), use_case_overview(), deployment(), uc03(), uc11(), uc16(), uc06(), uc20(),
-            activity_ai(), erd_co_cau(), erd_tai_khoan(), erd_su_co(), erd_thu_phi(),
-            rd_co_cau(), rd_tai_khoan(), rd_su_co(), rd_thu_phi(), class_co_cau(), class_su_co(), class_thu_phi(),
+            activity_ai(), erd_tong(), rd_tong(), class_co_cau(), class_su_co(), class_thu_phi(),
             seq_bao_su_co(), seq_dieu_phoi(), seq_hoan_tat(), seq_duyet_thanh_toan()]
 
 

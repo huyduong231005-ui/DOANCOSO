@@ -8,7 +8,7 @@ import pgenv
 
 TABLES = ["Khu", "ToaNha", "Tang", "CanHo", "CuTru", "NguoiDung", "VaiTro", "NguoiDung_VaiTro", "Quyen",
           "VaiTro_Quyen", "MucUuTien", "YeuCauBaoTri", "AnhYeuCau", "LichSuYeuCau", "NhatKyHeThong",
-          "LoaiDichVu", "ChiSoDichVu", "PhiDinhKy", "HoaDon", "ChiTietHoaDon", "ThanhToan"]
+          "LoaiDichVu", "ChiSoDichVu", "DangKyDichVu", "HoaDon", "ChiTietHoaDon", "ThanhToan"]
 AUDIT = {"NgayTao", "NguoiTao", "NgayCapNhat", "NguoiCapNhat", "DaXoa", "NgayXoa", "NguoiXoa", "PhienBan"}
 IDENTITY_TECH = {"NormalizedUserName", "NormalizedEmail", "EmailConfirmed", "SecurityStamp", "ConcurrencyStamp",
                  "PhoneNumber", "PhoneNumberConfirmed", "TwoFactorEnabled", "LockoutEnd", "LockoutEnabled",

@@ -5,6 +5,7 @@
   rút mục 3.6 còn một đoạn.
 - danh_so_lai: đánh số lại bảng theo thứ tự xuất hiện trong từng chương, sửa mọi tham chiếu "Bảng x.y" theo.
 """
+import copy
 import re
 
 from docx.oxml.ns import qn
@@ -20,8 +21,8 @@ O_SUA = {
 
 DOAN_3_6 = ("Các mô hình được đối chiếu chéo: mỗi use case có đặc tả và luồng xử lý tương ứng; mỗi lớp ứng với một "
             "bảng, mỗi liên kết ứng với một khoá ngoại; mỗi thông điệp tuần tự gọi thao tác có trong lớp nhận; mỗi quy "
-            "tắc nghiệp vụ có ràng buộc hoặc bước kiểm tra tương ứng. Phần đối chiếu ERD, sơ đồ lớp với cơ sở dữ liệu và "
-            "các luật vẽ được chạy tự động trước khi đưa hình vào báo cáo.")
+            "tắc nghiệp vụ có ràng buộc hoặc bước kiểm tra tương ứng. ERD, lược đồ quan hệ và sơ đồ lớp được đối chiếu với "
+            "cơ sở dữ liệu bằng chương trình kiểm tra trước khi đưa vào báo cáo.")
 
 
 def _text(el):
@@ -136,6 +137,154 @@ def danh_so_lai(body, set_text):
         t = _text(p)
         if "Bảng " in t and not any(p.find(".//" + tag) is not None for tag in muc_luc):
             # dòng mục lục có hyperlink/trường/tab: Word tự sinh lại, không được ghi đè
+            n = pat.sub(doi, t)
+            if n != t:
+                set_text(p, n)
+    return sorted(treo), sum(1 for k, v in moi.items() if k != v)
+
+
+# ====================================================================== UC03, UC16 về Chương 1
+# Hình use case chi tiết đặt ngay trên bảng đặc tả; đặc tả bỏ phần hình đã thể hiện (tác nhân, quan hệ include/extend).
+MO_TA_UC = {
+    "UC03": "Hình 3.2: UC03 luôn bao gồm UC07 Phân loại sự cố (tác nhân phụ Mô hình AI) và UC08 Điều phối sự cố (tác "
+            "nhân phụ Dịch vụ email); đính kèm ảnh hiện trạng là phần mở rộng. Hỏi lại khi mô tả mơ hồ và các thư cảnh "
+            "báo là bước bên trong UC07, UC08 nên ghi ở luồng thay thế của bảng đặc tả.",
+    "UC16": "Hình 3.4: cập nhật tiến độ luôn gồm xem việc được giao (UC15) và ghi kết quả xử lý; tạm dừng xử lý (khi "
+            "chờ vật tư, hẹn lịch) và tải ảnh nghiệm thu là phần mở rộng.",
+}
+DAC_TA_UC = {
+    "UC03": [
+        ("Tiền điều kiện", ["Cư dân đã đăng nhập và đang cư trú tại căn (BR-SC-01)."]),
+        ("Hậu điều kiện", ["Có một yêu cầu trạng thái Mới gửi hoặc Đã tiếp nhận, có hạn SLA, có dòng lịch sử “Tạo yêu "
+                           "cầu”."]),
+        ("Luồng chính", ["1. Cư dân nhập tiêu đề, mô tả; chọn trong căn hoặc khu vực chung; có thể chọn loại và mức "
+                         "ưu tiên.",
+                         "2. Hệ thống phân loại (UC07) và gộp với lựa chọn của cư dân (BR-SC-09).",
+                         "3. Hệ thống cấp số yêu cầu, tính hạn SLA, lưu yêu cầu, ảnh và dòng lịch sử đầu.",
+                         "4. Hệ thống điều phối (UC08): giao thợ đúng chuyên môn ít việc nhất, gửi thư giao việc "
+                         "(BR-SC-12).",
+                         "5. Cư dân thấy chi tiết yêu cầu."]),
+        ("Luồng thay thế", ["2a. AI không phản hồi trong thời gian chờ: giữ lựa chọn của cư dân, cảnh báo quản trị "
+                            "viên (BR-SC-10).",
+                            "4a. Mô tả mơ hồ: không giao thợ; cư dân thấy câu hỏi lại, quản lý nhận thư “Cần hỏi lại "
+                            "cư dân”.",
+                            "4b. Không có thợ chuyên trách: quản lý nhận thư “Cần phân công” kèm nhóm xử lý gợi ý.",
+                            "4c. Sự cố Khẩn cấp: quản lý nhận thêm thư “Cần theo dõi”."]),
+        ("Ngoại lệ", ["E1. Cư dân chưa cư trú ở căn nào: báo lỗi, không cho tạo.",
+                      "E2. Chọn khu vực chung nhưng không ghi vị trí: báo lỗi tại ô Vị trí.",
+                      "E3. Hai người gửi cùng lúc bị trùng số yêu cầu: cấp lại số rồi lưu.",
+                      "E4. Gửi thư lỗi: chỉ ghi log, yêu cầu đã lưu không bị ảnh hưởng."]),
+    ],
+    "UC16": [
+        ("Tiền điều kiện", ["Yêu cầu được giao cho chính kỹ thuật viên đang đăng nhập (BR-SC-04)."]),
+        ("Hậu điều kiện", ["Trạng thái mới được lưu, có dòng lịch sử; nếu hoàn tất thì có kết quả xử lý."]),
+        ("Luồng chính", ["1. Kỹ thuật viên chọn một yêu cầu trong danh sách việc được giao.",
+                         "2. Bấm Bắt đầu xử lý (Đã tiếp nhận → Đang xử lý).",
+                         "3. Sửa xong, ghi nguyên nhân và cách xử lý, bấm Hoàn tất (Đang xử lý → Đã xử lý).",
+                         "4. Hệ thống lưu kết quả và dòng lịch sử; cư dân thấy nút xác nhận."]),
+        ("Luồng thay thế", ["2a. Chờ vật tư hoặc hẹn lịch: bấm Tạm dừng và ghi lý do; khi tiếp tục, hạn SLA dời "
+                            "thêm đúng thời gian đã dừng (BR-SC-07)."]),
+        ("Ngoại lệ", ["E1. Mở yêu cầu không giao cho mình: trả về không tìm thấy.",
+                      "E2. Hoàn tất khi chưa ghi kết quả: bị chặn (BR-SC-06).",
+                      "E3. Hai người cùng sửa một yêu cầu: người lưu sau được yêu cầu tải lại (mục 4.5.4)."]),
+    ],
+}
+DAN_1_8_2 = ("Hai use case trọng tâm được vẽ chi tiết rồi đặc tả. Use case gốc nối với tác nhân chính; «include» là "
+             "phần luôn chạy mỗi khi use case gốc chạy, mũi tên đi từ use case gốc; «extend» là phần chỉ chạy khi thoả "
+             "điều kiện, mũi tên đi về use case được mở rộng. Bảng đặc tả ghi điều kiện, các bước và ngoại lệ mà hình "
+             "không thể hiện.")
+DAN_3_2 = ("Sơ đồ use case tổng quát (Hình 1.6) cho biết tác nhân nào dùng chức năng nào; UC03 và UC16 đã được vẽ chi "
+           "tiết và đặc tả ở mục 1.8.2, cùng cách đọc «include», «extend». Mục này chi tiết hoá ba use case còn lại: "
+           "UC11, UC06 của quy trình sự cố và UC20 của phân hệ thu phí.")
+
+
+def _p_bat_dau(body, prefix, style=None):
+    for p in body.iter(qn("w:p")):
+        muc_luc = any(p.find(".//" + qn(t)) is not None for t in ("w:hyperlink", "w:tab", "w:fldChar", "w:instrText"))
+        if _text(p).startswith(prefix) and not muc_luc:
+            st = p.find(qn("w:pPr") + "/" + qn("w:pStyle"))
+            if style is None or (st is not None and st.get(qn("w:val")) == style):
+                return p
+    raise KeyError(prefix)
+
+
+def _kieu(p):
+    st = p.find(qn("w:pPr") + "/" + qn("w:pStyle"))
+    return st.get(qn("w:val")) if st is not None else ""
+
+
+def _dat_o(tc, lines, set_text):
+    ps = tc.findall(qn("w:p"))
+    for p in ps[1:]:
+        tc.remove(p)
+    set_text(ps[0], lines[0])
+    prev = ps[0]
+    for s in lines[1:]:
+        p = copy.deepcopy(ps[0])
+        set_text(p, s)
+        prev.addnext(p)
+        prev = p
+
+
+def dua_uc_ve_chuong1(body, set_text, new_p):
+    """Chuyển hình UC03, UC16 từ Chương 3 về ngay trên bảng đặc tả ở mục 1.8.2, gọn lại đặc tả, sửa lời dẫn hai mục."""
+    for so, ma in (("3.2", "UC03"), ("3.4", "UC16")):
+        cap = _p_bat_dau(body, f"Hình {so}.", "ChuthichHinh")
+        fig = cap.getprevious()
+        assert fig.find(".//" + qn("w:drawing")) is not None, so
+        mo_ta_cu = _p_bat_dau(body, f"Hình {so}:", "Noidung")
+        mo_ta_cu.getparent().remove(mo_ta_cu)
+        tcap = next(p for p in body.iter(qn("w:p")) if "Đặc tả " + ma + " –" in _text(p) and _kieu(p) == "ChuthichBang")
+        tcap.addprevious(new_p("Noidung", MO_TA_UC[ma]))
+        tcap.addprevious(fig)
+        tcap.addprevious(cap)
+        tbl = tcap.getnext()
+        assert tbl.tag == qn("w:tbl"), ma
+        moi = dict(DAC_TA_UC[ma])
+        for tr in tbl.findall(qn("w:tr"))[1:]:
+            tcs = tr.findall(qn("w:tc"))
+            muc = _text(tcs[0]).strip()
+            if muc in moi:
+                _dat_o(tcs[1], moi[muc], set_text)
+            else:          # dòng Tác nhân: hình đã thể hiện
+                tbl.remove(tr)
+    _p_bat_dau(body, "1.8.2. ").addnext(new_p("Noidung", DAN_1_8_2))
+    dan = _p_bat_dau(body, "Sơ đồ use case tổng quát (Hình 1.6) cho biết")
+    set_text(dan, DAN_3_2)
+    nxt = dan.getnext()      # hai gạch đầu dòng «include», «extend» và câu điều kiện mở rộng: đã nêu ở mục 1.8.2
+    while nxt is not None and (_text(nxt).startswith("–«") or _text(nxt).startswith("Điều kiện chạy")):
+        after = nxt.getnext()
+        body.remove(nxt)
+        nxt = after
+
+
+def danh_so_hinh(body, set_text, doi_chuong):
+    """Đánh số lại hình theo thứ tự trong từng chương (hình chuyển chương lấy chương mới), sửa mọi tham chiếu."""
+    caps = []
+    for p in body.iter(qn("w:p")):
+        st = p.find(qn("w:pPr") + "/" + qn("w:pStyle"))
+        if st is not None and st.get(qn("w:val")) == "ChuthichHinh":
+            m = re.match(r"Hình (\d+\.\d+)\.", _text(p))
+            if m:
+                caps.append(m.group(1))
+    moi, dem = {}, {}
+    for so in caps:
+        c = doi_chuong.get(so, so.split(".")[0])
+        dem[c] = dem.get(c, 0) + 1
+        moi[so] = f"{c}.{dem[c]}"
+    pat = re.compile(r"Hình (\d+\.\d+)(?!\d)")
+    treo = set()
+
+    def doi(m):
+        if m.group(1) not in moi:
+            treo.add(m.group(1))
+            return m.group(0)
+        return "Hình " + moi[m.group(1)]
+
+    muc_luc = (qn("w:hyperlink"), qn("w:fldChar"), qn("w:instrText"), qn("w:tab"))
+    for p in body.iter(qn("w:p")):
+        t = _text(p)
+        if "Hình " in t and not any(p.find(".//" + tag) is not None for tag in muc_luc):
             n = pat.sub(doi, t)
             if n != t:
                 set_text(p, n)

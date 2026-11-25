@@ -1,92 +1,35 @@
 {
- "KhuVuc": {
+ "Khu": {
   "columns": [
    {
-    "name": "KhuVucId",
+    "name": "KhuId",
     "type": "integer",
     "null": false,
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "TenKhuVuc",
-    "type": "varchar(120)",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "AnhKhuVuc",
-    "type": "text",
-    "null": true,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
-   }
-  ],
-  "unique": [],
-  "checks": []
- },
- "DuAn": {
-  "columns": [
-   {
-    "name": "DuAnId",
-    "type": "integer",
-    "null": false,
-    "pk": true,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "TenDuAn",
+    "name": "TenKhu",
     "type": "varchar(200)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "KhuVucId",
-    "type": "integer",
-    "null": false,
-    "pk": false,
-    "fk": "KhuVuc",
-    "on_delete": "RESTRICT",
-    "unique": false
-   },
-   {
-    "name": "DiaChiDuAn",
-    "type": "text",
+    "name": "DiaChi",
+    "type": "varchar(500)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "AnhDaiDienDuAn",
-    "type": "text",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "MoTaDuAn",
-    "type": "text",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [],
@@ -101,16 +44,8 @@
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "TenToaNha",
-    "type": "varchar(200)",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "MaToaNha",
@@ -119,43 +54,28 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "DuAnId",
+    "name": "KhuId",
     "type": "integer",
     "null": false,
     "pk": false,
-    "fk": "DuAn",
+    "fk": "Khu",
     "on_delete": "RESTRICT",
-    "unique": false
-   },
-   {
-    "name": "AnhDaiDienToaNha",
-    "type": "text",
-    "null": true,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "MoTaToaNha",
-    "type": "text",
-    "null": true,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "QuanLyId",
-    "type": "text",
+    "type": "varchar(36)",
     "null": true,
     "pk": false,
     "fk": "NguoiDung",
     "on_delete": "SET NULL",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "TrangThaiToaNha",
@@ -164,25 +84,28 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "NgayChotKy",
+    "name": "NgayLapPhi",
     "type": "integer",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "PhanTramPhiTre",
+    "name": "TiLePhiTre",
     "type": "integer",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "SoNgayAnHan",
@@ -191,16 +114,18 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "DonGiaPhiQuanLy",
+    "name": "PhiQuanLyM2",
     "type": "numeric(18,0)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [
@@ -214,20 +139,20 @@
   ],
   "checks": [
    {
-    "name": "CK_ToaNha_DonGiaPhiQuanLy",
-    "def": "CHECK ((\"DonGiaPhiQuanLy\" >= (0)::numeric))"
+    "name": "CK_ToaNha_NgayLapPhi",
+    "def": "CHECK (((\"NgayLapPhi\" >= 1) AND (\"NgayLapPhi\" <= 28)))"
+   },
+   {
+    "name": "CK_ToaNha_PhiQuanLyM2",
+    "def": "CHECK ((\"PhiQuanLyM2\" >= (0)::numeric))"
+   },
+   {
+    "name": "CK_ToaNha_PhiTre",
+    "def": "CHECK (((\"SoNgayAnHan\" >= 0) AND ((\"TiLePhiTre\" >= 0) AND (\"TiLePhiTre\" <= 100))))"
    },
    {
     "name": "CK_ToaNha_TrangThai",
     "def": "CHECK (((\"TrangThaiToaNha\" >= 0) AND (\"TrangThaiToaNha\" <= 2)))"
-   },
-   {
-    "name": "CK_ToaNha_NgayChotKy",
-    "def": "CHECK (((\"NgayChotKy\" >= 1) AND (\"NgayChotKy\" <= 28)))"
-   },
-   {
-    "name": "CK_ToaNha_PhiTre",
-    "def": "CHECK (((\"SoNgayAnHan\" >= 0) AND ((\"PhanTramPhiTre\" >= 0) AND (\"PhanTramPhiTre\" <= 100))))"
    }
   ]
  },
@@ -240,7 +165,8 @@
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "ToaNhaId",
@@ -249,7 +175,8 @@
     "pk": false,
     "fk": "ToaNha",
     "on_delete": "RESTRICT",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "SoTang",
@@ -258,7 +185,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [
@@ -282,7 +210,8 @@
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "MaCanHo",
@@ -291,25 +220,18 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "MoTaCanHo",
-    "type": "text",
-    "null": true,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "DienTich",
-    "type": "double precision",
+    "type": "numeric(8,2)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "SoPhongNgu",
@@ -318,16 +240,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "SoPhongTam",
-    "type": "integer",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "TinhTrangCanHo",
@@ -336,7 +250,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "TangId",
@@ -345,16 +260,8 @@
     "pk": false,
     "fk": "Tang",
     "on_delete": "RESTRICT",
-    "unique": false
-   },
-   {
-    "name": "HuongNha",
-    "type": "integer",
-    "null": true,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [
@@ -368,20 +275,16 @@
   ],
   "checks": [
    {
-    "name": "CK_CanHo_DienTich",
-    "def": "CHECK ((\"DienTich\" > (0)::double precision))"
-   },
-   {
-    "name": "CK_CanHo_HuongNha",
-    "def": "CHECK (((\"HuongNha\" IS NULL) OR ((\"HuongNha\" >= 0) AND (\"HuongNha\" <= 7))))"
-   },
-   {
-    "name": "CK_CanHo_SoPhong",
-    "def": "CHECK (((\"SoPhongNgu\" >= 0) AND (\"SoPhongTam\" >= 0)))"
+    "name": "CK_CanHo_SoPhongNgu",
+    "def": "CHECK ((\"SoPhongNgu\" >= 0))"
    },
    {
     "name": "CK_CanHo_TinhTrangCanHo",
     "def": "CHECK ((\"TinhTrangCanHo\" = ANY (ARRAY[0, 1, 3])))"
+   },
+   {
+    "name": "CK_CanHo_DienTich",
+    "def": "CHECK (((\"DienTich\")::double precision > (0)::double precision))"
    }
   ]
  },
@@ -394,7 +297,8 @@
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "CanHoId",
@@ -403,7 +307,8 @@
     "pk": false,
     "fk": "CanHo",
     "on_delete": "RESTRICT",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "VaiTroTrongHo",
@@ -412,7 +317,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "LaDaiDien",
@@ -421,52 +327,48 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "NgayVaoO",
-    "type": "timestamp",
+    "type": "date",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "NgayChuyenDi",
-    "type": "timestamp",
+    "type": "date",
     "null": true,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "NguoiDungId",
-    "type": "text",
+    "type": "varchar(36)",
     "null": false,
     "pk": false,
     "fk": "NguoiDung",
     "on_delete": "RESTRICT",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "GhiChuCuTru",
-    "type": "varchar(1000)",
-    "null": true,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "NgayXacNhanCuTru",
+    "name": "NgayXacNhan",
     "type": "timestamp",
     "null": true,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [
@@ -501,48 +403,33 @@
   "columns": [
    {
     "name": "NguoiDungId",
-    "type": "text",
+    "type": "varchar(36)",
     "null": false,
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "HoTen",
-    "type": "text",
+    "type": "varchar(100)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "AnhDaiDienNguoiDung",
-    "type": "text",
-    "null": true,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "SoDienThoai",
-    "type": "text",
+    "type": "varchar(20)",
     "null": true,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "NgayDangNhapCuoi",
-    "type": "timestamp",
-    "null": true,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "TenDangNhap",
@@ -551,7 +438,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "Email",
@@ -560,16 +448,18 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "MatKhauBam",
-    "type": "text",
+    "type": "varchar(256)",
     "null": true,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "SoGiayTo",
@@ -578,7 +468,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [
@@ -603,12 +494,13 @@
   "columns": [
    {
     "name": "VaiTroId",
-    "type": "text",
+    "type": "varchar(36)",
     "null": false,
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "TenVaiTro",
@@ -617,7 +509,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [
@@ -635,21 +528,23 @@
   "columns": [
    {
     "name": "NguoiDungId",
-    "type": "text",
+    "type": "varchar(36)",
     "null": false,
     "pk": true,
     "fk": "NguoiDung",
     "on_delete": "CASCADE",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "VaiTroId",
-    "type": "text",
+    "type": "varchar(36)",
     "null": false,
     "pk": true,
     "fk": "VaiTro",
     "on_delete": "CASCADE",
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [],
@@ -664,25 +559,28 @@
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "MaQuyen",
-    "type": "varchar(100)",
+    "type": "varchar(40)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": true
+    "unique": true,
+    "generated": false
    },
    {
-    "name": "PhanHeQuyen",
+    "name": "PhanHe",
     "type": "varchar(60)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "TenQuyen",
@@ -691,7 +589,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [
@@ -709,12 +608,13 @@
   "columns": [
    {
     "name": "VaiTroId",
-    "type": "text",
+    "type": "varchar(36)",
     "null": false,
     "pk": true,
     "fk": "VaiTro",
     "on_delete": "CASCADE",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "QuyenId",
@@ -723,7 +623,8 @@
     "pk": true,
     "fk": "Quyen",
     "on_delete": "CASCADE",
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [],
@@ -738,7 +639,8 @@
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "PhutPhanHoi",
@@ -747,7 +649,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "PhutHoanTat",
@@ -756,16 +659,18 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "TenMucUuTien",
-    "type": "varchar(50)",
+    "type": "varchar(200)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": true
+    "unique": true,
+    "generated": false
    }
   ],
   "unique": [
@@ -797,7 +702,8 @@
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "SoYeuCau",
@@ -806,7 +712,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": true
+    "unique": true,
+    "generated": false
    },
    {
     "name": "CanHoId",
@@ -815,34 +722,38 @@
     "pk": false,
     "fk": "CanHo",
     "on_delete": "RESTRICT",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "NguoiBaoCaoId",
-    "type": "text",
+    "name": "NguoiBaoId",
+    "type": "varchar(36)",
     "null": false,
     "pk": false,
     "fk": "NguoiDung",
     "on_delete": "RESTRICT",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "TieuDeYeuCau",
-    "type": "varchar(250)",
+    "name": "TieuDe",
+    "type": "varchar(200)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "MoTaYeuCau",
-    "type": "varchar(4000)",
+    "name": "MoTa",
+    "type": "varchar(2000)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "LoaiSuCo",
@@ -851,7 +762,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "MucUuTienId",
@@ -860,7 +772,8 @@
     "pk": false,
     "fk": "MucUuTien",
     "on_delete": "RESTRICT",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "TrangThaiYeuCau",
@@ -869,16 +782,18 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "NguoiPhuTrachId",
-    "type": "text",
+    "type": "varchar(36)",
     "null": true,
     "pk": false,
     "fk": "NguoiDung",
     "on_delete": "SET NULL",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "KetQuaXuLy",
@@ -887,25 +802,18 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "ChiPhiUocTinh",
+    "name": "ChiPhiSuaChua",
     "type": "numeric(18,0)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "ChiPhiThucTe",
-    "type": "numeric(18,0)",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "TinhPhiCuDan",
@@ -914,16 +822,18 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "NgayBaoSuCo",
+    "name": "NgayBao",
     "type": "timestamp",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "PhanLoaiAi",
@@ -932,7 +842,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "DiemDanhGia",
@@ -941,7 +852,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "HanXuLy",
@@ -950,16 +862,18 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "NhanXetCuDan",
+    "name": "NhanXet",
     "type": "varchar(1000)",
     "null": true,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "ToaNhaId",
@@ -968,16 +882,18 @@
     "pk": false,
     "fk": "ToaNha",
     "on_delete": "RESTRICT",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "ViTriKhuVucChung",
+    "name": "ViTri",
     "type": "varchar(200)",
     "null": true,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [
@@ -992,27 +908,27 @@
   "checks": [
    {
     "name": "CK_YeuCauBaoTri_ChiPhi",
-    "def": "CHECK (((\"ChiPhiUocTinh\" >= (0)::numeric) AND (\"ChiPhiThucTe\" >= (0)::numeric)))"
+    "def": "CHECK ((\"ChiPhiSuaChua\" >= (0)::numeric))"
+   },
+   {
+    "name": "CK_YeuCauBaoTri_DanhGia",
+    "def": "CHECK (((\"DiemDanhGia\" IS NULL) OR ((\"DiemDanhGia\" >= 1) AND (\"DiemDanhGia\" <= 5))))"
    },
    {
     "name": "CK_YeuCauBaoTri_HanXuLy",
-    "def": "CHECK (((\"HanXuLy\" IS NULL) OR (\"HanXuLy\" >= \"NgayBaoSuCo\")))"
-   },
-   {
-    "name": "CK_YeuCauBaoTri_NoiXayRa",
-    "def": "CHECK ((((\"CanHoId\" IS NOT NULL) AND (\"ToaNhaId\" IS NULL)) OR ((\"CanHoId\" IS NULL) AND (\"ToaNhaId\" IS NOT NULL) AND (\"ViTriKhuVucChung\" IS NOT NULL))))"
+    "def": "CHECK (((\"HanXuLy\" IS NULL) OR (\"HanXuLy\" >= \"NgayBao\")))"
    },
    {
     "name": "CK_YeuCauBaoTri_KetQua",
     "def": "CHECK (((\"TrangThaiYeuCau\" <> ALL (ARRAY[3, 4])) OR (COALESCE(btrim((\"KetQuaXuLy\")::text), ''::text) <> ''::text)))"
    },
    {
-    "name": "CK_YeuCauBaoTri_TrangThai",
-    "def": "CHECK (((\"TrangThaiYeuCau\" >= 0) AND (\"TrangThaiYeuCau\" <= 7)))"
+    "name": "CK_YeuCauBaoTri_NoiXayRa",
+    "def": "CHECK ((((\"CanHoId\" IS NOT NULL) AND (\"ToaNhaId\" IS NULL)) OR ((\"CanHoId\" IS NULL) AND (\"ToaNhaId\" IS NOT NULL) AND (\"ViTri\" IS NOT NULL))))"
    },
    {
-    "name": "CK_YeuCauBaoTri_DanhGia",
-    "def": "CHECK (((\"DiemDanhGia\" IS NULL) OR ((\"DiemDanhGia\" >= 1) AND (\"DiemDanhGia\" <= 5))))"
+    "name": "CK_YeuCauBaoTri_TrangThai",
+    "def": "CHECK (((\"TrangThaiYeuCau\" >= 0) AND (\"TrangThaiYeuCau\" <= 7)))"
    },
    {
     "name": "CK_YeuCauBaoTri_LoaiSuCo",
@@ -1029,7 +945,8 @@
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "YeuCauBaoTriId",
@@ -1038,50 +955,55 @@
     "pk": false,
     "fk": "YeuCauBaoTri",
     "on_delete": "CASCADE",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "DuongDanAnh",
+    "name": "DuongDan",
     "type": "varchar(500)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "GiaiDoanAnh",
+    "name": "GiaiDoan",
     "type": "integer",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "NguoiTaiLenId",
-    "type": "text",
+    "name": "NguoiTaiId",
+    "type": "varchar(36)",
     "null": true,
     "pk": false,
     "fk": "NguoiDung",
     "on_delete": "SET NULL",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "NgayTaiLen",
+    "name": "NgayTai",
     "type": "timestamp",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [],
   "checks": [
    {
     "name": "CK_AnhYeuCau_GiaiDoan",
-    "def": "CHECK ((\"GiaiDoanAnh\" = ANY (ARRAY[0, 1])))"
+    "def": "CHECK ((\"GiaiDoan\" = ANY (ARRAY[0, 1])))"
    }
   ]
  },
@@ -1094,7 +1016,8 @@
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "YeuCauBaoTriId",
@@ -1103,52 +1026,48 @@
     "pk": false,
     "fk": "YeuCauBaoTri",
     "on_delete": "CASCADE",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "TrangThaiTruoc",
-    "type": "integer",
-    "null": true,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "TrangThaiSau",
+    "name": "TrangThaiMoi",
     "type": "integer",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "NguoiThucHienId",
-    "type": "text",
+    "type": "varchar(36)",
     "null": true,
     "pk": false,
     "fk": "NguoiDung",
     "on_delete": "SET NULL",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "ThoiDiemChuyen",
+    "name": "ThoiDiem",
     "type": "timestamp",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "GhiChuChuyen",
+    "name": "GhiChu",
     "type": "varchar(1000)",
     "null": true,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [],
@@ -1163,7 +1082,8 @@
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "TenBang",
@@ -1172,7 +1092,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "KhoaDong",
@@ -1181,7 +1102,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "LoaiThaoTac",
@@ -1190,34 +1112,28 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "NguoiGhiId",
-    "type": "varchar(450)",
+    "name": "NguoiThaoTacId",
+    "type": "varchar(36)",
     "null": true,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "TenNguoiGhi",
-    "type": "varchar(256)",
-    "null": true,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "ThoiGianGhi",
+    "name": "ThoiDiem",
     "type": "timestamp",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "GiaTriCu",
@@ -1226,7 +1142,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "GiaTriMoi",
@@ -1235,16 +1152,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "CotThayDoi",
-    "type": "text",
-    "null": true,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "DiaChiIp",
@@ -1253,16 +1162,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "TrinhDuyet",
-    "type": "varchar(512)",
-    "null": true,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [],
@@ -1277,7 +1178,8 @@
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "MaLoaiDichVu",
@@ -1286,16 +1188,18 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": true
+    "unique": true,
+    "generated": false
    },
    {
     "name": "TenLoaiDichVu",
-    "type": "varchar(120)",
+    "type": "varchar(200)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "DonViTinh",
@@ -1304,16 +1208,18 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "DonGiaDichVu",
-    "type": "numeric(18,2)",
+    "name": "DonGia",
+    "type": "numeric(18,0)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [
@@ -1328,7 +1234,7 @@
   "checks": [
    {
     "name": "CK_LoaiDichVu_DonGia",
-    "def": "CHECK ((\"DonGiaDichVu\" >= (0)::numeric))"
+    "def": "CHECK ((\"DonGia\" >= (0)::numeric))"
    }
   ]
  },
@@ -1341,7 +1247,8 @@
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "CanHoId",
@@ -1350,7 +1257,8 @@
     "pk": false,
     "fk": "CanHo",
     "on_delete": "RESTRICT",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "LoaiDichVuId",
@@ -1359,16 +1267,18 @@
     "pk": false,
     "fk": "LoaiDichVu",
     "on_delete": "RESTRICT",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "KyChiSo",
+    "name": "Ky",
     "type": "integer",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "ChiSoCu",
@@ -1377,7 +1287,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "ChiSoMoi",
@@ -1386,25 +1297,18 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "NgayDocChiSo",
-    "type": "timestamp",
+    "name": "NgayDoc",
+    "type": "date",
     "null": true,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "GhiChuChiSo",
-    "type": "text",
-    "null": true,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [
@@ -1412,20 +1316,20 @@
     "cols": [
      "CanHoId",
      "LoaiDichVuId",
-     "KyChiSo"
+     "Ky"
     ],
     "where": "(\"DaXoa\" = false)",
-    "name": "IX_ChiSoDichVu_CanHoId_LoaiDichVuId_KyChiSo"
+    "name": "IX_ChiSoDichVu_CanHoId_LoaiDichVuId_Ky"
    }
   ],
   "checks": [
    {
-    "name": "CK_ChiSoDichVu_ChiSo",
-    "def": "CHECK (((\"ChiSoCu\" >= (0)::numeric) AND (\"ChiSoMoi\" >= \"ChiSoCu\")))"
+    "name": "CK_ChiSoDichVu_Ky",
+    "def": "CHECK ((((\"Ky\" % 100) >= 1) AND ((\"Ky\" % 100) <= 12)))"
    },
    {
-    "name": "CK_ChiSoDichVu_Ky",
-    "def": "CHECK ((((\"KyChiSo\" % 100) >= 1) AND ((\"KyChiSo\" % 100) <= 12)))"
+    "name": "CK_ChiSoDichVu_ChiSo",
+    "def": "CHECK (((\"ChiSoCu\" >= (0)::numeric) AND (\"ChiSoMoi\" >= \"ChiSoCu\")))"
    }
   ]
  },
@@ -1438,7 +1342,8 @@
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "CanHoId",
@@ -1447,34 +1352,28 @@
     "pk": false,
     "fk": "CanHo",
     "on_delete": "RESTRICT",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "TenKhoanPhi",
-    "type": "varchar(250)",
+    "name": "TenPhi",
+    "type": "varchar(200)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "SoTienKhoanPhi",
+    "name": "SoTien",
     "type": "numeric(18,0)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "ThuTuKhoanPhi",
-    "type": "integer",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "DangApDung",
@@ -1483,14 +1382,15 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [],
   "checks": [
    {
     "name": "CK_PhiDinhKy_SoTien",
-    "def": "CHECK ((\"SoTienKhoanPhi\" >= (0)::numeric))"
+    "def": "CHECK ((\"SoTien\" >= (0)::numeric))"
    }
   ]
  },
@@ -1503,7 +1403,8 @@
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "SoHoaDon",
@@ -1512,7 +1413,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": true
+    "unique": true,
+    "generated": false
    },
    {
     "name": "CanHoId",
@@ -1521,7 +1423,8 @@
     "pk": false,
     "fk": "CanHo",
     "on_delete": "RESTRICT",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "LoaiHoaDon",
@@ -1530,61 +1433,48 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "KyHoaDon",
+    "name": "Ky",
     "type": "integer",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "NgayPhatHanh",
-    "type": "timestamp",
+    "name": "NgayLap",
+    "type": "date",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "NgayDenHan",
-    "type": "timestamp",
+    "name": "HanThanhToan",
+    "type": "date",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "TamTinh",
+    "name": "TienPhi",
     "type": "numeric(18,0)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "GiamGia",
-    "type": "numeric(18,0)",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "Thue",
-    "type": "numeric(18,0)",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "PhiTreHan",
@@ -1593,34 +1483,18 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "TongTien",
+    "name": "DaThu",
     "type": "numeric(18,0)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "DaThanhToan",
-    "type": "numeric(18,0)",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "ConLai",
-    "type": "numeric(18,0)",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "TrangThaiHoaDon",
@@ -1629,16 +1503,38 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "GhiChuHoaDon",
-    "type": "text",
+    "name": "GhiChu",
+    "type": "varchar(1000)",
     "null": true,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
+   },
+   {
+    "name": "TongTien",
+    "type": "numeric(18,0)",
+    "null": false,
+    "pk": false,
+    "fk": null,
+    "on_delete": null,
+    "unique": false,
+    "generated": true
+   },
+   {
+    "name": "ConNo",
+    "type": "numeric(18,0)",
+    "null": false,
+    "pk": false,
+    "fk": null,
+    "on_delete": null,
+    "unique": false,
+    "generated": true
    }
   ],
   "unique": [
@@ -1652,7 +1548,7 @@
    {
     "cols": [
      "CanHoId",
-     "KyHoaDon"
+     "Ky"
     ],
     "where": "((\"LoaiHoaDon\" = 0) AND (\"TrangThaiHoaDon\" <> 5) AND (\"DaXoa\" = false))",
     "name": "UX_HoaDon_PhiThang_MoiKy"
@@ -1660,24 +1556,20 @@
   ],
   "checks": [
    {
-    "name": "CK_HoaDon_ConLai",
-    "def": "CHECK (((\"ConLai\" >= (0)::numeric) AND (\"ConLai\" <= \"TongTien\")))"
-   },
-   {
-    "name": "CK_HoaDon_CongThuc",
-    "def": "CHECK (((\"TongTien\" = (((\"TamTinh\" - \"GiamGia\") + \"Thue\") + \"PhiTreHan\")) AND (\"ConLai\" = (\"TongTien\" - \"DaThanhToan\"))))"
+    "name": "CK_HoaDon_DaThu",
+    "def": "CHECK ((\"DaThu\" <= (\"TienPhi\" + \"PhiTreHan\")))"
    },
    {
     "name": "CK_HoaDon_HanThanhToan",
-    "def": "CHECK ((\"NgayDenHan\" >= \"NgayPhatHanh\"))"
+    "def": "CHECK ((\"HanThanhToan\" >= \"NgayLap\"))"
    },
    {
     "name": "CK_HoaDon_Ky",
-    "def": "CHECK ((((\"KyHoaDon\" % 100) >= 1) AND ((\"KyHoaDon\" % 100) <= 12)))"
+    "def": "CHECK ((((\"Ky\" % 100) >= 1) AND ((\"Ky\" % 100) <= 12)))"
    },
    {
     "name": "CK_HoaDon_SoTien",
-    "def": "CHECK (((\"TongTien\" >= (0)::numeric) AND (\"DaThanhToan\" >= (0)::numeric) AND (\"GiamGia\" >= (0)::numeric) AND (\"Thue\" >= (0)::numeric) AND (\"PhiTreHan\" >= (0)::numeric)))"
+    "def": "CHECK (((\"TienPhi\" >= (0)::numeric) AND (\"PhiTreHan\" >= (0)::numeric) AND (\"DaThu\" >= (0)::numeric)))"
    },
    {
     "name": "CK_HoaDon_TrangThai",
@@ -1694,7 +1586,8 @@
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "HoaDonId",
@@ -1703,52 +1596,38 @@
     "pk": false,
     "fk": "HoaDon",
     "on_delete": "CASCADE",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "NoiDungKhoan",
+    "name": "NoiDung",
     "type": "varchar(500)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "SoLuongKhoan",
+    "name": "SoLuong",
     "type": "numeric(18,2)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "DonGiaKhoan",
+    "name": "DonGia",
     "type": "numeric(18,0)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "ThanhTienKhoan",
-    "type": "numeric(18,0)",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "ThuTuKhoan",
-    "type": "integer",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "ChiSoDichVuId",
@@ -1757,7 +1636,8 @@
     "pk": false,
     "fk": "ChiSoDichVu",
     "on_delete": "RESTRICT",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "LoaiKhoan",
@@ -1766,7 +1646,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "PhiDinhKyId",
@@ -1775,7 +1656,8 @@
     "pk": false,
     "fk": "PhiDinhKy",
     "on_delete": "RESTRICT",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "YeuCauBaoTriId",
@@ -1784,11 +1666,26 @@
     "pk": false,
     "fk": "YeuCauBaoTri",
     "on_delete": "RESTRICT",
-    "unique": false
+    "unique": false,
+    "generated": false
+   },
+   {
+    "name": "ThanhTien",
+    "type": "numeric(18,0)",
+    "null": false,
+    "pk": false,
+    "fk": null,
+    "on_delete": null,
+    "unique": false,
+    "generated": true
    }
   ],
   "unique": [],
   "checks": [
+   {
+    "name": "CK_ChiTietHoaDon_SoTien",
+    "def": "CHECK (((\"SoLuong\" > (0)::numeric) AND (\"DonGia\" >= (0)::numeric)))"
+   },
    {
     "name": "CK_ChiTietHoaDon_LoaiKhoan",
     "def": "CHECK (((\"LoaiKhoan\" >= 0) AND (\"LoaiKhoan\" <= 4)))"
@@ -1796,14 +1693,6 @@
    {
     "name": "CK_ChiTietHoaDon_Nguon",
     "def": "CHECK ((((\"LoaiKhoan\" = 1) = (\"ChiSoDichVuId\" IS NOT NULL)) AND ((\"LoaiKhoan\" = 2) = (\"PhiDinhKyId\" IS NOT NULL)) AND ((\"YeuCauBaoTriId\" IS NULL) OR (\"LoaiKhoan\" = 3))))"
-   },
-   {
-    "name": "CK_ChiTietHoaDon_SoTien",
-    "def": "CHECK (((\"SoLuongKhoan\" > (0)::numeric) AND (\"DonGiaKhoan\" >= (0)::numeric)))"
-   },
-   {
-    "name": "CK_ChiTietHoaDon_ThanhTien",
-    "def": "CHECK ((\"ThanhTienKhoan\" = round((\"SoLuongKhoan\" * \"DonGiaKhoan\"))))"
    }
   ]
  },
@@ -1816,7 +1705,8 @@
     "pk": true,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "SoThanhToan",
@@ -1825,7 +1715,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": true
+    "unique": true,
+    "generated": false
    },
    {
     "name": "HoaDonId",
@@ -1834,25 +1725,28 @@
     "pk": false,
     "fk": "HoaDon",
     "on_delete": "RESTRICT",
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "SoTienThanhToan",
+    "name": "SoTien",
     "type": "numeric(18,0)",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "PhuongThucThanhToan",
+    "name": "PhuongThuc",
     "type": "integer",
     "null": false,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "TrangThaiThanhToan",
@@ -1861,7 +1755,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "MaGiaoDich",
@@ -1870,16 +1765,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
-   },
-   {
-    "name": "DonViThanhToan",
-    "type": "varchar(80)",
-    "null": true,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "NgayThanhToan",
@@ -1888,7 +1775,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "NgayHoanTien",
@@ -1897,7 +1785,8 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
     "name": "SoTienHoanTra",
@@ -1906,16 +1795,18 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    },
    {
-    "name": "GhiChuThanhToan",
-    "type": "text",
+    "name": "GhiChu",
+    "type": "varchar(1000)",
     "null": true,
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [
@@ -1929,16 +1820,20 @@
   ],
   "checks": [
    {
-    "name": "CK_ThanhToan_SoTien",
-    "def": "CHECK ((\"SoTienThanhToan\" > (0)::numeric))"
-   },
-   {
     "name": "CK_ThanhToan_HoanTra",
-    "def": "CHECK (((\"SoTienHoanTra\" >= (0)::numeric) AND (\"SoTienHoanTra\" <= \"SoTienThanhToan\")))"
+    "def": "CHECK (((\"SoTienHoanTra\" >= (0)::numeric) AND (\"SoTienHoanTra\" <= \"SoTien\")))"
    },
    {
-    "name": "CK_ThanhToan_MaSo",
-    "def": "CHECK ((((\"PhuongThucThanhToan\" >= 0) AND (\"PhuongThucThanhToan\" <= 4)) AND ((\"TrangThaiThanhToan\" >= 0) AND (\"TrangThaiThanhToan\" <= 5))))"
+    "name": "CK_ThanhToan_PhuongThuc",
+    "def": "CHECK (((\"PhuongThuc\" >= 0) AND (\"PhuongThuc\" <= 4)))"
+   },
+   {
+    "name": "CK_ThanhToan_SoTien",
+    "def": "CHECK ((\"SoTien\" > (0)::numeric))"
+   },
+   {
+    "name": "CK_ThanhToan_TrangThai",
+    "def": "CHECK (((\"TrangThaiThanhToan\" >= 0) AND (\"TrangThaiThanhToan\" <= 5)))"
    }
   ]
  }

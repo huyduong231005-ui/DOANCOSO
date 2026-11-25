@@ -214,7 +214,7 @@ def rebuild_chapter2():
         body.remove(el)
         el = nxt
     anchor = start
-    counter = [17]
+    counter = [100]   # số tạm, không trùng số viết tay; gon_bao_cao.danh_so_lai đánh lại liên tục
 
     def put(x):
         nonlocal anchor
@@ -346,6 +346,7 @@ REPL = [
 # Câu viết lại cho gọn (so khớp chữ đã qua các phép thay ở trên), rồi mới đổi tên bảng.
 from cau_viet_lai import CAU, TEN_MOI  # noqa: E402
 import gon_bao_cao  # noqa: E402
+import ten_moi_tuan8  # noqa: E402
 REPL = REPL + CAU + TEN_MOI
 REWRITE = {  # đoạn bắt đầu bằng ... -> nội dung mới
     "Hình 1.6 là sơ đồ use case tổng quát.":
@@ -369,7 +370,7 @@ REWRITE = {  # đoạn bắt đầu bằng ... -> nội dung mới
         "Hình 3.6: quản lý luôn xem các thanh toán chờ duyệt; duyệt, từ chối, thu tiền trực tiếp và hoàn tiền là phần "
         "mở rộng, chỉ làm khi có việc tương ứng.",
     "–Nơi chốn:":
-        "–Nơi chốn và cư trú: KhuVuc có nhiều DuAn; DuAn có nhiều ToaNha; ToaNha có các Tang; mỗi CanHo thuộc đúng "
+        "–Nơi chốn và cư trú: Khu có nhiều ToaNha; ToaNha có các Tang; mỗi CanHo thuộc đúng "
         "một tầng và toà của căn suy ra từ tầng. NguoiDung và CanHo liên kết qua lớp CuTru (người nào ở căn nào, từ "
         "ngày nào đến ngày nào). Đây là liên kết thường, không phải hợp thành: xoá căn không xoá người.",
     "–CanHo gồm các PhiDinhKy và ChiSoDichVu":
@@ -401,27 +402,27 @@ REWRITE = {  # đoạn bắt đầu bằng ... -> nội dung mới
         "của tác nhân, đi ra từ thanh kích hoạt. Khung opt là đoạn chỉ chạy khi điều kiện đúng, khung alt là các nhánh "
         "loại trừ nhau; thông điệp nét đứt là giá trị trả về.",
 }
-BR_MECH = {
-    "BR-SC-01": "Ứng dụng, kiểm tra trước khi lưu (LB01)", "BR-SC-02": "CHECK liên thuộc tính (TT02)",
+BR_MECH = {  # mã ràng buộc theo Chương 2 bản gọn (RB: trên một bảng, LB: liên bộ, liên quan hệ)
+    "BR-SC-01": "Ứng dụng, kiểm tra trước khi lưu (LB01)", "BR-SC-02": "CHECK (RB06)",
     "BR-SC-03": "Ứng dụng và trigger TG1 (LB03)", "BR-SC-05": "Ứng dụng; trigger TG1 (LB03)",
-    "BR-SC-06": "CHECK (TT04) và ứng dụng", "BR-SC-07": "Ứng dụng, hàm FN1 (LB05) và CHECK (TT03)",
-    "BR-SC-08": "Khoá ngoại tới MucUuTien, chặn xoá (mục 2.5.5)", "BR-SC-09": "Ứng dụng: bước gộp kết quả AI (LB06)",
-    "BR-SC-13": "Bảng LichSuYeuCau (LB04)", "BR-SC-14": "CHECK (MG05), UNIQUE (SoYeuCau)",
-    "BR-CH-01": "UNIQUE (ToaNhaId, SoTang), UNIQUE (MaCanHo)", "BR-CH-02": "CHECK (MG01)",
-    "BR-CD-01": "CHECK (TT01), UNIQUE có điều kiện và ứng dụng (LB14)",
-    "BR-CD-02": "Ứng dụng: mã mời ký số (LB15); email duy nhất (mục 2.5.4)",
-    "BR-TP-01": "UNIQUE có điều kiện và ứng dụng (LB12)",
-    "BR-TP-02": "CHECK (TT06), UNIQUE (CanHoId, LoaiDichVuId, KyChiSo), trigger TG2 (LB10)",
-    "BR-TP-03": "CHECK (MG11), trigger TG3 (LB07) và ứng dụng", "BR-TP-05": "CHECK (TT09), ứng dụng (LB13)",
+    "BR-SC-06": "CHECK (RB07) và ứng dụng", "BR-SC-07": "Ứng dụng, hàm FN1 (LB05) và CHECK (RB05)",
+    "BR-SC-08": "Khoá ngoại tới MucUuTien, chặn xoá (mục 2.3)", "BR-SC-09": "Ứng dụng: bước gộp kết quả AI",
+    "BR-SC-13": "Bảng LichSuYeuCau (LB04)", "BR-SC-14": "CHECK (RB05), UNIQUE (SoYeuCau)",
+    "BR-CH-01": "UNIQUE (ToaNhaId, SoTang), UNIQUE (MaCanHo)", "BR-CH-02": "CHECK (RB01)",
+    "BR-CD-01": "CHECK (RB03), UNIQUE có điều kiện và ứng dụng (LB13)",
+    "BR-CD-02": "Ứng dụng: mã mời ký số (LB14); email duy nhất",
+    "BR-TP-01": "UNIQUE có điều kiện và ứng dụng (LB11)",
+    "BR-TP-02": "CHECK (RB10), UNIQUE (CanHoId, LoaiDichVuId, Ky), trigger TG2 (LB08)",
+    "BR-TP-03": "CHECK (RB13), trigger TG3 (LB06) và ứng dụng", "BR-TP-05": "CHECK (RB13), ứng dụng (LB12)",
     "BR-TP-06": "UNIQUE (SoHoaDon), UNIQUE (SoThanhToan)",
-    "BR-TP-07": "CHECK (TT07), trigger TG3, khung nhìn đối chiếu (LB08, LB09)",
+    "BR-TP-07": "Cột tự tính TongTien, ConNo; CHECK (RB11); trigger TG3; khung nhìn đối chiếu (LB07)",
 }
 BR_TEXT = {
     "BR-CH-01": "Số tầng không trùng trong một toà; mã căn không trùng.",
     "BR-CD-02": "Mỗi người một tài khoản (NguoiDung). Cư trú chỉ có hiệu lực trên cổng cư dân khi người đó bấm thư mời "
                 "do BQL gửi (hạn 14 ngày) để kích hoạt tài khoản hoặc xác nhận căn.",
-    "BR-TP-07": "Tổng tiền, số đã trả, số còn lại được chốt trên hoá đơn và phải đúng công thức: tổng tiền = tạm tính − "
-                "giảm giá + thuế + phí trễ; còn lại = tổng tiền − đã trả, không âm (mục 2.4.3 e).",
+    "BR-TP-07": "Tổng tiền và còn nợ do cơ sở dữ liệu tự tính: tổng tiền = tiền phí + phí trễ hạn; còn nợ = tổng tiền − "
+                "đã thu, không âm (mục 2.4).",
 }
 DECISIONS_38 = [
     ["Dữ liệu hợp lệ?", "có / không (quay lại nhập)", "Màn hình báo sự cố: kiểm tra biểu mẫu và vị trí khu vực chung"],
@@ -478,6 +479,7 @@ def fix_text():
             new = s
             for a, b in REPL:
                 new = new.replace(a, b)
+            new = ten_moi_tuan8.doi_ten(new)
             if new != s:
                 set_text(el, new)
     for tbl in body.iter(qn("w:tbl")):
@@ -488,6 +490,7 @@ def fix_text():
             new = s
             for a, b in REPL:
                 new = new.replace(a, b)
+            new = ten_moi_tuan8.doi_ten(new)
             if new != s:
                 set_text(p, new)
     # Bảng 1.8: cơ chế đảm bảo theo mã ràng buộc mới
@@ -513,7 +516,9 @@ def main():
     groups, nland = landscape_sections()
     doc.save(str(OUT))
     leftovers = [w for w in ("MucSla", "CuDan", "MUC_SLA", "YEU_CAU_SU_CO", "[P1]", "NgayTiepNhan", "SoLuongTang",
-                             "DaKichHoat") if w in "".join(text(p) for p in body.iter(qn("w:p")))]
+                             "DaKichHoat", "KhuVuc", "DuAn", "GiamGia", "ThueHoaDon", "TrangThaiTruoc", "NgayBaoSuCo",
+                             "HanXuLyYeuCau", "TongTienHoaDon", "ConLaiHoaDon", "DaThanhToanHoaDon", "SoPhongTam", "HuongNha",
+                             "ChiPhiUocTinh", "TenNguoiGhi", "TamTinh", "mục 2.5.7", "mục 2.4.3", "mục 2.3.4") if w in "".join(text(p) for p in body.iter(qn("w:p")))]
     print(f"đã ghi {OUT}; {nland} hình trên trang ngang ({groups} nhóm); chữ cũ còn sót: {leftovers}")
 
 

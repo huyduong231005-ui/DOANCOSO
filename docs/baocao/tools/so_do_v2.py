@@ -268,40 +268,31 @@ def activity_ai():
 
 # ======================================================================= ERD (thực thể – mối kết hợp)
 ATTR = {
-    "KHU_VUC": ["KhuVucId*", "TenKhuVuc", "AnhKhuVuc"],
-    "DU_AN": ["DuAnId*", "TenDuAn", "DiaChiDuAn", "AnhDaiDienDuAn", "MoTaDuAn"],
-    "TOA_NHA": ["ToaNhaId*", "MaToaNha", "TenToaNha", "AnhDaiDienToaNha",
-                "MoTaToaNha", "TrangThaiToaNha", "NgayChotKy", "SoNgayAnHan", "PhanTramPhiTre",
-                "DonGiaPhiQuanLy"],
+    "KHU": ["KhuId*", "TenKhu", "DiaChi"],
+    "TOA_NHA": ["ToaNhaId*", "MaToaNha", "TrangThaiToaNha", "NgayLapPhi", "PhiQuanLyM2", "SoNgayAnHan", "TiLePhiTre"],
     "TANG": ["TangId*", "SoTang"],
-    "CAN_HO": ["CanHoId*", "MaCanHo", "DienTich", "SoPhongNgu", "SoPhongTam", "HuongNha", "TinhTrangCanHo", "MoTaCanHo"],
-    "NGUOI_DUNG": ["NguoiDungId*", "TenDangNhap", "Email", "MatKhauBam", "HoTen", "SoDienThoai", "SoGiayTo", "AnhDaiDienNguoiDung",
-                   "NgayDangNhapCuoi"],
+    "CAN_HO": ["CanHoId*", "MaCanHo", "DienTich", "SoPhongNgu", "TinhTrangCanHo"],
+    "NGUOI_DUNG": ["NguoiDungId*", "TenDangNhap", "Email", "MatKhauBam", "HoTen", "SoDienThoai", "SoGiayTo"],
     "VAI_TRO": ["VaiTroId*", "TenVaiTro"],
-    "QUYEN": ["QuyenId*", "MaQuyen", "PhanHeQuyen", "TenQuyen"],
-    "NHAT_KY_HE_THONG": ["NhatKyHeThongId*", "TenBang", "KhoaDong", "LoaiThaoTac", "NguoiGhiId", "TenNguoiGhi", "ThoiGianGhi",
-                         "GiaTriCu", "GiaTriMoi", "CotThayDoi", "DiaChiIp", "TrinhDuyet"],
+    "QUYEN": ["QuyenId*", "MaQuyen", "PhanHe", "TenQuyen"],
+    "NHAT_KY_HE_THONG": ["NhatKyHeThongId*", "TenBang", "KhoaDong", "LoaiThaoTac", "NguoiThaoTacId", "ThoiDiem",
+                         "GiaTriCu", "GiaTriMoi", "DiaChiIp"],
     "MUC_UU_TIEN": ["MucUuTienId*", "TenMucUuTien", "PhutPhanHoi", "PhutHoanTat"],
-    "YEU_CAU_BAO_TRI": ["YeuCauBaoTriId*", "SoYeuCau", "ViTriKhuVucChung", "TieuDeYeuCau", "MoTaYeuCau", "LoaiSuCo",
-                        "TrangThaiYeuCau", "KetQuaXuLy", "PhanLoaiAi", "ChiPhiUocTinh", "ChiPhiThucTe",
-                        "TinhPhiCuDan", "NgayBaoSuCo", "HanXuLy",
-                        "DiemDanhGia", "NhanXetCuDan"],
-    "ANH_YEU_CAU": ["AnhYeuCauId*", "DuongDanAnh", "GiaiDoanAnh", "NgayTaiLen"],
-    "LICH_SU_YEU_CAU": ["LichSuYeuCauId*", "TrangThaiTruoc", "TrangThaiSau", "ThoiDiemChuyen",
-                                 "GhiChuChuyen"],
-    "LOAI_DICH_VU": ["LoaiDichVuId*", "MaLoaiDichVu", "TenLoaiDichVu", "DonViTinh", "DonGiaDichVu"],
-    "CHI_SO_DICH_VU": ["ChiSoDichVuId*", "KyChiSo", "ChiSoCu", "ChiSoMoi",
-                       "NgayDocChiSo", "GhiChuChiSo"],
-    "PHI_DINH_KY": ["PhiDinhKyId*", "TenKhoanPhi", "SoTienKhoanPhi", "ThuTuKhoanPhi", "DangApDung"],
-    "HOA_DON": ["HoaDonId*", "SoHoaDon", "LoaiHoaDon", "KyHoaDon", "NgayPhatHanh", "NgayDenHan",
-                "TamTinh", "GiamGia", "Thue", "PhiTreHan", "TongTien", "DaThanhToan", "ConLai", "TrangThaiHoaDon",
-                "GhiChuHoaDon"],
-    "CHI_TIET_HOA_DON": ["ChiTietHoaDonId*", "LoaiKhoan", "NoiDungKhoan", "SoLuongKhoan", "DonGiaKhoan",
-                         "ThanhTienKhoan", "ThuTuKhoan"],
-    "THANH_TOAN": ["ThanhToanId*", "SoThanhToan", "SoTienThanhToan", "PhuongThucThanhToan", "TrangThaiThanhToan", "MaGiaoDich",
-                   "DonViThanhToan", "NgayThanhToan", "NgayHoanTien", "SoTienHoanTra", "GhiChuThanhToan"],
+    "YEU_CAU_BAO_TRI": ["YeuCauBaoTriId*", "SoYeuCau", "ViTri", "TieuDe", "MoTa", "LoaiSuCo", "TrangThaiYeuCau",
+                        "NgayBao", "HanXuLy", "KetQuaXuLy", "ChiPhiSuaChua", "TinhPhiCuDan", "DiemDanhGia", "NhanXet",
+                        "PhanLoaiAi"],
+    "ANH_YEU_CAU": ["AnhYeuCauId*", "DuongDan", "GiaiDoan", "NgayTai"],
+    "LICH_SU_YEU_CAU": ["LichSuYeuCauId*", "TrangThaiMoi", "ThoiDiem", "GhiChu"],
+    "LOAI_DICH_VU": ["LoaiDichVuId*", "MaLoaiDichVu", "TenLoaiDichVu", "DonViTinh", "DonGia"],
+    "CHI_SO_DICH_VU": ["ChiSoDichVuId*", "Ky", "ChiSoCu", "ChiSoMoi", "NgayDoc"],
+    "PHI_DINH_KY": ["PhiDinhKyId*", "TenPhi", "SoTien", "DangApDung"],
+    "HOA_DON": ["HoaDonId*", "SoHoaDon", "LoaiHoaDon", "Ky", "NgayLap", "HanThanhToan", "TienPhi", "PhiTreHan",
+                "/TongTien", "DaThu", "/ConNo", "TrangThaiHoaDon", "GhiChu"],
+    "CHI_TIET_HOA_DON": ["ChiTietHoaDonId*", "LoaiKhoan", "NoiDung", "SoLuong", "DonGia", "/ThanhTien"],
+    "THANH_TOAN": ["ThanhToanId*", "SoThanhToan", "SoTien", "PhuongThuc", "TrangThaiThanhToan", "MaGiaoDich",
+                   "NgayThanhToan", "NgayHoanTien", "SoTienHoanTra", "GhiChu"],
 }
-CU_TRU_ATTR = ["VaiTroTrongHo", "LaDaiDien", "NgayVaoO", "NgayChuyenDi", "NgayXacNhanCuTru", "GhiChuCuTru"]
+CU_TRU_ATTR = ["VaiTroTrongHo", "LaDaiDien", "NgayVaoO", "NgayChuyenDi", "NgayXacNhan"]
 
 
 def ent_size(name, attrs):
@@ -357,18 +348,16 @@ class Er:
 
 def erd_co_cau():
     e = Er("Hinh 2.1 ERD co cau chung cu va cu tru", "ERD cơ cấu chung cư và cư trú", "ERD – cơ cấu chung cư")
-    e.ent("KHU_VUC", 20, 40)
-    e.ent("DU_AN", 330, 20)
-    e.ent("TOA_NHA", 680, 20)
-    e.ent("TANG", 1080, 40)
-    e.ent("CAN_HO", 1060, 330)
-    e.ent("NGUOI_DUNG", 330, 360)
-    e.rel("r1", "có dự án", "KHU_VUC", "(0,n)", "DU_AN", "(1,1)")
-    e.rel("r2", "gồm toà", "DU_AN", "(0,n)", "TOA_NHA", "(1,1)")
-    e.rel("r3", "có tầng", "TOA_NHA", "(1,n)", "TANG", "(1,1)")
-    e.rel("r4", "có căn", "TANG", "(0,n)", "CAN_HO", "(1,1)")
-    e.rel("r5", "quản lý toà", "NGUOI_DUNG", "(0,n)", "TOA_NHA", "(0,1)", at=(560, 300))
-    e.rel("r6", "cư trú", "NGUOI_DUNG", "(0,n)", "CAN_HO", "(0,n)", at=(800, 440), attrs=CU_TRU_ATTR)
+    e.ent("KHU", 20, 40)
+    e.ent("TOA_NHA", 330, 20)
+    e.ent("TANG", 760, 40)
+    e.ent("CAN_HO", 740, 330)
+    e.ent("NGUOI_DUNG", 20, 330)
+    e.rel("r1", "gồm toà", "KHU", "(0,n)", "TOA_NHA", "(1,1)")
+    e.rel("r2", "có tầng", "TOA_NHA", "(1,n)", "TANG", "(1,1)")
+    e.rel("r3", "có căn", "TANG", "(0,n)", "CAN_HO", "(1,1)")
+    e.rel("r4", "quản lý toà", "NGUOI_DUNG", "(0,n)", "TOA_NHA", "(0,1)", at=(300, 260))
+    e.rel("r5", "cư trú", "NGUOI_DUNG", "(0,n)", "CAN_HO", "(0,n)", at=(520, 420), attrs=CU_TRU_ATTR)
     return e.spec()
 
 
@@ -463,7 +452,8 @@ def rd_cols(table, short=False):
             [c for c in cols if not c["pk"] and not c["fk"]]
     if short:
         order = [c for c in order if c["pk"]]
-    return [{"name": c["name"], "type": c["type"], "pk": c["pk"], "fk": bool(c["fk"]),
+    # "/" trước tên: cột CSDL tự tính (thuộc tính suy diễn), cùng ký hiệu với ERD.
+    return [{"name": ("/" if c.get("generated") else "") + c["name"], "type": c["type"], "pk": c["pk"], "fk": bool(c["fk"]),
              "nullable": c["null"], "unique": c["name"] in natural_keys(table)} for c in order]
 
 
@@ -548,17 +538,12 @@ class Rd:
 
 def rd_co_cau():
     r = Rd("Hinh 2.5 Luoc do quan he co cau chung cu", "Lược đồ quan hệ cơ cấu chung cư và cư trú", "RD – cơ cấu")
-    r.t("KhuVuc", 20, 20)
-    r.t("DuAn", 330, 20)
-    r.t("ToaNha", 700, 20)
-    r.t("Tang", 1120, 40)
-    r.t("CanHo", 1080, 360)
-    r.t("CuTru", 520, 430)
+    r.t("Khu", 20, 20)
+    r.t("ToaNha", 360, 20)
+    r.t("Tang", 800, 40)
+    r.t("CanHo", 780, 360)
+    r.t("CuTru", 420, 430)
     r.t("NguoiDung", 20, 470)
-    # Quản lý toà: đi lên trên CuTru rồi sang ToaNha, không cắt qua CuTru.
-    r.route("NguoiDung", "ToaNha", "QuanLyId", lambda b: [
-        [b("NguoiDung")[0] + 110, b("NguoiDung")[1]], [b("NguoiDung")[0] + 110, 390],
-        [b("ToaNha")[0] + 60, 390], [b("ToaNha")[0] + 60, b("ToaNha")[1] + b("ToaNha")[3]]])
     return r.spec()
 
 
@@ -755,49 +740,48 @@ def _o(name, params=(), ret=None):
 
 
 CLS = {
-    "KhuVuc": ([_p("tenKhuVuc", "string"), _p("anhKhuVuc", "string")], [_o("dsDuAn")]),
-    "DuAn": ([_p("tenDuAn", "string"), _p("diaChiDuAn", "string"), _p("moTaDuAn", "string")],
-             [_o("taoMoi"), _o("capNhat")]),
-    "ToaNha": ([_p("maToaNha", "string"), _p("tenToaNha", "string"),
-                _p("trangThaiToaNha", "int"), _p("donGiaPhiQuanLy", "decimal"), _p("ngayChotKy", "int")],
-               [_o("taoMoi"), _o("capNhat")]),
+    "Khu": ([_p("tenKhu", "string"), _p("diaChi", "string")], [_o("taoMoi"), _o("capNhat")]),
+    "ToaNha": ([_p("maToaNha", "string"), _p("trangThaiToaNha", "int"), _p("ngayLapPhi", "int"),
+                _p("phiQuanLyM2", "decimal"), _p("soNgayAnHan", "int"), _p("tiLePhiTre", "int")],
+               [_o("taoMoi"), _o("capNhat"), _o("tenToa", ret="string")]),
     "Tang": ([_p("soTang", "int")], [_o("dsCanCuaTang")]),
-    "CanHo": ([_p("maCanHo", "string"), _p("dienTich", "double"), _p("soPhongNgu", "int"), _p("tinhTrangCanHo", "int")],
+    "CanHo": ([_p("maCanHo", "string"), _p("dienTich", "decimal"), _p("soPhongNgu", "int"), _p("tinhTrangCanHo", "int")],
               [_o("taoMoi"), _o("doiTinhTrang"), _o("dangCoNguoiO", ret="bool"), _o("layNguoiDaiDien", ret="CuTru")]),
-    "CuTru": ([_p("vaiTroTrongHo", "int"), _p("laDaiDien", "bool"), _p("ngayVaoO", "datetime"),
-               _p("ngayChuyenDi", "datetime"), _p("ngayXacNhanCuTru", "datetime")],
+    "CuTru": ([_p("vaiTroTrongHo", "int"), _p("laDaiDien", "bool"), _p("ngayVaoO", "date"),
+               _p("ngayChuyenDi", "date"), _p("ngayXacNhan", "datetime")],
               [_o("themNguoiCuTru"), _o("xacNhanQuaThuMoi"), _o("chuyenDi"), _o("dangO", ret="bool")]),
     "NguoiDung": ([_p("tenDangNhap", "string"), _p("email", "string"), _p("hoTen", "string"),
                    _p("soDienThoai", "string"), _p("soGiayTo", "string")],
                   [_o("dangNhap"), _o("kichHoat", ["matKhau"]), _o("khoaTaiKhoan"), _o("xemViecDuocGiao")]),
     "VaiTro": ([_p("tenVaiTro", "string")], [_o("luuPhanQuyen")]),
-    "Quyen": ([_p("maQuyen", "string"), _p("phanHeQuyen", "string"), _p("tenQuyen", "string")], [_o("dsVaiTro")]),
-    "YeuCauBaoTri": ([_p("soYeuCau", "string"), _p("tieuDeYeuCau", "string"), _p("moTaYeuCau", "string"),
-                      _p("viTriKhuVucChung", "string"), _p("loaiSuCo", "LoaiSuCo"), _p("trangThaiYeuCau", "TrangThaiYeuCau"),
-                      _p("ngayBaoSuCo", "datetime"), _p("hanXuLy", "datetime"), _p("diemDanhGia", "int")],
+    "Quyen": ([_p("maQuyen", "string"), _p("phanHe", "string"), _p("tenQuyen", "string")], [_o("dsVaiTro")]),
+    "YeuCauBaoTri": ([_p("soYeuCau", "string"), _p("tieuDe", "string"), _p("moTa", "string"),
+                      _p("viTri", "string"), _p("loaiSuCo", "LoaiSuCo"), _p("trangThaiYeuCau", "TrangThaiYeuCau"),
+                      _p("ngayBao", "datetime"), _p("hanXuLy", "datetime"), _p("diemDanhGia", "int")],
                      [_o("guiYeuCau"), _o("phanLoaiBangAI"), _o("tinhHanXuLy"), _o("giaoViec", ["kyThuatVien"]),
                       _o("chuyenTrangThai", ["trangThaiMoi", "ghiChu"]), _o("hoanTat", ["ketQuaXuLy"]),
                       _o("xacNhanVaDanhGia", ["diem"]), _o("quaHan", ret="bool")]),
     "MucUuTien": ([_p("tenMucUuTien", "string"), _p("phutPhanHoi", "int"), _p("phutHoanTat", "int")],
-                  [_o("tinhHan", ["ngayBaoSuCo"], "datetime")]),
-    "AnhYeuCau": ([_p("duongDanAnh", "string"), _p("giaiDoanAnh", "int"), _p("ngayTaiLen", "datetime")], [_o("luuAnh")]),
-    "LichSuYeuCau": ([_p("trangThaiTruoc", "TrangThaiYeuCau"), _p("trangThaiSau", "TrangThaiYeuCau"),
-                             _p("thoiDiemChuyen", "datetime"), _p("ghiChuChuyen", "string")], [_o("ghiLichSu")]),
-    "NhatKyHeThong": ([_p("tenBang", "string"), _p("loaiThaoTac", "int"), _p("tenNguoiGhi", "string"),
-                       _p("thoiGianGhi", "datetime")], [_o("ghiNhatKy"), _o("xemNhatKy")]),
+                  [_o("tinhHan", ["ngayBao"], "datetime")]),
+    "AnhYeuCau": ([_p("duongDan", "string"), _p("giaiDoan", "int"), _p("ngayTai", "datetime")], [_o("luuAnh")]),
+    "LichSuYeuCau": ([_p("trangThaiMoi", "TrangThaiYeuCau"), _p("thoiDiem", "datetime"), _p("ghiChu", "string")],
+                     [_o("ghiLichSu"), _o("trangThaiTruoc", ret="TrangThaiYeuCau")]),
+    "NhatKyHeThong": ([_p("tenBang", "string"), _p("loaiThaoTac", "int"), _p("thoiDiem", "datetime")],
+                      [_o("ghiNhatKy"), _o("xemNhatKy")]),
     "LoaiDichVu": ([_p("maLoaiDichVu", "string"), _p("tenLoaiDichVu", "string"), _p("donViTinh", "string"),
-                    _p("donGiaDichVu", "decimal")], [_o("capNhatDonGia")]),
-    "ChiSoDichVu": ([_p("kyChiSo", "int"), _p("chiSoCu", "decimal"), _p("chiSoMoi", "decimal")],
+                    _p("donGia", "decimal")], [_o("capNhatDonGia")]),
+    "ChiSoDichVu": ([_p("ky", "int"), _p("chiSoCu", "decimal"), _p("chiSoMoi", "decimal")],
                     [_o("ghiChiSo"), _o("nhapTheoToa"), _o("tieuThu", ret="decimal"), _o("daXuatHoaDon", ret="bool")]),
-    "PhiDinhKy": ([_p("tenKhoanPhi", "string"), _p("soTienKhoanPhi", "decimal"), _p("dangApDung", "bool")],
+    "PhiDinhKy": ([_p("tenPhi", "string"), _p("soTien", "decimal"), _p("dangApDung", "bool")],
                   [_o("themKhoan"), _o("batTat")]),
-    "HoaDon": ([_p("soHoaDon", "string"), _p("kyHoaDon", "int"), _p("ngayPhatHanh", "datetime"),
-                _p("ngayDenHan", "datetime"), _p("tongTien", "decimal"), _p("daThanhToan", "decimal"),
-                _p("conLai", "decimal"), _p("trangThaiHoaDon", "TrangThaiHoaDon")],
-               [_o("lapHoaDonThang", ["canHo", "ky"]), _o("lapHoaDonPhatSinh"), _o("congPhiTre"), _o("huy", ["lyDo"])]),
-    "ChiTietHoaDon": ([_p("loaiKhoan", "LoaiKhoan"), _p("noiDungKhoan", "string"), _p("soLuongKhoan", "decimal"),
-                       _p("donGiaKhoan", "decimal"), _p("thanhTienKhoan", "decimal")], [_o("tinhThanhTien")]),
-    "ThanhToan": ([_p("soThanhToan", "string"), _p("soTienThanhToan", "decimal"), _p("phuongThucThanhToan", "int"),
+    "HoaDon": ([_p("soHoaDon", "string"), _p("ky", "int"), _p("ngayLap", "date"), _p("hanThanhToan", "date"),
+                _p("tienPhi", "decimal"), _p("phiTreHan", "decimal"), _p("daThu", "decimal"),
+                _p("trangThaiHoaDon", "TrangThaiHoaDon")],
+               [_o("lapHoaDonThang", ["canHo", "ky"]), _o("lapHoaDonPhatSinh"), _o("congPhiTre"), _o("huy", ["lyDo"]),
+                _o("tongTien", ret="decimal"), _o("conNo", ret="decimal")]),
+    "ChiTietHoaDon": ([_p("loaiKhoan", "LoaiKhoan"), _p("noiDung", "string"), _p("soLuong", "decimal"),
+                       _p("donGia", "decimal")], [_o("thanhTien", ret="decimal")]),
+    "ThanhToan": ([_p("soThanhToan", "string"), _p("soTien", "decimal"), _p("phuongThuc", "int"),
                    _p("trangThaiThanhToan", "TrangThaiThanhToan"), _p("soTienHoanTra", "decimal")],
                   [_o("guiXacNhan"), _o("ghiNhanTrucTiep"), _o("duyet"), _o("tuChoi", ["lyDo"]), _o("hoanTien", ["soTien"])]),
 }
@@ -846,17 +830,15 @@ class Cls:
 
 def class_co_cau():
     k = Cls("Hinh 3.8 So do lop co cau nguoi dung phan quyen", "Sơ đồ lớp nơi chốn, cư trú, người dùng và phân quyền")
-    k.c("KhuVuc", 20, 20)
-    k.c("DuAn", 280, 20)
-    k.c("ToaNha", 540, 20)
-    k.c("Tang", 900, 40)
-    k.c("CanHo", 860, 300)
+    k.c("Khu", 20, 20)
+    k.c("ToaNha", 300, 20)
+    k.c("Tang", 680, 40)
+    k.c("CanHo", 740, 300)
     k.c("CuTru", 520, 330)
     k.c("NguoiDung", 120, 330)
     k.c("VaiTro", 20, 600)
     k.c("Quyen", 360, 600)
-    k.a("KhuVuc", "DuAn", "1", "0..*")
-    k.a("DuAn", "ToaNha", "1", "0..*")
+    k.a("Khu", "ToaNha", "1", "0..*")
     k.a("ToaNha", "Tang", "1", "1..*")
     k.a("Tang", "CanHo", "1", "0..*")
     k.a("CanHo", "CuTru", "1", "0..*")
@@ -884,13 +866,13 @@ def class_su_co():
     k.a("MucUuTien", "YeuCauBaoTri", "1", "0..*")
     # Hai liên kết giữa NguoiDung (đặt dưới) và YeuCauBaoTri: một đường dọc, một đường vòng sang cạnh phải.
     ytop = 290        # đáy thật của hộp YeuCauBaoTri (StarUML tự co hộp theo nội dung)
-    k.a("NguoiDung", "YeuCauBaoTri", "1", "0..*", name="nguoiBaoCao", pts=[[500, 380], [500, ytop]])
+    k.a("NguoiDung", "YeuCauBaoTri", "1", "0..*", name="nguoiBao", pts=[[500, 380], [500, ytop]])
     k.a("NguoiDung", "YeuCauBaoTri", "0..1", "0..*", name="nguoiPhuTrach",
         pts=[[538, 395], [650, 395], [650, 268], [566, 268]])
     k.edges[-1]["lineStyle"] = k.edges[-2]["lineStyle"] = 0
     k.a("YeuCauBaoTri", "AnhYeuCau", "1", "0..*", comp=True)
     k.a("YeuCauBaoTri", "LichSuYeuCau", "1", "1..*", comp=True)
-    k.a("NguoiDung", "AnhYeuCau", "0..1", "0..*", name="nguoiTaiLen")
+    k.a("NguoiDung", "AnhYeuCau", "0..1", "0..*", name="nguoiTai")
     k.a("NguoiDung", "LichSuYeuCau", "0..1", "0..*", name="nguoiThucHien")
     return k.spec()
 

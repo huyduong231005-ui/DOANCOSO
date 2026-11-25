@@ -305,11 +305,14 @@ def check_attributes(erds, classes):
                 t = table_of(n["key"])
                 cols = {c["name"]: c for c in sd.SCHEMA[t]["columns"]}
                 for a in n["attrs"]:
-                    shown[t].add(a["name"])
-                    if a["name"] not in cols:
+                    name = a["name"].lstrip("/")          # "/TongTien": thuộc tính suy diễn (cột CSDL tự tính)
+                    shown[t].add(name)
+                    if name not in cols:
                         err(d, f"thuộc tính {n['key']}.{a['name']} không có trong bảng {t}")
-                    elif cols[a["name"]]["fk"]:
+                    elif cols[name]["fk"]:
                         err(d, f"ERD không vẽ khoá ngoại: {n['key']}.{a['name']}")
+                    elif cols[name].get("generated") != a["name"].startswith("/"):
+                        err(d, f"{n['key']}.{a['name']}: dấu / phải đi đúng với cột tự tính")
     for t, v in sd.SCHEMA.items():
         if t in ("CuTru", "NguoiDung_VaiTro", "VaiTro_Quyen"):
             continue

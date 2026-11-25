@@ -11,7 +11,7 @@ TEN_MOI = [  # tên bảng, cột đổi sau đợt rà soát từ gốc 24/11/2
     ("ToaNhaKhuVucChungId", "ToaNhaId"), ("KetQuaAiJson", "PhanLoaiAi"), ("TinhPhiKhachThue", "TinhPhiCuDan"),
     ("LoaiBaoTri", "LoaiSuCo"), ("TrangThaiSuCo", "TrangThaiYeuCau"), ("KhoaBang", "KhoaDong"),
     ("SoNgayTreHan", "SoNgayAnHan"),
-    ("NgayBaoCao", "NgayBaoSuCo"),   # 25/11/2026: tên thuộc tính rõ nghĩa
+    ("NgayBaoCao", "NgayBao"),   # 25/11/2026: tên ngắn sau đợt gọn CSDL
     # 25/11/2026: số chứng từ tiền tố tiếng Việt
     ("MR-", "YC-"), ("INV-", "HD-"), ("PMT-", "PT-"),
 ]

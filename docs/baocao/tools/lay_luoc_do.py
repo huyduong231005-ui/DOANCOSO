@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pgenv
 
-TABLES = ["KhuVuc", "DuAn", "ToaNha", "Tang", "CanHo", "CuTru", "NguoiDung", "VaiTro", "NguoiDung_VaiTro", "Quyen",
+TABLES = ["Khu", "ToaNha", "Tang", "CanHo", "CuTru", "NguoiDung", "VaiTro", "NguoiDung_VaiTro", "Quyen",
           "VaiTro_Quyen", "MucUuTien", "YeuCauBaoTri", "AnhYeuCau", "LichSuYeuCau", "NhatKyHeThong",
           "LoaiDichVu", "ChiSoDichVu", "PhiDinhKy", "HoaDon", "ChiTietHoaDon", "ThanhToan"]
 AUDIT = {"NgayTao", "NguoiTao", "NgayCapNhat", "NguoiCapNhat", "DaXoa", "NgayXoa", "NguoiXoa", "PhienBan"}
@@ -16,7 +16,7 @@ IDENTITY_TECH = {"NormalizedUserName", "NormalizedEmail", "EmailConfirmed", "Sec
 
 SQL = """
 select json_agg(t) from (
-  select c.table_name, c.column_name, c.ordinal_position, c.is_nullable,
+  select c.table_name, c.column_name, c.ordinal_position, c.is_nullable, c.is_generated,
          case when c.data_type = 'character varying' then 'varchar(' || c.character_maximum_length || ')'
               when c.data_type = 'numeric' then 'numeric(' || c.numeric_precision || ',' || c.numeric_scale || ')'
               when c.data_type like 'timestamp%' then 'timestamp'
@@ -76,7 +76,7 @@ def main():
             "columns": [{"name": c["column_name"], "type": c["type"], "null": c["is_nullable"] == "YES",
                          "pk": c["column_name"] in pk, "fk": fk.get(c["column_name"], [None])[0],
                          "on_delete": fk.get(c["column_name"], [None, None])[1],
-                         "unique": c["column_name"] in uq_cols}
+                         "unique": c["column_name"] in uq_cols, "generated": c["is_generated"] == "ALWAYS"}
                         for c in cs if c["column_name"] not in AUDIT | IDENTITY_TECH],
             "unique": uq_defs,
             "checks": [{"name": k["conname"], "def": k["def"]} for k in checks if k["table_name"].strip('"') == t],

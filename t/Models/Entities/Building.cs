@@ -25,7 +25,6 @@ public class Building : BaseEntity
     public int DefaultBillingDay { get; set; } = 1;
     public int DefaultLateFeeAfterDays { get; set; } = 7;
     public int DefaultLateFeePercent { get; set; } = 5;
-    public decimal ManagementFeePerM2 { get; set; }
 
     // Căn của toà lấy qua tầng: Floors → Apartments.
     public ICollection<Floor> Floors { get; set; } = new List<Floor>();

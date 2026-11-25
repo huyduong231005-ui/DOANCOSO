@@ -82,6 +82,7 @@ public class BuildingsController : AdminBaseController
             .ToListAsync();
 
         var floors = await Db.Floors.Where(f => f.BuildingId == id).OrderByDescending(f => f.Number).ToListAsync();
+        var feePerM2 = await Db.UtilityTypes.Where(t => t.Method == BillingMethod.ByArea).SumAsync(t => t.DefaultRate);
         var vm = new BuildingPlanVm
         {
             Building = b,
@@ -92,7 +93,8 @@ public class BuildingsController : AdminBaseController
             }).ToList(),
             ResidentCount = units.Sum(u => u.ResidentCount),
             MonthlyFeeEstimate = Math.Round(units.Where(u => u.Condition != ApartmentCondition.NotHandedOver)
-                .Sum(u => (decimal)u.Area) * b.ManagementFeePerM2, 0)
+                .Sum(u => (decimal)u.Area) * feePerM2, 0),
+            ManagementFeePerM2 = feePerM2
         };
         return View(vm);
     }
@@ -104,7 +106,7 @@ public class BuildingsController : AdminBaseController
         var vm = new BuildingEditVm
         {
             Status = BuildingStatus.Active, FloorCount = 20, UnitsPerFloor = 8,
-            ProjectId = projectId, ManagementFeePerM2 = 15000
+            ProjectId = projectId
         };
         await PopulateLookupsAsync(vm);
         return View("Edit", vm);
@@ -125,8 +127,7 @@ public class BuildingsController : AdminBaseController
             ManagerId = b.ManagerId, Status = b.Status,
             DefaultBillingDay = b.DefaultBillingDay,
             DefaultLateFeeAfterDays = b.DefaultLateFeeAfterDays,
-            DefaultLateFeePercent = b.DefaultLateFeePercent,
-            ManagementFeePerM2 = b.ManagementFeePerM2
+            DefaultLateFeePercent = b.DefaultLateFeePercent
         };
         await PopulateLookupsAsync(vm);
         return View(vm);
@@ -160,7 +161,6 @@ public class BuildingsController : AdminBaseController
         b.DefaultBillingDay = input.DefaultBillingDay;
         b.DefaultLateFeeAfterDays = input.DefaultLateFeeAfterDays;
         b.DefaultLateFeePercent = input.DefaultLateFeePercent;
-        b.ManagementFeePerM2 = input.ManagementFeePerM2;
         await Db.SaveChangesAsync();
 
         // Thêm tầng còn thiếu khi tăng số tầng (không tự xoá tầng khi giảm để tránh mất căn).

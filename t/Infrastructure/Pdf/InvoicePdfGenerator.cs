@@ -35,6 +35,8 @@ public class InvoicePdfGenerator
             var memo = $"TT {invoice.InvoiceNumber}";
             // Synchronous fetch for PDF rendering. Short timeout via service.
             qrImage = _qr.FetchQrAsync(invoice.Balance, memo).GetAwaiter().GetResult();
+            // Dịch vụ QR trả trang lỗi thay vì ảnh thì bỏ mã QR, vẫn xuất hoá đơn (PNG bắt đầu 0x89, JPEG 0xFF).
+            if (qrImage is not { Length: > 4 } || (qrImage[0] != 0x89 && qrImage[0] != 0xFF)) qrImage = null;
         }
 
         var doc = Document.Create(c =>
@@ -142,7 +144,7 @@ public class InvoicePdfGenerator
                     h.Cell().Element(HeaderCell).AlignRight().Text("Đơn giá");
                     h.Cell().Element(HeaderCell).AlignRight().Text("Thành tiền");
                 });
-                foreach (var it in inv.Items.OrderBy(x => x.Id))
+                foreach (var it in inv.Items.OrderBy(x => x.UtilityTypeId))
                 {
                     t.Cell().Element(BodyCell).Text(it.Description);
                     t.Cell().Element(BodyCell).AlignRight().Text(it.Quantity.ToString("0.##"));

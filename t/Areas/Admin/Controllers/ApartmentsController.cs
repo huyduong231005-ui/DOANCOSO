@@ -134,7 +134,7 @@ public class ApartmentsController : AdminBaseController
             .Include(a => a.Floor)
             .Include(a => a.Residents.OrderBy(r => r.MoveOutDate != null).ThenByDescending(r => r.IsPrimary).ThenBy(r => r.Role))
                 .ThenInclude(r => r.User)
-            .Include(a => a.RecurringCharges.OrderBy(c => c.Id))
+            .Include(a => a.RecurringCharges.OrderBy(c => c.UtilityTypeId))
             .AsSplitQuery()
             .FirstOrDefaultAsync(a => a.Id == id);
         if (apt == null) return null;
@@ -144,7 +144,7 @@ public class ApartmentsController : AdminBaseController
         {
             Apartment = apt,
             Invoices = await invoices.OrderByDescending(i => i.IssueDate).Take(recentLimit).ToListAsync(),
-            Readings = await Db.UtilityReadings.Include(r => r.UtilityType).Where(r => r.ApartmentId == id)
+            Readings = await Db.UtilityReadings.Include(r => r.UtilityType).Include(r => r.Apartment.Invoices).Where(r => r.ApartmentId == id)
                 .OrderByDescending(r => r.BillingMonth).ThenBy(r => r.UtilityTypeId).Take(recentLimit * 2).ToListAsync(),
             Maintenance = await Db.MaintenanceRequests.Include(m => m.AssignedTo).Where(m => m.ApartmentId == id)
                 .OrderByDescending(m => m.ReportedAt).Take(recentLimit).ToListAsync(),
@@ -154,7 +154,9 @@ public class ApartmentsController : AdminBaseController
                     && i.Status != InvoiceStatus.Cancelled && i.Status != InvoiceStatus.Draft)
                 .SumAsync(i => (decimal?)i.Balance) ?? 0,
             NewResident = new ResidentEditVm { ApartmentId = id, Role = apt.Residents.Any(r => r.IsActive) ? ResidentRole.Member : ResidentRole.Owner },
-            NewCharge = new RecurringChargeEditVm { ApartmentId = id }
+            NewCharge = new RecurringChargeEditVm { ApartmentId = id },
+            ManagementType = await Db.UtilityTypes.FirstOrDefaultAsync(t => t.Method == BillingMethod.ByArea),
+            SubscriptionTypes = await Db.UtilityTypes.Where(t => t.Method == BillingMethod.BySubscription).OrderBy(t => t.Name).ToListAsync()
         };
     }
 
@@ -384,46 +386,36 @@ public class ApartmentsController : AdminBaseController
         return RedirectToAction(nameof(Details), new { id = r.ApartmentId });
     }
 
-    // ───────────── Phí cố định hằng tháng ─────────────
+    // ───────────── Dịch vụ căn đăng ký (gửi xe…) ─────────────
 
+    /// <summary>Đăng ký hoặc đổi số lượng một dịch vụ cố định cho căn; tên và đơn giá lấy từ bảng giá.</summary>
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> AddCharge(RecurringChargeEditVm input)
     {
         if (!await Db.Apartments.AnyAsync(a => a.Id == input.ApartmentId)) return NotFound();
-        if (!ModelState.IsValid)
+        var type = await Db.UtilityTypes.FirstOrDefaultAsync(t => t.Id == input.UtilityTypeId && t.Method == BillingMethod.BySubscription);
+        if (!ModelState.IsValid || type == null)
         {
-            TempData["Danger"] = "Khoản phí không hợp lệ.";
+            TempData["Danger"] = "Đăng ký dịch vụ không hợp lệ.";
             return RedirectToAction(nameof(Details), new { id = input.ApartmentId });
         }
-        Db.RecurringCharges.Add(new RecurringCharge
-        {
-            ApartmentId = input.ApartmentId, Description = input.Description.Trim(),
-            Amount = input.Amount, IsActive = true
-        });
+        var c = await Db.RecurringCharges.FindAsync(input.ApartmentId, input.UtilityTypeId);
+        if (c == null) Db.RecurringCharges.Add(new RecurringCharge { ApartmentId = input.ApartmentId, UtilityTypeId = type.Id, Quantity = input.Quantity });
+        else c.Quantity = input.Quantity;
         await Db.SaveChangesAsync();
-        TempData["Success"] = "Đã thêm khoản phí cố định.";
+        TempData["Success"] = $"Đã đăng ký {type.Name} × {input.Quantity}.";
         return RedirectToAction(nameof(Details), new { id = input.ApartmentId });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> ToggleCharge(int chargeId)
+    public async Task<IActionResult> DeleteCharge(int apartmentId, int utilityTypeId)
     {
-        var c = await Db.RecurringCharges.FindAsync(chargeId);
-        if (c == null) return NotFound();
-        c.IsActive = !c.IsActive;
-        await Db.SaveChangesAsync();
-        return RedirectToAction(nameof(Details), new { id = c.ApartmentId });
-    }
-
-    [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteCharge(int chargeId)
-    {
-        var c = await Db.RecurringCharges.FindAsync(chargeId);
+        var c = await Db.RecurringCharges.FindAsync(apartmentId, utilityTypeId);
         if (c == null) return NotFound();
         Db.RecurringCharges.Remove(c);
         await Db.SaveChangesAsync();
-        TempData["Success"] = "Đã xoá khoản phí.";
-        return RedirectToAction(nameof(Details), new { id = c.ApartmentId });
+        TempData["Success"] = "Đã huỷ đăng ký dịch vụ.";
+        return RedirectToAction(nameof(Details), new { id = apartmentId });
     }
 
     public async Task<IActionResult> FloorsOf(int buildingId) =>

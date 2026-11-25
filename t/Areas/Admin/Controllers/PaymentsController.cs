@@ -68,8 +68,8 @@ public class PaymentsController : AdminBaseController
             decimal management = 0, util = 0, other = 0;
             if (i.Kind == InvoiceKind.Monthly)
             {
-                management = i.Items.Where(x => x.Description.StartsWith("Phí quản lý")).Sum(x => x.LineTotal);
-                util = i.Items.Where(x => !x.Description.StartsWith("Phí quản lý")).Sum(x => x.LineTotal);
+                management = i.Items.Where(x => x.UtilityType.Method == BillingMethod.ByArea).Sum(x => x.LineTotal);
+                util = i.Items.Where(x => x.UtilityType.Method != BillingMethod.ByArea).Sum(x => x.LineTotal);
             }
             else
             {

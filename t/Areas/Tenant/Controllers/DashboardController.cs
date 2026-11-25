@@ -29,6 +29,7 @@ public class DashboardController : TenantBaseController
         var vm = new TenantDashboardVm
         {
             Apartment = apartment,
+            ManagementFeePerM2 = await Db.UtilityTypes.Where(t => t.Method == BillingMethod.ByArea).SumAsync(t => t.DefaultRate),
             InvoicesUnpaidCount = unpaidInvoices.Count,
             TotalDue = unpaidInvoices.Sum(i => i.Balance),
             NextDueDate = unpaidInvoices.OrderBy(i => i.DueDate).Select(i => (DateTime?)i.DueDate).FirstOrDefault(),

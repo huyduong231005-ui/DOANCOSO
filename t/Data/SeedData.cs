@@ -22,6 +22,9 @@ public static class SeedData
     private const decimal WaterRate = 18_000m;        // đ/m³
     private const decimal MotorbikeFee = 120_000m;    // đ/xe/tháng
     private const decimal CarFee = 1_500_000m;        // đ/xe/tháng
+    private const decimal ManagementFeePerM2 = 15_000m; // đ/m²/tháng, chung mọi toà
+
+    private static UtilityType TypeOf(AppDbContext ctx, string code) => ctx.UtilityTypes.Local.First(t => t.Code == code);
 
     // Dữ liệu mẫu dùng các tập tĩnh (FloorsOf, OccupiedUnits): nhiều CSDL test seed song song thì phải chạy lần lượt.
     private static readonly SemaphoreSlim SeedLock = new(1, 1);
@@ -59,9 +62,20 @@ public static class SeedData
 
         if (await ctx.Projects.AnyAsync()) return;
 
-        var water = new UtilityType { Code = "NUOC", Name = "Nước", Unit = "m³", DefaultRate = WaterRate };
-        ctx.UtilityTypes.AddRange(water,
-            new UtilityType { Code = "DIEN", Name = "Điện", Unit = "kWh", DefaultRate = 3_500m });
+        // Bảng giá: mọi khoản thu là một loại dịch vụ. Migration đã tạo sẵn phí quản lý, gửi xe, sửa chữa;
+        // loại nào đã có thì dùng lại, chưa có mới thêm.
+        var types = await ctx.UtilityTypes.ToListAsync();
+        foreach (var t in new[]
+                 {
+                     new UtilityType { Code = UtilityType.ManagementCode, Name = "Phí quản lý", Unit = "m²", DefaultRate = ManagementFeePerM2, Method = BillingMethod.ByArea },
+                     new UtilityType { Code = "NUOC", Name = "Nước", Unit = "m³", DefaultRate = WaterRate, Method = BillingMethod.ByMeter },
+                     new UtilityType { Code = "DIEN", Name = "Điện", Unit = "kWh", DefaultRate = 3_500m, Method = BillingMethod.ByMeter },
+                     new UtilityType { Code = "XEMAY", Name = "Gửi xe máy", Unit = "xe", DefaultRate = MotorbikeFee, Method = BillingMethod.BySubscription },
+                     new UtilityType { Code = "OTO", Name = "Gửi ô tô", Unit = "xe", DefaultRate = CarFee, Method = BillingMethod.BySubscription },
+                     new UtilityType { Code = UtilityType.RepairCode, Name = "Sửa chữa", Unit = "lần", DefaultRate = 0, Method = BillingMethod.PerUse }
+                 }.Where(t => types.All(x => x.Code != t.Code)))
+            ctx.UtilityTypes.Add(t);
+        var water = TypeOf(ctx, "NUOC");
         await ctx.SaveChangesAsync();
 
         var manager = await userMgr.FindByEmailAsync("quanly@luxehaven.vn");
@@ -81,11 +95,11 @@ public static class SeedData
 
         var buildings = new[]
         {
-            NewBuilding(grandPark, "A", 20, 8, 15_000m, manager?.Id),
-            NewBuilding(grandPark, "B", 18, 8, 15_000m, manager?.Id),
-            NewBuilding(grandPark, "C", 15, 6, 15_000m, manager?.Id),
-            NewBuilding(riverside, "R1", 12, 6, 18_000m, manager?.Id),
-            NewBuilding(riverside, "R2", 12, 6, 18_000m, manager?.Id),
+            NewBuilding(grandPark, "A", 20, 8, manager?.Id),
+            NewBuilding(grandPark, "B", 18, 8, manager?.Id),
+            NewBuilding(grandPark, "C", 15, 6, manager?.Id),
+            NewBuilding(riverside, "R1", 12, 6, manager?.Id),
+            NewBuilding(riverside, "R2", 12, 6, manager?.Id),
         };
         ctx.Buildings.AddRange(buildings);
         await ctx.SaveChangesAsync();
@@ -121,20 +135,19 @@ public static class SeedData
     // Số tầng của toà mẫu (toà không lưu số tầng; số tầng là số dòng Tang tạo ra).
     private static readonly Dictionary<string, int> FloorsOf = new();
 
-    private static Building NewBuilding(Project p, string code, int floors, int perFloor, decimal feePerM2, string? managerId)
+    private static Building NewBuilding(Project p, string code, int floors, int perFloor, string? managerId)
     {
         FloorsOf[code] = floors;
-        return NewBuildingCore(p, code, feePerM2, managerId);
+        return NewBuildingCore(p, code, managerId);
     }
 
-    private static Building NewBuildingCore(Project p, string code, decimal feePerM2, string? managerId) => new()
+    private static Building NewBuildingCore(Project p, string code, string? managerId) => new()
     {
         Code = code,
         ProjectId = p.Id,
         ManagerId = managerId,
         Status = BuildingStatus.Active,
-        DefaultBillingDay = 1, DefaultLateFeeAfterDays = 15, DefaultLateFeePercent = 2,
-        ManagementFeePerM2 = feePerM2
+        DefaultBillingDay = 1, DefaultLateFeeAfterDays = 15, DefaultLateFeePercent = 2
     };
 
     // Vị trí căn trên tầng quyết định loại căn: 2 căn góc đầu là 3PN, 2 căn cuối 1PN/studio, giữa là 2PN.
@@ -191,10 +204,10 @@ public static class SeedData
                 });
 
             var bikes = rng.Next(0, 3);
-            for (var i = 1; i <= bikes; i++)
-                ctx.RecurringCharges.Add(new RecurringCharge { ApartmentId = a.Id, Description = $"Gửi xe máy #{i}", Amount = MotorbikeFee });
+            if (bikes > 0)
+                ctx.RecurringCharges.Add(new RecurringCharge { ApartmentId = a.Id, UtilityTypeId = TypeOf(ctx, "XEMAY").Id, Quantity = bikes });
             if (a.Bedrooms >= 2 && rng.NextDouble() < 0.3)
-                ctx.RecurringCharges.Add(new RecurringCharge { ApartmentId = a.Id, Description = "Gửi ô tô", Amount = CarFee });
+                ctx.RecurringCharges.Add(new RecurringCharge { ApartmentId = a.Id, UtilityTypeId = TypeOf(ctx, "OTO").Id, Quantity = 1 });
         }
     }
 
@@ -218,7 +231,7 @@ public static class SeedData
             var existing = await ctx.ApartmentResidents.Where(r => r.ApartmentId == apt.Id).ToListAsync();
             existing.ForEach(r => r.IsPrimary = false);
             if (existing.Count == 0)
-                ctx.RecurringCharges.Add(new RecurringCharge { ApartmentId = apt.Id, Description = "Gửi xe máy #1", Amount = MotorbikeFee });
+                ctx.RecurringCharges.Add(new RecurringCharge { ApartmentId = apt.Id, UtilityTypeId = TypeOf(ctx, "XEMAY").Id, Quantity = 1 });
             apt.Condition = ApartmentCondition.HandedOver;
             OccupiedUnits.Add(apt.UnitCode);
             ctx.ApartmentResidents.Add(new ApartmentResident
@@ -237,7 +250,8 @@ public static class SeedData
     private static void SeedBillingHistory(AppDbContext ctx, List<Apartment> apartments, UtilityType water, Random rng)
     {
         var today = DateTime.UtcNow.Date;
-        var charges = ctx.RecurringCharges.Local.Where(c => c.IsActive).ToLookup(c => c.ApartmentId);
+        var charges = ctx.RecurringCharges.Local.ToLookup(c => c.ApartmentId);
+        var fee = TypeOf(ctx, UtilityType.ManagementCode);
         var occupied = apartments.Where(a => OccupiedUnits.Contains(a.UnitCode)).ToList();
         var invoiceSeq = new Dictionary<int, int>();
         var paymentSeq = 0;
@@ -262,12 +276,14 @@ public static class SeedData
                 var area = (decimal)a.Area;
                 var items = new List<InvoiceItem>
                 {
-                    new() { Kind = InvoiceItemKind.ManagementFee, Description = $"Phí quản lý {a.UnitCode} – {month:MM/yyyy} ({area:0.##} m²)", Quantity = area,
-                            UnitPrice = a.Floor.Building.ManagementFeePerM2, LineTotal = Math.Round(area * a.Floor.Building.ManagementFeePerM2, 0) },
-                    new() { Kind = InvoiceItemKind.Utility, UtilityReading = reading, Description = $"Nước (m³) – {used:0.##}", Quantity = used, UnitPrice = WaterRate, LineTotal = used * WaterRate }
+                    new() { UtilityTypeId = fee.Id, Quantity = area, UnitPrice = fee.DefaultRate, LineTotal = Math.Round(area * fee.DefaultRate, 0) },
+                    new() { UtilityTypeId = water.Id, Quantity = used, UnitPrice = WaterRate, LineTotal = used * WaterRate }
                 };
                 foreach (var c in charges[a.Id])
-                    items.Add(new InvoiceItem { Kind = InvoiceItemKind.Recurring, RecurringCharge = c, Description = c.Description, Quantity = 1m, UnitPrice = c.Amount, LineTotal = c.Amount });
+                {
+                    var rate = ctx.UtilityTypes.Local.First(t => t.Id == c.UtilityTypeId).DefaultRate;
+                    items.Add(new InvoiceItem { UtilityTypeId = c.UtilityTypeId, Quantity = c.Quantity, UnitPrice = rate, LineTotal = c.Quantity * rate });
+                }
 
                 var total = items.Sum(i => i.LineTotal);
                 invoiceSeq[billingMonth] = invoiceSeq.GetValueOrDefault(billingMonth) + 1;

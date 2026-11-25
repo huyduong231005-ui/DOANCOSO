@@ -61,6 +61,15 @@ public static class VietnameseLabels
         _ => k.ToString()
     };
 
+    public static string Vi(this BillingMethod m) => m switch
+    {
+        BillingMethod.ByArea => "Theo diện tích",
+        BillingMethod.ByMeter => "Theo chỉ số",
+        BillingMethod.BySubscription => "Theo đăng ký",
+        BillingMethod.PerUse => "Theo lần",
+        _ => m.ToString()
+    };
+
     public static string Vi(this PaymentStatus s) => s switch
     {
         PaymentStatus.Pending => "Chờ xác nhận",

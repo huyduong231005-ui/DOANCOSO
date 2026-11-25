@@ -243,13 +243,13 @@ public class MaintenanceController : AdminBaseController
         // Lỗi trong căn do cư dân → tạo hoá đơn phát sinh cho căn (sự cố khu vực chung không tính cho ai).
         if (r.ChargeToTenant && input.ActualCost > 0)
         {
-            var lines = new List<(string description, decimal qty, decimal unitPrice)>
-            {
-                ($"Chi phí sửa chữa {r.RequestNumber} — {r.Title}", 1m, input.ActualCost)
-            };
-            var result = await _invoiceGen.GenerateOneOffInvoiceAsync(
-                r.ApartmentId!.Value, $"Bảo trì {r.RequestNumber}", lines,
-                t.Infrastructure.Time.VnTime.Today.AddDays(7), note: input.ResolutionNote);
+            var repairId = await Db.UtilityTypes.Where(x => x.Code == UtilityType.RepairCode).Select(x => x.Id).FirstOrDefaultAsync();
+            var result = repairId == 0
+                ? new t.Infrastructure.Billing.InvoiceResult(false, "chưa có loại dịch vụ sửa chữa trong bảng giá")
+                : await _invoiceGen.GenerateOneOffInvoiceAsync(
+                    r.ApartmentId!.Value, $"Bảo trì {r.RequestNumber}", new[] { (repairId, 1m, input.ActualCost) },
+                    t.Infrastructure.Time.VnTime.Today.AddDays(7),
+                    note: $"Sửa chữa {r.RequestNumber} — {r.Title}" + (string.IsNullOrWhiteSpace(input.ResolutionNote) ? "" : $". {input.ResolutionNote}"));
             TempData["Success"] = result.Success
                 ? $"Đã hoàn tất. Sinh hoá đơn truy đòi {result.InvoiceId}."
                 : "Đã hoàn tất (không sinh được hoá đơn: " + result.Message + ").";

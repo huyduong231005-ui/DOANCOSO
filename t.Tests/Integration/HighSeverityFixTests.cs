@@ -144,15 +144,15 @@ public sealed class HighSeverityFixTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task EditItems_RemovedLineLeavesTotal_AndCannotDropBelowPaid()
     {
-        int invId; int[] itemIds;
+        int invId, repairId;
         using (var scope = _factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var apt = await NewApartmentAsync(db);
+            repairId = await ServiceIdAsync(db, UtilityType.RepairCode);
             var res = await scope.ServiceProvider.GetRequiredService<InvoiceGenerator>().GenerateOneOffInvoiceAsync(
-                apt.Id, "Thử", new[] { ("Phí A", 1m, 100_000m), ("Phí B", 1m, 120_000m) }, DateTime.Today.AddDays(7));
+                apt.Id, "Thử", new[] { (repairId, 1m, 100_000m), (await ServiceIdAsync(db, "OTO"), 1m, 120_000m) }, DateTime.Today.AddDays(7));
             invId = res.InvoiceId!.Value;
-            itemIds = await db.InvoiceItems.Where(i => i.InvoiceId == invId).OrderBy(i => i.Id).Select(i => i.Id).ToArrayAsync();
         }
         using var admin = await ClientAsync("admin@luxehaven.vn", "Admin@123");
         var page = $"/Admin/Invoices/Details/{invId}";
@@ -160,7 +160,7 @@ public sealed class HighSeverityFixTests : IClassFixture<TestWebApplicationFacto
         await admin.PostAsync("/Admin/Invoices/EditItems", Form(await TokenAsync(admin, page), new()
         {
             ["InvoiceId"] = invId.ToString(), ["Discount"] = "0", ["Tax"] = "0",
-            ["Lines[0].Id"] = itemIds[0].ToString(), ["Lines[0].Description"] = "Phí A",
+            ["Lines[0].UtilityTypeId"] = repairId.ToString(),
             ["Lines[0].Quantity"] = "1", ["Lines[0].UnitPrice"] = "100000"
         }));
         Assert.Equal(100_000m, await TotalAsync(invId));
@@ -172,7 +172,7 @@ public sealed class HighSeverityFixTests : IClassFixture<TestWebApplicationFacto
         await admin.PostAsync("/Admin/Invoices/EditItems", Form(await TokenAsync(admin, page), new()
         {
             ["InvoiceId"] = invId.ToString(), ["Discount"] = "0", ["Tax"] = "0",
-            ["Lines[0].Id"] = itemIds[0].ToString(), ["Lines[0].Description"] = "Phí A",
+            ["Lines[0].UtilityTypeId"] = repairId.ToString(),
             ["Lines[0].Quantity"] = "1", ["Lines[0].UnitPrice"] = "50000"
         }));
         Assert.Equal(100_000m, await TotalAsync(invId));
@@ -185,9 +185,10 @@ public sealed class HighSeverityFixTests : IClassFixture<TestWebApplicationFacto
         int invId;
         using (var scope = _factory.Services.CreateScope())
         {
-            var apt = await NewApartmentAsync(scope.ServiceProvider.GetRequiredService<AppDbContext>());
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var apt = await NewApartmentAsync(db);
             invId = (await scope.ServiceProvider.GetRequiredService<InvoiceGenerator>().GenerateOneOffInvoiceAsync(
-                apt.Id, "Thử", new[] { ("Phí", 1m, 300_000m) }, DateTime.Today.AddDays(7))).InvoiceId!.Value;
+                apt.Id, "Thử", new[] { (await ServiceIdAsync(db, UtilityType.RepairCode), 1m, 300_000m) }, DateTime.Today.AddDays(7))).InvoiceId!.Value;
         }
         using var admin = await ClientAsync("admin@luxehaven.vn", "Admin@123");
         await admin.PostAsync("/Admin/Invoices/RecordPayment", Form(await TokenAsync(admin, $"/Admin/Invoices/Details/{invId}"),
@@ -223,15 +224,19 @@ public sealed class HighSeverityFixTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task OneOffInvoice_RejectsDueDateInThePast()
     {
-        int aptId;
+        int aptId, repairId;
         using (var scope = _factory.Services.CreateScope())
-            aptId = (await NewApartmentAsync(scope.ServiceProvider.GetRequiredService<AppDbContext>())).Id;
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            aptId = (await NewApartmentAsync(db)).Id;
+            repairId = await ServiceIdAsync(db, UtilityType.RepairCode);
+        }
         using var admin = await ClientAsync("admin@luxehaven.vn", "Admin@123");
 
         await admin.PostAsync("/Admin/Invoices/CreateOneOff", Form(await TokenAsync(admin, "/Admin/Invoices/CreateOneOff"), new()
         {
             ["ApartmentId"] = aptId.ToString(), ["Title"] = "Thử", ["DueDate"] = "2020-01-01",
-            ["Lines[0].Description"] = "Phí", ["Lines[0].Quantity"] = "1", ["Lines[0].UnitPrice"] = "1000"
+            ["Lines[0].UtilityTypeId"] = repairId.ToString(), ["Lines[0].Quantity"] = "1", ["Lines[0].UnitPrice"] = "1000"
         }));
 
         using var check = _factory.Services.CreateScope();
@@ -303,13 +308,16 @@ public sealed class HighSeverityFixTests : IClassFixture<TestWebApplicationFacto
         return (await scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>().FindByEmailAsync(email))!.Id;
     }
 
+    private static Task<int> ServiceIdAsync(AppDbContext db, string code) =>
+        db.UtilityTypes.Where(t => t.Code == code).Select(t => t.Id).SingleAsync();
+
     private static async Task<Apartment> NewApartmentAsync(AppDbContext db)
     {
         var code = "H" + Guid.NewGuid().ToString("N")[..6];
         var b = new Building
         {
             Code = code, ProjectId = (await db.Projects.FirstAsync()).Id,
-            DefaultBillingDay = 1, ManagementFeePerM2 = 10_000m
+            DefaultBillingDay = 1
         };
         db.Buildings.Add(b);
         await db.SaveChangesAsync();

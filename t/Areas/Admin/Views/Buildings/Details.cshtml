@@ -38,7 +38,7 @@
         </p>
         <p class="summary-line" style="margin-top:.35rem;">
             <span><b>@occupied/@total</b> căn có người ở (@(total == 0 ? 0 : Math.Round(occupied * 100.0 / total, 1))%)</span>
-            <span>Phí quản lý <b>@Money(b.ManagementFeePerM2) đ/m²</b> · dự kiến <b>@Money(Model.MonthlyFeeEstimate)</b>/tháng</span>
+            <span>Phí quản lý <b>@Money(Model.ManagementFeePerM2) đ/m²</b> · dự kiến <b>@Money(Model.MonthlyFeeEstimate)</b>/tháng</span>
             <span>Chốt kỳ ngày <b>@b.DefaultBillingDay</b></span>
         </p>
     </div>

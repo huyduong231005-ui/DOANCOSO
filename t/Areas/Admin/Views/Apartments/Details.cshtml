@@ -221,22 +221,18 @@
             <summary class="card-header"><h2>Phí cố định hằng tháng</h2></summary>
             <div class="card-body vstack" style="gap:.6rem;">
                 <div class="mini-list">
-                    <div class="row"><span>Phí quản lý (@a.Area.ToString("0.#") m² × @Money(a.Floor.Building.ManagementFeePerM2))</span><b>@Money(Model.ManagementFee)</b></div>
+                    <div class="row"><span>@(Model.ManagementType?.Name ?? "Phí quản lý") (@a.Area.ToString("0.#") m² × @Money(Model.ManagementType?.DefaultRate ?? 0))</span><b>@Money(Model.ManagementFee)</b></div>
                     @foreach (var c in a.RecurringCharges)
                     {
-                        <div class="row" style="@(c.IsActive ? "" : "opacity:.5")">
-                            <span>@c.Description @if (!c.IsActive) { <small class="muted">(tạm ngưng)</small> }</span>
+                        <div class="row">
+                            <span>@c.UtilityType.Name × @c.Quantity</span>
                             <span class="hstack" style="gap:.2rem;">
-                                <b>@Money(c.Amount)</b>
-                                <form asp-action="ToggleCharge" method="post" style="margin:0;">
+                                <b>@Money(c.Quantity * c.UtilityType.DefaultRate)</b>
+                                <form asp-action="DeleteCharge" method="post" style="margin:0;" data-confirm="Huỷ đăng ký @c.UtilityType.Name?" data-confirm-ok="Huỷ đăng ký" data-confirm-tone="danger">
                                     @Html.AntiForgeryToken()
-                                    <input type="hidden" name="chargeId" value="@c.Id" />
-                                    <button type="submit" class="btn btn-ghost btn-sm" title="@(c.IsActive ? "Tạm ngưng" : "Áp dụng lại")"><span class="material-symbols-outlined">@(c.IsActive ? "pause" : "play_arrow")</span></button>
-                                </form>
-                                <form asp-action="DeleteCharge" method="post" style="margin:0;" data-confirm="Xoá khoản @c.Description?" data-confirm-ok="Xoá" data-confirm-tone="danger">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="chargeId" value="@c.Id" />
-                                    <button type="submit" class="btn btn-ghost btn-sm" title="Xoá"><span class="material-symbols-outlined">delete</span></button>
+                                    <input type="hidden" name="apartmentId" value="@a.Id" />
+                                    <input type="hidden" name="utilityTypeId" value="@c.UtilityTypeId" />
+                                    <button type="submit" class="btn btn-ghost btn-sm" title="Huỷ đăng ký"><span class="material-symbols-outlined">delete</span></button>
                                 </form>
                             </span>
                         </div>
@@ -246,21 +242,17 @@
                     <div class="row"><span>Tổng/tháng <small class="muted">(chưa gồm điện nước)</small></span><b>@Money(Model.MonthlyFixed)</b></div>
                 </div>
                 <details class="reveal">
-                <summary class="btn btn-outline btn-sm"><span class="material-symbols-outlined">add</span>Thêm khoản phí</summary>
+                <summary class="btn btn-outline btn-sm"><span class="material-symbols-outlined">add</span>Đăng ký dịch vụ</summary>
                 <form asp-action="AddCharge" method="post" class="inline-form">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="ApartmentId" value="@a.Id" />
-                    <label>Khoản phí
-                        <input name="Description" list="charge-presets" required maxlength="250" placeholder="Gửi xe máy, gửi ô tô…" />
+                    <label>Dịch vụ
+                        <select name="UtilityTypeId" required>
+                            @foreach (var t in Model.SubscriptionTypes) { <option value="@t.Id">@t.Name (@Money(t.DefaultRate)/@t.Unit)</option> }
+                        </select>
                     </label>
-                    <label>Số tiền/tháng<input name="Amount" type="number" min="0" step="1000" required /></label>
-                    <datalist id="charge-presets">
-                        <option value="Gửi xe máy"></option>
-                        <option value="Gửi ô tô"></option>
-                        <option value="Gửi xe đạp"></option>
-                        <option value="Internet"></option>
-                    </datalist>
-                    <div class="full"><button type="submit" class="btn btn-primary btn-sm">Lưu khoản phí</button></div>
+                    <label>Số lượng<input name="Quantity" type="number" min="1" max="100" value="1" required /></label>
+                    <div class="full"><button type="submit" class="btn btn-primary btn-sm">Lưu đăng ký</button></div>
                 </form>
                 </details>
             </div>

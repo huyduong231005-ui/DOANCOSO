@@ -317,11 +317,8 @@ public class InvoicesController : AdminBaseController
     public async Task<IActionResult> CreateOneOff(OneOffInvoiceVm input)
     {
         if (input.ApartmentId <= 0) ModelState.AddModelError(nameof(input.ApartmentId), "Chọn căn hộ.");
-        var lines = (input.Lines ?? new())
-            .Where(l => !string.IsNullOrWhiteSpace(l.Description) && l.Quantity > 0 && l.UnitPrice > 0)
-            .Select(l => (l.Description!.Trim(), l.Quantity, l.UnitPrice))
-            .ToList();
-        if (lines.Count == 0) ModelState.AddModelError("", "Cần ít nhất một dòng có mô tả và số tiền.");
+        var lines = ValidLines(input.Lines).Where(l => l.unitPrice > 0).ToList();
+        if (lines.Count == 0) ModelState.AddModelError("", "Cần ít nhất một dòng có loại dịch vụ và số tiền.");
         if (input.DueDate == default) input.DueDate = VnTime.Today.AddDays(InvoiceGenerator.PaymentTermDays);
         else if (input.DueDate.Date < VnTime.Today)
             ModelState.AddModelError(nameof(input.DueDate), "Hạn thanh toán không được trước hôm nay.");
@@ -360,11 +357,10 @@ public class InvoicesController : AdminBaseController
             InvoiceId = inv.Id,
             InvoiceNumber = inv.InvoiceNumber,
             Note = inv.Note,
-            Lines = inv.Items.OrderBy(x => x.Id)
-                .Select(x => new OneOffInvoiceLine
-                {
-                    Id = x.Id, Description = x.Description, Quantity = x.Quantity, UnitPrice = x.UnitPrice
-                }).ToList()
+            Lines = inv.Items.OrderBy(x => x.UtilityTypeId)
+                .Select(x => new OneOffInvoiceLine { UtilityTypeId = x.UtilityTypeId, Quantity = x.Quantity, UnitPrice = x.UnitPrice })
+                .ToList(),
+            Services = await ServicesAsync()
         };
         return View(vm);
     }
@@ -379,36 +375,25 @@ public class InvoicesController : AdminBaseController
             TempData["Danger"] = $"Không thể sửa hoá đơn ở trạng thái {inv.Status.Vi()}.";
             return RedirectToAction(nameof(Details), new { id = inv.Id });
         }
+        var serviceIds = (await ServicesAsync()).Select(t => t.Id).ToHashSet();
+        var merged = InvoiceGenerator.MergeLines(ValidLines(input.Lines).Where(l => serviceIds.Contains(l.utilityTypeId)));
 
-        var keepIds = input.Lines.Where(l => l.Id > 0).Select(l => l.Id).ToHashSet();
-        foreach (var existing in inv.Items.Where(x => !keepIds.Contains(x.Id)).ToList())
+        // Mỗi loại dịch vụ một dòng: loại không còn trong danh sách thì xoá, loại có rồi thì sửa, loại mới thì thêm.
+        foreach (var existing in inv.Items.Where(x => merged.All(m => m.UtilityTypeId != x.UtilityTypeId)).ToList())
         {
-            // Rút khỏi cả danh sách trong bộ nhớ: RecomputeTotals cộng inv.Items, dòng chỉ đánh dấu xoá vẫn bị cộng.
+            // Rút khỏi cả danh sách trong bộ nhớ: RecomputeTotals cộng inv.Items.
             inv.Items.Remove(existing);
             Db.InvoiceItems.Remove(existing);
         }
-
-        foreach (var line in input.Lines.Where(l => !string.IsNullOrWhiteSpace(l.Description) && l.Quantity > 0))
+        foreach (var line in merged)
         {
-            var lineTotal = Math.Round(line.Quantity * line.UnitPrice, 0);
-            if (line.Id > 0)
-            {
-                var item = inv.Items.FirstOrDefault(x => x.Id == line.Id);
-                if (item != null)
-                {
-                    item.Description = line.Description!;
-                    item.Quantity = line.Quantity;
-                    item.UnitPrice = line.UnitPrice;
-                    item.LineTotal = lineTotal;
-                }
-            }
+            var item = inv.Items.FirstOrDefault(x => x.UtilityTypeId == line.UtilityTypeId);
+            if (item == null) inv.Items.Add(line);
             else
             {
-                inv.Items.Add(new InvoiceItem
-                {
-                    Description = line.Description!, Quantity = line.Quantity,
-                    UnitPrice = line.UnitPrice, LineTotal = lineTotal
-                });
+                item.Quantity = line.Quantity;
+                item.UnitPrice = line.UnitPrice;
+                item.LineTotal = line.LineTotal;
             }
         }
 
@@ -467,8 +452,16 @@ public class InvoicesController : AdminBaseController
         else if (inv.Status == InvoiceStatus.Paid) inv.Status = InvoiceStatus.Issued;
     }
 
+    private static IEnumerable<(int utilityTypeId, decimal qty, decimal unitPrice)> ValidLines(IEnumerable<OneOffInvoiceLine>? lines) =>
+        (lines ?? Enumerable.Empty<OneOffInvoiceLine>())
+            .Where(l => l.UtilityTypeId > 0 && l.Quantity > 0 && l.UnitPrice >= 0)
+            .Select(l => (l.UtilityTypeId, l.Quantity, l.UnitPrice));
+
+    private Task<List<UtilityType>> ServicesAsync() => Db.UtilityTypes.OrderBy(t => t.Method).ThenBy(t => t.Name).ToListAsync();
+
     private async Task PopulateOneOffLookupsAsync(OneOffInvoiceVm vm)
     {
+        vm.Services = await ServicesAsync();
         vm.Apartments = await Db.Apartments
             .Where(a => a.Condition != ApartmentCondition.NotHandedOver || a.Id == vm.ApartmentId)
             .OrderBy(a => a.Floor.Building.Code).ThenBy(a => a.UnitCode)

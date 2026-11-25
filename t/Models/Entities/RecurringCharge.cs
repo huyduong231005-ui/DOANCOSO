@@ -1,19 +1,16 @@
-using t.Models.Entities.Common;
-
 namespace t.Models.Entities;
 
 /// <summary>
-/// Khoản phí cố định lặp lại hằng tháng của một căn hộ (vd: gửi xe máy, gửi ô tô,
-/// Internet...). Mỗi đầu kỳ, InvoiceGenerator sẽ thêm các khoản đang áp dụng
-/// (IsActive = true) vào hoá đơn tiền thuê tháng dưới dạng InvoiceItem.
+/// Căn đăng ký dùng một dịch vụ cố định hằng tháng (gửi xe máy, gửi ô tô) với số lượng.
+/// Tên và đơn giá lấy từ loại dịch vụ, không lưu lại ở đây. Huỷ đăng ký thì xoá dòng.
 /// </summary>
-public class RecurringCharge : BaseEntity
+public class RecurringCharge
 {
     public int ApartmentId { get; set; }
     public Apartment Apartment { get; set; } = null!;
 
-    public string Description { get; set; } = string.Empty;
-    public decimal Amount { get; set; }
+    public int UtilityTypeId { get; set; }
+    public UtilityType UtilityType { get; set; } = null!;
 
-    public bool IsActive { get; set; } = true;
+    public int Quantity { get; set; } = 1;
 }

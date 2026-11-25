@@ -125,10 +125,8 @@ public class DashboardController : AdminBaseController
         vm.CollectionRate = invoiceTotals == null || invoiceTotals.Total == 0 ? 0
             : Math.Round((double)(invoiceTotals.Paid * 100m / invoiceTotals.Total), 1);
 
-        // Breakdown doanh thu theo nhóm phí (dựa trên mô tả dòng hoá đơn đã có thu tiền):
-        //   "Phí quản lý ..."      → Phí quản lý
-        //   dòng có số lượng ≠ 1   → Điện / nước (theo chỉ số)
-        //   còn lại                → Gửi xe, phí cố định, phát sinh
+        // Doanh thu theo nhóm phí, dựa trên cách tính của loại dịch vụ ở mỗi dòng hoá đơn đã có thu tiền:
+        //   theo diện tích → phí quản lý; theo chỉ số → điện, nước; còn lại → gửi xe, phát sinh.
         // Tính tỉ lệ trên mỗi hoá đơn rồi nhân với AmountPaid để phân bổ đúng.
         var paidInvoiceItems = await Db.Invoices
             .Where(i => i.AmountPaid > 0)
@@ -136,7 +134,7 @@ public class DashboardController : AdminBaseController
             {
                 i.AmountPaid,
                 i.Total,
-                Items = i.Items.Select(it => new { it.Description, it.Quantity, it.LineTotal })
+                Items = i.Items.Select(it => new { it.UtilityType.Method, it.LineTotal })
             })
             .ToListAsync();
         decimal sumMgmt = 0, sumUtil = 0, sumSvc = 0;
@@ -147,8 +145,8 @@ public class DashboardController : AdminBaseController
             foreach (var it in i.Items)
             {
                 var allocated = it.LineTotal * ratio;
-                if (it.Description.StartsWith("Phí quản lý")) sumMgmt += allocated;
-                else if (it.Quantity != 1m) sumUtil += allocated;
+                if (it.Method == BillingMethod.ByArea) sumMgmt += allocated;
+                else if (it.Method == BillingMethod.ByMeter) sumUtil += allocated;
                 else sumSvc += allocated;
             }
         }

@@ -108,7 +108,6 @@ public class BuildingEditVm
     [Range(1, 28)] public int DefaultBillingDay { get; set; } = 1;
     [Range(0, 60)] public int DefaultLateFeeAfterDays { get; set; } = 7;
     [Range(0, 100)] public int DefaultLateFeePercent { get; set; } = 5;
-    [Range(0, 1_000_000)] public decimal ManagementFeePerM2 { get; set; }
     [Range(0, 60)] public int UnitsPerFloor { get; set; }
     [Range(0, 1000)] public decimal DefaultUnitArea { get; set; } = 70;
 
@@ -122,6 +121,7 @@ public class BuildingPlanVm
     public List<FloorRowVm> Floors { get; set; } = new();
     public int ResidentCount { get; set; }
     public decimal MonthlyFeeEstimate { get; set; }
+    public decimal ManagementFeePerM2 { get; set; }
 
     public IEnumerable<UnitCellVm> AllUnits => Floors.SelectMany(f => f.Units);
     public int Count(ApartmentOccupancy o) => AllUnits.Count(u => u.Occupancy == o);
@@ -197,8 +197,11 @@ public class ApartmentDetailVm
     public ResidentEditVm NewResident { get; set; } = new();
     public RecurringChargeEditVm NewCharge { get; set; } = new();
 
-    public decimal ManagementFee => Math.Round((decimal)Apartment.Area * Apartment.Floor.Building.ManagementFeePerM2, 0);
-    public decimal MonthlyFixed => ManagementFee + Apartment.RecurringCharges.Where(c => c.IsActive).Sum(c => c.Amount);
+    public UtilityType? ManagementType { get; set; }
+    public List<UtilityType> SubscriptionTypes { get; set; } = new();
+
+    public decimal ManagementFee => Math.Round((decimal)Apartment.Area * (ManagementType?.DefaultRate ?? 0), 0);
+    public decimal MonthlyFixed => ManagementFee + Apartment.RecurringCharges.Sum(c => c.Quantity * c.UtilityType.DefaultRate);
 }
 
 public class ResidentEditVm
@@ -217,8 +220,8 @@ public class ResidentEditVm
 public class RecurringChargeEditVm
 {
     public int ApartmentId { get; set; }
-    [Required, StringLength(200)] public string Description { get; set; } = string.Empty;
-    [Range(0, 100_000_000)] public decimal Amount { get; set; }
+    public int UtilityTypeId { get; set; }
+    [Range(1, 100)] public int Quantity { get; set; } = 1;
 }
 
 public class ResidentListVm
@@ -303,10 +306,10 @@ public class ApartmentOption
     public string Label { get; set; } = string.Empty;
 }
 
+/// <summary>Một dòng nhập tay: chọn loại dịch vụ, số lượng, đơn giá (mặc định lấy từ bảng giá).</summary>
 public class OneOffInvoiceLine
 {
-    public int Id { get; set; }
-    public string? Description { get; set; }
+    public int UtilityTypeId { get; set; }
     public decimal Quantity { get; set; } = 1m;
     public decimal UnitPrice { get; set; }
 }
@@ -319,6 +322,7 @@ public class OneOffInvoiceVm
     public string? Note { get; set; }
     public List<OneOffInvoiceLine> Lines { get; set; } = new();
     public List<ApartmentOption> Apartments { get; set; } = new();
+    public List<UtilityType> Services { get; set; } = new();
 }
 
 public class EditInvoiceItemsVm
@@ -327,6 +331,7 @@ public class EditInvoiceItemsVm
     public string InvoiceNumber { get; set; } = string.Empty;
     public string? Note { get; set; }
     public List<OneOffInvoiceLine> Lines { get; set; } = new();
+    public List<UtilityType> Services { get; set; } = new();
 }
 
 public class PaymentListVm
@@ -373,6 +378,7 @@ public class UtilityTypeEditVm
     [Required, StringLength(200)] public string Name { get; set; } = string.Empty;
     [StringLength(20)] public string Unit { get; set; } = string.Empty;
     [Range(0, double.MaxValue)] public decimal DefaultRate { get; set; }
+    public BillingMethod Method { get; set; } = BillingMethod.ByMeter;
 }
 
 public class UtilityReadingListVm

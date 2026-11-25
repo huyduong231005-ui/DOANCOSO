@@ -15,7 +15,7 @@ public class UtilitiesController : TenantBaseController
 
         var rows = await Db.UtilityReadings
             .Include(r => r.UtilityType)
-            .Include(r => r.Apartment)
+            .Include(r => r.Apartment.Invoices)
             .Where(r => MyApartmentIds().Contains(r.ApartmentId))
             .OrderByDescending(r => r.BillingMonth).ThenBy(r => r.UtilityType.Name)
             .ToListAsync();

@@ -26,9 +26,9 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var gen = scope.ServiceProvider.GetRequiredService<InvoiceGenerator>();
 
-        var (apt, water) = await NewApartmentAsync(db, area: 70, feePerM2: 15_000m);
-        db.RecurringCharges.Add(new RecurringCharge { ApartmentId = apt.Id, Description = "Gửi xe máy", Amount = 120_000m });
-        db.RecurringCharges.Add(new RecurringCharge { ApartmentId = apt.Id, Description = "Đã ngưng", Amount = 999m, IsActive = false });
+        var (apt, water) = await NewApartmentAsync(db, area: 70);
+        var bike = await db.UtilityTypes.SingleAsync(t => t.Code == "XEMAY");
+        db.RecurringCharges.Add(new RecurringCharge { ApartmentId = apt.Id, UtilityTypeId = bike.Id, Quantity = 2 });
         var forDate = new DateTime(2031, 3, 1);
         var reading = new UtilityReading
         {
@@ -44,12 +44,13 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         Assert.True(first.Success, first.Message);
         Assert.False(second.Success);
         var inv = await db.Invoices.Include(i => i.Items).SingleAsync(i => i.Id == first.InvoiceId);
-        Assert.Equal(70 * 15_000m + 180_000m + 120_000m, inv.Total);
+        // Phí quản lý 70 m² × 15.000 (bảng giá), nước 10 m³ × 18.000, gửi xe máy 2 xe × 120.000: mỗi dịch vụ một dòng.
+        Assert.Equal(70 * 15_000m + 180_000m + 240_000m, inv.Total);
         Assert.Equal(inv.Total, inv.Balance);
         Assert.Equal(3, inv.Items.Count);
+        Assert.Equal(2m, inv.Items.Single(i => i.UtilityTypeId == bike.Id).Quantity);
         Assert.Equal(new DateTime(2031, 3, 8), inv.DueDate);
-        await db.Entry(reading).ReloadAsync();
-        Assert.True(reading.Billed);
+        Assert.True(await db.Invoices.AnyAsync(UtilityReading.BillingInvoice(apt.Id, 203103)));
     }
 
     [Fact]
@@ -58,7 +59,7 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var gen = scope.ServiceProvider.GetRequiredService<InvoiceGenerator>();
-        var (apt, _) = await NewApartmentAsync(db, area: 50, feePerM2: 15_000m, ApartmentCondition.NotHandedOver);
+        var (apt, _) = await NewApartmentAsync(db, area: 50, ApartmentCondition.NotHandedOver);
 
         var result = await gen.GenerateMonthlyInvoiceAsync(apt.Id, new DateTime(2031, 4, 1));
 
@@ -73,7 +74,7 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         using (var scope = _factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            aptId = (await NewApartmentAsync(db, 60, 15_000m)).Apartment.Id;
+            aptId = (await NewApartmentAsync(db, 60)).Apartment.Id;
         }
         using var client = await AdminClientAsync();
         var token = await TokenAsync(client, $"/Admin/Apartments/Details/{aptId}");
@@ -125,8 +126,7 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         {
             ["Code"] = "T9", ["ProjectId"] = projectId.ToString(),
             ["Address"] = "x", ["FloorCount"] = "3", ["UnitsPerFloor"] = "4", ["DefaultUnitArea"] = "55",
-            ["Status"] = "0", ["DefaultBillingDay"] = "1", ["DefaultLateFeeAfterDays"] = "7", ["DefaultLateFeePercent"] = "2",
-            ["ManagementFeePerM2"] = "15000"
+            ["Status"] = "0", ["DefaultBillingDay"] = "1", ["DefaultLateFeeAfterDays"] = "7", ["DefaultLateFeePercent"] = "2"
         }));
         Assert.Equal(HttpStatusCode.Redirect, res.StatusCode);
 
@@ -150,7 +150,7 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         using (var scope = _factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var (apt1, water) = await NewApartmentAsync(db, 50, 10_000m);
+            var (apt1, water) = await NewApartmentAsync(db, 50);
             var apt2 = new Apartment { FloorId = apt1.FloorId, UnitCode = apt1.UnitCode + "B", Area = 40 };
             db.Apartments.Add(apt2);
             await db.SaveChangesAsync();
@@ -259,14 +259,14 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
     // ── helpers ──
 
     private static async Task<(Apartment Apartment, UtilityType Water)> NewApartmentAsync(
-        AppDbContext db, decimal area, decimal feePerM2, ApartmentCondition condition = ApartmentCondition.HandedOver)
+        AppDbContext db, decimal area, ApartmentCondition condition = ApartmentCondition.HandedOver)
     {
         var code = "X" + Guid.NewGuid().ToString("N")[..6];
         var project = await db.Projects.FirstAsync();
         var b = new Building
         {
             Code = code, ProjectId = project.Id,
-            DefaultBillingDay = 1, ManagementFeePerM2 = feePerM2
+            DefaultBillingDay = 1
         };
         db.Buildings.Add(b);
         await db.SaveChangesAsync();

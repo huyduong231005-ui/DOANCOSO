@@ -64,15 +64,10 @@
         <div class="card-body">
             <p class="text-muted" style="font-size:13px;margin-top:0;">
                 Hằng tháng vào ngày chốt kỳ, hệ thống tự phát hành hoá đơn cho các căn đã bàn giao:
-                phí quản lý = diện tích × đơn giá, cộng tiền nước theo chỉ số và các phí cố định (gửi xe…).
+                phí quản lý = diện tích × đơn giá, cộng điện nước theo chỉ số và các dịch vụ căn đăng ký (gửi xe…).
+                Đơn giá lấy từ bảng giá ở mục Điện / Nước → Loại dịch vụ.
             </p>
             <div class="form-grid">
-                <div class="form-field span-12">
-                    <label asp-for="ManagementFeePerM2">Đơn giá phí quản lý (đ/m²/tháng)</label>
-                    <input asp-for="ManagementFeePerM2" type="number" min="0" step="500" />
-                    <span class="hint">Tham khảo khu căn hộ trung–cao cấp TP.HCM: 12.000 – 20.000 đ/m²</span>
-                    <span class="err" asp-validation-for="ManagementFeePerM2"></span>
-                </div>
                 <div class="form-field span-4">
                     <label asp-for="DefaultBillingDay">Ngày chốt kỳ</label>
                     <input asp-for="DefaultBillingDay" type="number" min="1" max="28" />

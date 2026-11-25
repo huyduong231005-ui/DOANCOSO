@@ -68,8 +68,8 @@
     <div class="kpi-card">
         <div class="kpi-icon"><span class="material-symbols-outlined">payments</span></div>
         <div class="kpi-label">Phí quản lý / tháng</div>
-        <div class="kpi-value">@Money(Math.Round((decimal)apt.Area * apt.Floor.Building.ManagementFeePerM2, 0))</div>
-        <div class="kpi-meta">@Money(apt.Floor.Building.ManagementFeePerM2) đ/m² · chốt kỳ ngày @apt.Floor.Building.DefaultBillingDay</div>
+        <div class="kpi-value">@Money(Math.Round((decimal)apt.Area * Model.ManagementFeePerM2, 0))</div>
+        <div class="kpi-meta">@Money(Model.ManagementFeePerM2) đ/m² · chốt kỳ ngày @apt.Floor.Building.DefaultBillingDay</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-icon"><span class="material-symbols-outlined">build</span></div>

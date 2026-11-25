@@ -42,7 +42,8 @@ public class UtilitiesController : AdminBaseController
                 Consumption = r.CurrentReading - r.PreviousReading,
                 // Tạm tính theo đơn giá hiện hành; số tiền chốt nằm ở dòng hoá đơn.
                 Amount = Math.Round((r.CurrentReading - r.PreviousReading) * r.UtilityType.DefaultRate, 0),
-                Billed = r.InvoiceItems.Any(i => i.Invoice.Status != InvoiceStatus.Cancelled)
+                Billed = r.Apartment.Invoices.Any(i => i.BillingMonth == r.BillingMonth
+                                                      && i.Kind == InvoiceKind.Monthly && i.Status != InvoiceStatus.Cancelled)
             }).ToListAsync();
 
         ViewBag.Pager = new PageInfo
@@ -53,7 +54,7 @@ public class UtilitiesController : AdminBaseController
         ViewBag.ApartmentId = apartmentId; ViewBag.BuildingId = buildingId;
         ViewBag.UtilityTypeId = utilityTypeId; ViewBag.BillingMonth = billingMonth;
         ViewBag.Buildings = await Db.Buildings.OrderBy(b => b.Code).ToListAsync();
-        ViewBag.UtilityTypes = await Db.UtilityTypes.OrderBy(x => x.Name).ToListAsync();
+        ViewBag.UtilityTypes = await MeterTypes().ToListAsync();
         return View(rows);
     }
 
@@ -78,7 +79,7 @@ public class UtilitiesController : AdminBaseController
     public async Task<IActionResult> EditReading(int id)
     {
         SetActiveNav("utilities");
-        var r = await Db.UtilityReadings.FindAsync(id);
+        var r = await Db.UtilityReadings.Include(x => x.Apartment.Invoices).FirstOrDefaultAsync(x => x.Id == id);
         if (r == null) return NotFound();
         if (r.Billed)
         {
@@ -116,7 +117,7 @@ public class UtilitiesController : AdminBaseController
             return View(input);
         }
 
-        var utilityType = await Db.UtilityTypes.FirstOrDefaultAsync(t => t.Id == input.UtilityTypeId);
+        var utilityType = await MeterTypes().FirstOrDefaultAsync(t => t.Id == input.UtilityTypeId);
         if (utilityType == null)
         {
             ModelState.AddModelError(nameof(input.UtilityTypeId), "Loại tiện ích không tồn tại.");
@@ -152,7 +153,7 @@ public class UtilitiesController : AdminBaseController
         }
         else
         {
-            if ((r = (await Db.UtilityReadings.FirstOrDefaultAsync(x => x.Id == input.Id))!) is null) return NotFound(); // Id gửi lên không tồn tại
+            if ((r = (await Db.UtilityReadings.Include(x => x.Apartment.Invoices).FirstOrDefaultAsync(x => x.Id == input.Id))!) is null) return NotFound(); // Id gửi lên không tồn tại
             if (r.Billed)
             {
                 TempData["Danger"] = "Chỉ số đã tính vào hoá đơn — không thể sửa.";
@@ -193,11 +194,11 @@ public class UtilitiesController : AdminBaseController
         var vm = new BulkReadingVm
         {
             BuildingId = buildingId ?? await Db.Buildings.OrderBy(b => b.Code).Select(b => b.Id).FirstOrDefaultAsync(),
-            UtilityTypeId = utilityTypeId ?? await Db.UtilityTypes
+            UtilityTypeId = utilityTypeId ?? await MeterTypes()
                 .OrderBy(t => t.Id).Select(t => t.Id).FirstOrDefaultAsync(),
             BillingMonth = billingMonth ?? now.Year * 100 + now.Month,
             Buildings = await Db.Buildings.OrderBy(b => b.Code).ToListAsync(),
-            UtilityTypes = await Db.UtilityTypes.OrderBy(t => t.Name).ToListAsync()
+            UtilityTypes = await MeterTypes().ToListAsync()
         };
         var type = vm.UtilityTypes.FirstOrDefault(t => t.Id == vm.UtilityTypeId);
         vm.Rate = type?.DefaultRate ?? 0;
@@ -210,7 +211,8 @@ public class UtilitiesController : AdminBaseController
         var ids = apartments.Select(a => a.Id).ToList();
         var readings = await Db.UtilityReadings
             .Where(r => ids.Contains(r.ApartmentId) && r.UtilityTypeId == vm.UtilityTypeId && r.BillingMonth <= vm.BillingMonth)
-            .Select(r => new { r.ApartmentId, r.BillingMonth, r.CurrentReading, Billed = r.InvoiceItems.Any(i => i.Invoice.Status != InvoiceStatus.Cancelled) })
+            .Select(r => new { r.ApartmentId, r.BillingMonth, r.CurrentReading, Billed = r.Apartment.Invoices.Any(i => i.BillingMonth == r.BillingMonth
+                                                                                     && i.Kind == InvoiceKind.Monthly && i.Status != InvoiceStatus.Cancelled) })
             .ToListAsync();
 
         vm.Rows = apartments.Select(a =>
@@ -249,7 +251,7 @@ public class UtilitiesController : AdminBaseController
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Bulk(BulkReadingVm input)
     {
-        var type = await Db.UtilityTypes.FindAsync(input.UtilityTypeId);
+        var type = await MeterTypes().FirstOrDefaultAsync(t => t.Id == input.UtilityTypeId);
         if (type == null || !IsValidBillingMonth(input.BillingMonth)) return BadRequest();
 
         var ids = input.Rows.Select(r => r.ApartmentId).ToList();
@@ -260,6 +262,7 @@ public class UtilitiesController : AdminBaseController
         var skippedInvoiced = input.Rows.Count(r => r.CurrentReading.HasValue && invoiced.Contains(r.ApartmentId));
         validIds = validIds.Except(invoiced).ToList();
         var existing = await Db.UtilityReadings
+            .Include(r => r.Apartment.Invoices)
             .Where(r => validIds.Contains(r.ApartmentId) && r.UtilityTypeId == type.Id && r.BillingMonth == input.BillingMonth)
             .ToListAsync();
 
@@ -289,7 +292,7 @@ public class UtilitiesController : AdminBaseController
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteReading(int id)
     {
-        var r = await Db.UtilityReadings.FindAsync(id);
+        var r = await Db.UtilityReadings.Include(x => x.Apartment.Invoices).FirstOrDefaultAsync(x => x.Id == id);
         if (r == null) return NotFound();
         if (r.Billed) { TempData["Danger"] = "Đã tính vào hoá đơn — không thể xoá."; return RedirectToAction(nameof(Index)); }
         Db.UtilityReadings.Remove(r);
@@ -323,7 +326,7 @@ public class UtilitiesController : AdminBaseController
         var vm = new UtilityTypeEditVm
         {
             Id = t.Id, Code = t.Code, Name = t.Name, Unit = t.Unit,
-            DefaultRate = t.DefaultRate
+            DefaultRate = t.DefaultRate, Method = t.Method
         };
         return View(vm);
     }
@@ -344,6 +347,7 @@ public class UtilitiesController : AdminBaseController
         }
         t.Code = input.Code; t.Name = input.Name; t.Unit = input.Unit;
         t.DefaultRate = input.DefaultRate;
+        t.Method = input.Method;
         await Db.SaveChangesAsync();
         TempData["Success"] = "Đã lưu loại tiện ích.";
         return RedirectToAction(nameof(Types));
@@ -372,6 +376,10 @@ public class UtilitiesController : AdminBaseController
             .OrderBy(a => a.Floor.Building.Code).ThenBy(a => a.UnitCode)
             .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + "Toà " + a.Floor.Building.Code })
             .ToListAsync();
-        vm.UtilityTypes = await Db.UtilityTypes.OrderBy(x => x.Name).ToListAsync();
+        vm.UtilityTypes = await MeterTypes().ToListAsync();
     }
+
+    /// <summary>Chỉ dịch vụ tính theo chỉ số đồng hồ mới có chỉ số.</summary>
+    private IQueryable<UtilityType> MeterTypes() =>
+        Db.UtilityTypes.Where(t => t.Method == BillingMethod.ByMeter).OrderBy(t => t.Name);
 }

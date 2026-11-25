@@ -24,67 +24,45 @@ public class InvoiceGenerator
     public static int ToBillingMonth(DateTime d) => d.Year * 100 + d.Month;
 
     /// <summary>
-    /// Hoá đơn phí tháng của một căn: phí quản lý (diện tích × đơn giá/m² của toà),
-    /// điện/nước theo chỉ số chưa xuất và các khoản phí cố định đang áp dụng (gửi xe...).
+    /// Hoá đơn phí tháng của một căn, mỗi loại dịch vụ một dòng: phí quản lý (số lượng = diện tích),
+    /// điện/nước (số lượng = lượng dùng theo chỉ số kỳ này) và dịch vụ căn đăng ký (số lượng = số đăng ký).
+    /// Đơn giá lấy từ bảng LoaiDichVu và chốt vào dòng.
     /// </summary>
     public async Task<InvoiceResult> GenerateMonthlyInvoiceAsync(int apartmentId, DateTime forDate, CancellationToken ct = default)
     {
+        var billingMonth = ToBillingMonth(forDate);
         var apt = await _db.Apartments
-            .Include(a => a.Floor.Building)
-            .Include(a => a.UtilityReadings).ThenInclude(r => r.UtilityType)
-            .Include(a => a.UtilityReadings).ThenInclude(r => r.InvoiceItems).ThenInclude(i => i.Invoice)
+            .Include(a => a.UtilityReadings.Where(r => r.BillingMonth == billingMonth)).ThenInclude(r => r.UtilityType)
             .Include(a => a.RecurringCharges)
             .FirstOrDefaultAsync(a => a.Id == apartmentId, ct);
         if (apt == null) return new(false, "Không tìm thấy căn hộ.");
         if (apt.Condition == ApartmentCondition.NotHandedOver) return new(false, $"Căn {apt.UnitCode} chưa bàn giao, chưa thu phí.");
 
-        var billingMonth = ToBillingMonth(forDate);
-
-        // ponytail: kiểm tra-rồi-ghi, hai lần phát hành đồng thời có thể ra 2 hoá đơn cùng kỳ;
-        // thêm partial unique index (CanHoId, ThangTinhPhi) WHERE Monthly & chưa huỷ khi dữ liệu cũ đã sạch trùng.
-        var existing = await _db.Invoices.AnyAsync(i =>
-            i.ApartmentId == apartmentId && i.BillingMonth == billingMonth && i.Kind == InvoiceKind.Monthly
-            && i.Status != InvoiceStatus.Cancelled, ct);
+        // ponytail: kiểm tra-rồi-ghi; hai lần phát hành đồng thời bị chỉ mục UX_HoaDon_PhiThang_MoiKy chặn lần sau.
+        var existing = await _db.Invoices.AnyAsync(UtilityReading.BillingInvoice(apartmentId, billingMonth), ct);
         if (existing) return new(false, $"Căn {apt.UnitCode} đã có hoá đơn tháng {billingMonth % 100:00}/{billingMonth / 100}.");
 
-        // Hạn = ngày lập + 7: lập đúng ngày chốt thì bằng ngày chốt + 7; lập muộn (bù kỳ, lập tay)
+        // Hạn = ngày lập + 7: lập đúng ngày lập phí thì bằng ngày đó + 7; lập muộn (bù kỳ, lập tay)
         // vẫn đủ 7 ngày, không sinh ra đã quá hạn rồi bị tính phí trễ.
         var dueDate = forDate.Date.AddDays(PaymentTermDays);
 
         var items = new List<InvoiceItem>();
-        var area = (decimal)apt.Area;
-        if (apt.Floor.Building.ManagementFeePerM2 > 0 && area > 0)
+        void Add(UtilityType type, decimal qty)
         {
-            items.Add(new InvoiceItem
-            {
-                Kind = InvoiceItemKind.ManagementFee,
-                Description = $"Phí quản lý {apt.UnitCode} – {forDate:MM/yyyy} ({area:0.##} m²)",
-                Quantity = area, UnitPrice = apt.Floor.Building.ManagementFeePerM2,
-                LineTotal = Math.Round(area * apt.Floor.Building.ManagementFeePerM2, 0)
-            });
+            if (qty > 0)
+                items.Add(new InvoiceItem
+                {
+                    UtilityTypeId = type.Id, UtilityType = type, Quantity = qty, UnitPrice = type.DefaultRate,
+                    LineTotal = Math.Round(qty * type.DefaultRate, 0)
+                });
         }
 
-        foreach (var r in apt.UtilityReadings.Where(r => !r.Billed && r.BillingMonth == billingMonth).OrderBy(r => r.UtilityTypeId))
-        {
-            // Dòng trỏ về chỉ số: từ nay chỉ số được coi là đã xuất hoá đơn (không cần cờ riêng).
-            items.Add(new InvoiceItem
-            {
-                Kind = InvoiceItemKind.Utility, UtilityReading = r,
-                Description = $"{r.UtilityType.Name} ({r.UtilityType.Unit}) – {r.Consumption:0.##}",
-                Quantity = r.Consumption, UnitPrice = r.UtilityType.DefaultRate,
-                LineTotal = Math.Round(r.Consumption * r.UtilityType.DefaultRate, 0)
-            });
-        }
-
-        foreach (var c in apt.RecurringCharges.Where(c => c.IsActive).OrderBy(c => c.Id))
-        {
-            items.Add(new InvoiceItem
-            {
-                Kind = InvoiceItemKind.Recurring, RecurringCharge = c,
-                Description = c.Description,
-                Quantity = 1m, UnitPrice = c.Amount, LineTotal = c.Amount
-            });
-        }
+        foreach (var type in await _db.UtilityTypes.Where(t => t.Method == BillingMethod.ByArea).ToListAsync(ct))
+            Add(type, (decimal)apt.Area);
+        foreach (var r in apt.UtilityReadings.OrderBy(r => r.UtilityTypeId))
+            Add(r.UtilityType, r.Consumption);
+        foreach (var c in apt.RecurringCharges.OrderBy(c => c.UtilityTypeId))
+            Add(c.UtilityType, c.Quantity);
 
         if (items.Count == 0) return new(false, $"Căn {apt.UnitCode} không có khoản phí nào trong kỳ.");
 
@@ -139,24 +117,17 @@ public class InvoiceGenerator
         return generated;
     }
 
-    /// <summary>
-    /// Create an ad-hoc OneOff invoice with arbitrary items (e.g. cleaning fee, damage).
-    /// </summary>
-    public async Task<InvoiceResult> GenerateOneOffInvoiceAsync(int apartmentId, string title, IReadOnlyList<(string description, decimal qty, decimal unitPrice)> lines, DateTime dueDate, string? note = null, CancellationToken ct = default)
+    /// <summary>Hoá đơn phát sinh (sửa chữa, khoản khác): mỗi dòng là một loại dịch vụ, cùng loại thì cộng số lượng.</summary>
+    public async Task<InvoiceResult> GenerateOneOffInvoiceAsync(int apartmentId, string title, IReadOnlyList<(int utilityTypeId, decimal qty, decimal unitPrice)> lines, DateTime dueDate, string? note = null, CancellationToken ct = default)
     {
         if (!await _db.Apartments.AnyAsync(a => a.Id == apartmentId, ct)) return new(false, "Không tìm thấy căn hộ.");
         if (lines == null || lines.Count == 0) return new(false, "Hoá đơn phải có ít nhất một dòng.");
+        var typeIds = lines.Select(l => l.utilityTypeId).Distinct().ToList();
+        if (await _db.UtilityTypes.CountAsync(t => typeIds.Contains(t.Id), ct) != typeIds.Count)
+            return new(false, "Có dòng chọn loại dịch vụ không tồn tại.");
 
         var now = VnTime.Now;
-        var items = new List<InvoiceItem>();
-        foreach (var (desc, qty, price) in lines)
-        {
-            var lineTotal = Math.Round(qty * price, 0);
-            items.Add(new InvoiceItem
-            {
-                Description = desc, Quantity = qty, UnitPrice = price, LineTotal = lineTotal
-            });
-        }
+        var items = MergeLines(lines);
         var subTotal = items.Sum(x => x.LineTotal);
         var invoice = new Invoice
         {
@@ -183,6 +154,19 @@ public class InvoiceGenerator
         _log.LogInformation("Generated OneOff invoice {Number} for apartment {ApartmentId} ({Total} VND, '{Title}')", invoice.InvoiceNumber, apartmentId, subTotal, title);
         return new(true, $"Đã tạo hoá đơn {invoice.InvoiceNumber} ({subTotal:N0} đ).", invoice.Id);
     }
+
+    /// <summary>
+    /// Gộp các dòng nhập tay thành dòng hoá đơn: mỗi loại dịch vụ một dòng (khoá chính của bảng chi tiết).
+    /// Cùng loại thì cộng số lượng nếu cùng đơn giá; khác đơn giá thì gộp thành số lượng 1 với đơn giá = tổng tiền.
+    /// </summary>
+    public static List<InvoiceItem> MergeLines(IEnumerable<(int utilityTypeId, decimal qty, decimal unitPrice)> lines) =>
+        lines.GroupBy(l => l.utilityTypeId).Select(g =>
+        {
+            var sameRate = g.Select(l => l.unitPrice).Distinct().Count() == 1;
+            var qty = sameRate ? g.Sum(l => l.qty) : 1m;
+            var price = sameRate ? g.First().unitPrice : g.Sum(l => Math.Round(l.qty * l.unitPrice, 0));
+            return new InvoiceItem { UtilityTypeId = g.Key, Quantity = qty, UnitPrice = price, LineTotal = Math.Round(qty * price, 0) };
+        }).ToList();
 
     public async Task<int> GenerateForBillingDayAsync(DateTime asOf, CancellationToken ct = default)
     {

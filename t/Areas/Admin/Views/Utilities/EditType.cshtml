@@ -34,6 +34,10 @@
                 </div>
 
                 <div class="form-field span-4">
+                    <label asp-for="Method">Cách tính</label>
+                    <select asp-for="Method" asp-items="Html.GetEnumSelectList<t.Models.Entities.BillingMethod>()"></select>
+                </div>
+                <div class="form-field span-4">
                     <label asp-for="DefaultRate">Đơn giá</label>
                     <input asp-for="DefaultRate" type="number" step="100" />
                     <span class="err" asp-validation-for="DefaultRate"></span>

@@ -6,6 +6,7 @@ namespace t.Areas.Tenant.Models;
 public class TenantDashboardVm
 {
     public Apartment? Apartment { get; set; }
+    public decimal ManagementFeePerM2 { get; set; }
     public int InvoicesUnpaidCount { get; set; }
     public decimal TotalDue { get; set; }
     public DateTime? NextDueDate { get; set; }

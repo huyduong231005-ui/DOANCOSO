@@ -545,6 +545,7 @@ def main():
     gon_bao_cao.gon_chuong3(body, set_text)
     gon_bao_cao.bo_viet_tat_thua(body)
     gon_bao_cao.sua_trang_thai_tuan(body, set_text)
+    gon_bao_cao.sua_muc_tinh_chat(body, set_text)
     print(f"gạch đầu dòng sửa lại tab: {gon_bao_cao.sua_gach_dau_dong(body)}")
     treo, doi = gon_bao_cao.danh_so_lai(body, set_text)
     print(f"đánh số lại {doi} bảng; tham chiếu treo: {treo or 'không'}")

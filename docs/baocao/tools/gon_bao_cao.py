@@ -608,6 +608,12 @@ DAN_THAY = [   # (chuỗi cũ, chuỗi mới) trong đoạn văn, áp một lầ
      "liệt kê ở mục 2.5.", "các mã RB, LB (ràng buộc), TG (trigger), FN (hàm) và lý do chọn cơ chế được trình bày ở mục "
      "2.5."),
     ("Thời gian phản hồi TB (phút)", "Thời gian phản hồi trung bình (phút)"),
+    # Rà lần 5 (27/11): nội dung trong bảng
+    ("Không tạo được hai căn cùng mã trong một toà", "Không tạo được hai căn trùng mã; số tầng phải từ 1 trở lên"),
+    ("use case chi tiết và đặc tả, activity, class, sequence (AI phân loại, điều phối, hoàn tất)",
+     "use case chi tiết và đặc tả, sơ đồ hoạt động, lớp, tuần tự (AI phân loại, điều phối, hoàn tất)"),
+    ("ba trigger cho ràng buộc cần dữ liệu nhiều dòng", "ba trigger cho ràng buộc liên bộ, liên quan hệ phải đúng cả khi "
+     "sửa thẳng cơ sở dữ liệu"),
     ("Ba trigger và một hàm ở Bảng 2.6 chỉ kiểm tra rồi chấp nhận hoặc từ chối lệnh ghi, không tự ghi thêm dữ liệu; mỗi "
      "cái đã được thử bằng lệnh vi phạm cố ý.", "Ba trigger ở Bảng 2.6 chỉ kiểm tra rồi chấp nhận hoặc từ chối lệnh ghi, "
      "không tự ghi thêm dữ liệu; hàm FN1 chỉ tính hạn xử lý. Mỗi trigger đã được thử bằng lệnh vi phạm cố ý."),
@@ -636,3 +642,19 @@ def dan_bang_hinh(body, set_text, new_p):
         if t in DAN_CHEN and not _text(p.getnext()).startswith(DAN_CHEN[t][:20]):
             p.addnext(new_p("Noidung", DAN_CHEN[t]))
     return sorted(con)
+
+
+# Bảng 2.7: cột Mục trỏ đúng nơi trình bày (khoá lạc quan ở 4.5.4, lớp ánh xạ ở 3.1). Ô "2.3" có ở nhiều dòng nên sửa
+# theo dòng, không thay chuỗi.
+MUC_TINH_CHAT = {"Tính nhất quán": "2.4, 2.5, 4.5.4", "Tính độc lập": "3.1"}
+
+
+def sua_muc_tinh_chat(body, set_text):
+    cap = next(p for p in body.iter(qn("w:p")) if _text(p).startswith("Bảng ") and "tính chất của cơ sở dữ liệu" in _text(p)
+               and not _la_muc_luc(p))
+    tbl = cap.getnext()
+    for tr in tbl.iter(qn("w:tr")):
+        tcs = tr.findall(qn("w:tc"))
+        ten = _text(tcs[0]).strip()
+        if ten in MUC_TINH_CHAT:
+            set_text(tcs[-1].find(qn("w:p")), MUC_TINH_CHAT[ten])

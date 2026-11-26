@@ -168,3 +168,12 @@ khớp Bảng 1.7 và Hình 1.5. Đọc lại toàn văn. Sửa:
   cách → không phải lỗi file.
 - Bố cục: trang chỉ có 2 dòng cuối Chương 3 → Hình 3.6 giới hạn cao (CAO_TOI_DA áp cả hình Chương 3). Còn 76 trang.
   Các trang trống nửa dưới còn lại đều đứng trước trang ngang hoặc trước chương mới.
+
+## Rà lần 5 ngày 27/11/2026 (đọc kĩ nội dung từng bảng)
+
+Đọc toàn bộ 32 bảng; đối chiếu Bảng 2.3 với CHECK trong CSDL (khớp); thử thật trên ứng dụng dòng "số tầng 0" của
+Bảng 4.3 (máy chủ chặn, không lưu). Sửa:
+- Bảng 1.11 FR-02: tiêu chí "hai căn cùng mã trong một toà" cũ (mã căn nay duy nhất toàn hệ thống) → "trùng mã; số tầng ≥ 1".
+- Bảng 1.16 tuần 4: "activity, class, sequence" → sơ đồ hoạt động, lớp, tuần tự.
+- Bảng 2.7: "ba trigger cho ràng buộc cần dữ liệu nhiều dòng" (TG1 chỉ xét một dòng) → viết lại; cột Mục: tính nhất quán
+  thêm 4.5.4 (khoá lạc quan), tính độc lập trỏ 3.1 (lớp ánh xạ) thay vì 2.3.

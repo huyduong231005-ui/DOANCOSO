@@ -598,6 +598,19 @@ DAN_THAY = [   # (chuỗi cũ, chuỗi mới) trong đoạn văn, áp một lầ
      "nạp sẵn mô hình AI khi khởi động"),
     ("chuyển hoá đơn quá hạn, cộng phí trễ; báo quản lý yêu cầu sự cố quá hạn",
      "chuyển hoá đơn quá hạn, cộng phí trễ; nhắc hạn thanh toán; báo quản lý yêu cầu sự cố quá hạn"),
+    # Rà lần 4 (26/11): câu sai so với hình, ký hiệu chưa giải thích, câu lặp
+    ("Bước ghi [AI] là bước do mô hình AI hỗ trợ; bước ghi [Tự động] là bước tự động hoá bằng quy tắc nghiệp vụ "
+     "(không phải AI).", "Các bước ở làn Hệ thống đều chạy tự động; trong đó chỉ bước phân loại sự cố dùng AI, các "
+     "bước còn lại chạy theo quy tắc nghiệp vụ."),
+    ("Mỗi mũi tên ghi tác nhân được phép thực hiện;", "Mỗi mũi tên ghi tác nhân được phép thực hiện (CD: cư dân, QL: "
+     "quản lý, KTV: kỹ thuật viên, HT: hệ thống);"),
+    ("lý do lựa chọn được giải thích ở mục 2.5. Các mã RB, LB (ràng buộc), TG (trigger) và FN (hàm) trong cột này được "
+     "liệt kê ở mục 2.5.", "các mã RB, LB (ràng buộc), TG (trigger), FN (hàm) và lý do chọn cơ chế được trình bày ở mục "
+     "2.5."),
+    ("Thời gian phản hồi TB (phút)", "Thời gian phản hồi trung bình (phút)"),
+    ("Ba trigger và một hàm ở Bảng 2.6 chỉ kiểm tra rồi chấp nhận hoặc từ chối lệnh ghi, không tự ghi thêm dữ liệu; mỗi "
+     "cái đã được thử bằng lệnh vi phạm cố ý.", "Ba trigger ở Bảng 2.6 chỉ kiểm tra rồi chấp nhận hoặc từ chối lệnh ghi, "
+     "không tự ghi thêm dữ liệu; hàm FN1 chỉ tính hạn xử lý. Mỗi trigger đã được thử bằng lệnh vi phạm cố ý."),
     ("–Chương 5 – Kết luận và kiến nghị (tuần 9–10).", "–Chương 5 – Kết luận và kiến nghị (tuần 9–10, chưa có trong "
      "báo cáo này)."),
 ]

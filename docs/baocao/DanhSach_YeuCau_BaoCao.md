@@ -151,3 +151,20 @@ Quét lại mọi mục A–E: không còn vi phạm. Kiểm mọi tham chiếu 
   thanh toán; tầng nghiệp vụ thêm lập hoá đơn.
 - Mục 1.10: Chương 5 ghi rõ chưa có trong báo cáo này.
 - Trình bày: Hình 4.7 giới hạn cao để chung trang với Hình 4.6. Báo cáo còn 77 trang.
+
+## Rà toàn báo cáo lần 4 ngày 26/11/2026
+
+Đối chiếu chéo mã (BR, FR, NFR, RB, LB, TG, FN, UC): mọi mã dùng đều có định nghĩa; số trạng thái (8), cặp được phép (11/56)
+khớp Bảng 1.7 và Hình 1.5. Đọc lại toàn văn. Sửa:
+- Mục 1.4.1 nói Hình 1.4 có nhãn [AI], [Tự động] nhưng hình không có → viết lại theo đúng hình.
+- Hình 1.5 dùng CD, QL, HT chưa giải thích → thêm chú thích ký hiệu.
+- Đoạn mở Bảng 1.8 nhắc "mục 2.5" hai lần → gộp; Bảng 1.10 "TB" → "trung bình".
+- Mục 2.5.3 nói hàm FN1 "kiểm tra rồi chấp nhận hoặc từ chối" (sai: FN1 chỉ tính hạn) → sửa.
+
+## Kiểm PDF ngày 27/11/2026
+
+- Phông: chỉ Times New Roman thường, nghiêng, đậm, đều nhúng; không có ký tự lỗi, ô vuông, phông ký hiệu.
+- Lớp chữ: PyMuPDF đọc dính chữ sau một số chữ có dấu, nhưng pdftotext và pdfminer (cách trình xem PDF đọc) ra đủ dấu
+  cách → không phải lỗi file.
+- Bố cục: trang chỉ có 2 dòng cuối Chương 3 → Hình 3.6 giới hạn cao (CAO_TOI_DA áp cả hình Chương 3). Còn 76 trang.
+  Các trang trống nửa dưới còn lại đều đứng trước trang ngang hoặc trước chương mới.

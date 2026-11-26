@@ -176,17 +176,22 @@ def new_table(header, rows, widths):
     return tbl
 
 
+# Ảnh màn hình đứng liền nhau (Hình 4.5, 4.6) giới hạn cao 10 cm để hai hình chung một trang, không bỏ trống nửa trang.
+CAO_TOI_DA = {"Hinh 4.5": Pt(283), "Hinh 4.6": Pt(283), "Hinh 4.7": Pt(300)}   # 4.7 vừa nửa trang dưới 4.6
+# Sơ đồ duyệt chuyển khoản (Hình 3.6 trong báo cáo) thấp lại 2 dòng để đoạn cuối Chương 3 không rơi sang trang riêng.
+CAO_TOI_DA["Hinh 3.14"] = Pt(450)
+
+
 def fig_size(png):
     w, h = Image.open(png).size
     sp = min(PORTRAIT[0] / w, PORTRAIT[1] / h)
     sl = min(LANDSCAPE[0] / w, LANDSCAPE[1] / h)
     landscape = sl > sp * 1.15
     s = sl if landscape else sp
+    cao = next((v for k, v in CAO_TOI_DA.items() if png.name.startswith(k)), None)
+    if cao is not None and not landscape:
+        s = min(s, cao / Pt(h))
     return landscape, Pt(w * s), Pt(h * s)
-
-
-# Ảnh màn hình đứng liền nhau (Hình 4.5, 4.6) giới hạn cao 10 cm để hai hình chung một trang, không bỏ trống nửa trang.
-CAO_TOI_DA = {"Hinh 4.5": Pt(283), "Hinh 4.6": Pt(283), "Hinh 4.7": Pt(300)}   # 4.7 vừa nửa trang dưới 4.6
 
 
 def fig_size_portrait(png):

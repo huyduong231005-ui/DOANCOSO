@@ -177,3 +177,11 @@ Bảng 4.3 (máy chủ chặn, không lưu). Sửa:
 - Bảng 1.16 tuần 4: "activity, class, sequence" → sơ đồ hoạt động, lớp, tuần tự.
 - Bảng 2.7: "ba trigger cho ràng buộc cần dữ liệu nhiều dòng" (TG1 chỉ xét một dòng) → viết lại; cột Mục: tính nhất quán
   thêm 4.5.4 (khoá lạc quan), tính độc lập trỏ 3.1 (lớp ánh xạ) thay vì 2.3.
+
+## Rà lần 6 ngày 27/11/2026 (đối chiếu chữ trong sơ đồ với bài viết)
+
+- Mục 3.5 khẳng định "mỗi use case có đặc tả" (chỉ UC03, UC16 có) và "mỗi thông điệp tuần tự gọi thao tác của lớp
+  nhận" (đối tượng trong sơ đồ tuần tự là bộ phận xử lý, không phải lớp của sơ đồ lớp) → viết lại cho đúng phạm vi.
+- Mục 3.4 thêm câu giải thích đối tượng có dấu “:” là bộ phận xử lý của ứng dụng (Hình 3.1).
+- Bảng 1.11 FR-03: tác nhân thêm Cư dân (UC02 kích hoạt tài khoản do cư dân làm). Thêm hàm sua_o_theo_dong.
+- Câu thêm ở 3.4 đẩy Hình 3.4 sang trang riêng → rút câu, giới hạn cao Hình 3.4 (CAO_TOI_DA["Hinh 3.11"]). Vẫn 76 trang.

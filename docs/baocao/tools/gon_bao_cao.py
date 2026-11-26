@@ -608,6 +608,16 @@ DAN_THAY = [   # (chuỗi cũ, chuỗi mới) trong đoạn văn, áp một lầ
      "liệt kê ở mục 2.5.", "các mã RB, LB (ràng buộc), TG (trigger), FN (hàm) và lý do chọn cơ chế được trình bày ở mục "
      "2.5."),
     ("Thời gian phản hồi TB (phút)", "Thời gian phản hồi trung bình (phút)"),
+    # Rà lần 6 (27/11): câu khẳng định về mô hình phải đúng với hình
+    ("Các mô hình được đối chiếu chéo: mỗi use case có đặc tả và luồng xử lý tương ứng; mỗi lớp ứng với một bảng, mỗi "
+     "liên kết ứng với một khoá ngoại; mỗi thông điệp tuần tự gọi thao tác có trong lớp nhận; mỗi quy tắc nghiệp vụ có "
+     "ràng buộc hoặc bước kiểm tra tương ứng.",
+     "Các mô hình được đối chiếu chéo: hai use case trọng tâm có đặc tả (Bảng 1.13, 1.14) và sơ đồ tuần tự tương ứng "
+     "(Hình 3.4, 3.5), các bước của hai sơ đồ này khớp với luồng chính trong đặc tả và sơ đồ hoạt động; mỗi lớp nghiệp vụ "
+     "ứng với một bảng, mỗi liên kết ứng với một khoá ngoại; mỗi quy tắc nghiệp vụ có ràng buộc hoặc bước kiểm tra "
+     "tương ứng (Bảng 1.8)."),
+    ("Khung opt là đoạn chỉ chạy khi điều kiện đúng,", "Đối tượng có dấu “:” là bộ phận xử lý của ứng dụng (Hình "
+     "3.1), không phải bảng dữ liệu. Khung opt là đoạn chỉ chạy khi điều kiện đúng,"),
     # Rà lần 5 (27/11): nội dung trong bảng
     ("Không tạo được hai căn cùng mã trong một toà", "Không tạo được hai căn trùng mã; số tầng phải từ 1 trở lên"),
     ("use case chi tiết và đặc tả, activity, class, sequence (AI phân loại, điều phối, hoàn tất)",
@@ -658,3 +668,19 @@ def sua_muc_tinh_chat(body, set_text):
         ten = _text(tcs[0]).strip()
         if ten in MUC_TINH_CHAT:
             set_text(tcs[-1].find(qn("w:p")), MUC_TINH_CHAT[ten])
+
+
+# Sửa một ô theo (bảng, dòng, cột) khi chữ trong ô lặp ở nhiều dòng, không thay chuỗi được.
+O_THEO_DONG = [   # (chữ trong chú thích bảng, ô đầu của dòng, số thứ tự cột, chữ mới)
+    ("Yêu cầu chức năng, mức ưu tiên", "FR-03", 3, "Quản lý, Cư dân"),   # UC02 (kích hoạt tài khoản) do cư dân làm
+]
+
+
+def sua_o_theo_dong(body, set_text):
+    for cap_chu, dong, cot, moi in O_THEO_DONG:
+        cap = next(p for p in body.iter(qn("w:p")) if _text(p).startswith("Bảng ") and cap_chu in _text(p)
+                   and not _la_muc_luc(p))
+        for tr in cap.getnext().iter(qn("w:tr")):
+            tcs = tr.findall(qn("w:tc"))
+            if _text(tcs[0]).strip() == dong:
+                set_text(tcs[cot].find(qn("w:p")), moi)

@@ -50,7 +50,7 @@
                     <tr>
                         <td>@r.UtilityName</td>
                         <td><a class="row-title" asp-controller="Apartments" asp-action="Details" asp-route-id="@r.ApartmentId">@r.UnitCode</a><div class="row-meta">@r.BuildingName</div></td>
-                        <td>@(r.BillingMonth/100)/@((r.BillingMonth%100).ToString("00"))</td>
+                        <td>@(r.BillingMonth%100)/@(r.BillingMonth/100)</td>
                         <td class="num">@r.Previous</td>
                         <td class="num">@r.Current</td>
                         <td class="num">@r.Consumption</td>

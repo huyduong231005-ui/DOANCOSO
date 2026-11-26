@@ -3,7 +3,7 @@
     var displayName = User?.Identity?.Name ?? string.Empty;
     var initial = string.IsNullOrEmpty(displayName) ? "A" : displayName.Substring(0, 1).ToUpperInvariant();
     var roleLabel = User?.IsInRole("Admin") == true ? "Quản trị viên" :
-                    User?.IsInRole("Manager") == true ? "Quản lí" :
+                    User?.IsInRole("Manager") == true ? "Quản lý" :
                     "Người dùng";
 }
 <!DOCTYPE html>

@@ -334,6 +334,7 @@ body.admin-shell .material-symbols-outlined {
     border-bottom: 1px solid var(--admin-line);
     vertical-align: middle;
 }
+.data-table tfoot td { padding: .45rem 1rem; }
 .data-table tbody tr:hover { background: #fafbfd; }
 .data-table tbody tr:last-child td { border-bottom: 0; }
 .data-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -353,6 +354,7 @@ body.admin-shell .material-symbols-outlined {
     font-size: 13px; font-weight: 700;
     font-family: "Be Vietnam Pro", system-ui, sans-serif;
     letter-spacing: 0.01em;
+    white-space: nowrap; flex-shrink: 0;
     background: var(--admin-soft); color: var(--admin-text);
 }
 .pill::before {

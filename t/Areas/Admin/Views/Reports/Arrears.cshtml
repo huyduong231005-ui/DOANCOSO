@@ -8,7 +8,7 @@
 }
 
 <section class="page-header">
-    <div><h1>Công nợ phân tuổi</h1><p class="subtitle">@Model.Count hoá đơn còn dư · tổng @Money(grand) đ</p></div>
+    <div><h1>Công nợ phân tuổi</h1><p class="subtitle">@Model.Count hoá đơn còn nợ · tổng @Money(grand) đ</p></div>
 </section>
 
 <partial name="_ReportTabs" />
@@ -28,7 +28,7 @@
     <div class="card-header"><h2>Chi tiết hoá đơn nợ</h2></div>
     <div class="table-wrap">
         <table class="data-table">
-            <thead><tr><th>Hoá đơn</th><th>Căn</th><th>Đại diện</th><th>Toà</th><th>Đến hạn</th><th class="num">Trễ (ngày)</th><th class="num">Số dư</th><th>Tuổi nợ</th></tr></thead>
+            <thead><tr><th>Hoá đơn</th><th>Căn</th><th>Đại diện</th><th>Toà</th><th>Đến hạn</th><th class="num">Trễ (ngày)</th><th class="num">Còn nợ</th><th>Tuổi nợ</th></tr></thead>
             <tbody>
             @if (!Model.Any())
             {

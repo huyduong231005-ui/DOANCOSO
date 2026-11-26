@@ -158,7 +158,7 @@
         <script>
             (function () {
                 if (!window.Chart) return;
-                var fmtVN = function (v) { return v >= 1000000 ? (v / 1000000).toFixed(1) + 'tr' : v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v; };
+                var fmtVN = function (v) { return v >= 1000000 ? (v / 1000000).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + 'tr' : v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v; };
                 var fmtFull = function (v) { return new Intl.NumberFormat('vi-VN').format(v) + ' đ'; };
 
                 var monthCanvas = document.getElementById('revenueMonthChart');

@@ -87,7 +87,7 @@
                             <span class="row-title">@r.InvoiceNumber</span>
                             <div class="row-meta">
                                 @r.Kind.Vi()
-                                @if (r.BillingMonth > 0) { <text> · Kỳ @(r.BillingMonth / 100)/@((r.BillingMonth % 100).ToString("00"))</text> }
+                                @if (r.BillingMonth > 0) { <text> · Kỳ @(r.BillingMonth % 100)/@(r.BillingMonth / 100)</text> }
                             </div>
                         </td>
                         <td>

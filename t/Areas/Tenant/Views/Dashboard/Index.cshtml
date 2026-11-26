@@ -111,7 +111,7 @@
                     {
                         <tr>
                             <td><a class="row-title" asp-area="Tenant" asp-controller="Invoices" asp-action="Details" asp-route-id="@i.Id">@i.InvoiceNumber</a></td>
-                            <td>@i.Kind.Vi() @(i.BillingMonth > 0 ? $"· {i.BillingMonth/100}/{i.BillingMonth%100:00}" : "")</td>
+                            <td>@i.Kind.Vi() @(i.BillingMonth > 0 ? $"· {i.BillingMonth%100}/{i.BillingMonth/100}" : "")</td>
                             <td>@i.DueDate.ToString("dd/MM/yyyy")</td>
                             <td class="num">@Money(i.Total)</td>
                             <td class="num">@Money(i.Balance)</td>

@@ -195,7 +195,7 @@ public class MaintenanceController : AdminBaseController
         if (r == null) return NotFound();
         if (!MaintenanceRequest.ActiveStatuses.Contains(r.Status))
         {
-            TempData["Danger"] = $"Yêu cầu đã {r.Status.Vi()}, không phân loại lại được.";
+            TempData["Danger"] = $"Yêu cầu đang ở trạng thái {r.Status.Vi()}, không phân loại lại được.";
             return RedirectToAction(nameof(Details), new { id });
         }
         var changed = r.Priority != priority;

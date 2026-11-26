@@ -124,7 +124,7 @@ public class InvoicePdfGenerator
                 if (inv.BillingMonth > 0)
                 {
                     t.Span("    Kỳ: ").FontColor(Colors.Grey.Medium);
-                    t.Span($"{inv.BillingMonth / 100}/{inv.BillingMonth % 100:00}").Bold();
+                    t.Span($"{inv.BillingMonth % 100}/{inv.BillingMonth / 100}").Bold();
                 }
             });
 
@@ -144,7 +144,7 @@ public class InvoicePdfGenerator
                     h.Cell().Element(HeaderCell).AlignRight().Text("Đơn giá");
                     h.Cell().Element(HeaderCell).AlignRight().Text("Thành tiền");
                 });
-                foreach (var it in inv.Items.OrderBy(x => x.UtilityTypeId))
+                foreach (var it in inv.Items.OrderBy(x => x.UtilityType?.Method).ThenBy(x => x.UtilityTypeId))
                 {
                     t.Cell().Element(BodyCell).Text(it.Description);
                     t.Cell().Element(BodyCell).AlignRight().Text(it.Quantity.ToString("0.##"));

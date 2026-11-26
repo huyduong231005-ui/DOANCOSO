@@ -53,7 +53,7 @@
                 <table class="data-table">
                     <thead><tr><th>Mô tả</th><th class="num">Số lượng</th><th class="num">Đơn giá</th><th class="num">Thành tiền</th></tr></thead>
                     <tbody>
-                    @foreach (var item in Model.Items.OrderBy(x => x.UtilityTypeId))
+                    @foreach (var item in Model.Items.OrderBy(x => x.UtilityType?.Method).ThenBy(x => x.UtilityTypeId))
                     {
                         <tr><td>@item.Description</td><td class="num">@item.Quantity.ToString("0.##")</td><td class="num">@Money(item.UnitPrice)</td><td class="num">@Money(item.LineTotal)</td></tr>
                     }
@@ -148,7 +148,7 @@
                     <dt>Căn hộ</dt><dd><a asp-controller="Apartments" asp-action="Details" asp-route-id="@Model.ApartmentId">@Model.Apartment.UnitCode</a> · @Model.Apartment.Floor.Building.Name</dd>
                     <dt>Đại diện</dt><dd>@(Model.Apartment.PrimaryResident?.User.FullName ?? "—")</dd>
                     <dt>Loại</dt><dd>@Model.Kind.Vi()</dd>
-                    @if (Model.BillingMonth > 0) { <dt>Kỳ</dt><dd>@(Model.BillingMonth/100)/@((Model.BillingMonth%100).ToString("00"))</dd> }
+                    @if (Model.BillingMonth > 0) { <dt>Kỳ</dt><dd>@(Model.BillingMonth%100)/@(Model.BillingMonth/100)</dd> }
                     <dt>Phát hành</dt><dd>@Model.IssueDate.ToString("dd/MM/yyyy")</dd>
                     <dt>Đến hạn</dt><dd>@Model.DueDate.ToString("dd/MM/yyyy")</dd>
                 </dl>

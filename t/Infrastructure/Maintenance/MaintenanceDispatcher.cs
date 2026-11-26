@@ -67,7 +67,7 @@ public class MaintenanceDispatcher
         MaintenanceCategory.Other => triage?.Handler switch
         {
             "security" => "Bảo vệ",
-            "building_engineering" => "Kỹ thuật tòa nhà",
+            "building_engineering" => "Kỹ thuật toà nhà",
             "accounting" => "Kế toán",
             "cleaning_team" => "Đội vệ sinh",
             "pest_control" => "Đơn vị diệt côn trùng",

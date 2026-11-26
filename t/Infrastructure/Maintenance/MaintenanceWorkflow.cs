@@ -144,7 +144,7 @@ public class MaintenanceWorkflow
         if (actor is not (WorkflowActor.Manager or WorkflowActor.System))
             return "Chỉ quản lý mới được giao việc.";
         if (!MaintenanceRequest.ActiveStatuses.Contains(r.Status))
-            return $"Không thể giao việc khi yêu cầu đã {r.Status.Vi()}.";
+            return $"Không thể giao việc khi yêu cầu đang ở trạng thái {r.Status.Vi()}.";
         if (actor == WorkflowActor.System && r.Status != MaintenanceStatus.Open)
             return "Hệ thống chỉ tự giao yêu cầu mới gửi.";
 

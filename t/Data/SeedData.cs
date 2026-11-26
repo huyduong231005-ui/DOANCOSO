@@ -425,7 +425,7 @@ public static class SeedData
     {
         var staff = new (string Email, string Name, string Role)[]
         {
-            ("quanly@luxehaven.vn", "Trần Thị Mai (Quản lý tòa nhà)", RoleManager),
+            ("quanly@luxehaven.vn", "Trần Thị Mai (Quản lý toà nhà)", RoleManager),
             ("tho.dien@luxehaven.vn", "Lê Văn Hùng (Thợ điện)", RoleElectrician),
             ("tho.nuoc@luxehaven.vn", "Phạm Văn Tâm (Thợ nước)", RolePlumber),
             ("tho.maylanh@luxehaven.vn", "Nguyễn Văn Sơn (Thợ máy lạnh)", RoleAcTechnician),

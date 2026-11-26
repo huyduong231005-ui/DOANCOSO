@@ -21,7 +21,7 @@
     var groupTotal = grp.Sum(x => x.EstimatedAmount);
     <div class="card">
         <div class="card-header">
-            <h2>Kỳ @(grp.Key/100)/@((grp.Key%100).ToString("00"))</h2>
+            <h2>Kỳ @(grp.Key%100)/@(grp.Key/100)</h2>
             <strong>@Money(groupTotal) đ</strong>
         </div>
         <div class="table-wrap">

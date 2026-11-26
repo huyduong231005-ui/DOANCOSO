@@ -357,7 +357,7 @@ public class InvoicesController : AdminBaseController
             InvoiceId = inv.Id,
             InvoiceNumber = inv.InvoiceNumber,
             Note = inv.Note,
-            Lines = inv.Items.OrderBy(x => x.UtilityTypeId)
+            Lines = inv.Items.OrderBy(x => x.UtilityType?.Method).ThenBy(x => x.UtilityTypeId)
                 .Select(x => new OneOffInvoiceLine { UtilityTypeId = x.UtilityTypeId, Quantity = x.Quantity, UnitPrice = x.UnitPrice })
                 .ToList(),
             Services = await ServicesAsync()

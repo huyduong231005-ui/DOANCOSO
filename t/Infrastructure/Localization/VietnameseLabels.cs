@@ -129,10 +129,10 @@ public static class VietnameseLabels
     {
         MaintenanceStatus.Open => "Mới gửi",
         MaintenanceStatus.Acknowledged => "Đã tiếp nhận",
-        MaintenanceStatus.InProgress => "Đang xử lí",
-        MaintenanceStatus.Resolved => "Đã hoàn tất",
+        MaintenanceStatus.InProgress => "Đang xử lý",
+        MaintenanceStatus.Resolved => "Đã xử lý",
         MaintenanceStatus.Closed => "Đã đóng",
-        MaintenanceStatus.Rejected => "Đã từ chối",
+        MaintenanceStatus.Rejected => "Từ chối",
         MaintenanceStatus.OnHold => "Tạm dừng",
         MaintenanceStatus.Cancelled => "Đã huỷ",
         _ => s.ToString()

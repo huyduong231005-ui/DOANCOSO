@@ -68,3 +68,27 @@ người dùng áp được (ở đây: "quá trừu tượng, ưu tiên dễ hi
 - D5: Bảng 2.1 dòng gộp "VAI_TRO, QUYEN" → tách hai dòng.
 - A1: đoạn sơ đồ tuần tự còn luật "thanh kích hoạt"; câu "bội số lấy theo khoá ngoại" → bỏ.
 - A9: câu "chạy thử … thuộc phần việc tiếp theo" (Chương 3) đã cũ → bỏ; danh mục viết tắt bỏ GUID, HTTT, LLM, RD (không còn dùng).
+
+## Kết quả rà Chương 4 ngày 25/11/2026 (đêm)
+
+Đọc toàn văn Chương 4, đối chiếu từng câu với mã nguồn, từng số với CSDL (truy vấn chỉ đọc), chụp lại và xem từng hình.
+- Số liệu đúng: 5 toà, 538 căn, 748 cư dân, kỳ 8–11/2026; giá quản lý 15.000 đ/m², xe máy 120.000 đ; hạn = ngày lập + 7;
+  khoá 5 lần/5 phút; phiên hết hiệu lực sau 1 phút; quét quá hạn 15 phút; Bảng 4.5 khớp lịch sử YC-202611-0001.
+- Bảng 4.7 đổi sang ngày 25/11 (khớp ngày chụp Hình 4.5–4.7); nhóm tuổi nợ đổi: 1–30 ngày = 0, 31–60 = 316.048.734.
+  Mọi số trên app (bảng điều khiển, tình trạng căn, tài chính, tuổi nợ, KPI) khớp SQL.
+- Sai với mã nguồn → sửa: phân loại lại chỉ tính lại hạn khi đổi mức ưu tiên (Bảng 4.6).
+- A2/A5: bỏ prompt, tham số sinh, token, xmin, KetQuaXuLy, "tem bảo mật"; Bảng 4.2 ghi tên quyền tiếng Việt thay mã
+  projects.view…; UTC giải thích bằng lời; bỏ câu thừa về tên miền email thử; câu "đổi loại thành" lặp → gọn.
+- Đồng bộ tên trạng thái: giao diện đổi theo báo cáo (Đang xử lý, Đã xử lý, Từ chối); Bảng 1.10 "Mới gửi, Đã tiếp nhận".
+- Giao diện (thấy khi xem ảnh): "Quản lí"→"Quản lý", "tòa"→"toà", dòng phí quản lý lên đầu hoá đơn, dòng tổng thẳng cột,
+  kỳ ghi thống nhất 8/2026, nhãn trạng thái không xuống dòng, trục biểu đồ "600tr" (bỏ ".0"), "còn dư/Số dư"→"còn nợ",
+  câu báo lỗi "đã Đã huỷ"; Hình 4.1 chụp khung rộng hơn cho đủ cột; ô ngày Hình 4.7 hiện dd/mm/yyyy.
+
+## Rà toàn báo cáo ngày 26/11/2026
+
+Quét tự động mọi mục A–E và đọc toàn văn Chương 1–4; xem lại các trang sơ đồ trên PDF. Sửa thêm:
+- A5: Chương 1 còn tên bảng máy trong câu (NguoiDung, CuTru) và trong cột công thức Bảng KPI (HanXuLy, NgayBao,
+  PhutPhanHoi, DiemDanhGia, HanThanhToan) → viết bằng lời; cột "Dữ liệu dùng" vẫn ghi tên bảng.
+- A9: bảng kế hoạch theo tuần: tuần 6 → Hoàn thành, tuần 7 → Đang thực hiện.
+- A9: Chương 3 nói "Chương 4 trình bày đánh giá AI trên 120 ca" trong khi Chương 4 ghi việc này làm ở tuần 7–9 → bỏ.
+Không còn: Luxe Haven, quy ước đặt tên, cột Biểu diễn, mã trigger/SQL, ký hiệu ∀∃⇒, trích dẫn dồn số, chữ "lí/tòa".

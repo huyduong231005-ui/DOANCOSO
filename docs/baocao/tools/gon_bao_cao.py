@@ -192,10 +192,8 @@ DAC_TA_UC = {
                       "E3. Hai người cùng sửa một yêu cầu: người lưu sau được yêu cầu tải lại (mục 4.5.4)."]),
     ],
 }
-DAN_1_8_2 = ("Hai use case trọng tâm được vẽ chi tiết rồi đặc tả. Use case gốc nối với tác nhân chính; «include» là "
-             "phần luôn chạy mỗi khi use case gốc chạy, mũi tên đi từ use case gốc; «extend» là phần chỉ chạy khi thoả "
-             "điều kiện, mũi tên đi về use case được mở rộng. Bảng đặc tả ghi điều kiện, các bước và ngoại lệ mà hình "
-             "không thể hiện.")
+DAN_1_8_2 = ("Hai use case trọng tâm được vẽ chi tiết rồi đặc tả. Bảng đặc tả ghi điều kiện, các bước và ngoại lệ mà "
+             "hình không thể hiện.")
 DAN_3_2 = ("Sơ đồ use case tổng quát (Hình 1.6) cho biết tác nhân nào dùng chức năng nào; UC03 và UC16 đã được vẽ chi "
            "tiết và đặc tả ở mục 1.8.2, cùng cách đọc «include», «extend». Mục này chi tiết hoá ba use case còn lại: "
            "UC11, UC06 của quy trình sự cố và UC20 của phân hệ thu phí.")
@@ -304,8 +302,8 @@ DOAN_UC_MOI = {   # đoạn bắt đầu bằng ... -> nội dung mới (số h�
         "quan hệ ở Chương 2. Các mô hình đã được đối chiếu với nhau theo mục 3.5.",
     "Tuần 6 bổ sung phân hệ thu phí vào bộ mô hình thiết kế":
         "Tuần 6 bổ sung phân hệ thu phí vào bộ mô hình thiết kế: các lớp thu phí trong sơ đồ lớp (Hình 3.8) và sơ đồ tuần tự cư dân "
-        "gửi xác nhận chuyển khoản, quản lý duyệt (Hình 3.14). Chương 4 trình bày việc xây dựng, kiểm thử theo quy "
-        "trình nghiệp vụ và đánh giá AI trên bộ 120 ca có nhãn.",
+        "gửi xác nhận chuyển khoản, quản lý duyệt (Hình 3.14). Chương 4 trình bày việc xây dựng và kiểm thử theo quy "
+        "trình nghiệp vụ.",
     "–Chương 3 – Thiết kế hệ thống (tuần 4)":
         "–Chương 3 – Thiết kế hệ thống (tuần 4): kiến trúc, sơ đồ hoạt động, lớp, tuần tự và rà soát nhất quán giữa "
         "các mô hình.",
@@ -324,6 +322,50 @@ SUA_SAU = [   # thay chuỗi con, chạy sau cùng trên mọi đoạn (kể c�
     ("ràng buộc toàn vẹn (CHECK, trigger, hàm); kiểu dữ liệu và bảng mã", "ràng buộc toàn vẹn (CHECK, trigger, hàm)"),
     (" Đây là kiểm tra thiết kế, việc chạy thử trên cơ sở dữ liệu sau khi đồng bộ lược đồ mới thuộc phần việc tiếp "
      "theo.", ""),
+    # Chương 1: tên trạng thái đúng như Bảng 1.7 và giao diện; câu và công thức KPI bằng lời, không tên cột
+    ("Đang mở (Mới, Tiếp nhận, Đang xử lý, Tạm dừng) và HanXuLy < hiện tại",
+     "Đang mở (Mới gửi, Đã tiếp nhận, Đang xử lý, Tạm dừng) và đã qua hạn xử lý"),
+    ("(bảng NguoiDung, quan hệ cư trú CuTru)", "(tài khoản người dùng và thông tin cư trú)"),
+    ("có thời điểm giải quyết ≤ HanXuLy /", "giải quyết không muộn hơn hạn xử lý /"),
+    ("(thời điểm giải quyết − NgayBao)", "(thời điểm giải quyết − thời điểm báo)"),
+    ("(thời điểm tiếp nhận − NgayBao)", "(thời điểm tiếp nhận − thời điểm báo)"),
+    ("tiếp nhận trong PhutPhanHoi của mức ưu tiên", "tiếp nhận trong thời hạn phản hồi của mức ưu tiên"),
+    ("Trung bình DiemDanhGia (1–5)", "Trung bình điểm đánh giá (1–5)"),
+    ("phần có HanThanhToan trước hôm nay", "phần có hạn thanh toán trước hôm nay"),
+    # Bản nháp không có chức năng nào tạo ra: không nhắc trong báo cáo
+    (" Trạng thái Bản nháp có trong mã nguồn nhưng hiện không có chức năng nào tạo hoá đơn nháp.", ""),
+    ("hoá đơn đã phát hành (trừ Bản nháp, Đã huỷ)", "hoá đơn đã phát hành (trừ hoá đơn đã huỷ)"),
+    # Chương 4 (rà 25/11): bỏ câu thừa, bỏ thuật ngữ kỹ thuật, khớp mã nguồn và CSDL
+    (" Các tài khoản thử dùng email thuộc một tên miền thử của dữ liệu mẫu; Bảng 4.1 chỉ ghi phần tên trước @.", ""),
+    ("Mã quyền theo phân hệ và quyền của Quản lý BQL", "Quyền theo phân hệ và quyền của Quản lý BQL"),
+    ("projects.view", "Xem khu, toà nhà"), ("projects.manage", "Quản lý khu, toà nhà"),
+    ("apartments.view", "Xem căn hộ"), ("apartments.update", "Cập nhật căn hộ"),
+    ("residents.view", "Xem cư dân"), ("residents.manage", "Đăng ký, chuyển đi cư dân"),
+    ("invoices.view", "Xem hoá đơn"), ("invoices.issue", "Phát hành hoá đơn"),
+    ("payments.view", "Xem thanh toán"), ("payments.refund", "Hoàn tiền"),
+    ("maintenance.manage", "Xử lý sự cố"), ("users.view", "Xem người dùng"), ("users.manage", "Quản lý người dùng"),
+    ("roles.manage", "Quản lý phân quyền"), ("audit.view", "Xem nhật ký"),
+    ("chỉ số điện nước chưa có mã quyền riêng", "chỉ số điện nước chưa có quyền riêng"),
+    ("mật khẩu và tem bảo mật được che", "mật khẩu và mã bảo mật của tài khoản được che"),
+    ("Lưu mật khẩu đã băm và tem bảo mật", "Lưu mật khẩu đã băm và mã bảo mật của tài khoản"),
+    ("Mô hình trả về loại Cấp/thoát nước, mức Trung bình, không nguy hiểm; hệ thống đổi loại thành Cấp / thoát nước "
+     "và tự giao", "Mô hình trả về loại Cấp / thoát nước, mức Trung bình, không nguy hiểm; hệ thống ghi loại này cho "
+     "yêu cầu và tự giao"),
+    ("Kết quả ghi ở KetQuaXuLy", "Ghi kết quả xử lý"),
+    ("Sau đó nhóm thêm dịch vụ nền nạp sẵn mô hình khi ứng dụng khởi động, không đổi prompt hay tham số sinh; khi mô "
+     "hình đã nạp sẵn, một lần phân loại với prompt thật mất 6,2–6,5 giây, dùng 756 đến 1.356 trong 2.048 token ngữ "
+     "cảnh.", "Sau đó nhóm cho ứng dụng nạp sẵn mô hình ngay khi khởi động; khi mô hình đã nạp sẵn, một lần phân loại "
+     "mất 6,2–6,5 giây."),
+    ("Lưu loại mới; hạn xử lý tính lại từ lúc báo", "Lưu loại mới; mức ưu tiên không đổi nên hạn xử lý giữ nguyên"),
+    ("Mới gửi → Đã từ chối", "Mới gửi → Từ chối"),
+    ("dùng khoá lạc quan theo cột hệ thống xmin của PostgreSQL: lệnh", "dùng khoá lạc quan: lệnh"),
+    ("chạy thẳng trên CSDL ngày 18/11/2026", "chạy thẳng trên CSDL ngày 25/11/2026"),
+    ("Đối chiếu các báo cáo với SQL ngày 18/11/2026", "Đối chiếu các báo cáo với SQL ngày 25/11/2026"),
+    ("Trong lúc đối chiếu, nhóm phát hiện và sửa thêm ba lỗi.", "Lần đối chiếu đầu (18/11) giúp nhóm phát hiện và sửa "
+     "thêm ba lỗi."),
+    ("706.065.000 / 316.048.734 / 0 / 53.398.530 / 69.174.666", "706.065.000 / 0 / 316.048.734 / 53.398.530 / 69.174.666"),
+    ("tính số ngày trễ theo ngày UTC", "tính số ngày trễ theo giờ quốc tế (UTC) thay vì giờ Việt Nam"),
+    ("tính mốc theo giờ UTC", "tính mốc theo giờ quốc tế (UTC) thay vì giờ Việt Nam"),
 ]
 
 
@@ -401,3 +443,18 @@ def bo_viet_tat_thua(body):
         tcs = tr.findall(qn("w:tc"))
         if len(tcs) == 2 and _text(tcs[0]).strip() in VIET_TAT_THUA:
             tr.getparent().remove(tr)
+
+
+TRANG_THAI_TUAN = {"6": "Hoàn thành", "7": "Đang thực hiện"}   # bản nộp sau tuần 6 (25/11)
+
+
+def sua_trang_thai_tuan(body, set_text):
+    """Cột Trạng thái của bảng kế hoạch theo tuần: tuần đã xong ghi Hoàn thành, tuần đang chạy ghi Đang thực hiện."""
+    cap = next(p for p in body.iter(qn("w:p")) if "Kế hoạch thực hiện theo tuần" in _text(p) and not _la_muc_luc(p))
+    tbl = cap.getnext()
+    assert tbl.tag == qn("w:tbl")
+    for tr in tbl.iter(qn("w:tr")):
+        tcs = tr.findall(qn("w:tc"))
+        tuan = _text(tcs[0]).strip()
+        if tuan in TRANG_THAI_TUAN:
+            set_text(tcs[-1].find(qn("w:p")), TRANG_THAI_TUAN[tuan])

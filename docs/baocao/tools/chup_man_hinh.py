@@ -16,7 +16,7 @@ CU_DAN = ("renter@luxehaven.vn", "Renter@123")
 
 # (số hình, tên file, tài khoản, đường dẫn, cách chụp: "trang" | "khung" | selector chứa chữ)
 HINH = [
-    ("4.1", "Trang chi tiet can ho", QUAN_LY, "/Admin/Apartments/Details/93", "trang"),
+    ("4.1", "Trang chi tiet can ho", QUAN_LY, "/Admin/Apartments/Details/93", "trang", 1700),  # bảng hoá đơn đủ cột
     ("4.2", "Hoa don qua han co phi tre", QUAN_LY, "/Admin/Invoices/Details/211", "trang"),
     ("4.3", "Cu dan theo doi yeu cau", CU_DAN, "/Tenant/Maintenance/Details/6", "trang"),
     ("4.4", "Lich su xu ly ngoai le", QUAN_LY, "/Admin/Maintenance/Details/7", "Lịch sử xử lý"),
@@ -30,6 +30,11 @@ AN_TEN = """() => {
   const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   for (let n; (n = w.nextNode());) n.nodeValue = thay(n.nodeValue);
   document.querySelectorAll('input[value]').forEach(i => i.value = thay(i.value));
+  // trình duyệt chụp không theo locale vi-VN cho ô ngày: hiện dd/mm/yyyy như máy tiếng Việt
+  document.querySelectorAll('input[type=date]').forEach(i => {
+    const [y, m, d] = i.value.split('-'); if (!d) return;
+    i.type = 'text'; i.value = `${d}/${m}/${y}`;
+  });
 }"""
 
 
@@ -44,7 +49,7 @@ def dang_nhap(page, tk):
 def main(chon):
     OUT.mkdir(exist_ok=True)
     with sync_playwright() as p:
-        browser = p.chromium.launch(args=["--lang=vi-VN"])   # ô ngày hiện dd/mm/yyyy
+        browser = p.chromium.launch(channel="chromium", args=["--lang=vi-VN"])   # ô ngày hiện dd/mm/yyyy
         ctx = {}
         for so, ten, tk, url, cach, *rong in HINH:
             rong = rong[0] if rong else 1440   # bảng hai cột của báo cáo KPI cần khung rộng hơn

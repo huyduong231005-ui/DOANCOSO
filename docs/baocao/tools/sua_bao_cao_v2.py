@@ -531,6 +531,7 @@ def main():
     gon_bao_cao.bo_muc_uc_chuong3(body, set_text)
     gon_bao_cao.gop_so_do_lop(body, set_text)
     gon_bao_cao.bo_viet_tat_thua(body)
+    gon_bao_cao.sua_trang_thai_tuan(body, set_text)
     treo, doi = gon_bao_cao.danh_so_lai(body, set_text)
     print(f"đánh số lại {doi} bảng; tham chiếu treo: {treo or 'không'}")
     treo, doi = gon_bao_cao.danh_so_hinh(body, set_text, {"3.2": "1", "3.4": "1"})

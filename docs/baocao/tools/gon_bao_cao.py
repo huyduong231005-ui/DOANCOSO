@@ -684,3 +684,34 @@ def sua_o_theo_dong(body, set_text):
             tcs = tr.findall(qn("w:tc"))
             if _text(tcs[0]).strip() == dong:
                 set_text(tcs[cot].find(qn("w:p")), moi)
+
+
+# ====================================================================== tài liệu tham khảo
+# Xếp tài liệu tiếng Việt trước, tiếng nước ngoài sau, mỗi nhóm theo ABC tên tác giả; đánh số lại mọi trích dẫn [n].
+TAC_GIA_VIET = ("Bộ Xây dựng", "Quốc hội")
+
+
+def xep_tai_lieu(body, set_text):
+    ps = [p for p in body.iter(qn("w:p")) if not _la_muc_luc(p)]
+    dau = next(i for i, p in enumerate(ps) if _text(p).strip() == "TÀI LIỆU THAM KHẢO")
+    refs = [p for p in ps[dau + 1:] if re.match(r"\[\d+\] ", _text(p))]
+    cu = {int(re.match(r"\[(\d+)\]", _text(p)).group(1)): _text(p).split("] ", 1)[1] for p in refs}
+
+    def khoa(so):
+        nd = cu[so]
+        return (0 if nd.startswith(TAC_GIA_VIET) else 1, nd.lower())
+
+    thu_tu = sorted(cu, key=khoa)
+    moi = {old: i + 1 for i, old in enumerate(thu_tu)}
+    if all(moi[k] == k for k in moi):
+        return 0
+    for p, old in zip(refs, thu_tu):
+        set_text(p, f"[{moi[old]}] {cu[old]}")
+    doi = 0
+    for p in ps[:dau]:
+        t = _text(p)
+        n = re.sub(r"\[(\d+)\]", lambda m: f"[{moi.get(int(m.group(1)), int(m.group(1)))}]", t)
+        if n != t:
+            set_text(p, n)
+            doi += 1
+    return doi

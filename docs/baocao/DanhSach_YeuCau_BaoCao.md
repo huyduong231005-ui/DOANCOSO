@@ -185,3 +185,10 @@ Bảng 4.3 (máy chủ chặn, không lưu). Sửa:
 - Mục 3.4 thêm câu giải thích đối tượng có dấu “:” là bộ phận xử lý của ứng dụng (Hình 3.1).
 - Bảng 1.11 FR-03: tác nhân thêm Cư dân (UC02 kích hoạt tài khoản do cư dân làm). Thêm hàm sua_o_theo_dong.
 - Câu thêm ở 3.4 đẩy Hình 3.4 sang trang riêng → rút câu, giới hạn cao Hình 3.4 (CAO_TOI_DA["Hinh 3.11"]). Vẫn 76 trang.
+
+## Rà lần 7 ngày 27/11/2026 (danh mục viết tắt, tài liệu tham khảo)
+
+- Mọi chữ viết tắt trong danh mục đều có dùng trong bài; mọi tài liệu đều được trích ít nhất một lần.
+- Tài liệu tham khảo chưa theo ABC và xen tiếng Việt với tiếng Anh → xếp tiếng Việt trước (Bộ Xây dựng, Quốc hội),
+  tiếng nước ngoài sau, mỗi nhóm theo ABC; đánh số lại 18 trích dẫn (gon_bao_cao.xep_tai_lieu), kiểm từng trích dẫn
+  vẫn trỏ đúng tài liệu.

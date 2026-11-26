@@ -133,3 +133,11 @@ Tiêu chí thêm: mọi ký hiệu, mã số người đọc phải hiểu ngay,
   hoạt động Hình 3.2).
 - Bỏ mục 3.6 "Kết quả tuần 4 và việc tiếp theo"; câu kiểm tra 56 cặp trạng thái chuyển sang mục 4.5.2. Chỉ giữ tổng
   kết tuần mới (mục 4.8). Báo cáo còn 78 trang.
+
+## Sửa nhãn sơ đồ hoạt động và logic UC03 ngày 26/11/2026
+
+- UC03: UC08 Điều phối luôn "Tìm kỹ thuật viên phù hợp" («include»); "Giao việc cho kỹ thuật viên" là «extend» (chỉ khi
+  có thợ, mô tả rõ) và luôn kèm «include» "Thông báo giao việc". Câu mô tả Hình 1.7 sửa theo.
+- Sơ đồ hoạt động: nhãn điều kiện gắn ở đầu nhánh, sát hình thoi (nhánh ngang: trên đường; nhánh xuống: bên phải);
+  câu hỏi của nút quyết định tự chọn chỗ trống trong làn, không đè hộp, đường hay vạch chia làn. Hình 3.2 nới làn
+  hệ thống và dời "Giữ lựa chọn cư dân" xuống một hàng.

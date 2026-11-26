@@ -149,8 +149,9 @@ MO_TA_UC = {
     "UC03": "Hình 3.2: cư dân luôn nhập mô tả và chọn nơi xảy ra sự cố (khu vực chung thì ghi thêm vị trí); chọn "
             "loại, mức ưu tiên và đính kèm ảnh là tuỳ chọn. UC03 luôn bao gồm UC07 Phân loại sự cố, trong đó Mô hình "
             "AI xác định loại, mức ưu tiên và nhận diện sự cố nguy hiểm, và UC08 Điều phối sự cố, trong đó hệ thống "
-            "giao kỹ thuật viên phù hợp rồi thông báo giao việc qua Dịch vụ email; khi không tự giao được hoặc sự cố "
-            "khẩn cấp thì báo quản lý.",
+            "luôn tìm kỹ thuật viên phù hợp. Giao việc là phần mở rộng, chỉ xảy ra khi có thợ phù hợp và mô tả rõ; đã "
+            "giao thì luôn gửi thư thông báo giao việc qua Dịch vụ email. Không giao được thì báo quản lý phân công; "
+            "sự cố khẩn cấp thì báo thêm quản lý.",
     "UC16": "Hình 3.4: kỹ thuật viên xem việc được giao (có thể mở chi tiết từng yêu cầu), bắt đầu rồi hoàn tất xử "
             "lý; hoàn tất luôn ghi kết quả, có thể kèm ảnh nghiệm thu. Tạm dừng (luôn ghi lý do) và tiếp tục xử lý chỉ "
             "xảy ra khi phải chờ vật tư hoặc hẹn lịch.",

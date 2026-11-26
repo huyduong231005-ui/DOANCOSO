@@ -14,6 +14,7 @@ Quy cách theo góp ý:
 - Tên use case là mục tiêu của tác nhân; không vẽ bước nội bộ của hệ thống thành use case.
 """
 import json
+import math
 from pathlib import Path
 
 from PIL import ImageFont
@@ -63,12 +64,11 @@ class Act:
         self._add(key, "action", lane, row, w or self.AW, self.AH, dx, name)
 
     def dec(self, key, lane, row, question, dx=0, left=False):
-        """Nút quyết định; câu hỏi ghi ngay trên hình thoi, lệch sang phía không có nhãn nhánh."""
+        """Nút quyết định. Vị trí câu hỏi chọn ở spec(), khi đã biết các nhánh đi ra phía nào."""
         self._add(key, "decision", lane, row, 34, 34, dx)
         x, y, w, h = self.g[key]
         tw = int(F13.getlength(question)) + 10
-        qx = x + w // 2 - 6 - tw if left else x + w // 2 + 6
-        self.nodes.append({"key": key + "_q", "kind": "text", "name": question, "x": qx, "y": y - 20,
+        self.nodes.append({"key": key + "_q", "kind": "text", "name": question, "x": x + w + 4, "y": y - 20,
                            "w": tw, "h": 18})
 
     def merge(self, key, lane, row, dx=0):
@@ -90,11 +90,21 @@ class Act:
         e = {"kind": "flow", "from": a, "to": b}
         if guard:
             e["guard"] = guard
-            e["labelDistance"] = 24   # điều kiện nằm cạnh đường, không bị đường gạch ngang
         if points is None:
             points = self.auto(a, b)
         if points:
             e["points"] = points
+        if guard and points:
+            # Nhãn điều kiện gắn ở đầu đường (sát hình thoi), lệch dọc theo đường rồi lệch sang trái của hướng đi:
+            # nhánh ngang thì chữ nằm trên đường, nhánh đi xuống thì chữ nằm bên phải đường; không chữ nào đè lên đường.
+            (x1, y1), (x2, y2) = points[0], points[1]
+            tw = F13.getlength("[" + guard + "]")
+            doc = x1 == x2
+            doc_theo, ngang = (16, tw / 2 + 6) if doc else (tw / 2 + 8, 13)
+            goc = math.atan2(ngang, doc_theo)
+            e["labelEdgePosition"] = 2          # đầu đường (tail)
+            e["labelDistance"] = int(math.hypot(doc_theo, ngang))
+            e["labelAlpha"] = round(goc if (x2 > x1 or y2 > y1) else -goc, 4)
         self.edges.append(e)
 
     def auto(self, a, b):
@@ -112,6 +122,40 @@ class Act:
         return [start, [bcx, start[1]], end]
 
     def spec(self):
+        # Câu hỏi của nút quyết định: thử lần lượt các chỗ (bên không có nhánh đi ngang, trên lệch phải, trên lệch
+        # trái), lấy chỗ đầu tiên nằm gọn trong làn và không đè lên hộp, hình thoi nào.
+        hop = [(n["x"], n["y"], n["x"] + n["w"], n["y"] + n["h"]) for n in self.nodes
+               if n["kind"] in ("action", "decision", "merge", "initial", "final")]
+
+        def trung(r):
+            return any(r[0] < b[2] and b[0] < r[2] and r[1] < b[3] and b[1] < r[3] for b in hop)
+
+        for n in self.nodes:
+            if not n["key"].endswith("_q"):
+                continue
+            k = n["key"][:-2]
+            x, y, w, h = self.g[k]
+            lane = max(i for i, x0 in enumerate(self.x0) if x0 <= x)
+            l0, l1 = self.x0[lane] + 4, self.x0[lane] + self.widths[lane] - 4
+            huong = set()
+            for e in self.edges:
+                if e["from"] == k and e.get("points"):
+                    (ax, ay), (bx, by) = e["points"][0], e["points"][1]
+                    if ay == by:
+                        huong.add("phai" if bx > ax else "trai")
+            tw, cy = n["w"], y + h // 2 - 20
+            cho = []
+            if "phai" not in huong:
+                cho.append((x + w + 4, cy))
+            if "trai" not in huong:
+                cho.append((x - 4 - tw, cy))
+            cho += [(x + w // 2 + 6, y - 20), (x + w // 2 - 6 - tw, y - 20)]
+            for qx, qy in cho:
+                if l0 <= qx and qx + tw <= l1 and not trung((qx, qy, qx + tw, qy + n["h"])):
+                    n["x"], n["y"] = qx, qy
+                    break
+            else:
+                n["x"], n["y"] = cho[-2]
         bottom = max(n["y"] + n["h"] for n in self.nodes) + 30
         parts = [{"key": f"lane{i}", "kind": "partition", "name": n, "x": self.x0[i], "y": 10,
                   "w": self.widths[i], "h": bottom - 10} for i, n in enumerate(self.lanes)]
@@ -207,7 +251,8 @@ def to_be():
 def activity_ai():
     a = Act(["Cư dân", "Hệ thống web", "Dịch vụ phân loại AI", "Dịch vụ email"],
             "Báo sự cố, AI phân loại và điều phối", "Hinh 3.7 Hoat dong bao su co AI dieu phoi",
-            "Hoạt động báo sự cố – AI – điều phối")
+            "Hoạt động báo sự cố – AI – điều phối", widths=[230, 330, 260, 260])
+    # Làn hệ thống rộng hơn để câu hỏi của nút quyết định có chỗ trống, không chạm hộp hay vạch chia làn.
     CD, WB, AI, EM = 0, 1, 2, 3
     a.start("i", CD, 0)
     a.merge("m0", CD, 1)
@@ -215,27 +260,27 @@ def activity_ai():
     a.act("a2", CD, 3, "Gửi yêu cầu")
     a.act("w1", WB, 3, "Kiểm tra dữ liệu nhập")
     a.dec("d1", WB, 4, "Dữ liệu hợp lệ?")
-    a.act("w0", WB, 5, "Hiển thị lỗi nhập liệu", dx=-62, w=118)
-    a.act("w2", WB, 5, "Kiểm tra AI có bật", dx=62, w=118)
-    a.dec("d2", WB, 6, "AI đang bật?", dx=62, left=True)
+    a.act("w0", WB, 5, "Hiển thị lỗi nhập liệu", dx=-75, w=118)
+    a.act("w2", WB, 5, "Kiểm tra AI có bật", dx=75, w=118)
+    a.dec("d2", WB, 6, "AI đang bật?", dx=75, left=True)
     a.act("x1", AI, 6, "Phân loại mô tả")
-    a.act("x2", WB, 7, "Kiểm tra kết quả phân loại", dx=62, w=118)
-    a.dec("d3", WB, 8, "Kết quả hợp lệ?", dx=62)
+    a.act("x2", WB, 7, "Kiểm tra kết quả phân loại", dx=75, w=118)
+    a.dec("d3", WB, 8, "Kết quả hợp lệ?", dx=75)
     a.act("x3", EM, 8, "Báo quản trị AI lỗi")
-    a.act("w3", WB, 9, "Gộp lựa chọn cư dân", dx=62, w=118)
-    a.act("w9", WB, 8, "Giữ lựa chọn cư dân", dx=-62, w=118)
-    a.merge("m1", WB, 10, dx=62)
-    a.act("w4", WB, 11, "Tính hạn xử lý", dx=62, w=118)
-    a.act("w5", WB, 12, "Lưu yêu cầu", dx=62, w=118)
-    a.act("w6", WB, 13, "Kiểm tra mô tả", dx=62, w=118)
-    a.dec("d4", WB, 14, "Mô tả rõ ràng?", dx=62)
+    a.act("w3", WB, 9, "Gộp lựa chọn cư dân", dx=75, w=118)
+    a.act("w9", WB, 9, "Giữ lựa chọn cư dân", dx=-75, w=118)   # hàng 9: bên trái "Kết quả hợp lệ?" để trống cho câu hỏi
+    a.merge("m1", WB, 10, dx=75)
+    a.act("w4", WB, 11, "Tính hạn xử lý", dx=75, w=118)
+    a.act("w5", WB, 12, "Lưu yêu cầu", dx=75, w=118)
+    a.act("w6", WB, 13, "Kiểm tra mô tả", dx=75, w=118)
+    a.dec("d4", WB, 14, "Mô tả rõ ràng?", dx=75)
     a.act("e1", EM, 14, "Báo quản lý hỏi lại")
-    a.act("w7", WB, 15, "Kiểm tra thợ phù hợp", dx=62, w=118)
-    a.dec("d5", WB, 16, "Có thợ phù hợp?", dx=62)
+    a.act("w7", WB, 15, "Kiểm tra thợ phù hợp", dx=75, w=118)
+    a.dec("d5", WB, 16, "Có thợ phù hợp?", dx=75)
     a.act("e2", EM, 16, "Báo quản lý phân công")
-    a.act("w8", WB, 17, "Giao việc cho thợ", dx=62, w=118)
+    a.act("w8", WB, 17, "Giao việc cho thợ", dx=75, w=118)
     a.act("e3", EM, 17, "Gửi thư giao việc")
-    a.merge("m2", WB, 18, dx=62)
+    a.merge("m2", WB, 18, dx=75)
     a.act("a3", CD, 18, "Xem chi tiết yêu cầu")
     a.final("f", CD, 19)
     for x, y in [("i", "m0"), ("m0", "a1"), ("a1", "a2"), ("a2", "w1"), ("w1", "d1"), ("x2", "d3"),
@@ -672,18 +717,19 @@ def uc03():
            "xdloai": ("Xác định loại sự cố", 720 + X, 150), "xdmuc": ("Xác định mức ưu tiên", 940 + X, 150),
            "nguyhiem": ("Nhận diện sự cố nguy hiểm", 1160 + X, 150),
            "u8": ("UC08 Điều phối sự cố", 900 + X, 520),
-           "giao": ("Giao kỹ thuật viên phù hợp", 720 + X, 690), "tbgiao": ("Thông báo giao việc", 940 + X, 690),
-           "phancong": ("Báo quản lý phân công", 1160 + X, 690),
+           "tim": ("Tìm kỹ thuật viên phù hợp", 720 + X, 690), "giao": ("Giao việc cho kỹ thuật viên", 940 + X, 690),
+           "tbgiao": ("Thông báo giao việc", 940 + X, 800), "phancong": ("Báo quản lý phân công", 1160 + X, 690),
            "khancap": ("Báo quản lý sự cố khẩn cấp", 1160 + X, 590)}
     rels = [("include", "root", "mota"), ("include", "root", "noi"), ("extend", "vitri", "noi"),
             ("extend", "loai", "root"), ("extend", "anh", "root"),
             ("include", "root", "u7"), ("include", "root", "u8"),
             ("include", "u7", "xdloai"), ("include", "u7", "xdmuc"), ("include", "u7", "nguyhiem"),
-            ("include", "u8", "giao"), ("include", "u8", "tbgiao"),
+            # Điều phối luôn tìm thợ; chỉ giao việc khi có thợ phù hợp và mô tả rõ (mở rộng), giao thì luôn kèm thư
+            ("include", "u8", "tim"), ("extend", "giao", "u8"), ("include", "giao", "tbgiao"),
             ("extend", "phancong", "u8"), ("extend", "khancap", "u8")]
     actors = {"cd": ("Cư dân", 60, 380), "ai": ("Mô hình AI", 1500, 260), "mail": ("Dịch vụ email", 1500, 480)}
     return uc_detail("Hinh 3.2 Use case UC03 Bao su co", "UC03 – Báo sự cố", ucs, rels, actors,
-                     [("cd", "root"), ("ai", "u7"), ("mail", "u8")], 1280, 760)
+                     [("cd", "root"), ("ai", "u7"), ("mail", "u8")], 1280, 860)
 
 
 def uc11():

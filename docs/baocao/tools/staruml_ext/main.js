@@ -256,6 +256,7 @@ function buildEdge (diagram, owner, views, e, d) {
   // Nhãn của đường (tên chuyển trạng thái, điều kiện rẽ nhánh): đẩy ra xa đường kẻ để chữ không bị gạch ngang.
   if (ev && ev.nameLabel && e.labelDistance !== undefined) app.engine.setProperty(ev.nameLabel, 'distance', e.labelDistance)
   if (ev && ev.nameLabel && e.labelAlpha !== undefined) app.engine.setProperty(ev.nameLabel, 'alpha', e.labelAlpha)
+  if (ev && ev.nameLabel && e.labelEdgePosition !== undefined) app.engine.setProperty(ev.nameLabel, 'edgePosition', e.labelEdgePosition)
   // Thanh kích hoạt kéo dài tới lúc trả về: mọi lời gọi tiếp theo của đối tượng đi ra từ thanh này.
   if (e.kind === 'message' && e.activationHeight && ev && ev.activation) {
     app.engine.setProperty(ev.activation, 'height', e.activationHeight)

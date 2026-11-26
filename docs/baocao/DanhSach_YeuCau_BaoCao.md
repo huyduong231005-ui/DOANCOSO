@@ -141,3 +141,13 @@ Tiêu chí thêm: mọi ký hiệu, mã số người đọc phải hiểu ngay,
 - Sơ đồ hoạt động: nhãn điều kiện gắn ở đầu nhánh, sát hình thoi (nhánh ngang: trên đường; nhánh xuống: bên phải);
   câu hỏi của nút quyết định tự chọn chỗ trống trong làn, không đè hộp, đường hay vạch chia làn. Hình 3.2 nới làn
   hệ thống và dời "Giữ lựa chọn cư dân" xuống một hàng.
+
+## Rà toàn báo cáo lần 3 ngày 26/11/2026
+
+Quét lại mọi mục A–E: không còn vi phạm. Kiểm mọi tham chiếu Hình/Bảng/mục: không có số trỏ sai.
+- 17 bảng, hình không được câu văn nào nhắc tới (Bảng 1.3, 1.6, 1.11–1.16, Hình 2.1, Bảng 3.1, 4.1–4.4, 4.6, Hình 4.4,
+  Bảng 4.8) → thêm câu dẫn (gon_bao_cao.dan_bang_hinh, chạy sau khi đánh số lại).
+- Bảng 3.1 "Hai tác vụ chạy định kỳ" lệch với sơ đồ triển khai (bốn dịch vụ nền) → sửa; Bảng 1.3 thêm nhắc hạn
+  thanh toán; tầng nghiệp vụ thêm lập hoá đơn.
+- Mục 1.10: Chương 5 ghi rõ chưa có trong báo cáo này.
+- Trình bày: Hình 4.7 giới hạn cao để chung trang với Hình 4.6. Báo cáo còn 77 trang.

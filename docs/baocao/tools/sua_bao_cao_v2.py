@@ -186,7 +186,7 @@ def fig_size(png):
 
 
 # Ảnh màn hình đứng liền nhau (Hình 4.5, 4.6) giới hạn cao 10 cm để hai hình chung một trang, không bỏ trống nửa trang.
-CAO_TOI_DA = {"Hinh 4.5": Pt(283), "Hinh 4.6": Pt(283)}
+CAO_TOI_DA = {"Hinh 4.5": Pt(283), "Hinh 4.6": Pt(283), "Hinh 4.7": Pt(300)}   # 4.7 vừa nửa trang dưới 4.6
 
 
 def fig_size_portrait(png):
@@ -544,6 +544,7 @@ def main():
     treo, doi = gon_bao_cao.danh_so_lai(body, set_text)
     print(f"đánh số lại {doi} bảng; tham chiếu treo: {treo or 'không'}")
     treo, doi = gon_bao_cao.danh_so_hinh(body, set_text, {"3.2": "1", "3.4": "1"})
+    print(f"dẫn bảng, hình: không áp được {gon_bao_cao.dan_bang_hinh(body, set_text, new_p) or 'không'}")
     print(f"đánh số lại {doi} hình; tham chiếu hình treo: {treo or 'không'}")
     groups, nland = landscape_sections()
     doc.save(str(OUT))

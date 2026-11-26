@@ -564,3 +564,62 @@ def gon_chuong3(body, set_text):
     p452 = next(p for p in ps if _text(p).startswith("Các chuyển trạng thái ngoại lệ ở Bảng"))
     if CAU_56_CAP.strip() not in _text(p452):
         set_text(p452, _text(p452).rstrip() + CAU_56_CAP)
+
+
+# ====================================================================== 26/11: dẫn số mọi bảng, hình trong bài
+# Chạy SAU khi đánh số lại bảng, hình (số ở đây là số cuối cùng). Mỗi bảng, hình đều được một câu văn nhắc tới.
+DAN_THAY = [   # (chuỗi cũ, chuỗi mới) trong đoạn văn, áp một lần
+    ("Hai use case trọng tâm được vẽ chi tiết rồi đặc tả.",
+     "Hai use case trọng tâm được vẽ chi tiết (Hình 1.7, 1.8) rồi đặc tả (Bảng 1.13, 1.14)."),
+    ("Bảng dưới đây là phân công theo năng lực", "Bảng 1.15 là phân công theo năng lực"),
+    ("Kế hoạch thực hiện bám theo phiếu theo dõi tiến độ đã đăng ký với giảng viên hướng dẫn:",
+     "Kế hoạch thực hiện (Bảng 1.16) bám theo phiếu theo dõi tiến độ đã đăng ký với giảng viên hướng dẫn."),
+    ("Won't-have là chưa làm trong kỳ đồ án.", "Won't-have là chưa làm trong kỳ đồ án. Bảng 1.11 liệt kê các yêu cầu "
+     "chức năng kèm mức ưu tiên và tiêu chí nghiệm thu."),
+    ("Để ERD vừa một hình, mỗi thực thể chỉ ghi khoá và các thuộc tính chính.",
+     "Hình 2.1 là ERD của toàn hệ thống; để vừa một hình, mỗi thực thể chỉ ghi khoá và các thuộc tính chính."),
+    ("nên ứng dụng vẫn chạy khi máy AI tắt.", "nên ứng dụng vẫn chạy khi máy AI tắt. Bảng 3.1 nêu công nghệ và trách "
+     "nhiệm của từng thành phần."),
+    ("được xoá sau khi kiểm tra xong.", "được xoá sau khi kiểm tra xong. Bảng 4.1 liệt kê các tài khoản thử theo vai "
+     "trò."),
+    ("đúng như thiết kế ở mục 2.3.", "đúng như thiết kế ở mục 2.3. Bảng 4.2 liệt kê quyền của từng phân hệ và các "
+     "quyền Quản lý BQL được cấp."),
+    ("chỉ số điện nước, sự cố của căn.", "chỉ số điện nước, sự cố của căn. Kết quả thử của phân hệ ở Bảng 4.3."),
+    ("ghi nhận tiền mặt, hoàn tiền khi cần.", "ghi nhận tiền mặt, hoàn tiền khi cần. Kết quả thử của phân hệ ở Bảng "
+     "4.4."),
+    ("được thử với yêu cầu YC-202611-0002", "được thử (Bảng 4.6, Hình 4.4) với yêu cầu YC-202611-0002"),
+    ("Nhóm ghi nhận 9 lỗi mức cao,", "Nhóm ghi nhận 9 lỗi mức cao (Bảng 4.8),"),
+    # Bảng 3.1 và Bảng 1.3 khớp sơ đồ triển khai (dịch vụ nền có bốn việc, tầng nghiệp vụ có lập hoá đơn)
+    ("Các lớp xử lý quy trình sự cố, điều phối và tính KPI", "Các lớp xử lý quy trình sự cố, điều phối, tính KPI và "
+     "lập hoá đơn"),
+    ("Hai tác vụ chạy định kỳ", "Bốn tác vụ chạy nền"),
+    ("Lập hoá đơn tháng, chuyển hoá đơn quá hạn, cộng phí trễ; báo quản lý yêu cầu sự cố quá hạn",
+     "Lập hoá đơn tháng, chuyển hoá đơn quá hạn, cộng phí trễ; nhắc hạn thanh toán; báo quản lý yêu cầu sự cố quá hạn; "
+     "nạp sẵn mô hình AI khi khởi động"),
+    ("chuyển hoá đơn quá hạn, cộng phí trễ; báo quản lý yêu cầu sự cố quá hạn",
+     "chuyển hoá đơn quá hạn, cộng phí trễ; nhắc hạn thanh toán; báo quản lý yêu cầu sự cố quá hạn"),
+    ("–Chương 5 – Kết luận và kiến nghị (tuần 9–10).", "–Chương 5 – Kết luận và kiến nghị (tuần 9–10, chưa có trong "
+     "báo cáo này)."),
+]
+DAN_CHEN = {   # tiêu đề mục -> câu chèn ngay sau tiêu đề (mục chỉ có bảng, chưa có câu dẫn)
+    "1.3.2. Tác nhân": "Bảng 1.3 liệt kê các tác nhân, vai trò của từng tác nhân trong quy trình và trên hệ thống.",
+    "1.4.2. So sánh AS-IS và TO-BE": "Bảng 1.6 đối chiếu từng bước của quy trình hiện tại và quy trình đề xuất.",
+    "1.7.2. Yêu cầu phi chức năng": "Bảng 1.12 nêu các yêu cầu phi chức năng ở dạng kiểm tra được.",
+}
+
+
+def dan_bang_hinh(body, set_text, new_p):
+    ps = [p for p in body.iter(qn("w:p")) if not _la_muc_luc(p)]
+    con = {a for a, _ in DAN_THAY}
+    for p in ps:
+        t = _text(p)
+        n = t
+        for a, b in DAN_THAY:
+            if a in n and b not in n:
+                n = n.replace(a, b, 1)
+                con.discard(a)
+        if n != t:
+            set_text(p, n)
+        if t in DAN_CHEN and not _text(p.getnext()).startswith(DAN_CHEN[t][:20]):
+            p.addnext(new_p("Noidung", DAN_CHEN[t]))
+    return sorted(con)

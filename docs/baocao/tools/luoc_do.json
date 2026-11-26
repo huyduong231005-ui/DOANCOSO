@@ -142,51 +142,6 @@
    }
   ]
  },
- "Tang": {
-  "columns": [
-   {
-    "name": "TangId",
-    "type": "integer",
-    "null": false,
-    "pk": true,
-    "fk": null,
-    "on_delete": null,
-    "unique": false,
-    "generated": false
-   },
-   {
-    "name": "ToaNhaId",
-    "type": "integer",
-    "null": false,
-    "pk": false,
-    "fk": "ToaNha",
-    "on_delete": "RESTRICT",
-    "unique": false,
-    "generated": false
-   },
-   {
-    "name": "SoTang",
-    "type": "integer",
-    "null": false,
-    "pk": false,
-    "fk": null,
-    "on_delete": null,
-    "unique": false,
-    "generated": false
-   }
-  ],
-  "unique": [
-   {
-    "cols": [
-     "ToaNhaId",
-     "SoTang"
-    ],
-    "where": "",
-    "name": "IX_Tang_ToaNhaId_SoTang"
-   }
-  ],
-  "checks": []
- },
  "CanHo": {
   "columns": [
    {
@@ -240,12 +195,22 @@
     "generated": false
    },
    {
-    "name": "TangId",
+    "name": "ToaNhaId",
     "type": "integer",
     "null": false,
     "pk": false,
-    "fk": "Tang",
+    "fk": "ToaNha",
     "on_delete": "RESTRICT",
+    "unique": false,
+    "generated": false
+   },
+   {
+    "name": "SoTang",
+    "type": "integer",
+    "null": false,
+    "pk": false,
+    "fk": null,
+    "on_delete": null,
     "unique": false,
     "generated": false
    }
@@ -263,6 +228,10 @@
    {
     "name": "CK_CanHo_SoPhongNgu",
     "def": "CHECK ((\"SoPhongNgu\" >= 0))"
+   },
+   {
+    "name": "CK_CanHo_SoTang",
+    "def": "CHECK ((\"SoTang\" >= 1))"
    },
    {
     "name": "CK_CanHo_TinhTrangCanHo",

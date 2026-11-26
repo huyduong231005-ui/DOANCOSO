@@ -386,8 +386,8 @@ REWRITE = {  # đoạn bắt đầu bằng ... -> nội dung mới
         "Hình 3.6: quản lý luôn xem các thanh toán chờ duyệt; duyệt, từ chối, thu tiền trực tiếp và hoàn tiền là phần "
         "mở rộng, chỉ làm khi có việc tương ứng.",
     "–Nơi chốn:":
-        "–Nơi chốn và cư trú: Khu có nhiều ToaNha; ToaNha có các Tang; mỗi CanHo thuộc đúng "
-        "một tầng và toà của căn suy ra từ tầng. NguoiDung và CanHo liên kết qua lớp CuTru (người nào ở căn nào, từ "
+        "–Nơi chốn và cư trú: Khu có nhiều ToaNha; ToaNha có nhiều CanHo, mỗi căn ghi số tầng của mình (tầng "
+        "không có thông tin riêng nên không thành lớp). NguoiDung và CanHo liên kết qua lớp CuTru (người nào ở căn nào, từ "
         "ngày nào đến ngày nào). Đây là liên kết thường, không phải hợp thành: xoá căn không xoá người.",
     "–CanHo gồm các PhiDinhKy và ChiSoDichVu":
         "–LoaiDichVu là bảng giá: mỗi khoản thu (phí quản lý, điện, nước, gửi xe, sửa chữa) là một loại dịch vụ "
@@ -424,7 +424,7 @@ BR_MECH = {  # mã ràng buộc theo Chương 2 bản gọn (RB: trên một b�
     "BR-SC-06": "CHECK (RB07) và ứng dụng", "BR-SC-07": "Ứng dụng, hàm FN1 (LB05) và CHECK (RB05)",
     "BR-SC-08": "Khoá ngoại tới MucUuTien, chặn xoá (mục 2.3)", "BR-SC-09": "Ứng dụng: bước gộp kết quả AI",
     "BR-SC-13": "Bảng LichSuYeuCau (LB04)", "BR-SC-14": "CHECK (RB05), UNIQUE (SoYeuCau)",
-    "BR-CH-01": "UNIQUE (ToaNhaId, SoTang), UNIQUE (MaCanHo)", "BR-CH-02": "CHECK (RB01)",
+    "BR-CH-01": "UNIQUE (MaCanHo), CHECK (RB01)", "BR-CH-02": "CHECK (RB01)",
     "BR-CD-01": "CHECK (RB03), UNIQUE có điều kiện và ứng dụng (LB13)",
     "BR-CD-02": "Ứng dụng: mã mời ký số (LB14); email duy nhất",
     "BR-TP-01": "UNIQUE có điều kiện, khoá chính (HoaDonId, LoaiDichVuId) và ứng dụng (LB10, LB11)",
@@ -440,7 +440,7 @@ BR_TEXT = {
                 "loại dịch vụ một dòng: phí quản lý (số lượng là diện tích căn), điện nước (lượng tiêu thụ theo chỉ "
                 "số của kỳ), dịch vụ căn đăng ký (số lượng đăng ký); đơn giá lấy từ bảng giá và chốt trên dòng. Hạn "
                 "thanh toán = ngày lập + 7 ngày.",
-    "BR-CH-01": "Số tầng không trùng trong một toà; mã căn không trùng.",
+    "BR-CH-01": "Mã căn không trùng; mỗi căn thuộc một toà và ghi số tầng từ 1 trở lên.",
     "BR-CD-02": "Mỗi người một tài khoản (NguoiDung). Cư trú chỉ có hiệu lực trên cổng cư dân khi người đó bấm thư mời "
                 "do BQL gửi (hạn 14 ngày) để kích hoạt tài khoản hoặc xác nhận căn.",
     "BR-TP-07": "Tổng tiền và còn nợ do cơ sở dữ liệu tự tính: tổng tiền = tiền phí + phí trễ hạn; còn nợ = tổng tiền − "
@@ -455,7 +455,7 @@ DECISIONS_38 = [
 ]
 OPS_DESC = {
     "dsDuAn": "Liệt kê các dự án thuộc khu vực", "taoMoi": "Tạo mới", "capNhat": "Sửa thông tin",
-    "dsCanCuaTang": "Liệt kê các căn của tầng", "doiTinhTrang": "Đổi tình trạng bàn giao, sửa chữa",
+    "doiTinhTrang": "Đổi tình trạng bàn giao, sửa chữa",
     "dangCoNguoiO": "Có người cư trú chưa chuyển đi hay không",
     "layNguoiDaiDien": "Lấy lần cư trú của người đại diện đang ở", "themNguoiCuTru": "Thêm người ở căn, gửi thư mời",
     "xacNhanQuaThuMoi": "Người ở xác nhận qua thư mời", "chuyenDi": "Ghi ngày chuyển đi",
@@ -537,6 +537,7 @@ def main():
     gon_bao_cao.dua_uc_ve_chuong1(body, set_text, new_p)
     gon_bao_cao.bo_muc_uc_chuong3(body, set_text)
     gon_bao_cao.gop_so_do_lop(body, set_text)
+    gon_bao_cao.gon_chuong3(body, set_text)
     gon_bao_cao.bo_viet_tat_thua(body)
     gon_bao_cao.sua_trang_thai_tuan(body, set_text)
     print(f"gạch đầu dòng sửa lại tab: {gon_bao_cao.sua_gach_dau_dong(body)}")

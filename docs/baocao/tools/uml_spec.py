@@ -55,6 +55,7 @@ def flow(a, b, guard=None, points=None):
     e = {"kind": "flow", "from": a, "to": b}
     if guard:
         e["guard"] = guard
+        e["labelDistance"] = 24   # điều kiện nằm cạnh đường, không bị đường gạch ngang
     if points:
         e["points"] = points
     return e
@@ -146,39 +147,45 @@ def to_be():
 
 # ================================================================ sơ đồ trạng thái
 def states():
-    W, H, X, RX = 160, 44, 420, 760
+    W, H, X, RX, LX = 160, 44, 420, 760, 110
+    MY = 125                                # Từ chối, Đã huỷ nằm giữa Mới gửi và Đã tiếp nhận
     ys = {"open": 60, "ack": 190, "prog": 320, "res": 450, "closed": 580}
     names = {"open": "Mới gửi", "ack": "Đã tiếp nhận", "prog": "Đang xử lý", "res": "Đã xử lý", "closed": "Đã đóng"}
     nodes = [{"key": "i", "kind": "pseudo", "x": X + W // 2 - 10, "y": 10, "w": 20, "h": 20}]
     nodes += [{"key": k, "kind": "state", "name": names[k], "x": X, "y": y, "w": W, "h": H} for k, y in ys.items()]
     nodes += [
-        {"key": "rej", "kind": "state", "name": "Từ chối", "x": RX, "y": ys["open"], "w": W, "h": H},
-        {"key": "can", "kind": "state", "name": "Đã huỷ", "x": RX, "y": ys["ack"], "w": W, "h": H},
+        {"key": "rej", "kind": "state", "name": "Từ chối", "x": RX, "y": MY, "w": W, "h": H},
+        {"key": "can", "kind": "state", "name": "Đã huỷ", "x": LX, "y": MY, "w": W, "h": H},
         {"key": "hold", "kind": "state", "name": "Tạm dừng", "x": RX, "y": ys["prog"], "w": W, "h": H},
-        {"key": "f1", "kind": "finalstate", "x": X + W // 2 - 13, "y": 690, "w": 26, "h": 26},
-        {"key": "f2", "kind": "finalstate", "x": RX + W + 60, "y": ys["open"] + 9, "w": 26, "h": 26},
-        {"key": "f3", "kind": "finalstate", "x": RX + W + 60, "y": ys["ack"] + 9, "w": 26, "h": 26},
+        {"key": "f1", "kind": "finalstate", "x": X + W // 2 - 25, "y": 690, "w": 26, "h": 26},
+        {"key": "f2", "kind": "finalstate", "x": RX + W + 60, "y": MY - 3, "w": 26, "h": 26},
+        {"key": "f3", "kind": "finalstate", "x": LX - 70, "y": MY - 3, "w": 26, "h": 26},
     ]
 
-    def tr(a, b, name=None, points=None, ls=0):
+    def tr(a, b, name=None, points=None, ls=0, doc=False):
         e = {"kind": "transition", "from": a, "to": b, "lineStyle": ls}
         if name:
             e["name"] = name
+        if name and doc:                    # mũi tên dọc: nhãn sang phải, không đè lên đường kẻ
+            e["labelDistance"] = int(len(name) * 3.6) + 14
         if points:
             e["points"] = points
         return e
 
     p, r = ys["prog"], ys["res"]
     edges = [
-        tr("i", "open"), tr("open", "ack", "QL/HT: tiếp nhận, giao việc"), tr("ack", "prog", "KTV/QL: bắt đầu"),
-        tr("prog", "res", "KTV/QL: hoàn tất [có kết quả]"), tr("res", "closed", "CD/QL: xác nhận, đánh giá"),
-        tr("res", "prog", "CD/QL: chưa khắc phục [có lý do]",
-           points=[[X, r + 22], [X - 150, r + 22], [X - 150, p + 22], [X, p + 22]]),
+        tr("i", "open", ls=1), tr("open", "ack", "QL/HT: tiếp nhận, giao việc", doc=True),
+        tr("ack", "prog", "KTV/QL: bắt đầu", doc=True),
+        tr("prog", "res", "KTV/QL: hoàn tất [có kết quả]", doc=True),
+        tr("res", "closed", "CD/QL: xác nhận, đánh giá", doc=True),
+        dict(tr("res", "prog", "CD/QL: chưa khắc phục [có lý do]",
+                points=[[X, r + 22], [X - 150, r + 22], [X - 150, p + 22], [X, p + 22]]),
+             labelDistance=125, labelAlpha=-1.5708),   # nhãn sang trái đoạn dọc, không đè đường
         tr("prog", "hold", "KTV/QL: tạm dừng [có lý do]", points=[[X + W, p + 12], [RX, p + 12]]),
         tr("hold", "prog", "KTV/QL: tiếp tục (dời hạn SLA)", points=[[RX, p + 34], [X + W, p + 34]]),
-        tr("open", "rej", "QL: từ chối [có lý do]"), tr("ack", "can", "CD/QL: huỷ"),
-        tr("open", "can", ls=1), tr("ack", "rej", ls=1),
-        tr("closed", "f1"), tr("rej", "f2"), tr("can", "f3"),
+        tr("open", "rej", "QL: từ chối [có lý do]", ls=1), tr("ack", "rej", "QL: từ chối [có lý do]", ls=1),
+        tr("open", "can", "CD/QL: huỷ", ls=1), tr("ack", "can", "CD/QL: huỷ", ls=1),
+        tr("closed", "f1", ls=1), tr("rej", "f2", ls=1), tr("can", "f3", ls=1),
     ]
     return {"kind": "state", "model": "Vòng đời yêu cầu sự cố", "owner": "Vòng đời yêu cầu sự cố",
             "name": "Hinh 1.3 So do trang thai yeu cau su co", "fontSize": 14, "nodes": nodes, "edges": edges}

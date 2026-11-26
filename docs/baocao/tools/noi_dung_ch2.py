@@ -39,12 +39,11 @@ def blocks():
 
     # ------------------------------------------------------------------ 2.1
     B.append(("h2", "2.1. Thực thể"))
-    p(f"Từ quy trình TO-BE và các chứng từ ở Bảng 1.4, nhóm xác định 16 thực thể và 5 mối kết hợp nhiều – nhiều "
+    p(f"Từ quy trình TO-BE và các chứng từ ở Bảng 1.4, nhóm xác định 15 thực thể và 5 mối kết hợp nhiều – nhiều "
       f"(Bảng 2.1). Mỗi mối kết hợp nhiều – nhiều thành một bảng riêng, nên cơ sở dữ liệu có {n_bang} bảng.")
     T("Bảng 2.1. Thực thể, mối kết hợp và lý do cần bảng riêng", ["Tên", "Nghiệp vụ", "Lý do cần bảng riêng"], [
         ["KHU", "Khu căn hộ gồm nhiều toà", "Địa chỉ chung của các toà"],
         ["TOA_NHA", "Toà nhà, ngày lập phí, mức phí trễ", "Có quản lý riêng, có sự cố khu vực chung"],
-        ["TANG", "Tầng của toà", "Toà có nhiều tầng, căn nằm trên tầng"],
         ["CAN_HO", "Căn hộ", "Nơi ở và nơi tính phí"],
         ["NGUOI_DUNG", "Cư dân, quản lý, kỹ thuật viên, quản trị", "Một người là một tài khoản"],
         ["CU_TRU", "Ai ở căn nào, từ ngày nào", "Mối kết hợp n – n “cư trú” giữa người dùng và căn hộ, có thuộc tính riêng"],
@@ -93,7 +92,7 @@ def blocks():
       "Cặp (min, max) cạnh thực thể cho biết mỗi thể hiện tham gia mối kết hợp ít nhất và nhiều nhất bao nhiêu lần. "
       "Để ERD vừa một hình, mỗi thực thể chỉ ghi khoá và các thuộc tính chính.")
     B.append(("fig", "Hình 2.1. ERD toàn hệ thống", IMG / (sd.erd_tong()["name"] + ".png")))
-    p("Một số bản số cần lưu ý. Toà có ít nhất một tầng, yêu cầu có ít nhất một dòng lịch sử, hoá đơn gồm ít nhất một "
+    p("Một số bản số cần lưu ý. Yêu cầu có ít nhất một dòng lịch sử, hoá đơn gồm ít nhất một "
       "dịch vụ, người dùng có ít nhất một vai trò. Một yêu cầu xảy ra tại một căn hoặc ở khu vực chung của một toà, "
       "không đồng thời cả hai. Chi tiết hoá đơn là mối kết hợp “gồm dịch vụ” giữa HOA_DON và LOAI_DICH_VU: mỗi hoá "
       "đơn có mỗi dịch vụ nhiều nhất một dòng, với số lượng, đơn giá và thành tiền là thuộc tính của mối kết hợp. "
@@ -114,20 +113,20 @@ def blocks():
       "khoá ngoại, kèm vòng tròn nếu dòng cha có thể chưa có dòng con, kèm vạch nếu phải có ít nhất một. Hai khoá "
       "ngoại tới cùng một bảng được vẽ thành hai đường có ghi tên khoá. Mỗi bảng ghi đủ khoá và các cột chính.")
     B.append(("fig", "Hình 2.2. Lược đồ quan hệ toàn hệ thống", IMG / (sd.rd_tong()["name"] + ".png")))
-    p("CuTru là liên kết thường, không phải hợp thành: căn còn người cư trú thì không xoá được, xoá căn không xoá "
-      "người. Khi xoá dòng cha, khoá ngoại tới bộ phận của nó (ảnh, lịch sử, dòng hoá đơn, đăng ký dịch vụ) xoá theo; "
-      "khoá tuỳ chọn tới người dùng chuyển về rỗng; các khoá còn lại chặn xoá, như loại dịch vụ đã có trên hoá đơn. "
-      "Ứng dụng chỉ xoá mềm (cột DaXoa), nên đây là lớp bảo vệ khi sửa trực tiếp trong cơ sở dữ liệu. Mỗi bảng nghiệp "
-      "vụ có thêm bảy cột kiểm toán (NgayTao, NguoiTao, NgayCapNhat, NguoiCapNhat, DaXoa, NgayXoa, NguoiXoa) không vẽ "
-      "trên hình.")
+    p("Khi xoá một dòng cha, các dòng chỉ là bộ phận của nó (ảnh và lịch sử của yêu cầu, dòng hoá đơn, đăng "
+      "ký dịch vụ của căn) bị xoá theo; khoá tới người dùng nếu được để rỗng thì chuyển về rỗng; các trường "
+      "hợp còn lại bị chặn, ví dụ không xoá được căn còn người cư trú hay loại dịch vụ đã có trên hoá đơn. "
+      "Ứng dụng chỉ xoá mềm (đánh dấu đã xoá), nên các quy tắc này chỉ có tác dụng khi sửa thẳng trong cơ "
+      "sở dữ liệu. Hình không vẽ các cột kiểm toán có ở mọi bảng nghiệp vụ (ai tạo, sửa, xoá và lúc nào).")
 
     # ------------------------------------------------------------------ 2.4
     B.append(("h2", "2.4. Chuẩn hoá"))
     p("Một lược đồ đạt 3NF khi mọi thuộc tính không khoá phụ thuộc đầy đủ và trực tiếp vào khoá [4]; BCNF chặt hơn: "
       "vế trái của mọi phụ thuộc hàm không tầm thường đều là siêu khoá. Sau các quyết định dưới đây, vế trái của mọi "
       f"phụ thuộc hàm đều là khoá chính hoặc khoá tự nhiên đã khai báo duy nhất, nên cả {n_bang} quan hệ đạt BCNF.")
-    b("Toà – tầng – căn: CanHo chỉ giữ TangId, ToaNha không giữ địa chỉ hay số tầng, vì lấy được qua Tang và Khu. Tên "
-      "toà không lưu vì luôn là “Toà” + mã toà.")
+    b("Toà – căn: tầng chỉ có số tầng, không có thông tin riêng, nên là cột SoTang của CanHo chứ không thành bảng. "
+      "ToaNha không giữ địa chỉ hay số tầng, vì lấy được qua Khu và các căn của toà. Tên toà không lưu vì luôn là "
+      "“Toà” + mã toà.")
     b("Người: họ tên, điện thoại, email chỉ nằm ở NguoiDung. Cư dân là người dùng có dòng CuTru đang hiệu lực; “Đang "
       "ở” hay “Để trống” suy ra từ CuTru, TinhTrangCanHo chỉ lưu điều Ban quản lý quyết định.")
     b("Sự cố: mốc tiếp nhận, hoàn tất và trạng thái trước của mỗi lần chuyển lấy từ LichSuYeuCau (dòng liền trước), "
@@ -168,8 +167,8 @@ def blocks():
 # Ràng buộc trên một bảng (miền giá trị và liên thuộc tính): (bối cảnh, nội dung, biểu diễn, tên CHECK)
 # Ràng buộc trên một bảng (miền giá trị và liên thuộc tính): (bối cảnh, nội dung, tên CHECK)
 MOT_BANG = [
-    ("CanHo", "Diện tích lớn hơn 0; số phòng ngủ không âm; tình trạng là đã bàn giao, chưa bàn giao hoặc đang sửa "
-     "chữa.", "CK_CanHo_DienTich, CK_CanHo_SoPhongNgu, CK_CanHo_TinhTrangCanHo"),
+    ("CanHo", "Số tầng từ 1 trở lên; diện tích lớn hơn 0; số phòng ngủ không âm; tình trạng là đã bàn giao, chưa bàn "
+     "giao hoặc đang sửa chữa.", "CK_CanHo_SoTang, CK_CanHo_DienTich, CK_CanHo_SoPhongNgu, CK_CanHo_TinhTrangCanHo"),
     ("ToaNha", "Ngày lập phí từ 1 đến 28; số ngày ân hạn không âm; tỉ lệ phí trễ từ 0 đến 100%; trạng thái là đang "
      "vận hành, đang bảo trì hoặc đã đóng.", "CK_ToaNha_NgayLapPhi, CK_ToaNha_PhiTre, CK_ToaNha_TrangThai"),
     ("CuTru", "Vai trò trong hộ là chủ hộ, người thuê hoặc thành viên; ngày chuyển đi (nếu có) không trước ngày vào ở.",

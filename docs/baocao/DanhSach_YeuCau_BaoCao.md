@@ -39,6 +39,7 @@ người dùng áp được (ở đây: "quá trừu tượng, ưu tiên dễ hi
 | C3 | ChiTietHoaDon là bảng chi tiết chuẩn (khoá ghép hoá đơn + loại dịch vụ) |
 | C4 | Phí quản lý một giá chung trong bảng giá (bỏ đơn giá theo toà) |
 | C5 | Không gộp cư trú vào người dùng (đã trả lời lý do) |
+| C6 | Gộp bảng Tầng vào Căn hộ: căn ghi ToaNhaId + SoTang (tầng không có thông tin riêng); CSDL còn 20 bảng |
 
 ## D. Chương 2
 
@@ -102,3 +103,33 @@ Tiêu chí thêm: mọi ký hiệu, mã số người đọc phải hiểu ngay,
   mã 403, 404 giải thích lần đầu; tác vụ nền ở Bảng 1.3 thêm việc báo yêu cầu quá hạn (khớp mục 4.5.3).
 - Trình bày: 11 dòng gạch đầu dòng mất tab (chữ dính vào dấu gạch, lệch lề) → sửa trong pipeline (sua_gach_dau_dong);
   Hình 4.5, 4.6 giới hạn cao 10 cm để chung một trang (trước mỗi hình bỏ trống nửa trang). Báo cáo còn 79 trang.
+
+## Gộp Tầng vào Căn hộ ngày 26/11/2026 (C6)
+
+- CSDL: migration Tuan9GopTangVaoCanHo (sao lưu db_backup/LuxeHavenBql_truoc_gop_tang_20261126.dump); thử trên bản sao
+  rồi áp bản thật. Toà, tầng của cả 538 căn khớp trước/sau; tổng tiền, công nợ hoá đơn không đổi; thêm CHECK SoTang ≥ 1.
+- Ứng dụng: bỏ lớp Floor; form căn nhập số tầng; sơ đồ toà nhóm căn theo số tầng; tạo toà sinh căn từng tầng.
+- Sơ đồ: ERD bỏ TANG (toà – "có căn" – căn, CAN_HO thêm SoTang), RD bỏ bảng Tang (CanHo.ToaNhaId), sơ đồ lớp bỏ
+  lớp Tang; đường mới đi vòng, không cắt hình nào. Validator 0 lỗi.
+- Báo cáo: 15 thực thể, 20 bảng; Bảng 2.1 bỏ dòng TANG; mục 2.4 giải thích vì sao tầng là cột; RB01 thêm số tầng;
+  BR-CH-01 viết lại; câu bản số, sơ đồ lớp, mục 4.3, Bảng 4.3 sửa theo.
+
+## 26/11/2026 (sau khi người dùng tự sửa trong Word)
+
+- Người dùng sửa tay file .docx và lưu: bỏ "(P1)…(P8)" ở cột Hình thức của Bảng 1.6. Đã đưa vào gon_bao_cao.SUA_SAU.
+- Đoạn dưới lược đồ quan hệ (mục 2.3) thay bằng bản gọn: bỏ câu liên kết thường/hợp thành (trùng mục 3.3) và tên 7 cột.
+- Mục 4.6 chỉ nói kết quả đối chiếu; ba lỗi tìm khi đối chiếu (18/11) chuyển sang đoạn lỗi mức trung bình, thấp ở 4.7.
+- Cách làm: sửa thẳng vào file người dùng đã lưu (chỉ thay chữ đúng đoạn), rồi đưa chỗ sửa vào công cụ dựng; dựng
+  thử ra thư mục tạm và so phần thân bài với file người dùng: giống hệt.
+
+## Rà sơ đồ, gọn sơ đồ tuần tự, bỏ tổng kết tuần cũ ngày 26/11/2026
+
+- Sơ đồ trạng thái: hai mũi tên chéo nhau không có nhãn (Mới gửi → Đã huỷ, Đã tiếp nhận → Từ chối) → đặt Đã huỷ bên
+  trái, Từ chối bên phải, mũi tên nào cũng có nhãn, không còn đường cắt nhau; nhãn mũi tên dọc đẩy ra khỏi đường kẻ.
+- Sơ đồ triển khai: tên lớp tiếng Anh (MaintenanceWorkflow, IEmailSender…) → tên tiếng Việt; dịch vụ nền đủ 4 việc;
+  bỏ q4_k_m, "/api/chat".
+- Sơ đồ hoạt động: nhãn điều kiện đẩy ra khỏi đường (công cụ vẽ có thêm labelDistance); nhãn nhánh trái còn chạm nhẹ.
+- Sơ đồ tuần tự: chỉ giữ 3 (báo sự cố có AI, KTV hoàn tất, duyệt chuyển khoản); bỏ sơ đồ điều phối (đã có ở sơ đồ
+  hoạt động Hình 3.2).
+- Bỏ mục 3.6 "Kết quả tuần 4 và việc tiếp theo"; câu kiểm tra 56 cặp trạng thái chuyển sang mục 4.5.2. Chỉ giữ tổng
+  kết tuần mới (mục 4.8). Báo cáo còn 78 trang.

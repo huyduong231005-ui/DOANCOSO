@@ -314,6 +314,14 @@ DOAN_UC_MOI = {   # đoạn bắt đầu bằng ... -> nội dung mới (số h�
         "–Chương 2 – Phân tích và thiết kế dữ liệu: thực thể, ERD, lược đồ quan hệ, chuẩn hoá và ràng buộc toàn vẹn.",
     "1.8. Use case sơ bộ": "1.8. Use case",
     "1.8.2. Đặc tả use case trọng tâm": "1.8.2. Use case trọng tâm",
+    # 26/11: mục 4.6 chỉ nói kết quả đối chiếu; ba lỗi tìm được khi đối chiếu chuyển sang đoạn lỗi của mục 4.7
+    "Hệ thống có bảng điều khiển cho quản lý (Hình 4.5)":
+        "Hệ thống có bảng điều khiển cho quản lý (Hình 4.5) và bốn báo cáo: tình trạng căn theo toà, tài "
+        "chính, công nợ phân tuổi (Hình 4.6) và KPI sự cố (Hình 4.7). Báo cáo tình trạng căn đếm căn đang ở, "
+        "cho thuê, trống, chưa bàn giao, đang sửa chữa và số còn phải thu; báo cáo tài chính gồm số phát "
+        "hành, đã thu, công nợ, thanh toán chờ duyệt và doanh thu sáu tháng. Mỗi số trên báo cáo được tính "
+        "lại bằng câu SQL viết riêng, chạy thẳng trên CSDL ngày 25/11/2026 (Bảng 4.7); tất cả khớp. Đã thu "
+        "tháng 11 bằng 0 vì dữ liệu mẫu chưa có khoản thanh toán nào trong tháng này.",
 }
 
 
@@ -349,6 +357,10 @@ SUA_SAU = [   # thay chuỗi con, chạy sau cùng trên mọi đoạn (kể c�
     ("Cư dân, kỹ thuật viên vào khu quản trị nhận mã 403 và vẫn giữ phiên.", "Cư dân, kỹ thuật viên vào khu quản trị "
      "nhận mã 403 (không có quyền) và vẫn giữ phiên."),
     ("đều nhận mã 404.", "đều nhận mã 404 (không tìm thấy), để không lộ là dữ liệu đó có tồn tại."),
+    # Gộp Tầng vào Căn hộ (26/11): bỏ bảng Tang ở mọi chương
+    ("Thiết kế CSDL đạt 3NF cho cơ cấu Khu – Toà – Tầng – Căn,", "Thiết kế CSDL đạt 3NF cho cơ cấu Khu – Toà – Căn,"),
+    ("hệ thống tự sinh tầng và căn với mã dạng", "hệ thống tự sinh căn cho từng tầng với mã dạng"),
+    ("Mã căn trùng trong toà, tầng của toà khác, diện tích âm", "Mã căn trùng, số tầng 0, diện tích âm"),
     # Bản nháp không có chức năng nào tạo ra: không nhắc trong báo cáo
     (" Trạng thái Bản nháp có trong mã nguồn nhưng hiện không có chức năng nào tạo hoá đơn nháp.", ""),
     ("hoá đơn đã phát hành (trừ Bản nháp, Đã huỷ)", "hoá đơn đã phát hành (trừ hoá đơn đã huỷ)"),
@@ -383,6 +395,21 @@ SUA_SAU = [   # thay chuỗi con, chạy sau cùng trên mọi đoạn (kể c�
     ("706.065.000 / 316.048.734 / 0 / 53.398.530 / 69.174.666", "706.065.000 / 0 / 316.048.734 / 53.398.530 / 69.174.666"),
     ("tính số ngày trễ theo ngày UTC", "tính số ngày trễ theo giờ quốc tế (UTC) thay vì giờ Việt Nam"),
     ("tính mốc theo giờ UTC", "tính mốc theo giờ quốc tế (UTC) thay vì giờ Việt Nam"),
+    ("báo cáo tài chính, bảng điều khiển và nhật ký tính mốc theo giờ quốc tế (UTC) thay vì giờ Việt Nam. "
+     "Sau khi sửa,",
+     "báo cáo tài chính, bảng điều khiển và nhật ký tính mốc theo giờ quốc tế (UTC) thay vì giờ Việt Nam. "
+     "Lần đối chiếu báo cáo ngày 18/11 (mục 4.6) tìm thêm ba lỗi, cũng đã sửa: trang hoá đơn của quản lý "
+     "không hiện dòng phí trễ nên các dòng cộng không ra tổng; báo cáo tuổi nợ tính số ngày trễ theo giờ "
+     "UTC; ô số tiền trên báo cáo tuổi nợ bị cắt khi số dài. Sau khi sửa,"),
+    # Người dùng tự sửa trong Word 26/11: cột Hình thức của Bảng 1.6 bỏ mã bất cập (P1)…(P8)
+    (" (P1)", ""),
+    (" (P2)", ""),
+    (" (P3)", ""),
+    (" (P4)", ""),
+    (" (P5)", ""),
+    (" (P6)", ""),
+    (" (P7)", ""),
+    (" (P8)", ""),
 ]
 
 
@@ -499,3 +526,40 @@ def sua_gach_dau_dong(body):
         r_tab.addnext(r_nd)
         sua += 1
     return sua
+
+
+# ====================================================================== 26/11: gọn Chương 3
+# Chỉ giữ ba sơ đồ tuần tự của chức năng chính (báo sự cố có AI, kỹ thuật viên hoàn tất, duyệt chuyển khoản); bước
+# điều phối đã có ở sơ đồ hoạt động. Bỏ mục tổng kết tuần cũ ở cuối Chương 3 (chỉ giữ tổng kết tuần mới ở Chương 4);
+# câu kiểm tra đủ 56 cặp trạng thái là kết quả kiểm thử nên chuyển sang mục 4.5.2.
+DOAN_TUAN_TU = ("Ba sơ đồ tuần tự mô tả ba chức năng chính: cư dân báo sự cố có AI phân loại, kỹ thuật viên hoàn tất "
+                "xử lý, và quản lý duyệt xác nhận chuyển khoản của cư dân. Bước điều phối sau khi lưu yêu cầu đã thể "
+                "hiện ở sơ đồ hoạt động (Hình 3.7). Khung opt là đoạn chỉ chạy khi điều kiện đúng, khung alt là các "
+                "nhánh loại trừ nhau; thông điệp nét đứt là giá trị trả về.")
+CAU_56_CAP = (" Ngoài ra, bảng chuyển trạng thái được kiểm tra trên đủ 56 cặp trạng thái (từ, sang): 11 cặp được phép, "
+              "45 cặp bị chặn; bắt đầu xử lý khi chưa có người phụ trách, hoặc hoàn tất khi chưa ghi kết quả, cũng bị "
+              "chặn.")
+
+
+def gon_chuong3(body, set_text):
+    """Chạy sau bo_muc_uc_chuong3 (mục Chương 3 đã đánh số lại), trước khi đánh số lại bảng, hình."""
+    ps = [p for p in body.iter(qn("w:p")) if not _la_muc_luc(p)]
+    # 1. Bỏ sơ đồ tuần tự điều phối: đoạn mô tả, hình, chú thích đứng liền nhau.
+    mo_ta = next(p for p in ps if _text(p).startswith("Hình 3.12: chi tiết bước điều phối"))
+    hinh = mo_ta.getnext()
+    cap = hinh.getnext()
+    assert hinh.find(".//" + qn("w:drawing")) is not None and _text(cap).startswith("Hình 3.12."), "sai vị trí hình 3.12"
+    for el in (mo_ta, hinh, cap):
+        el.getparent().remove(el)
+    set_text(next(p for p in ps if _text(p).startswith("Bốn sơ đồ tuần tự mô tả")), DOAN_TUAN_TU)
+    # 2. Bỏ mục "Kết quả tuần 4 và việc tiếp theo" (từ tiêu đề tới trước CHƯƠNG 4).
+    dau = next(p for p in ps if re.match(r"3\.\d\. Kết quả tuần 4", _text(p)))
+    el = dau
+    while not _text(el).startswith("CHƯƠNG 4."):
+        nxt = el.getnext()
+        el.getparent().remove(el)
+        el = nxt
+    # 3. Câu 56 cặp trạng thái sang mục 4.5.2.
+    p452 = next(p for p in ps if _text(p).startswith("Các chuyển trạng thái ngoại lệ ở Bảng"))
+    if CAU_56_CAP.strip() not in _text(p452):
+        set_text(p452, _text(p452).rstrip() + CAU_56_CAP)

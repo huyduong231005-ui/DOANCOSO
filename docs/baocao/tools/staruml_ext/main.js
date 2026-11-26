@@ -253,6 +253,9 @@ function buildEdge (diagram, owner, views, e, d) {
   const relKinds = ['relation', 'assoc', 'include', 'extend', 'generalization', 'dependency', 'realization', 'commpath']
   if (relKinds.includes(e.kind)) opts.parent = t.model
   const ev = app.factory.createModelAndView(opts)
+  // Nhãn của đường (tên chuyển trạng thái, điều kiện rẽ nhánh): đẩy ra xa đường kẻ để chữ không bị gạch ngang.
+  if (ev && ev.nameLabel && e.labelDistance !== undefined) app.engine.setProperty(ev.nameLabel, 'distance', e.labelDistance)
+  if (ev && ev.nameLabel && e.labelAlpha !== undefined) app.engine.setProperty(ev.nameLabel, 'alpha', e.labelAlpha)
   // Thanh kích hoạt kéo dài tới lúc trả về: mọi lời gọi tiếp theo của đối tượng đi ra từ thanh này.
   if (e.kind === 'message' && e.activationHeight && ev && ev.activation) {
     app.engine.setProperty(ev.activation, 'height', e.activationHeight)

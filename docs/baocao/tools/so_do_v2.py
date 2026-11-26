@@ -90,6 +90,7 @@ class Act:
         e = {"kind": "flow", "from": a, "to": b}
         if guard:
             e["guard"] = guard
+            e["labelDistance"] = 24   # điều kiện nằm cạnh đường, không bị đường gạch ngang
         if points is None:
             points = self.auto(a, b)
         if points:
@@ -271,8 +272,7 @@ def activity_ai():
 ATTR = {
     "KHU": ["KhuId*", "TenKhu", "DiaChi"],
     "TOA_NHA": ["ToaNhaId*", "MaToaNha", "NgayLapPhi", "TiLePhiTre"],
-    "TANG": ["TangId*", "SoTang"],
-    "CAN_HO": ["CanHoId*", "MaCanHo", "DienTich", "TinhTrangCanHo"],
+    "CAN_HO": ["CanHoId*", "MaCanHo", "SoTang", "DienTich", "TinhTrangCanHo"],
     "NGUOI_DUNG": ["NguoiDungId*", "HoTen", "Email", "SoDienThoai"],
     "VAI_TRO": ["VaiTroId*", "TenVaiTro"],
     "QUYEN": ["QuyenId*", "MaQuyen", "TenQuyen"],
@@ -345,7 +345,8 @@ class Er:
 
 def erd_tong():
     """ERD toàn hệ thống. Người dùng và yêu cầu sự cố nằm giữa; toà ở trên, căn ở dưới hai thực thể này
-    (toà và căn đều nối với cả hai); ảnh, lịch sử kẹp giữa; tầng vòng bên phải; thu phí dưới căn."""
+    (toà và căn đều nối với cả hai); ảnh, lịch sử kẹp giữa; toà – căn vòng bên phải; thu phí dưới căn.
+    Tầng không có thuộc tính riêng nên là thuộc tính SoTang của căn, không thành thực thể."""
     e = Er("Hinh 2.1 ERD toan he thong", "ERD toàn hệ thống", "ERD – toàn hệ thống")
     e.ent("KHU", 16, 16)
     e.ent("TOA_NHA", 416, 16)
@@ -357,7 +358,6 @@ def erd_tong():
     e.ent("NHAT_KY_HE_THONG", 16, 780)
     e.ent("LICH_SU_YEU_CAU", 448, 577)
     e.ent("MUC_UU_TIEN", 1024, 234)
-    e.ent("TANG", 1248, 140)
     e.ent("CAN_HO", 448, 749)
     e.ent("CHI_SO_DICH_VU", 768, 749)
     e.ent("LOAI_DICH_VU", 1120, 858)
@@ -365,8 +365,13 @@ def erd_tong():
     e.ent("THANH_TOAN", 128, 1014)
     # cơ cấu
     e.rel("r1", "gồm toà", "KHU", "(0,n)", "TOA_NHA", "(1,1)")
-    e.rel("r2", "có tầng", "TOA_NHA", "(1,n)", "TANG", "(1,1)", at=(880, 86))
-    e.rel("r3", "có căn", "TANG", "(0,n)", "CAN_HO", "(1,1)", at=(1040, 562))
+    e.rel("r2", "có căn", "TOA_NHA", "(0,n)", "CAN_HO", "(1,1)", at=(1040, 562))
+    # Toà → "có căn": đi ngang sang phải trên đầu nhóm sự cố, xuống rồi vào đỉnh phải hình thoi (không cắt hình nào).
+    tx, ty, tw, th = e.box["TOA_NHA"]
+    dx, dy, dw, dh = e.box["r2"]
+    my = ty + th // 2      # ngang tâm hộp để đầu đường không bị StarUML kéo xiên
+    next(x for x in e.edges if x["from"] == "TOA_NHA" and x["to"] == "r2")["points"] = [
+        [tx + tw, my], [1300, my], [1300, dy + dh // 2], [dx + dw, dy + dh // 2]]
     e.rel("r4", "quản lý toà", "NGUOI_DUNG", "(0,n)", "TOA_NHA", "(0,1)", at=(320, 195))
     e.rel("r5", "cư trú", "NGUOI_DUNG", "(0,n)", "CAN_HO", "(0,n)", at=(304, 593), attrs=CU_TRU_ATTR)
     # tài khoản
@@ -526,7 +531,7 @@ def rd_tong():
     CanHo dưới; nhóm phân quyền dọc bên trái; thu phí dưới bên phải. Bảng đặt thưa (KX, KY) cho đường nối dễ theo."""
     KX, KY = 1.45, 1.3
     r = Rd("Hinh 2.2 Luoc do quan he toan he thong", "Lược đồ quan hệ toàn hệ thống", "RD – toàn hệ thống")
-    for t, x, y in [("Khu", 20, 20), ("ToaNha", 280, 20), ("Tang", 1150, 20), ("AnhYeuCau", 360, 200),
+    for t, x, y in [("Khu", 20, 20), ("ToaNha", 280, 20), ("AnhYeuCau", 360, 200),
                     ("NguoiDung", 20, 360), ("YeuCauBaoTri", 640, 340), ("MucUuTien", 960, 560),
                     ("LichSuYeuCau", 300, 560), ("NguoiDung_VaiTro", 20, 520), ("VaiTro", 20, 630),
                     ("VaiTro_Quyen", 20, 740), ("Quyen", 20, 850), ("ThanhToan", 20, 980), ("NhatKyHeThong", 20, 1140),
@@ -542,10 +547,11 @@ def rd_tong():
         [(R(b, "AnhYeuCau") + b("YeuCauBaoTri")[0]) // 2, b("AnhYeuCau")[1] + 70], [R(b, "AnhYeuCau"), b("AnhYeuCau")[1] + 70]])
     # Dải ngang giữa nhóm sự cố và nhóm căn hộ, thu phí.
     dai = lambda b: (max(D(b, "LichSuYeuCau"), D(b, "MucUuTien")) + b("CanHo")[1]) // 2
-    # Tầng → căn: vòng bên phải nhóm sự cố, đi ngang dải giữa rồi xuống đỉnh bảng CanHo.
-    r.route("Tang", "CanHo", "TangId", lambda b: [
-        [b("Tang")[0] + 90, D(b, "Tang")], [b("Tang")[0] + 90, dai(b) + 20], [b("CanHo")[0] + 150, dai(b) + 20],
-        [b("CanHo")[0] + 150, b("CanHo")[1]]])
+    # Toà → căn: ra cạnh phải ToaNha, vòng bên phải nhóm sự cố, đi ngang dải giữa rồi xuống đỉnh bảng CanHo.
+    phai = 20 + round((1240 - 20) * KX)
+    r.route("ToaNha", "CanHo", "ToaNhaId", lambda b: [
+        [R(b, "ToaNha"), b("ToaNha")[1] + 70], [phai, b("ToaNha")[1] + 70], [phai, dai(b) + 20],
+        [b("CanHo")[0] + 150, dai(b) + 20], [b("CanHo")[0] + 150, b("CanHo")[1]]])
     # Căn → yêu cầu: lên từ đỉnh CanHo, rẽ phải trên dải giữa, lên đáy YeuCauBaoTri.
     r.route("CanHo", "YeuCauBaoTri", "CanHoId", lambda b: [
         [b("CanHo")[0] + 80, b("CanHo")[1]], [b("CanHo")[0] + 80, dai(b) - 20], [b("YeuCauBaoTri")[0] + 40, dai(b) - 20],
@@ -740,8 +746,7 @@ CLS = {
     "ToaNha": ([_p("maToaNha", "string"), _p("trangThaiToaNha", "int"), _p("ngayLapPhi", "int"),
                 _p("soNgayAnHan", "int"), _p("tiLePhiTre", "int")],
                [_o("taoMoi"), _o("capNhat"), _o("tenToa", ret="string")]),
-    "Tang": ([_p("soTang", "int")], [_o("dsCanCuaTang")]),
-    "CanHo": ([_p("maCanHo", "string"), _p("dienTich", "decimal"), _p("soPhongNgu", "int"), _p("tinhTrangCanHo", "int")],
+    "CanHo": ([_p("maCanHo", "string"), _p("soTang", "int"), _p("dienTich", "decimal"), _p("soPhongNgu", "int"), _p("tinhTrangCanHo", "int")],
               [_o("taoMoi"), _o("doiTinhTrang"), _o("dangCoNguoiO", ret="bool"), _o("layNguoiDaiDien", ret="CuTru")]),
     "CuTru": ([_p("vaiTroTrongHo", "int"), _p("laDaiDien", "bool"), _p("ngayVaoO", "date"),
                _p("ngayChuyenDi", "date"), _p("ngayXacNhan", "datetime")],
@@ -826,7 +831,7 @@ def class_tong():
     """Sơ đồ lớp toàn hệ thống, cùng bố cục với ERD tổng: người dùng và yêu cầu sự cố ở giữa, toà ở trên, căn hộ ở
     dưới; phân quyền bên trái; thu phí dưới bên phải; kiểu liệt kê đặt cạnh lớp dùng nó."""
     k = Cls("Hinh 3.8 So do lop tong", "Sơ đồ lớp của hệ thống")
-    for key, x, y in [("Khu", 20, 20), ("ToaNha", 420, 20), ("Tang", 1700, 20),
+    for key, x, y in [("Khu", 20, 20), ("ToaNha", 420, 20),
                       ("NguoiDung", 300, 420), ("VaiTro", 20, 450), ("Quyen", 20, 650),
                       ("AnhYeuCau", 700, 610), ("YeuCauBaoTri", 900, 380), ("MucUuTien", 1250, 200),
                       ("TrangThaiYeuCau", 1200, 690), ("LoaiSuCo", 1350, 690),
@@ -838,8 +843,9 @@ def class_tong():
         k.c(key, x, y)
     # cơ cấu, cư trú, phân quyền
     k.a("Khu", "ToaNha", "1", "0..*")
-    k.a("ToaNha", "Tang", "1", "1..*")
-    k.a("Tang", "CanHo", "1", "0..*")
+    # Toà – căn: vòng bên phải trên đầu MucUuTien và các kiểu liệt kê rồi vào cạnh phải CanHo, không cắt lớp nào.
+    k.a("ToaNha", "CanHo", "1", "0..*", pts=[[542, 65], [1576, 65], [1576, 1023], [868, 1023]])
+    k.edges[-1]["lineStyle"] = 0
     k.a("CanHo", "CuTru", "1", "0..*")
     k.a("NguoiDung", "CuTru", "1", "0..*")
     k.a("NguoiDung", "ToaNha", "0..1", "0..*", name="quanLy")
@@ -1015,7 +1021,7 @@ def build(diagrams, only=None):
 def diagrams():
     return [as_is(), to_be(), state_machine(), use_case_overview(), deployment(), uc03(), uc11(), uc16(), uc06(), uc20(),
             activity_ai(), erd_tong(), rd_tong(), class_tong(),
-            seq_bao_su_co(), seq_dieu_phoi(), seq_hoan_tat(), seq_duyet_thanh_toan()]
+            seq_bao_su_co(), seq_hoan_tat(), seq_duyet_thanh_toan()]   # điều phối: đã có ở sơ đồ hoạt động
 
 
 if __name__ == "__main__":

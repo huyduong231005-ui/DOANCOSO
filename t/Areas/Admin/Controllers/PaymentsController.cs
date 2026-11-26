@@ -22,7 +22,7 @@ public class PaymentsController : AdminBaseController
 
         // Only invoices that still need collecting (Balance > 0, not Draft/Cancelled/Refunded/Paid).
         var query = Db.Invoices
-            .Include(i => i.Apartment).ThenInclude(a => a.Floor).ThenInclude(f => f.Building)
+            .Include(i => i.Apartment).ThenInclude(a => a.Building)
             .Include(i => i.Items)
             .Where(i => i.Balance > 0
                         && i.Status != InvoiceStatus.Draft
@@ -33,7 +33,7 @@ public class PaymentsController : AdminBaseController
 
         if (!string.IsNullOrWhiteSpace(q))
             query = query.Where(i => i.InvoiceNumber.Contains(q) || i.Apartment.UnitCode.Contains(q));
-        if (buildingId.HasValue) query = query.Where(i => i.Apartment.Floor.BuildingId == buildingId.Value);
+        if (buildingId.HasValue) query = query.Where(i => i.Apartment.BuildingId == buildingId.Value);
         if (status.HasValue) query = query.Where(i => i.Status == status.Value);
         if (month.HasValue) query = query.Where(i => i.BillingMonth == month.Value);
 
@@ -81,7 +81,7 @@ public class PaymentsController : AdminBaseController
                 InvoiceNumber = i.InvoiceNumber,
                 ApartmentId = i.ApartmentId,
                 UnitCode = i.Apartment.UnitCode,
-                BuildingName = "Toà " + i.Apartment.Floor.Building.Code,
+                BuildingName = "Toà " + i.Apartment.Building.Code,
                 Kind = i.Kind,
                 BillingMonth = i.BillingMonth,
                 IssueDate = i.IssueDate,

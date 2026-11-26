@@ -9,7 +9,7 @@
     var isOpen = MaintenanceRequest.ActiveStatuses.Contains(Model.Status);
     var overdue = Model.DueAt != null && (Model.ResolvedAt ?? DateTime.UtcNow) > Model.DueAt
                   && Model.Status is not (MaintenanceStatus.Rejected or MaintenanceStatus.Cancelled);
-    var building = Model.Apartment?.Floor.Building ?? Model.CommonBuilding;
+    var building = Model.Apartment?.Building ?? Model.CommonBuilding;
     var reportPhotos = Model.Photos.Where(p => p.Stage == MaintenancePhotoStage.Report).ToList();
     var resultPhotos = Model.Photos.Where(p => p.Stage == MaintenancePhotoStage.Result).ToList();
     string StatusPill(MaintenanceStatus s) => s switch

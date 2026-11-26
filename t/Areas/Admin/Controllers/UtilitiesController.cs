@@ -23,7 +23,7 @@ public class UtilitiesController : AdminBaseController
             .AsQueryable();
 
         if (apartmentId.HasValue) query = query.Where(r => r.ApartmentId == apartmentId.Value);
-        if (buildingId.HasValue) query = query.Where(r => r.Apartment.Floor.BuildingId == buildingId.Value);
+        if (buildingId.HasValue) query = query.Where(r => r.Apartment.BuildingId == buildingId.Value);
         if (utilityTypeId.HasValue) query = query.Where(r => r.UtilityTypeId == utilityTypeId.Value);
         if (billingMonth.HasValue) query = query.Where(r => r.BillingMonth == billingMonth.Value);
 
@@ -35,7 +35,7 @@ public class UtilitiesController : AdminBaseController
             {
                 Id = r.Id, ApartmentId = r.ApartmentId,
                 UnitCode = r.Apartment.UnitCode,
-                BuildingName = "Toà " + r.Apartment.Floor.Building.Code,
+                BuildingName = "Toà " + r.Apartment.Building.Code,
                 UtilityName = r.UtilityType.Name,
                 BillingMonth = r.BillingMonth,
                 Previous = r.PreviousReading, Current = r.CurrentReading,
@@ -204,9 +204,9 @@ public class UtilitiesController : AdminBaseController
         vm.Rate = type?.DefaultRate ?? 0;
 
         var apartments = await Db.Apartments
-            .Where(a => a.Floor.BuildingId == vm.BuildingId && a.Condition != ApartmentCondition.NotHandedOver)
-            .OrderBy(a => a.Floor.Number).ThenBy(a => a.UnitCode)
-            .Select(a => new { a.Id, a.UnitCode, FloorNumber = a.Floor.Number })
+            .Where(a => a.BuildingId == vm.BuildingId && a.Condition != ApartmentCondition.NotHandedOver)
+            .OrderBy(a => a.FloorNumber).ThenBy(a => a.UnitCode)
+            .Select(a => new { a.Id, a.UnitCode, FloorNumber = a.FloorNumber })
             .ToListAsync();
         var ids = apartments.Select(a => a.Id).ToList();
         var readings = await Db.UtilityReadings
@@ -255,7 +255,7 @@ public class UtilitiesController : AdminBaseController
         if (type == null || !IsValidBillingMonth(input.BillingMonth)) return BadRequest();
 
         var ids = input.Rows.Select(r => r.ApartmentId).ToList();
-        var validIds = await Db.Apartments.Where(a => ids.Contains(a.Id) && a.Floor.BuildingId == input.BuildingId)
+        var validIds = await Db.Apartments.Where(a => ids.Contains(a.Id) && a.BuildingId == input.BuildingId)
             .Select(a => a.Id).ToListAsync();
         // Căn đã lập hoá đơn tháng kỳ này: chỉ số ghi thêm sẽ không bao giờ được tính tiền, nên bỏ qua.
         var invoiced = await InvoicedApartmentIdsAsync(validIds, input.BillingMonth);
@@ -373,8 +373,8 @@ public class UtilitiesController : AdminBaseController
     {
         vm.Apartments = await Db.Apartments
             .Where(a => a.Condition != ApartmentCondition.NotHandedOver || a.Id == vm.ApartmentId)
-            .OrderBy(a => a.Floor.Building.Code).ThenBy(a => a.UnitCode)
-            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + "Toà " + a.Floor.Building.Code })
+            .OrderBy(a => a.Building.Code).ThenBy(a => a.UnitCode)
+            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + "Toà " + a.Building.Code })
             .ToListAsync();
         vm.UtilityTypes = await MeterTypes().ToListAsync();
     }

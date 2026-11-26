@@ -24,7 +24,7 @@ public class InvoicesController : AdminBaseController
     public async Task<IActionResult> Pdf(int id)
     {
         var inv = await Db.Invoices
-            .Include(i => i.Apartment).ThenInclude(a => a.Floor).ThenInclude(f => f.Building).ThenInclude(b => b.Project)
+            .Include(i => i.Apartment).ThenInclude(a => a.Building).ThenInclude(b => b.Project)
             .Include(i => i.Apartment).ThenInclude(a => a.Residents)
             .Include(i => i.Items)
             .Include(i => i.Payments)
@@ -45,7 +45,7 @@ public class InvoicesController : AdminBaseController
 
         if (!string.IsNullOrWhiteSpace(q))
             query = query.Where(i => i.InvoiceNumber.Contains(q) || i.Apartment.UnitCode.Contains(q));
-        if (buildingId.HasValue) query = query.Where(i => i.Apartment.Floor.BuildingId == buildingId.Value);
+        if (buildingId.HasValue) query = query.Where(i => i.Apartment.BuildingId == buildingId.Value);
         if (status.HasValue) query = query.Where(i => i.Status == status.Value);
         if (kind.HasValue) query = query.Where(i => i.Kind == kind.Value);
         if (month.HasValue) query = query.Where(i => i.BillingMonth == month.Value);
@@ -59,7 +59,7 @@ public class InvoicesController : AdminBaseController
                 Id = i.Id, InvoiceNumber = i.InvoiceNumber,
                 ApartmentId = i.ApartmentId,
                 UnitCode = i.Apartment.UnitCode,
-                BuildingName = "Toà " + i.Apartment.Floor.Building.Code,
+                BuildingName = "Toà " + i.Apartment.Building.Code,
                 Kind = i.Kind, BillingMonth = i.BillingMonth,
                 IssueDate = i.IssueDate, DueDate = i.DueDate,
                 Total = i.Total, AmountPaid = i.AmountPaid, Balance = i.Balance,
@@ -112,7 +112,7 @@ public class InvoicesController : AdminBaseController
     {
         SetActiveNav("invoices");
         var inv = await Db.Invoices
-            .Include(i => i.Apartment).ThenInclude(a => a.Floor).ThenInclude(f => f.Building).ThenInclude(b => b.Project)
+            .Include(i => i.Apartment).ThenInclude(a => a.Building).ThenInclude(b => b.Project)
             .Include(i => i.Apartment).ThenInclude(a => a.Residents)
             .Include(i => i.Items)
             .Include(i => i.Payments)
@@ -464,8 +464,8 @@ public class InvoicesController : AdminBaseController
         vm.Services = await ServicesAsync();
         vm.Apartments = await Db.Apartments
             .Where(a => a.Condition != ApartmentCondition.NotHandedOver || a.Id == vm.ApartmentId)
-            .OrderBy(a => a.Floor.Building.Code).ThenBy(a => a.UnitCode)
-            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + "Toà " + a.Floor.Building.Code })
+            .OrderBy(a => a.Building.Code).ThenBy(a => a.UnitCode)
+            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + "Toà " + a.Building.Code })
             .ToListAsync();
     }
 }

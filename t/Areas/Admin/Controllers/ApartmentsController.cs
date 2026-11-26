@@ -44,22 +44,22 @@ public class ApartmentsController : AdminBaseController
             ApartmentOccupancy o => query.Where(a => (int)a.Condition == (int)o),
             null => query
         };
-        if (projectId.HasValue) query = query.Where(a => a.Floor.Building.ProjectId == projectId.Value);
-        if (buildingId.HasValue) query = query.Where(a => a.Floor.BuildingId == buildingId.Value);
+        if (projectId.HasValue) query = query.Where(a => a.Building.ProjectId == projectId.Value);
+        if (buildingId.HasValue) query = query.Where(a => a.BuildingId == buildingId.Value);
         if (debt) query = query.Where(a => a.Invoices.Any(i => i.Balance > 0 && i.DueDate < today
             && i.Status != InvoiceStatus.Cancelled && i.Status != InvoiceStatus.Draft));
 
         var total = await query.CountAsync();
         var rows = await query
-            .OrderBy(a => a.Floor.Building.Code).ThenBy(a => a.Floor.Number).ThenBy(a => a.UnitCode)
+            .OrderBy(a => a.Building.Code).ThenBy(a => a.FloorNumber).ThenBy(a => a.UnitCode)
             .Skip((page - 1) * pageSize).Take(pageSize)
             .Select(a => new ApartmentListVm
             {
                 Id = a.Id,
                 UnitCode = a.UnitCode,
-                BuildingName = "Toà " + a.Floor.Building.Code,
-                ProjectName = a.Floor.Building.Project != null ? a.Floor.Building.Project.Name : "",
-                FloorNumber = a.Floor.Number,
+                BuildingName = "Toà " + a.Building.Code,
+                ProjectName = a.Building.Project != null ? a.Building.Project.Name : "",
+                FloorNumber = a.FloorNumber,
                 Area = a.Area,
                 Bedrooms = a.Bedrooms,
                 Condition = a.Condition,
@@ -96,7 +96,7 @@ public class ApartmentsController : AdminBaseController
             .Select(a => new
             {
                 title = a.UnitCode,
-                subtitle = "Toà " + a.Floor.Building.Code + " · Tầng " + a.Floor.Number,
+                subtitle = "Toà " + a.Building.Code + " · Tầng " + a.FloorNumber,
                 url = Url.Action(nameof(Details), new { id = a.Id }) ?? "#",
                 icon = "apartment"
             })
@@ -111,9 +111,9 @@ public class ApartmentsController : AdminBaseController
         if (vm == null) return NotFound();
         var apt = vm.Apartment;
         var crumbs = new List<(string, string?)> { ("Khu & toà nhà", Url.Action("Index", "Projects")) };
-        if (apt.Floor.Building.Project != null)
-            crumbs.Add((apt.Floor.Building.Project.Name, Url.Action("Details", "Projects", new { id = apt.Floor.Building.ProjectId })));
-        crumbs.Add((apt.Floor.Building.Name, Url.Action("Details", "Buildings", new { id = apt.Floor.BuildingId })));
+        if (apt.Building.Project != null)
+            crumbs.Add((apt.Building.Project.Name, Url.Action("Details", "Projects", new { id = apt.Building.ProjectId })));
+        crumbs.Add((apt.Building.Name, Url.Action("Details", "Buildings", new { id = apt.BuildingId })));
         crumbs.Add((apt.UnitCode, null));
         SetBreadcrumb(crumbs.ToArray());
         return View(vm);
@@ -130,8 +130,7 @@ public class ApartmentsController : AdminBaseController
     private async Task<ApartmentDetailVm?> LoadDetailAsync(int id, int recentLimit)
     {
         var apt = await Db.Apartments
-            .Include(a => a.Floor.Building).ThenInclude(b => b.Project)
-            .Include(a => a.Floor)
+            .Include(a => a.Building).ThenInclude(b => b.Project)
             .Include(a => a.Residents.OrderBy(r => r.MoveOutDate != null).ThenByDescending(r => r.IsPrimary).ThenBy(r => r.Role))
                 .ThenInclude(r => r.User)
             .Include(a => a.RecurringCharges.OrderBy(c => c.UtilityTypeId))
@@ -160,11 +159,11 @@ public class ApartmentsController : AdminBaseController
         };
     }
 
-    public async Task<IActionResult> Create(int? buildingId, int? floorId)
+    public async Task<IActionResult> Create(int? buildingId, int? floor)
     {
         SetActiveNav("apartments");
         SetBreadcrumb(("Căn hộ", Url.Action(nameof(Index))), ("Thêm căn", null));
-        var vm = new ApartmentEditVm { BuildingId = buildingId ?? 0, FloorId = floorId ?? 0, Area = 70, Bedrooms = 2 };
+        var vm = new ApartmentEditVm { BuildingId = buildingId ?? 0, FloorNumber = floor ?? 1, Area = 70, Bedrooms = 2 };
         await PopulateLookupsAsync(vm);
         return View("Edit", vm);
     }
@@ -178,7 +177,7 @@ public class ApartmentsController : AdminBaseController
 
         var vm = new ApartmentEditVm
         {
-            Id = apt.Id, UnitCode = apt.UnitCode, BuildingId = apt.Floor.BuildingId, FloorId = apt.FloorId,
+            Id = apt.Id, UnitCode = apt.UnitCode, BuildingId = apt.BuildingId, FloorNumber = apt.FloorNumber,
             Area = apt.Area, Bedrooms = apt.Bedrooms, Condition = apt.Condition
         };
         await PopulateLookupsAsync(vm);
@@ -189,9 +188,9 @@ public class ApartmentsController : AdminBaseController
     public async Task<IActionResult> Edit(ApartmentEditVm input)
     {
         input.UnitCode = input.UnitCode?.Trim() ?? string.Empty;
-        if (!await Db.Floors.AnyAsync(f => f.Id == input.FloorId && f.BuildingId == input.BuildingId))
-            ModelState.AddModelError(nameof(input.FloorId), "Tầng không thuộc toà đã chọn.");
-        if (await Db.Apartments.AnyAsync(a => a.Floor.BuildingId == input.BuildingId && a.UnitCode == input.UnitCode && a.Id != input.Id))
+        if (!await Db.Buildings.AnyAsync(b => b.Id == input.BuildingId))
+            ModelState.AddModelError(nameof(input.BuildingId), "Toà không tồn tại.");
+        if (await Db.Apartments.AnyAsync(a => a.BuildingId == input.BuildingId && a.UnitCode == input.UnitCode && a.Id != input.Id))
             ModelState.AddModelError(nameof(input.UnitCode), "Mã căn đã tồn tại trong toà này.");
         if (input.Id != 0 && await ConditionConflictAsync(input.Id, input.Condition) is { } conflict)
             ModelState.AddModelError(nameof(input.Condition), conflict);
@@ -212,7 +211,7 @@ public class ApartmentsController : AdminBaseController
             if ((apt = (await Db.Apartments.FirstOrDefaultAsync(a => a.Id == input.Id))!) is null) return NotFound(); // Id gửi lên không tồn tại
         }
 
-        apt.UnitCode = input.UnitCode; apt.Floor.BuildingId = input.BuildingId; apt.FloorId = input.FloorId;
+        apt.UnitCode = input.UnitCode; apt.BuildingId = input.BuildingId; apt.FloorNumber = input.FloorNumber;
         apt.Area = input.Area; apt.Bedrooms = input.Bedrooms; apt.Condition = input.Condition;
 
         await Db.SaveChangesAsync();
@@ -266,7 +265,7 @@ public class ApartmentsController : AdminBaseController
             TempData["Danger"] = "Không xoá được căn đang có cư dân hoặc đã phát sinh hoá đơn.";
             return RedirectToAction(nameof(Details), new { id });
         }
-        var buildingId = apt.Floor.BuildingId;
+        var buildingId = apt.BuildingId;
         Db.Apartments.Remove(apt);
         await Db.SaveChangesAsync();
         TempData["Success"] = $"Đã xoá căn {apt.UnitCode}.";
@@ -418,14 +417,9 @@ public class ApartmentsController : AdminBaseController
         return RedirectToAction(nameof(Details), new { id = apartmentId });
     }
 
-    public async Task<IActionResult> FloorsOf(int buildingId) =>
-        Json(await Db.Floors.Where(f => f.BuildingId == buildingId).OrderBy(f => f.Number)
-            .Select(f => new { id = f.Id, label = "Tầng " + f.Number }).ToListAsync());
-
     private async Task PopulateLookupsAsync(ApartmentEditVm vm)
     {
         vm.Buildings = await Db.Buildings.Include(b => b.Project).OrderBy(b => b.Code).ToListAsync();
         if (vm.BuildingId == 0 && vm.Buildings.Count > 0) vm.BuildingId = vm.Buildings[0].Id;
-        vm.Floors = await Db.Floors.Where(f => f.BuildingId == vm.BuildingId).OrderBy(f => f.Number).ToListAsync();
     }
 }

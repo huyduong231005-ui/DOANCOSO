@@ -71,7 +71,7 @@
 
     @if (!Model.Floors.Any())
     {
-        <div class="empty-state"><span class="material-symbols-outlined">stacks</span><h3>Toà chưa có tầng</h3><p>Tăng số tầng trong phần sửa toà.</p></div>
+        <div class="empty-state"><span class="material-symbols-outlined">stacks</span><h3>Toà chưa có căn</h3><p><a asp-controller="Apartments" asp-action="Create" asp-route-buildingId="@b.Id">Thêm căn</a> cho toà.</p></div>
     }
     else
     {
@@ -81,13 +81,13 @@
                 var inUse = row.Units.Count(u => u.Occupancy == ApartmentOccupancy.Occupied);
                 <div class="plan-row">
                     <div class="plan-floor">
-                        <b>Tầng @row.Floor.Number</b>
+                        <b>Tầng @row.Number</b>
                         <small>@inUse/@row.Units.Count đang ở</small>
                     </div>
                     @if (!row.Units.Any())
                     {
                         <div class="plan-empty">
-                            Chưa có căn · <a asp-controller="Apartments" asp-action="Create" asp-route-buildingId="@b.Id" asp-route-floorId="@row.Floor.Id" style="text-decoration:underline;">thêm căn</a>
+                            Chưa có căn · <a asp-controller="Apartments" asp-action="Create" asp-route-buildingId="@b.Id" asp-route-floor="@row.Number" style="text-decoration:underline;">thêm căn</a>
                         </div>
                     }
                     else

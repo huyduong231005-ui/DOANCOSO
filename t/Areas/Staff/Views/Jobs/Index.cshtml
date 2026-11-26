@@ -33,7 +33,7 @@
                 var overdue = r.DueAt != null && r.DueAt < now && MaintenanceRequest.ActiveStatuses.Contains(r.Status);
                 <tr data-href="@Url.Action("Details", new { id = r.Id })" style="cursor:pointer;" onclick="location.href=this.dataset.href">
                     <td><span class="row-title">@r.RequestNumber</span><div class="row-meta">@r.Title</div></td>
-                    <td>@r.PlaceLabel<div class="row-meta">@((r.Apartment?.Floor.Building ?? r.CommonBuilding)?.Name)</div></td>
+                    <td>@r.PlaceLabel<div class="row-meta">@((r.Apartment?.Building ?? r.CommonBuilding)?.Name)</div></td>
                     <td><span class="@PrioPill(r.Priority)">@r.Priority.Vi()</span></td>
                     <td class="no-wrap" style="@(overdue ? "color:var(--admin-danger);font-weight:600;" : "")">@(r.DueAt?.ToLocalTime().ToString("HH:mm dd/MM") ?? "—")</td>
                     <td>@r.Status.Vi()</td>

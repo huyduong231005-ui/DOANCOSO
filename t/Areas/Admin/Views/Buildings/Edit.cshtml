@@ -24,12 +24,15 @@
                     <span class="err" asp-validation-for="Code"></span>
                     <span class="hint">Tên toà là "Toà" + mã; mã cũng là tiền tố mã căn: A-12.05</span>
                 </div>
-                <div class="form-field span-4">
-                    <label asp-for="FloorCount">Số tầng</label>
-                    <input asp-for="FloorCount" type="number" min="1" max="120" />
-                    <span class="err" asp-validation-for="FloorCount"></span>
-                    <span class="hint">Tăng số tầng sẽ tự thêm tầng mới</span>
-                </div>
+                @if (Model.Id == 0)
+                {
+                    <div class="form-field span-4">
+                        <label asp-for="FloorCount">Số tầng</label>
+                        <input asp-for="FloorCount" type="number" min="1" max="120" />
+                        <span class="err" asp-validation-for="FloorCount"></span>
+                        <span class="hint">Dùng để sinh sẵn căn cho từng tầng</span>
+                    </div>
+                }
 
                 <div class="form-field span-4">
                     <label asp-for="ProjectId">Thuộc khu</label>

@@ -21,8 +21,8 @@ public enum ApartmentOccupancy
 }
 
 /// <summary>
-/// Một căn hộ nằm trên một tầng. Toà của căn suy ra qua tầng (Floor.Building), không lưu lại ở căn
-/// để một thông tin chỉ nằm ở một bảng. Mã căn (vd: A-12.05) bắt đầu bằng mã toà nên duy nhất toàn hệ thống.
+/// Một căn hộ thuộc một toà, nằm ở một tầng (SoTang). Tầng không có thông tin riêng nên không thành bảng.
+/// Mã căn (vd: A-12.05) bắt đầu bằng mã toà nên duy nhất toàn hệ thống.
 /// </summary>
 public class Apartment : BaseEntity
 {
@@ -31,8 +31,9 @@ public class Apartment : BaseEntity
     public int Bedrooms { get; set; }
     public ApartmentCondition Condition { get; set; } = ApartmentCondition.HandedOver;
 
-    public int FloorId { get; set; }
-    public Floor Floor { get; set; } = null!;
+    public int BuildingId { get; set; }
+    public Building Building { get; set; } = null!;
+    public int FloorNumber { get; set; }
 
     public ICollection<ApartmentResident> Residents { get; set; } = new List<ApartmentResident>();
     public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();

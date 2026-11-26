@@ -59,11 +59,11 @@ public class BuildingsController : AdminBaseController
 
         var today = VnTime.Today;
         var units = await Db.Apartments
-            .Where(a => a.Floor.BuildingId == id)
+            .Where(a => a.BuildingId == id)
             .Select(a => new UnitCellVm
             {
                 Id = a.Id,
-                FloorId = a.FloorId,
+                FloorNumber = a.FloorNumber,
                 UnitCode = a.UnitCode,
                 Area = a.Area,
                 Bedrooms = a.Bedrooms,
@@ -81,16 +81,13 @@ public class BuildingsController : AdminBaseController
             })
             .ToListAsync();
 
-        var floors = await Db.Floors.Where(f => f.BuildingId == id).OrderByDescending(f => f.Number).ToListAsync();
         var feePerM2 = await Db.UtilityTypes.Where(t => t.Method == BillingMethod.ByArea).SumAsync(t => t.DefaultRate);
         var vm = new BuildingPlanVm
         {
             Building = b,
-            Floors = floors.Select(f => new FloorRowVm
-            {
-                Floor = f,
-                Units = units.Where(u => u.FloorId == f.Id).OrderBy(u => u.UnitCode).ToList()
-            }).ToList(),
+            // Mỗi hàng của sơ đồ là một tầng có căn, tầng cao ở trên.
+            Floors = units.GroupBy(u => u.FloorNumber).OrderByDescending(g => g.Key)
+                .Select(g => new FloorRowVm { Number = g.Key, Units = g.OrderBy(u => u.UnitCode).ToList() }).ToList(),
             ResidentCount = units.Sum(u => u.ResidentCount),
             MonthlyFeeEstimate = Math.Round(units.Where(u => u.Condition != ApartmentCondition.NotHandedOver)
                 .Sum(u => (decimal)u.Area) * feePerM2, 0),
@@ -115,7 +112,7 @@ public class BuildingsController : AdminBaseController
     public async Task<IActionResult> Edit(int id)
     {
         SetActiveNav("projects");
-        var b = await Db.Buildings.Include(x => x.Floors).FirstOrDefaultAsync(x => x.Id == id);
+        var b = await Db.Buildings.FirstOrDefaultAsync(x => x.Id == id);
         if (b == null) return NotFound();
         SetBreadcrumb(("Khu & toà nhà", Url.Action("Index", "Projects")), (b.Name, Url.Action(nameof(Details), new { id })), ("Sửa", null));
 
@@ -123,7 +120,6 @@ public class BuildingsController : AdminBaseController
         {
             Id = b.Id, Code = b.Code,
             ProjectId = b.ProjectId,
-            FloorCount = b.Floors.Count,
             ManagerId = b.ManagerId, Status = b.Status,
             DefaultBillingDay = b.DefaultBillingDay,
             DefaultLateFeeAfterDays = b.DefaultLateFeeAfterDays,
@@ -163,22 +159,16 @@ public class BuildingsController : AdminBaseController
         b.DefaultLateFeePercent = input.DefaultLateFeePercent;
         await Db.SaveChangesAsync();
 
-        // Thêm tầng còn thiếu khi tăng số tầng (không tự xoá tầng khi giảm để tránh mất căn).
-        var existing = await Db.Floors.Where(f => f.BuildingId == b.Id).Select(f => f.Number).ToListAsync();
-        var newFloors = Enumerable.Range(1, input.FloorCount).Except(existing)
-            .Select(n => new Floor { BuildingId = b.Id, Number = n }).ToList();
-        Db.Floors.AddRange(newFloors);
-        await Db.SaveChangesAsync();
-
+        // Toà mới: sinh sẵn căn cho từng tầng (tầng không thành bảng, mỗi căn ghi số tầng).
         if (isNew && input.UnitsPerFloor > 0)
         {
             var prefix = string.IsNullOrEmpty(b.Code) ? "" : b.Code + "-";
-            foreach (var f in newFloors)
+            for (var f = 1; f <= input.FloorCount; f++)
                 for (var u = 1; u <= input.UnitsPerFloor; u++)
                     Db.Apartments.Add(new Apartment
                     {
-                        FloorId = f.Id,
-                        UnitCode = $"{prefix}{f.Number:00}.{u:00}",
+                        BuildingId = b.Id, FloorNumber = f,
+                        UnitCode = $"{prefix}{f:00}.{u:00}",
                         Area = input.DefaultUnitArea, Bedrooms = 2,
                         Condition = ApartmentCondition.NotHandedOver
                     });
@@ -186,7 +176,7 @@ public class BuildingsController : AdminBaseController
         }
 
         TempData["Success"] = isNew
-            ? $"Đã tạo toà {b.Name}" + (input.UnitsPerFloor > 0 ? $" với {newFloors.Count * input.UnitsPerFloor} căn." : ".")
+            ? $"Đã tạo toà {b.Name}" + (input.UnitsPerFloor > 0 ? $" với {input.FloorCount * input.UnitsPerFloor} căn." : ".")
             : "Đã cập nhật toà nhà.";
         return RedirectToAction(nameof(Details), new { id = b.Id });
     }
@@ -209,7 +199,7 @@ public class BuildingsController : AdminBaseController
     {
         var b = await Db.Buildings.FirstOrDefaultAsync(x => x.Id == id);
         if (b == null) return NotFound();
-        if (await Db.Apartments.AnyAsync(a => a.Floor.BuildingId == id))
+        if (await Db.Apartments.AnyAsync(a => a.BuildingId == id))
         {
             TempData["Danger"] = "Không thể xoá toà nhà còn căn hộ.";
             return RedirectToAction(nameof(Details), new { id });

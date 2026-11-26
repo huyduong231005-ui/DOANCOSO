@@ -97,7 +97,7 @@ public class InvoiceGenerator
     public async Task<int> GenerateForBuildingAsync(int buildingId, DateTime forDate, CancellationToken ct = default)
     {
         var ids = await _db.Apartments
-            .Where(a => a.Floor.BuildingId == buildingId && a.Condition != ApartmentCondition.NotHandedOver)
+            .Where(a => a.BuildingId == buildingId && a.Condition != ApartmentCondition.NotHandedOver)
             .Select(a => a.Id)
             .ToListAsync(ct);
         var generated = 0;
@@ -188,7 +188,7 @@ public class InvoiceGenerator
     public async Task<int> ApplyLateFeesAsync(DateTime asOf, CancellationToken ct = default)
     {
         var due = await _db.Invoices
-            .Include(i => i.Apartment).ThenInclude(a => a.Floor).ThenInclude(f => f.Building)
+            .Include(i => i.Apartment).ThenInclude(a => a.Building)
             .Where(i => (i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
                         && i.Balance > 0
                         && i.DueDate < asOf
@@ -198,7 +198,7 @@ public class InvoiceGenerator
         var applied = 0;
         foreach (var inv in due)
         {
-            var building = inv.Apartment.Floor.Building;
+            var building = inv.Apartment.Building;
             if ((asOf - inv.DueDate).TotalDays < building.DefaultLateFeeAfterDays) continue;
 
             var fee = Math.Round(inv.Balance * building.DefaultLateFeePercent / 100m, 0);

@@ -26,7 +26,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<Project> Projects => Set<Project>();
 
     public DbSet<Building> Buildings => Set<Building>();
-    public DbSet<Floor> Floors => Set<Floor>();
+    // Tầng không thành bảng: mỗi căn ghi toà (ToaNhaId) và số tầng (SoTang).
     public DbSet<UtilityType> UtilityTypes => Set<UtilityType>();
     public DbSet<UtilityReading> UtilityReadings => Set<UtilityReading>();
 
@@ -123,6 +123,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
             {
                 t.HasCheckConstraint("CK_CanHo_DienTich", "\"DienTich\" > 0");
                 t.HasCheckConstraint("CK_CanHo_SoPhongNgu", "\"SoPhongNgu\" >= 0");
+                t.HasCheckConstraint("CK_CanHo_SoTang", "\"SoTang\" >= 1");
                 t.HasCheckConstraint("CK_CanHo_TinhTrangCanHo", "\"TinhTrangCanHo\" IN (0, 1, 3)");
             });
             MapBaseEntityColumns(e, "CanHoId");
@@ -131,18 +132,19 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.Property(a => a.Area).HasColumnName("DienTich");
             e.Property(a => a.Bedrooms).HasColumnName("SoPhongNgu");
             e.Property(a => a.Condition).HasColumnName("TinhTrangCanHo");
-            e.Property(a => a.FloorId).HasColumnName("TangId");
+            e.Property(a => a.BuildingId).HasColumnName("ToaNhaId");
+            e.Property(a => a.FloorNumber).HasColumnName("SoTang");
 
             e.HasIndex(a => a.Condition);
-            e.HasIndex(a => a.FloorId);
+            e.HasIndex(a => new { a.BuildingId, a.FloorNumber });
             // Mã căn bắt đầu bằng mã toà (duy nhất) nên duy nhất toàn hệ thống.
             e.HasIndex(a => a.UnitCode).IsUnique().HasFilter("\"DaXoa\" = false");
 
-            // Toà của căn suy ra qua tầng; căn không lưu ToaNhaId. Tầng và toà luôn được nạp kèm căn.
-            e.Navigation(a => a.Floor).AutoInclude();
-            e.HasOne(a => a.Floor)
-             .WithMany(f => f.Apartments)
-             .HasForeignKey(a => a.FloorId)
+            // Toà luôn được nạp kèm căn.
+            e.Navigation(a => a.Building).AutoInclude();
+            e.HasOne(a => a.Building)
+             .WithMany(b2 => b2.Apartments)
+             .HasForeignKey(a => a.BuildingId)
              .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -219,23 +221,6 @@ public class AppDbContext : IdentityDbContext<AppUser>
 
             e.HasOne(x => x.Project).WithMany(p => p.Buildings).HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Manager).WithMany(u => u.ManagedBuildings).HasForeignKey(x => x.ManagerId).OnDelete(DeleteBehavior.SetNull);
-        });
-
-        // ================== Floor ==================
-        b.Entity<Floor>(e =>
-        {
-            e.ToTable("Tang");
-            MapBaseEntityColumns(e, "TangId");
-
-            e.Property(x => x.BuildingId).HasColumnName("ToaNhaId");
-            e.Property(x => x.Number).HasColumnName("SoTang");
-            e.Ignore(x => x.Label);   // nhãn "Tầng n" suy ra từ SoTang
-
-            e.HasIndex(x => new { x.BuildingId, x.Number }).IsUnique();
-
-            e.Navigation(x => x.Building).AutoInclude();
-            e.HasOne(x => x.Building).WithMany(b2 => b2.Floors)
-             .HasForeignKey(x => x.BuildingId).OnDelete(DeleteBehavior.Restrict);
         });
 
         // ================== MaintenanceRequest ==================

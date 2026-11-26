@@ -22,12 +22,12 @@ public class ResidentsController : AdminBaseController
         if (!string.IsNullOrWhiteSpace(q))
             query = query.Where(r => r.User.FullName.Contains(q) || (r.User.PhoneNumber != null && r.User.PhoneNumber.Contains(q))
                                      || (r.User.Email != null && r.User.Email.Contains(q)) || r.Apartment.UnitCode.Contains(q));
-        if (buildingId.HasValue) query = query.Where(r => r.Apartment.Floor.BuildingId == buildingId);
+        if (buildingId.HasValue) query = query.Where(r => r.Apartment.BuildingId == buildingId);
         if (role.HasValue) query = query.Where(r => r.Role == role);
 
         var total = await query.CountAsync();
         var rows = await query
-            .OrderBy(r => r.Apartment.Floor.Building.Code).ThenBy(r => r.Apartment.UnitCode)
+            .OrderBy(r => r.Apartment.Building.Code).ThenBy(r => r.Apartment.UnitCode)
             .ThenByDescending(r => r.IsPrimary).ThenBy(r => r.Role)
             .Skip((page - 1) * pageSize).Take(pageSize)
             .Select(r => new ResidentListVm
@@ -35,7 +35,7 @@ public class ResidentsController : AdminBaseController
                 Id = r.Id, ApartmentId = r.ApartmentId,
                 FullName = r.User.FullName, Phone = r.User.PhoneNumber, Email = r.User.Email,
                 Role = r.Role, IsPrimary = r.IsPrimary, HasAccount = r.UserId != null,
-                UnitCode = r.Apartment.UnitCode, BuildingName = "Toà " + r.Apartment.Floor.Building.Code,
+                UnitCode = r.Apartment.UnitCode, BuildingName = "Toà " + r.Apartment.Building.Code,
                 MoveInDate = r.MoveInDate
             })
             .ToListAsync();

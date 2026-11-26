@@ -18,7 +18,7 @@ public class InvoicesController : TenantBaseController
     {
         var uid = CurrentUserId;
         var inv = await Db.Invoices
-            .Include(i => i.Apartment).ThenInclude(a => a.Floor).ThenInclude(f => f.Building).ThenInclude(b => b.Project)
+            .Include(i => i.Apartment).ThenInclude(a => a.Building).ThenInclude(b => b.Project)
             .Include(i => i.Apartment).ThenInclude(a => a.Residents)
             .Include(i => i.Items)
             .Include(i => i.Payments)
@@ -77,7 +77,7 @@ public class InvoicesController : TenantBaseController
         SetActiveNav("invoices");
         var uid = CurrentUserId;
         var inv = await Db.Invoices
-            .Include(i => i.Apartment).ThenInclude(a => a.Floor).ThenInclude(f => f.Building).ThenInclude(b => b.Project)
+            .Include(i => i.Apartment).ThenInclude(a => a.Building).ThenInclude(b => b.Project)
             .Include(i => i.Items)
             .Include(i => i.Payments)
             .AsSplitQuery()

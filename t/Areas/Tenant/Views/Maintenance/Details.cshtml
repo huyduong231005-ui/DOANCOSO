@@ -4,7 +4,7 @@
     ViewData["Title"] = Model.RequestNumber;
     var next = (IReadOnlyList<MaintenanceStatus>)ViewBag.NextStatuses;
     string Local(DateTime d) => d.ToLocalTime().ToString("HH:mm dd/MM/yyyy");
-    var building = Model.Apartment?.Floor.Building ?? Model.CommonBuilding;
+    var building = Model.Apartment?.Building ?? Model.CommonBuilding;
     string Pill(MaintenanceStatus s) => s switch
     {
         MaintenanceStatus.Open => "pill pill-warning",

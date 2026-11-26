@@ -25,7 +25,7 @@
 <section class="page-header">
     <div>
         <h1>@Model.InvoiceNumber</h1>
-        <p class="subtitle">Căn @Model.Apartment.UnitCode · @Model.Apartment.Floor.Building.Name · @(Model.Apartment.PrimaryResident?.User.FullName ?? "chưa có người đại diện")</p>
+        <p class="subtitle">Căn @Model.Apartment.UnitCode · @Model.Apartment.Building.Name · @(Model.Apartment.PrimaryResident?.User.FullName ?? "chưa có người đại diện")</p>
     </div>
     <div class="actions">
         <span class="@Pill(Model.Status)">@Model.Status.Vi()</span>
@@ -145,7 +145,7 @@
             <div class="card-header"><h2>Thông tin</h2></div>
             <div class="card-body">
                 <dl class="dl-pairs">
-                    <dt>Căn hộ</dt><dd><a asp-controller="Apartments" asp-action="Details" asp-route-id="@Model.ApartmentId">@Model.Apartment.UnitCode</a> · @Model.Apartment.Floor.Building.Name</dd>
+                    <dt>Căn hộ</dt><dd><a asp-controller="Apartments" asp-action="Details" asp-route-id="@Model.ApartmentId">@Model.Apartment.UnitCode</a> · @Model.Apartment.Building.Name</dd>
                     <dt>Đại diện</dt><dd>@(Model.Apartment.PrimaryResident?.User.FullName ?? "—")</dd>
                     <dt>Loại</dt><dd>@Model.Kind.Vi()</dd>
                     @if (Model.BillingMonth > 0) { <dt>Kỳ</dt><dd>@(Model.BillingMonth%100)/@(Model.BillingMonth/100)</dd> }

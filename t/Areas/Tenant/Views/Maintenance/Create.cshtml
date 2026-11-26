@@ -6,7 +6,7 @@
 }
 
 <section class="page-header">
-    <div><h1>Báo sự cố mới</h1><p class="subtitle">Căn @apartment.UnitCode · @apartment.Floor.Building.Name</p></div>
+    <div><h1>Báo sự cố mới</h1><p class="subtitle">Căn @apartment.UnitCode · @apartment.Building.Name</p></div>
     <div class="actions"><a class="btn btn-ghost" asp-action="Index">Quay lại</a></div>
 </section>
 
@@ -21,7 +21,7 @@
                     <label>Sự cố ở đâu?</label>
                     <div class="hstack" style="gap:1.2rem;flex-wrap:wrap;">
                         <label class="hstack"><input type="radio" name="CommonArea" value="false" checked="@(!Model.CommonArea)" onchange="document.getElementById('loc-field').hidden=true" /> Trong căn @apartment.UnitCode</label>
-                        <label class="hstack"><input type="radio" name="CommonArea" value="true" checked="@Model.CommonArea" onchange="document.getElementById('loc-field').hidden=false" /> Khu vực chung của @apartment.Floor.Building.Name</label>
+                        <label class="hstack"><input type="radio" name="CommonArea" value="true" checked="@Model.CommonArea" onchange="document.getElementById('loc-field').hidden=false" /> Khu vực chung của @apartment.Building.Name</label>
                     </div>
                 </div>
                 <div class="form-field span-12" id="loc-field" hidden="@(!Model.CommonArea)">

@@ -112,8 +112,8 @@ public class InvoicePdfGenerator
                 {
                     b.Item().Text("Căn hộ").FontColor(Colors.Grey.Medium).FontSize(9);
                     b.Item().Text(inv.Apartment?.UnitCode ?? "—").Bold();
-                    b.Item().Text(inv.Apartment?.Floor.Building?.Name ?? "").FontSize(9);
-                    b.Item().Text(inv.Apartment?.Floor.Building?.Project?.Address ?? "").FontSize(9);
+                    b.Item().Text(inv.Apartment?.Building?.Name ?? "").FontSize(9);
+                    b.Item().Text(inv.Apartment?.Building?.Project?.Address ?? "").FontSize(9);
                 });
             });
 

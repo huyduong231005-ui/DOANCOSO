@@ -51,7 +51,7 @@ public class HomeController : Controller
                 Name = p.Name,
                 Address = p.Address,
                 BuildingCount = _db.Buildings.Count(b => b.ProjectId == p.Id),
-                ApartmentCount = _db.Apartments.Count(a => a.Floor.Building != null && a.Floor.Building.ProjectId == p.Id)
+                ApartmentCount = _db.Apartments.Count(a => a.Building != null && a.Building.ProjectId == p.Id)
             })
             .ToListAsync();
         return View(projects);

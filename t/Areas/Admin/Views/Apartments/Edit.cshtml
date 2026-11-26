@@ -25,7 +25,7 @@
             <div class="form-grid">
                 <div class="form-field span-4">
                     <label asp-for="BuildingId">Toà</label>
-                    <select asp-for="BuildingId" data-floor-source="@Url.Action("FloorsOf")">
+                    <select asp-for="BuildingId">
                         @foreach (var b in Model.Buildings)
                         {
                             <option value="@b.Id">@b.Name@(b.Project != null ? " · " + b.Project.Name : "")</option>
@@ -34,11 +34,9 @@
                     <span class="err" asp-validation-for="BuildingId"></span>
                 </div>
                 <div class="form-field span-4">
-                    <label asp-for="FloorId">Tầng</label>
-                    <select asp-for="FloorId" data-floor-target>
-                        @foreach (var f in Model.Floors) { <option value="@f.Id">@f.Label</option> }
-                    </select>
-                    <span class="err" asp-validation-for="FloorId"></span>
+                    <label asp-for="FloorNumber">Tầng</label>
+                    <input asp-for="FloorNumber" type="number" min="1" max="120" />
+                    <span class="err" asp-validation-for="FloorNumber"></span>
                 </div>
                 <div class="form-field span-4">
                     <label asp-for="UnitCode">Mã căn</label>

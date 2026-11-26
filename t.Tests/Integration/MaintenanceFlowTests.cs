@@ -87,7 +87,7 @@ public sealed class MaintenanceFlowTests : IClassFixture<TestWebApplicationFacto
         Assert.Equal("Hành lang tầng 12", r.Location);
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var ownBuilding = await db.Apartments.Where(a => a.UnitCode == "A-12.05").Select(a => a.Floor.BuildingId).SingleAsync();
+        var ownBuilding = await db.Apartments.Where(a => a.UnitCode == "A-12.05").Select(a => a.BuildingId).SingleAsync();
         Assert.Equal(ownBuilding, r.CommonBuildingId);
     }
 

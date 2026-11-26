@@ -14,7 +14,7 @@ public class Building : BaseEntity
     public Project Project { get; set; } = null!;
 
     // Địa chỉ của toà là địa chỉ của dự án (Project.Address), không lưu lại ở toà.
-    // Số tầng không lưu ở toà: là số dòng Tang của toà (Floors.Count).
+    // Số tầng không lưu ở toà: là số tầng khác nhau của các căn trong toà.
 
     public string? ManagerId { get; set; }
     public AppUser? Manager { get; set; }
@@ -26,6 +26,5 @@ public class Building : BaseEntity
     public int DefaultLateFeeAfterDays { get; set; } = 7;
     public int DefaultLateFeePercent { get; set; } = 5;
 
-    // Căn của toà lấy qua tầng: Floors → Apartments.
-    public ICollection<Floor> Floors { get; set; } = new List<Floor>();
+    public ICollection<Apartment> Apartments { get; set; } = new List<Apartment>();
 }

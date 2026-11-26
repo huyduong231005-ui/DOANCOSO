@@ -186,6 +186,10 @@ namespace t.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("SoPhongNgu");
 
+                    b.Property<int>("BuildingId")
+                        .HasColumnType("integer")
+                        .HasColumnName("ToaNhaId");
+
                     b.Property<int>("Condition")
                         .HasColumnType("integer")
                         .HasColumnName("TinhTrangCanHo");
@@ -208,9 +212,9 @@ namespace t.Migrations
                         .HasColumnType("character varying(36)")
                         .HasColumnName("NguoiXoa");
 
-                    b.Property<int>("FloorId")
+                    b.Property<int>("FloorNumber")
                         .HasColumnType("integer")
-                        .HasColumnName("TangId");
+                        .HasColumnName("SoTang");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
@@ -235,17 +239,19 @@ namespace t.Migrations
 
                     b.HasIndex("Condition");
 
-                    b.HasIndex("FloorId");
-
                     b.HasIndex("UnitCode")
                         .IsUnique()
                         .HasFilter("\"DaXoa\" = false");
+
+                    b.HasIndex("BuildingId", "FloorNumber");
 
                     b.ToTable("CanHo", null, t =>
                         {
                             t.HasCheckConstraint("CK_CanHo_DienTich", "\"DienTich\" > 0");
 
                             t.HasCheckConstraint("CK_CanHo_SoPhongNgu", "\"SoPhongNgu\" >= 0");
+
+                            t.HasCheckConstraint("CK_CanHo_SoTang", "\"SoTang\" >= 1");
 
                             t.HasCheckConstraint("CK_CanHo_TinhTrangCanHo", "\"TinhTrangCanHo\" IN (0, 1, 3)");
                         });
@@ -616,62 +622,6 @@ namespace t.Migrations
 
                             t.HasCheckConstraint("CK_ToaNha_TrangThai", "\"TrangThaiToaNha\" BETWEEN 0 AND 2");
                         });
-                });
-
-            modelBuilder.Entity("t.Models.Entities.Floor", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("TangId");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BuildingId")
-                        .HasColumnType("integer")
-                        .HasColumnName("ToaNhaId");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayTao");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(36)
-                        .HasColumnType("character varying(36)")
-                        .HasColumnName("NguoiTao");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayXoa");
-
-                    b.Property<string>("DeletedBy")
-                        .HasMaxLength(36)
-                        .HasColumnType("character varying(36)")
-                        .HasColumnName("NguoiXoa");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("DaXoa");
-
-                    b.Property<int>("Number")
-                        .HasColumnType("integer")
-                        .HasColumnName("SoTang");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("NgayCapNhat");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(36)
-                        .HasColumnType("character varying(36)")
-                        .HasColumnName("NguoiCapNhat");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BuildingId", "Number")
-                        .IsUnique();
-
-                    b.ToTable("Tang", (string)null);
                 });
 
             modelBuilder.Entity("t.Models.Entities.Invoice", b =>
@@ -1663,13 +1613,13 @@ namespace t.Migrations
 
             modelBuilder.Entity("t.Models.Entities.Apartment", b =>
                 {
-                    b.HasOne("t.Models.Entities.Floor", "Floor")
+                    b.HasOne("t.Models.Entities.Building", "Building")
                         .WithMany("Apartments")
-                        .HasForeignKey("FloorId")
+                        .HasForeignKey("BuildingId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Floor");
+                    b.Navigation("Building");
                 });
 
             modelBuilder.Entity("t.Models.Entities.ApartmentResident", b =>
@@ -1707,17 +1657,6 @@ namespace t.Migrations
                     b.Navigation("Manager");
 
                     b.Navigation("Project");
-                });
-
-            modelBuilder.Entity("t.Models.Entities.Floor", b =>
-                {
-                    b.HasOne("t.Models.Entities.Building", "Building")
-                        .WithMany("Floors")
-                        .HasForeignKey("BuildingId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Building");
                 });
 
             modelBuilder.Entity("t.Models.Entities.Invoice", b =>
@@ -1911,11 +1850,6 @@ namespace t.Migrations
                 });
 
             modelBuilder.Entity("t.Models.Entities.Building", b =>
-                {
-                    b.Navigation("Floors");
-                });
-
-            modelBuilder.Entity("t.Models.Entities.Floor", b =>
                 {
                     b.Navigation("Apartments");
                 });

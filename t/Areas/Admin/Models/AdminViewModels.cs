@@ -129,14 +129,14 @@ public class BuildingPlanVm
 
 public class FloorRowVm
 {
-    public Floor Floor { get; set; } = null!;
+    public int Number { get; set; }
     public List<UnitCellVm> Units { get; set; } = new();
 }
 
 public class UnitCellVm
 {
     public int Id { get; set; }
-    public int FloorId { get; set; }
+    public int FloorNumber { get; set; }
     public string UnitCode { get; set; } = string.Empty;
     public decimal Area { get; set; }
     public int Bedrooms { get; set; }
@@ -177,13 +177,12 @@ public class ApartmentEditVm
     public int Id { get; set; }
     [Required, StringLength(40)] public string UnitCode { get; set; } = string.Empty;
     [Required] public int BuildingId { get; set; }
-    [Required] public int FloorId { get; set; }
+    [Range(1, 120)] public int FloorNumber { get; set; } = 1;
     [Range(1, 1000)] public decimal Area { get; set; }
     [Range(0, 20)] public int Bedrooms { get; set; }
     public ApartmentCondition Condition { get; set; } = ApartmentCondition.HandedOver;
 
     public List<Building> Buildings { get; set; } = new();
-    public List<Floor> Floors { get; set; } = new();
 }
 
 public class ApartmentDetailVm

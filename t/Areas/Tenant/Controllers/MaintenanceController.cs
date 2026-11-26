@@ -56,7 +56,7 @@ public class MaintenanceController : TenantBaseController
     {
         SetActiveNav("maintenance");
         var r = await MyRequests()
-            .Include(x => x.Apartment).ThenInclude(a => a!.Floor.Building)
+            .Include(x => x.Apartment).ThenInclude(a => a!.Building)
             .Include(x => x.CommonBuilding)
             .Include(x => x.AssignedTo)
             .Include(x => x.Photos)
@@ -109,7 +109,7 @@ public class MaintenanceController : TenantBaseController
         {
             RequestNumber = await BillingNumberGenerator.NextMaintenanceNumberAsync(Db),
             ApartmentId = input.CommonArea ? null : apartment.Id,
-            CommonBuildingId = input.CommonArea ? apartment.Floor.BuildingId : null,
+            CommonBuildingId = input.CommonArea ? apartment.BuildingId : null,
             Location = input.CommonArea ? input.Location!.Trim() : null,
             ReporterId = CurrentUserId,
             Title = input.Title,

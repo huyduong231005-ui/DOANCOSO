@@ -29,9 +29,9 @@ public class DashboardController : AdminBaseController
             .Select(p => (Day: t.Infrastructure.Time.VnTime.FromUtc(p.PaidAt!.Value).Date, p.Net))
             .ToList();
 
-        var unitsTotal = await Db.Floors.SelectMany(f => f.Apartments).CountAsync();
-        var unitsOccupied = await Db.Floors.SelectMany(f => f.Apartments).CountAsync(Apartment.IsOccupied);
-        var unitsAvailable = await Db.Floors.SelectMany(f => f.Apartments).CountAsync(Apartment.IsVacant);
+        var unitsTotal = await Db.Apartments.CountAsync();
+        var unitsOccupied = await Db.Apartments.CountAsync(Apartment.IsOccupied);
+        var unitsAvailable = await Db.Apartments.CountAsync(Apartment.IsVacant);
 
         var vm = new DashboardViewModel
         {
@@ -67,9 +67,9 @@ public class DashboardController : AdminBaseController
             .Select(b => new TopBuildingRow
             {
                 Id = b.Id, Name = "Toà " + b.Code,
-                Units = b.Floors.SelectMany(f => f.Apartments).Count(),
-                Occupied = b.Floors.SelectMany(f => f.Apartments).AsQueryable().Count(Apartment.IsOccupied),
-                MonthlyRevenue = b.Floors.SelectMany(f => f.Apartments).SelectMany(a => a.Invoices)
+                Units = b.Apartments.Count(),
+                Occupied = b.Apartments.AsQueryable().Count(Apartment.IsOccupied),
+                MonthlyRevenue = b.Apartments.SelectMany(a => a.Invoices)
                     .Where(i => i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
                     .Sum(i => (decimal?)i.Balance) ?? 0m
             })

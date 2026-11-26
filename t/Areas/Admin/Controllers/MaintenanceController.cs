@@ -50,7 +50,7 @@ public class MaintenanceController : AdminBaseController
         if (priority.HasValue) query = query.Where(r => r.Priority == priority.Value);
         if (category.HasValue) query = query.Where(r => r.Category == category.Value);
         if (buildingId.HasValue)
-            query = query.Where(r => (r.Apartment != null && r.Apartment.Floor.BuildingId == buildingId.Value) || r.CommonBuildingId == buildingId.Value);
+            query = query.Where(r => (r.Apartment != null && r.Apartment.BuildingId == buildingId.Value) || r.CommonBuildingId == buildingId.Value);
         if (overdue) query = query.Where(MaintenanceWorkflow.IsOverdue(now));
 
         var total = await query.CountAsync();
@@ -63,7 +63,7 @@ public class MaintenanceController : AdminBaseController
                 ApartmentId = r.ApartmentId,
                 UnitCode = r.Apartment != null ? r.Apartment.UnitCode : null,
                 Location = r.Location,
-                BuildingName = r.Apartment != null ? "Toà " + r.Apartment.Floor.Building.Code : r.CommonBuilding != null ? "Toà " + r.CommonBuilding.Code : null,
+                BuildingName = r.Apartment != null ? "Toà " + r.Apartment.Building.Code : r.CommonBuilding != null ? "Toà " + r.CommonBuilding.Code : null,
                 ReporterName = r.Reporter != null ? r.Reporter.FullName : null,
                 AssignedToName = r.AssignedTo != null ? r.AssignedTo.FullName : null,
                 Category = r.Category, Priority = r.Priority, Status = r.Status,
@@ -115,7 +115,7 @@ public class MaintenanceController : AdminBaseController
     {
         SetActiveNav("maintenance");
         var r = await Db.MaintenanceRequests
-            .Include(x => x.Apartment).ThenInclude(a => a!.Floor.Building)
+            .Include(x => x.Apartment).ThenInclude(a => a!.Building)
             .Include(x => x.Apartment).ThenInclude(a => a!.Residents)
             .Include(x => x.CommonBuilding)
             .Include(x => x.Reporter).Include(x => x.AssignedTo)
@@ -294,8 +294,8 @@ public class MaintenanceController : AdminBaseController
     private async Task PopulateLookupsAsync(MaintenanceEditVm vm)
     {
         vm.Apartments = await Db.Apartments
-            .OrderBy(a => a.Floor.Building.Code).ThenBy(a => a.UnitCode)
-            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + "Toà " + a.Floor.Building.Code })
+            .OrderBy(a => a.Building.Code).ThenBy(a => a.UnitCode)
+            .Select(a => new ApartmentOption { Id = a.Id, Label = a.UnitCode + " · " + "Toà " + a.Building.Code })
             .ToListAsync();
         vm.Buildings = await Db.Buildings.OrderBy(b => b.Code)
             .Select(b => new ApartmentOption { Id = b.Id, Label = "Toà " + b.Code })

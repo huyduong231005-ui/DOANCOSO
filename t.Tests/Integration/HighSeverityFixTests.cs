@@ -321,10 +321,8 @@ public sealed class HighSeverityFixTests : IClassFixture<TestWebApplicationFacto
         };
         db.Buildings.Add(b);
         await db.SaveChangesAsync();
-        var f = new Floor { BuildingId = b.Id, Number = 1 };
-        db.Floors.Add(f);
         await db.SaveChangesAsync();
-        var apt = new Apartment { FloorId = f.Id, UnitCode = code + "-01.01", Area = 50 };
+        var apt = new Apartment { BuildingId = b.Id, FloorNumber = 1, UnitCode = code + "-01.01", Area = 50 };
         db.Apartments.Add(apt);
         await db.SaveChangesAsync();
         return apt;

@@ -28,10 +28,10 @@ public class ProjectsController : AdminBaseController
                 Id = p.Id, Name = p.Name,
                 Address = p.Address,
                 BuildingCount = p.Buildings.Count(),
-                ApartmentCount = p.Buildings.SelectMany(b => b.Floors.SelectMany(f => f.Apartments)).Count(),
-                OccupiedCount = p.Buildings.SelectMany(b => b.Floors.SelectMany(f => f.Apartments)).AsQueryable().Count(Apartment.IsOccupied),
-                ResidentCount = p.Buildings.SelectMany(b => b.Floors.SelectMany(f => f.Apartments)).SelectMany(a => a.Residents).Count(r => r.MoveOutDate == null),
-                Outstanding = p.Buildings.SelectMany(b => b.Floors.SelectMany(f => f.Apartments)).SelectMany(a => a.Invoices)
+                ApartmentCount = p.Buildings.SelectMany(b => b.Apartments).Count(),
+                OccupiedCount = p.Buildings.SelectMany(b => b.Apartments).AsQueryable().Count(Apartment.IsOccupied),
+                ResidentCount = p.Buildings.SelectMany(b => b.Apartments).SelectMany(a => a.Residents).Count(r => r.MoveOutDate == null),
+                Outstanding = p.Buildings.SelectMany(b => b.Apartments).SelectMany(a => a.Invoices)
                     .Where(i => i.Status != InvoiceStatus.Cancelled && i.Status != InvoiceStatus.Draft)
                     .Sum(i => (decimal?)i.Balance) ?? 0
             })
@@ -58,17 +58,17 @@ public class ProjectsController : AdminBaseController
             .Select(b => new BuildingListVm
             {
                 Id = b.Id, Name = "Toà " + b.Code, Code = b.Code,
-                FloorCount = b.Floors.Count(),
+                FloorCount = b.Apartments.Select(a => a.FloorNumber).Distinct().Count(),
                 ManagerName = b.Manager != null ? b.Manager.FullName : null,
                 Status = b.Status,
-                UnitsTotal = b.Floors.SelectMany(f => f.Apartments).Count(),
-                UnitsOccupied = b.Floors.SelectMany(f => f.Apartments).AsQueryable().Count(Apartment.IsOccupied),
-                UnitsVacant = b.Floors.SelectMany(f => f.Apartments).AsQueryable().Count(Apartment.IsVacant),
-                Outstanding = b.Floors.SelectMany(f => f.Apartments).SelectMany(a => a.Invoices)
+                UnitsTotal = b.Apartments.Count(),
+                UnitsOccupied = b.Apartments.AsQueryable().Count(Apartment.IsOccupied),
+                UnitsVacant = b.Apartments.AsQueryable().Count(Apartment.IsVacant),
+                Outstanding = b.Apartments.SelectMany(a => a.Invoices)
                     .Where(i => i.Status != InvoiceStatus.Cancelled && i.Status != InvoiceStatus.Draft)
                     .Sum(i => (decimal?)i.Balance) ?? 0,
                 OpenMaintenance = Db.MaintenanceRequests.Count(m =>
-                    ((m.Apartment != null && m.Apartment.Floor.BuildingId == b.Id) || m.CommonBuildingId == b.Id)
+                    ((m.Apartment != null && m.Apartment.BuildingId == b.Id) || m.CommonBuildingId == b.Id)
                     && MaintenanceRequest.ActiveStatuses.Contains(m.Status))
             })
             .ToListAsync();

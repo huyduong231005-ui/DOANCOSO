@@ -107,19 +107,14 @@ public static class SeedData
         var rng = new Random(2026);
         foreach (var b in buildings)
         {
-            var floors = Enumerable.Range(1, FloorsOf[b.Code])
-                .Select(n => new Floor { BuildingId = b.Id, Number = n }).ToList();
-            ctx.Floors.AddRange(floors);
-            await ctx.SaveChangesAsync();
-
             var perFloor = b.Code.StartsWith('R') || b.Code == "C" ? 6 : 8;
-            foreach (var f in floors)
+            for (var f = 1; f <= FloorsOf[b.Code]; f++)
                 for (var pos = 1; pos <= perFloor; pos++)
                     ctx.Apartments.Add(NewApartment(b, f, pos, perFloor, rng));
         }
         await ctx.SaveChangesAsync();
 
-        var apartments = await ctx.Apartments.Include(a => a.Floor.Building).OrderBy(a => a.Id).ToListAsync();
+        var apartments = await ctx.Apartments.Include(a => a.Building).OrderBy(a => a.Id).ToListAsync();
         SeedResidentsAndCharges(ctx, apartments, rng);
         await ctx.SaveChangesAsync();
 
@@ -132,7 +127,7 @@ public static class SeedData
     // Căn mẫu sẽ có người ở (CuTru). "Đang ở" không lưu ở căn nên seed tự nhớ danh sách này.
     private static readonly HashSet<string> OccupiedUnits = new();
 
-    // Số tầng của toà mẫu (toà không lưu số tầng; số tầng là số dòng Tang tạo ra).
+    // Số tầng của toà mẫu (toà không lưu số tầng; mỗi căn ghi số tầng của mình).
     private static readonly Dictionary<string, int> FloorsOf = new();
 
     private static Building NewBuilding(Project p, string code, int floors, int perFloor, string? managerId)
@@ -151,21 +146,21 @@ public static class SeedData
     };
 
     // Vị trí căn trên tầng quyết định loại căn: 2 căn góc đầu là 3PN, 2 căn cuối 1PN/studio, giữa là 2PN.
-    private static Apartment NewApartment(Building b, Floor f, int pos, int perFloor, Random rng)
+    private static Apartment NewApartment(Building b, int floor, int pos, int perFloor, Random rng)
     {
         var (area, bed) = pos <= 2 ? (95.5m, 3)
             : pos > perFloor - 1 ? (35.2m, 1)
             : pos > perFloor - 2 ? (52.4m, 1)
             : (69.8m, 2);
         var roll = rng.NextDouble();
-        var unitCode = $"{b.Code}-{f.Number:00}.{pos:00}";
-        var condition = f.Number >= FloorsOf[b.Code] - 1 && roll < 0.6 ? ApartmentCondition.NotHandedOver
+        var unitCode = $"{b.Code}-{floor:00}.{pos:00}";
+        var condition = floor >= FloorsOf[b.Code] - 1 && roll < 0.6 ? ApartmentCondition.NotHandedOver
             : roll < 0.95 ? ApartmentCondition.HandedOver
             : ApartmentCondition.UnderMaintenance;
         if (condition == ApartmentCondition.HandedOver && roll < 0.78) OccupiedUnits.Add(unitCode);
         return new Apartment
         {
-            FloorId = f.Id,
+            BuildingId = b.Id, FloorNumber = floor,
             UnitCode = unitCode,
             Area = area, Bedrooms = bed,
             Condition = condition
@@ -287,7 +282,7 @@ public static class SeedData
 
                 var total = items.Sum(i => i.LineTotal);
                 invoiceSeq[billingMonth] = invoiceSeq.GetValueOrDefault(billingMonth) + 1;
-                var due = month.AddDays(a.Floor.Building.DefaultBillingDay + 6);
+                var due = month.AddDays(a.Building.DefaultBillingDay + 6);
                 var invoice = new Invoice
                 {
                     InvoiceNumber = $"HD-{billingMonth}-{invoiceSeq[billingMonth]:0000}",

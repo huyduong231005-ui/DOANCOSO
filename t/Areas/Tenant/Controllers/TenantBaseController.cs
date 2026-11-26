@@ -35,8 +35,7 @@ public abstract class TenantBaseController : Controller
 
     protected Task<Apartment?> GetMyApartmentAsync() =>
         Db.Apartments
-            .Include(a => a.Floor.Building).ThenInclude(b => b.Project)
-            .Include(a => a.Floor)
+            .Include(a => a.Building).ThenInclude(b => b.Project)
             .Where(a => MyApartmentIds().Contains(a.Id))
             .OrderBy(a => a.Id)
             .FirstOrDefaultAsync();

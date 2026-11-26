@@ -133,8 +133,8 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         using var scope2 = _factory.Services.CreateScope();
         var db2 = scope2.ServiceProvider.GetRequiredService<AppDbContext>();
         var b = await db2.Buildings.SingleAsync(x => x.Code == "T9");
-        var codes = await db2.Apartments.Where(a => a.Floor.BuildingId == b.Id).Select(a => a.UnitCode).ToListAsync();
-        Assert.Equal(3, await db2.Floors.CountAsync(f => f.BuildingId == b.Id));
+        var codes = await db2.Apartments.Where(a => a.BuildingId == b.Id).Select(a => a.UnitCode).ToListAsync();
+        Assert.Equal(3, await db2.Apartments.Where(a => a.BuildingId == b.Id).Select(a => a.FloorNumber).Distinct().CountAsync());
         Assert.Equal(12, codes.Count);
         Assert.Contains("T9-03.04", codes);
 
@@ -151,10 +151,10 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var (apt1, water) = await NewApartmentAsync(db, 50);
-            var apt2 = new Apartment { FloorId = apt1.FloorId, UnitCode = apt1.UnitCode + "B", Area = 40 };
+            var apt2 = new Apartment { BuildingId = apt1.BuildingId, FloorNumber = apt1.FloorNumber, UnitCode = apt1.UnitCode + "B", Area = 40 };
             db.Apartments.Add(apt2);
             await db.SaveChangesAsync();
-            (buildingId, waterId, a1, a2) = (apt1.Floor.BuildingId, water.Id, apt1.Id, apt2.Id);
+            (buildingId, waterId, a1, a2) = (apt1.BuildingId, water.Id, apt1.Id, apt2.Id);
         }
         using var client = await AdminClientAsync();
         var token = await TokenAsync(client, $"/Admin/Utilities/Bulk?buildingId={buildingId}");
@@ -236,8 +236,8 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         using (var scope = _factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var apt = await db.Apartments.Include(a => a.Floor.Building).SingleAsync(a => a.UnitCode == "A-12.05");
-            (projectId, buildingId, aptId) = (apt.Floor.Building.ProjectId, apt.Floor.BuildingId, apt.Id);
+            var apt = await db.Apartments.Include(a => a.Building).SingleAsync(a => a.UnitCode == "A-12.05");
+            (projectId, buildingId, aptId) = (apt.Building.ProjectId, apt.BuildingId, apt.Id);
         }
 
         using var admin = await AdminClientAsync();
@@ -270,10 +270,8 @@ public sealed class BqlFlowTests : IClassFixture<TestWebApplicationFactory>
         };
         db.Buildings.Add(b);
         await db.SaveChangesAsync();
-        var f = new Floor { BuildingId = b.Id, Number = 1 };
-        db.Floors.Add(f);
         await db.SaveChangesAsync();
-        var apt = new Apartment { FloorId = f.Id, UnitCode = code + "-01.01", Area = area, Bedrooms = 2, Condition = condition };
+        var apt = new Apartment { BuildingId = b.Id, FloorNumber = 1, UnitCode = code + "-01.01", Area = area, Bedrooms = 2, Condition = condition };
         db.Apartments.Add(apt);
         await db.SaveChangesAsync();
         return (apt, await db.UtilityTypes.SingleAsync(t => t.Code == "NUOC"));

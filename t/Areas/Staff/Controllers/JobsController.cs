@@ -40,7 +40,7 @@ public class JobsController : Controller
             ? query.Where(r => !MaintenanceRequest.ActiveStatuses.Contains(r.Status))
             : query.Where(r => MaintenanceRequest.ActiveStatuses.Contains(r.Status));
         var jobs = await query
-            .Include(r => r.Apartment).ThenInclude(a => a!.Floor.Building)
+            .Include(r => r.Apartment).ThenInclude(a => a!.Building)
             .Include(r => r.CommonBuilding)
             .OrderByDescending(r => r.Priority).ThenBy(r => r.DueAt)
             .Take(done ? 50 : 200)
@@ -53,7 +53,7 @@ public class JobsController : Controller
     {
         ViewData["ActiveNav"] = "jobs";
         var r = await MyJobs()
-            .Include(x => x.Apartment).ThenInclude(a => a!.Floor.Building)
+            .Include(x => x.Apartment).ThenInclude(a => a!.Building)
             .Include(x => x.Apartment).ThenInclude(a => a!.Residents)
             .Include(x => x.CommonBuilding)
             .Include(x => x.Reporter)

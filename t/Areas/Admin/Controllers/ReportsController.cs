@@ -33,12 +33,12 @@ public class ReportsController : AdminBaseController
 
         var query = Db.MaintenanceRequests.AsNoTracking().Where(r => r.ReportedAt >= fromUtc && r.ReportedAt < toUtc);
         if (buildingId.HasValue)
-            query = query.Where(r => (r.Apartment != null && r.Apartment.Floor.BuildingId == buildingId) || r.CommonBuildingId == buildingId);
+            query = query.Where(r => (r.Apartment != null && r.Apartment.BuildingId == buildingId) || r.CommonBuildingId == buildingId);
 
         var rows = await query.Select(r => new MaintenanceKpiRow
         {
             Id = r.Id, Status = r.Status, Priority = r.Priority, Category = r.Category,
-            BuildingName = r.Apartment != null ? "Toà " + r.Apartment.Floor.Building.Code : r.CommonBuilding != null ? "Toà " + r.CommonBuilding.Code : null,
+            BuildingName = r.Apartment != null ? "Toà " + r.Apartment.Building.Code : r.CommonBuilding != null ? "Toà " + r.CommonBuilding.Code : null,
             TechnicianName = r.AssignedTo != null ? r.AssignedTo.FullName : null,
             // Mốc tiếp nhận, giải quyết lấy từ lịch sử trạng thái (không lưu cột riêng).
             ReportedAt = r.ReportedAt, AcknowledgedAt = r.History.Where(h => h.ToStatus == MaintenanceStatus.Acknowledged).Min(h => (DateTime?)h.ChangedAt),
@@ -70,13 +70,13 @@ public class ReportsController : AdminBaseController
             {
                 BuildingId = b.Id,
                 BuildingName = "Toà " + b.Code,
-                Total = b.Floors.SelectMany(f => f.Apartments).Count(),
-                Occupied = b.Floors.SelectMany(f => f.Apartments).AsQueryable().Count(Apartment.IsOccupied),
-                Vacant = b.Floors.SelectMany(f => f.Apartments).AsQueryable().Count(Apartment.IsVacant),
-                NotHandedOver = b.Floors.SelectMany(f => f.Apartments).Count(a => a.Condition == ApartmentCondition.NotHandedOver),
-                UnderMaintenance = b.Floors.SelectMany(f => f.Apartments).Count(a => a.Condition == ApartmentCondition.UnderMaintenance),
-                Rented = b.Floors.SelectMany(f => f.Apartments).Count(a => a.Residents.Any(r => r.MoveOutDate == null && r.Role == ResidentRole.Tenant)),
-                Outstanding = b.Floors.SelectMany(f => f.Apartments).SelectMany(a => a.Invoices)
+                Total = b.Apartments.Count(),
+                Occupied = b.Apartments.AsQueryable().Count(Apartment.IsOccupied),
+                Vacant = b.Apartments.AsQueryable().Count(Apartment.IsVacant),
+                NotHandedOver = b.Apartments.Count(a => a.Condition == ApartmentCondition.NotHandedOver),
+                UnderMaintenance = b.Apartments.Count(a => a.Condition == ApartmentCondition.UnderMaintenance),
+                Rented = b.Apartments.Count(a => a.Residents.Any(r => r.MoveOutDate == null && r.Role == ResidentRole.Tenant)),
+                Outstanding = b.Apartments.SelectMany(a => a.Invoices)
                     .Where(i => i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
                     .Sum(i => (decimal?)i.Balance) ?? 0m
             })
@@ -150,7 +150,7 @@ public class ReportsController : AdminBaseController
         // Top debtors
         var topDebtors = await Db.Invoices
             .Where(i => i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
-            .GroupBy(i => new { i.ApartmentId, i.Apartment.UnitCode, BuildingName = "Toà " + i.Apartment.Floor.Building.Code })
+            .GroupBy(i => new { i.ApartmentId, i.Apartment.UnitCode, BuildingName = "Toà " + i.Apartment.Building.Code })
             .Select(g => new TopDebtorRow
             {
                 ApartmentId = g.Key.ApartmentId,
@@ -194,7 +194,7 @@ public class ReportsController : AdminBaseController
 
         var now = VnTime.Today; // hạn thanh toán là ngày theo giờ Việt Nam
         var open = await Db.Invoices
-            .Include(i => i.Apartment).ThenInclude(a => a.Floor).ThenInclude(f => f.Building)
+            .Include(i => i.Apartment).ThenInclude(a => a.Building)
             .Include(i => i.Apartment).ThenInclude(a => a.Residents)
             .Where(i => (i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid || i.Status == InvoiceStatus.Overdue)
                         && i.Balance > 0)
@@ -214,7 +214,7 @@ public class ReportsController : AdminBaseController
                 InvoiceId = i.Id, InvoiceNumber = i.InvoiceNumber,
                 ApartmentId = i.ApartmentId,
                 UnitCode = i.Apartment.UnitCode,
-                BuildingName = "Toà " + i.Apartment.Floor.Building.Code,
+                BuildingName = "Toà " + i.Apartment.Building.Code,
                 RepresentativeName = i.Apartment.PrimaryResident?.User.FullName,
                 DueDate = i.DueDate, DaysLate = Math.Max(0, days),
                 Balance = i.Balance,

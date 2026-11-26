@@ -185,9 +185,16 @@ def fig_size(png):
     return landscape, Pt(w * s), Pt(h * s)
 
 
+# Ảnh màn hình đứng liền nhau (Hình 4.5, 4.6) giới hạn cao 10 cm để hai hình chung một trang, không bỏ trống nửa trang.
+CAO_TOI_DA = {"Hinh 4.5": Pt(283), "Hinh 4.6": Pt(283)}
+
+
 def fig_size_portrait(png):
     w, h = Image.open(png).size
     s = min(PORTRAIT[0] / w, PORTRAIT[1] / h)
+    cao = next((v for k, v in CAO_TOI_DA.items() if png.name.startswith(k)), None)
+    if cao is not None:
+        s = min(s, cao / Pt(h))
     return Pt(w * s), Pt(h * s)
 
 
@@ -532,6 +539,7 @@ def main():
     gon_bao_cao.gop_so_do_lop(body, set_text)
     gon_bao_cao.bo_viet_tat_thua(body)
     gon_bao_cao.sua_trang_thai_tuan(body, set_text)
+    print(f"gạch đầu dòng sửa lại tab: {gon_bao_cao.sua_gach_dau_dong(body)}")
     treo, doi = gon_bao_cao.danh_so_lai(body, set_text)
     print(f"đánh số lại {doi} bảng; tham chiếu treo: {treo or 'không'}")
     treo, doi = gon_bao_cao.danh_so_hinh(body, set_text, {"3.2": "1", "3.4": "1"})

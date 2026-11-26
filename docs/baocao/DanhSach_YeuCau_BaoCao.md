@@ -92,3 +92,13 @@ Quét tự động mọi mục A–E và đọc toàn văn Chương 1–4; xem l
 - A9: bảng kế hoạch theo tuần: tuần 6 → Hoàn thành, tuần 7 → Đang thực hiện.
 - A9: Chương 3 nói "Chương 4 trình bày đánh giá AI trên 120 ca" trong khi Chương 4 ghi việc này làm ở tuần 7–9 → bỏ.
 Không còn: Luxe Haven, quy ước đặt tên, cột Biểu diễn, mã trigger/SQL, ký hiệu ∀∃⇒, trích dẫn dồn số, chữ "lí/tòa".
+
+## Rà mọi chương lần 2 ngày 26/11/2026 (sau câu hỏi về 2a, E1)
+
+Tiêu chí thêm: mọi ký hiệu, mã số người đọc phải hiểu ngay, không cần biết quy ước riêng. Xem cả 80 trang PDF bằng mắt.
+- Đặc tả UC03, UC16: "2a, 4a…" → "Ở bước 2, nếu…"; "E1–E4" → bỏ mã, ghi thẳng tình huống lỗi.
+- Bảng 1.8: thêm câu nói rõ mã RB, LB, TG, FN là ràng buộc, trigger, hàm ở mục 2.5.
+- Bảng kế hoạch "câu hỏi Bước 1" → "câu hỏi nghiệp vụ (Bảng 1.1)"; Bảng 3.1 "q4_k_m", "ghi log", "nhắc hạn" → lời thường;
+  mã 403, 404 giải thích lần đầu; tác vụ nền ở Bảng 1.3 thêm việc báo yêu cầu quá hạn (khớp mục 4.5.3).
+- Trình bày: 11 dòng gạch đầu dòng mất tab (chữ dính vào dấu gạch, lệch lề) → sửa trong pipeline (sua_gach_dau_dong);
+  Hình 4.5, 4.6 giới hạn cao 10 cm để chung một trang (trước mỗi hình bỏ trống nửa trang). Báo cáo còn 79 trang.

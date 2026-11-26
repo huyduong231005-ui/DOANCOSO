@@ -167,16 +167,16 @@ DAC_TA_UC = {
                          "4. Hệ thống điều phối (UC08): giao thợ đúng chuyên môn ít việc nhất, gửi thư giao việc "
                          "(BR-SC-12).",
                          "5. Cư dân thấy chi tiết yêu cầu."]),
-        ("Luồng thay thế", ["2a. AI không phản hồi trong thời gian chờ: giữ lựa chọn của cư dân, cảnh báo quản trị "
+        ("Luồng thay thế", ["Ở bước 2, nếu AI không phản hồi trong thời gian chờ: giữ lựa chọn của cư dân, cảnh báo quản trị "
                             "viên (BR-SC-10).",
-                            "4a. Mô tả mơ hồ: không giao thợ; cư dân thấy câu hỏi lại, quản lý nhận thư “Cần hỏi lại "
+                            "Ở bước 4, nếu mô tả mơ hồ: không giao thợ; cư dân thấy câu hỏi lại, quản lý nhận thư “Cần hỏi lại "
                             "cư dân”.",
-                            "4b. Không có thợ chuyên trách: quản lý nhận thư “Cần phân công” kèm nhóm xử lý gợi ý.",
-                            "4c. Sự cố Khẩn cấp: quản lý nhận thêm thư “Cần theo dõi”."]),
-        ("Ngoại lệ", ["E1. Cư dân chưa cư trú ở căn nào: báo lỗi, không cho tạo.",
-                      "E2. Chọn khu vực chung nhưng không ghi vị trí: báo lỗi tại ô Vị trí.",
-                      "E3. Hai người gửi cùng lúc bị trùng số yêu cầu: cấp lại số rồi lưu.",
-                      "E4. Gửi thư lỗi: chỉ ghi log, yêu cầu đã lưu không bị ảnh hưởng."]),
+                            "Ở bước 4, nếu không có thợ chuyên trách: quản lý nhận thư “Cần phân công” kèm nhóm xử lý gợi ý.",
+                            "Ở bước 4, nếu sự cố ở mức Khẩn cấp: quản lý nhận thêm thư “Cần theo dõi”."]),
+        ("Ngoại lệ", ["Cư dân chưa cư trú ở căn nào: báo lỗi, không cho tạo.",
+                      "Chọn khu vực chung nhưng không ghi vị trí: báo lỗi tại ô Vị trí.",
+                      "Hai người gửi cùng lúc bị trùng số yêu cầu: cấp lại số rồi lưu.",
+                      "Gửi thư lỗi: chỉ ghi lại lỗi, yêu cầu đã lưu không bị ảnh hưởng."]),
     ],
     "UC16": [
         ("Tiền điều kiện", ["Yêu cầu được giao cho chính kỹ thuật viên đang đăng nhập (BR-SC-04)."]),
@@ -185,11 +185,11 @@ DAC_TA_UC = {
                          "2. Bấm Bắt đầu xử lý (Đã tiếp nhận → Đang xử lý).",
                          "3. Sửa xong, ghi nguyên nhân và cách xử lý, bấm Hoàn tất (Đang xử lý → Đã xử lý).",
                          "4. Hệ thống lưu kết quả và dòng lịch sử; cư dân thấy nút xác nhận."]),
-        ("Luồng thay thế", ["2a. Chờ vật tư hoặc hẹn lịch: bấm Tạm dừng và ghi lý do; khi tiếp tục, hạn SLA dời "
+        ("Luồng thay thế", ["Giữa bước 2 và 3, nếu phải chờ vật tư hoặc hẹn lịch: bấm Tạm dừng và ghi lý do; khi tiếp tục, hạn SLA dời "
                             "thêm đúng thời gian đã dừng (BR-SC-07)."]),
-        ("Ngoại lệ", ["E1. Mở yêu cầu không giao cho mình: trả về không tìm thấy.",
-                      "E2. Hoàn tất khi chưa ghi kết quả: bị chặn (BR-SC-06).",
-                      "E3. Hai người cùng sửa một yêu cầu: người lưu sau được yêu cầu tải lại (mục 4.5.4)."]),
+        ("Ngoại lệ", ["Mở yêu cầu không giao cho mình: trả về không tìm thấy.",
+                      "Hoàn tất khi chưa ghi kết quả: bị chặn (BR-SC-06).",
+                      "Hai người cùng sửa một yêu cầu: người lưu sau được yêu cầu tải lại (mục 4.5.4)."]),
     ],
 }
 DAN_1_8_2 = ("Hai use case trọng tâm được vẽ chi tiết rồi đặc tả. Bảng đặc tả ghi điều kiện, các bước và ngoại lệ mà "
@@ -332,6 +332,23 @@ SUA_SAU = [   # thay chuỗi con, chạy sau cùng trên mọi đoạn (kể c�
     ("tiếp nhận trong PhutPhanHoi của mức ưu tiên", "tiếp nhận trong thời hạn phản hồi của mức ưu tiên"),
     ("Trung bình DiemDanhGia (1–5)", "Trung bình điểm đánh giá (1–5)"),
     ("phần có HanThanhToan trước hôm nay", "phần có hạn thanh toán trước hôm nay"),
+    # Ký hiệu, chữ người đọc khó hiểu (rà 26/11)
+    ("lý do lựa chọn được giải thích ở mục 2.5.", "lý do lựa chọn được giải thích ở mục 2.5. Các mã RB, LB (ràng buộc), "
+     "TG (trigger) và FN (hàm) trong cột này được liệt kê ở mục 2.5."),
+    ("trả lời 6 câu hỏi Bước 1;", "trả lời 6 câu hỏi nghiệp vụ (Bảng 1.1);"),
+    ("Lập hoá đơn tháng theo ngày lập phí của toà, chuyển hoá đơn quá hạn, cộng phí trễ",
+     "Lập hoá đơn tháng theo ngày lập phí của toà, chuyển hoá đơn quá hạn, cộng phí trễ; báo quản lý yêu cầu sự cố "
+     "quá hạn"),
+    ("Lập hoá đơn tháng, chuyển hoá đơn quá hạn, cộng phí trễ; nhắc hạn",
+     "Lập hoá đơn tháng, chuyển hoá đơn quá hạn, cộng phí trễ; báo quản lý yêu cầu sự cố quá hạn"),
+    ("định dạng GGUF q4_k_m", "nén 4-bit, định dạng GGUF"),
+    ("SMTP của Gmail; chế độ ghi log khi chưa cấu hình", "SMTP của Gmail"),
+    ("khi chưa có SMTP thì chỉ ghi log để kiểm thử", "khi chưa cấu hình SMTP thì chỉ ghi nội dung thư ra nhật ký chạy "
+     "để kiểm thử"),
+    ("lỗi gửi thư chỉ ghi log, không làm hỏng", "lỗi gửi thư chỉ được ghi lại, không làm hỏng"),
+    ("Cư dân, kỹ thuật viên vào khu quản trị nhận mã 403 và vẫn giữ phiên.", "Cư dân, kỹ thuật viên vào khu quản trị "
+     "nhận mã 403 (không có quyền) và vẫn giữ phiên."),
+    ("đều nhận mã 404.", "đều nhận mã 404 (không tìm thấy), để không lộ là dữ liệu đó có tồn tại."),
     # Bản nháp không có chức năng nào tạo ra: không nhắc trong báo cáo
     (" Trạng thái Bản nháp có trong mã nguồn nhưng hiện không có chức năng nào tạo hoá đơn nháp.", ""),
     ("hoá đơn đã phát hành (trừ Bản nháp, Đã huỷ)", "hoá đơn đã phát hành (trừ hoá đơn đã huỷ)"),
@@ -458,3 +475,27 @@ def sua_trang_thai_tuan(body, set_text):
         tuan = _text(tcs[0]).strip()
         if tuan in TRANG_THAI_TUAN:
             set_text(tcs[-1].find(qn("w:p")), TRANG_THAI_TUAN[tuan])
+
+
+def sua_gach_dau_dong(body):
+    """Đoạn gạch đầu dòng bị viết lại bằng set_text mất ký tự tab sau dấu '–' nên chữ dính vào gạch, lệch lề so với
+    các dòng khác. Tách lại thành '–', tab, nội dung (giữ định dạng chữ của run đầu)."""
+    sua = 0
+    for p in body.iter(qn("w:p")):
+        runs = p.findall(qn("w:r"))
+        if not runs or p.find(".//" + qn("w:tab")) is not None or _la_muc_luc(p):
+            continue
+        t0 = runs[0].find(qn("w:t"))
+        if t0 is None or not t0.text or not re.match(r"–\s*\w", t0.text):
+            continue
+        nd = t0.text[1:].lstrip()
+        t0.text = "–"
+        r_tab, r_nd = copy.deepcopy(runs[0]), copy.deepcopy(runs[0])
+        r_tab.remove(r_tab.find(qn("w:t")))
+        r_tab.append(r_tab.makeelement(qn("w:tab"), {}))
+        r_nd.find(qn("w:t")).text = nd
+        r_nd.find(qn("w:t")).set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+        runs[0].addnext(r_tab)
+        r_tab.addnext(r_nd)
+        sua += 1
+    return sua

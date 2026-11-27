@@ -417,7 +417,6 @@ def erd_tong():
     my = ty + th // 2      # ngang tâm hộp để đầu đường không bị StarUML kéo xiên
     next(x for x in e.edges if x["from"] == "TOA_NHA" and x["to"] == "r2")["points"] = [
         [tx + tw, my], [1300, my], [1300, dy + dh // 2], [dx + dw, dy + dh // 2]]
-    e.rel("r4", "quản lý toà", "NGUOI_DUNG", "(0,n)", "TOA_NHA", "(0,1)", at=(320, 195))
     e.rel("r5", "cư trú", "NGUOI_DUNG", "(0,n)", "CAN_HO", "(0,n)", at=(304, 593), attrs=CU_TRU_ATTR)
     # tài khoản
     e.rel("r6", "đóng vai", "NGUOI_DUNG", "(1,n)", "VAI_TRO", "(0,n)")
@@ -429,7 +428,6 @@ def erd_tong():
     e.rel("r11", "báo sự cố", "NGUOI_DUNG", "(0,n)", "YEU_CAU_BAO_TRI", "(1,1)", at=(544, 351))
     e.rel("r12", "phụ trách", "NGUOI_DUNG", "(0,n)", "YEU_CAU_BAO_TRI", "(0,1)", at=(544, 437))
     e.rel("r13", "có ảnh", "YEU_CAU_BAO_TRI", "(0,n)", "ANH_YEU_CAU", "(1,1)", at=(688, 257))
-    e.rel("r14", "tải ảnh", "NGUOI_DUNG", "(0,n)", "ANH_YEU_CAU", "(0,1)", at=(395, 300))
     e.rel("r15", "có lịch sử", "YEU_CAU_BAO_TRI", "(1,n)", "LICH_SU_YEU_CAU", "(1,1)", at=(704, 515))
     e.rel("r16", "thực hiện", "NGUOI_DUNG", "(0,n)", "LICH_SU_YEU_CAU", "(0,1)", at=(376, 515))
     # thu phí
@@ -894,7 +892,6 @@ def class_tong():
     k.edges[-1]["lineStyle"] = 0
     k.a("CanHo", "CuTru", "1", "0..*")
     k.a("NguoiDung", "CuTru", "1", "0..*")
-    k.a("NguoiDung", "ToaNha", "0..1", "0..*", name="quanLy")
     k.a("NguoiDung", "VaiTro", "0..*", "1..*")
     k.a("VaiTro", "Quyen", "0..*", "0..*")
     # sự cố: hai liên kết người dùng – yêu cầu đi song song để không chồng nhau
@@ -906,7 +903,6 @@ def class_tong():
     k.edges[-1]["lineStyle"] = k.edges[-2]["lineStyle"] = 0
     k.a("YeuCauBaoTri", "AnhYeuCau", "1", "0..*", comp=True)
     k.a("YeuCauBaoTri", "LichSuYeuCau", "1", "1..*", comp=True)
-    k.a("NguoiDung", "AnhYeuCau", "0..1", "0..*", name="nguoiTai")
     k.a("NguoiDung", "LichSuYeuCau", "0..1", "0..*", name="nguoiThucHien")
     # thu phí
     k.a("CanHo", "ChiSoDichVu", "1", "0..*")

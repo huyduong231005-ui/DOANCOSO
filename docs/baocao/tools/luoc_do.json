@@ -68,16 +68,6 @@
     "generated": false
    },
    {
-    "name": "QuanLyId",
-    "type": "varchar(36)",
-    "null": true,
-    "pk": false,
-    "fk": "NguoiDung",
-    "on_delete": "SET NULL",
-    "unique": false,
-    "generated": false
-   },
-   {
     "name": "TrangThaiToaNha",
     "type": "integer",
     "null": false,
@@ -930,16 +920,6 @@
     "pk": false,
     "fk": null,
     "on_delete": null,
-    "unique": false,
-    "generated": false
-   },
-   {
-    "name": "NguoiTaiId",
-    "type": "varchar(36)",
-    "null": true,
-    "pk": false,
-    "fk": "NguoiDung",
-    "on_delete": "SET NULL",
     "unique": false,
     "generated": false
    },

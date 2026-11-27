@@ -43,7 +43,7 @@ def blocks():
       f"(Bảng 2.1). Mỗi mối kết hợp nhiều – nhiều thành một bảng riêng, nên cơ sở dữ liệu có {n_bang} bảng.")
     T("Bảng 2.1. Thực thể, mối kết hợp và lý do cần bảng riêng", ["Tên", "Nghiệp vụ", "Lý do cần bảng riêng"], [
         ["KHU", "Khu căn hộ gồm nhiều toà", "Địa chỉ chung của các toà"],
-        ["TOA_NHA", "Toà nhà, ngày lập phí, mức phí trễ", "Có quản lý riêng, có sự cố khu vực chung"],
+        ["TOA_NHA", "Toà nhà, ngày lập phí, mức phí trễ", "Thuộc một khu, chứa các căn hộ, có sự cố khu vực chung"],
         ["CAN_HO", "Căn hộ", "Nơi ở và nơi tính phí"],
         ["NGUOI_DUNG", "Cư dân, quản lý, kỹ thuật viên, quản trị", "Một người là một tài khoản"],
         ["CU_TRU", "Ai ở căn nào, từ ngày nào", "Mối kết hợp n – n “cư trú” giữa người dùng và căn hộ, có thuộc tính riêng"],

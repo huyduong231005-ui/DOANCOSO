@@ -192,3 +192,13 @@ Bảng 4.3 (máy chủ chặn, không lưu). Sửa:
 - Tài liệu tham khảo chưa theo ABC và xen tiếng Việt với tiếng Anh → xếp tiếng Việt trước (Bộ Xây dựng, Quốc hội),
   tiếng nước ngoài sau, mỗi nhóm theo ABC; đánh số lại 18 trích dẫn (gon_bao_cao.xep_tai_lieu), kiểm từng trích dẫn
   vẫn trỏ đúng tài liệu.
+
+## Rà lần 8 ngày 27/11/2026 (ERD: quan hệ nào thật sự dùng; công cụ kiểm lỗi vòng lặp)
+
+- Đối chiếu từng khoá ngoại trong ERD với mã nguồn: ToaNha.QuanLyId ("quản lý toà") chỉ được chọn và hiển thị, thư
+  báo sự cố gửi cho mọi tài khoản vai trò Quản lý, không quy tắc nào dùng; AnhYeuCau.NguoiTaiId chỉ được ghi, suy ra
+  được (ảnh lúc báo = người báo, ảnh nghiệm thu = người ở dòng lịch sử "Đã xử lý") → bỏ cả hai (migration
+  Tuan9BoCotKhongDung, sao lưu trước, thử bản _thu rồi mới chạy bản thật; tổng hoá đơn không đổi).
+- Sơ đồ: bỏ mối kết hợp "quản lý toà", "tải ảnh" (ERD) và quanLy, nguoiTai (sơ đồ lớp); lược đồ quan hệ tự cập nhật.
+- Chữ: Bảng 2.1 lý do TOA_NHA; hai câu mục 3.3 về quanLy và "người tải lên".
+- Thêm tools/kiem_loi_bao_cao.py (chạy --lap tới khi 0 lỗi) và QuyTrinh_SuaLoi.md.

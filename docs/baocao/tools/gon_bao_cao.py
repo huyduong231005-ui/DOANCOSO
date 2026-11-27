@@ -327,6 +327,10 @@ DOAN_UC_MOI = {   # đoạn bắt đầu bằng ... -> nội dung mới (số h�
 
 
 SUA_SAU = [   # thay chuỗi con, chạy sau cùng trên mọi đoạn (kể cả ô bảng), trừ mục lục
+    # Tuần 9: bỏ cột quản lý toà và người tải ảnh (không quy tắc nào dùng)
+    (" Một người dùng có thể là quản lý của nhiều toà (quan hệ quanLy) và có thể có nhiều lần cư trú (CuTru).",
+     " Một người dùng có thể có nhiều lần cư trú (CuTru)."),
+    ("; mỗi ảnh, mỗi dòng lịch sử ghi người tải lên hoặc người thực hiện.", "; mỗi dòng lịch sử ghi người thực hiện."),
     ("yêu cầu và use case sơ bộ.", "yêu cầu và use case."),
     ("ràng buộc toàn vẹn (CHECK, trigger, hàm); kiểu dữ liệu và bảng mã", "ràng buộc toàn vẹn (CHECK, trigger, hàm)"),
     (" Đây là kiểm tra thiết kế, việc chạy thử trên cơ sở dữ liệu sau khi đồng bộ lược đồ mới thuộc phần việc tiếp "

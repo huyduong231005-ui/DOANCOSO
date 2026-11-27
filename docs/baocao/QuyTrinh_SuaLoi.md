@@ -20,7 +20,8 @@ python kiem_loi_bao_cao.py --chup   # lưu bản chữ của file Word làm mố
 ## Các bước
 
 1. **Giữ chỗ người dùng sửa.** Chạy công cụ; nếu nhóm "Chỉnh tay" có lỗi, chép từng chỗ sửa vào công cụ dựng
-   (hoặc sửa thẳng trong Word) rồi mới dựng lại. Không bao giờ dựng đè khi chưa xử lý nhóm này.
+   (hoặc sửa thẳng trong Word) rồi mới dựng lại. `sua_bao_cao_v2.py` cũng tự dừng khi file Word khác mốc, nên không
+   thể dựng đè nhầm; chỉ chạy `--chup` khi đã đưa hết chỗ sửa vào công cụ.
 2. **Liệt kê lỗi:** `python kiem_loi_bao_cao.py --lap` để cửa sổ chạy; mỗi lần lưu file nguồn nó kiểm lại.
 3. **Sửa theo nhóm**, từ gốc ra ngọn (CSDL → sơ đồ → chữ), vì sửa gốc kéo theo sơ đồ và chữ:
    - CSDL: `pg_dump` sao lưu vào `db_backup/` → thêm migration → `dotnet build` → `thu_mig.py` (bản _thu) →
@@ -28,8 +29,8 @@ python kiem_loi_bao_cao.py --chup   # lưu bản chữ của file Word làm mố
    - Sơ đồ: sửa `so_do_v2.py` → vẽ lại hình đó → `kiem_tra_so_do.py` → **mở ảnh xem bằng mắt**.
    - Chữ: sửa câu trong công cụ (áp cho mọi chỗ cùng loại, không chỉ chỗ bị báo).
 4. **Dựng nháp** khi Word đang mở: đặt `BAOCAO_OUT` ra thư mục tạm, chạy `sua_bao_cao_v2.py` và công cụ kiểm trên bản nháp.
-5. **Dựng thật:** đóng Word → `sua_bao_cao_v2.py` → `cap_nhat_word.ps1` (cập nhật mục lục, xuất PDF) →
-   `kiem_loi_bao_cao.py --chup`.
+5. **Dựng thật:** đóng Word → `sua_bao_cao_v2.py` → `cap_nhat_word.ps1` (cập nhật mục lục, xuất PDF, tự lưu mốc) →
+   `kiem_loi_bao_cao.py` phải báo 0 lỗi.
 6. **Xem bằng mắt** các trang đã đổi trong PDF (bố cục, hình nhảy trang, chữ). Công cụ đạt không thay được bước này.
 7. **Ghi sổ** `DanhSach_YeuCau_BaoCao.md`; commit khi được yêu cầu.
 

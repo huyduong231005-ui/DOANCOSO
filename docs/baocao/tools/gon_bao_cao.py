@@ -328,6 +328,38 @@ DOAN_UC_MOI = {   # đoạn bắt đầu bằng ... -> nội dung mới (số h�
 
 SUA_SAU = [   # thay chuỗi con, chạy sau cùng trên mọi đoạn (kể cả ô bảng), trừ mục lục
     # Tuần 9: bỏ cột quản lý toà và người tải ảnh (không quy tắc nào dùng)
+    # Rà sơ đồ 27/11: tầng đã gộp vào căn; chữ theo các hình đã sửa
+    # Hoá đơn phí sửa chữa nối với yêu cầu sự cố (khoá ngoại YeuCauBaoTriId của HoaDon)
+    ("Một yêu cầu xảy ra tại một căn hoặc ở khu vực chung của một toà, không đồng thời cả hai.",
+     "Một yêu cầu xảy ra tại một căn hoặc ở khu vực chung của một toà, không đồng thời cả hai. Hoá đơn phí sửa chữa "
+     "ghi yêu cầu sinh ra nó (mối kết hợp “phát sinh phí”); hoá đơn tháng không gắn yêu cầu nào nên phía hoá đơn "
+     "là (0,1)."),
+    ("Liên kết với ThanhToan không phải hợp thành vì hoá đơn đã có thanh toán thì không xoá được (BR-TP-05).",
+     "Liên kết với ThanhToan không phải hợp thành vì hoá đơn đã có thanh toán thì không xoá được (BR-TP-05). Hoá "
+     "đơn phí sửa chữa nối với YeuCauBaoTri sinh ra nó (phiSuaChua)."),
+    ("Đánh giá từ 1 đến 5; chi phí sửa chữa không âm; số yêu cầu không trùng.",
+     "Đánh giá từ 1 đến 5; chi phí sửa chữa không âm; số yêu cầu không trùng; mỗi yêu cầu có nhiều nhất một hoá "
+     "đơn phí sửa chữa chưa huỷ, nên mở lại rồi hoàn tất lần nữa không thu tiền hai lần."),
+    ("CHECK (RB05), UNIQUE (SoYeuCau)", "CHECK (RB05), UNIQUE (SoYeuCau), UNIQUE có điều kiện (YeuCauBaoTriId)"),
+    ("Khu – Toà – Tầng – Căn", "Khu – Toà – Căn hộ"),
+    ("UC08 “Điều phối sự cố” (tác nhân phụ Dịch vụ email).",
+     "UC08 “Điều phối sự cố” (tác nhân phụ Dịch vụ email). UC11 “Phân công xử lý sự cố” cũng gửi thư giao việc qua "
+     "Dịch vụ email khi quản lý giao tay; UC16 luôn bao gồm UC15 “Xem việc được giao”."),
+    ("Không giao được thì báo quản lý phân công; sự cố khẩn cấp thì báo thêm quản lý.",
+     "Mô tả mơ hồ thì báo quản lý hỏi lại cư dân; không có thợ phù hợp thì báo quản lý phân công; sự cố khẩn cấp "
+     "thì báo thêm quản lý."),
+    ("kỹ thuật viên xem việc được giao (có thể mở chi tiết từng yêu cầu), bắt đầu rồi hoàn tất xử lý; hoàn tất luôn",
+     "kỹ thuật viên luôn xem việc được giao (có thể mở chi tiết từng yêu cầu); bắt đầu và hoàn tất xử lý là phần mở "
+     "rộng vì mỗi lần cập nhật chỉ làm một bước; hoàn tất luôn"),
+    ("vì nhật ký phải giữ cả thao tác trên dòng đã bị xoá.",
+     "vì nhật ký phải giữ cả thao tác trên dòng đã bị xoá; người thao tác chỉ được ghi mã (NguoiThaoTacId), không "
+     "thành khoá ngoại."),
+    ("khu vực chung của 0..1 toà (toaNha), có người báo",
+     "khu vực chung của 0..1 toà (toaNha), đúng một trong hai nơi (ghi chú {xor}), có người báo"),
+    ("NhatKyHeThong ghi mọi thay đổi dữ liệu; không có khoá ngoại", "NhatKyHeThong ghi mọi thay đổi dữ liệu và mã người thao tác; không có khoá ngoại"),
+    ("gồm bốn làn: cư dân, hệ thống web, dịch vụ phân loại AI và dịch vụ email.",
+     "gồm bốn làn: cư dân, hệ thống web, dịch vụ phân loại AI và dịch vụ email. Đã giao thợ mà sự cố ở mức Khẩn "
+     "cấp thì thư được gửi cho cả thợ và quản lý để theo dõi."),
     (" Một người dùng có thể là quản lý của nhiều toà (quan hệ quanLy) và có thể có nhiều lần cư trú (CuTru).",
      " Một người dùng có thể có nhiều lần cư trú (CuTru)."),
     ("; mỗi ảnh, mỗi dòng lịch sử ghi người tải lên hoặc người thực hiện.", "; mỗi dòng lịch sử ghi người thực hiện."),

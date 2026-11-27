@@ -279,12 +279,15 @@ def activity_ai():
     a.dec("d5", WB, 16, "Có thợ phù hợp?", dx=75)
     a.act("e2", EM, 16, "Báo quản lý phân công")
     a.act("w8", WB, 17, "Giao việc cho thợ", dx=75, w=118)
-    a.act("e3", EM, 17, "Gửi thư giao việc")
-    a.merge("m2", WB, 18, dx=75)
-    a.act("a3", CD, 18, "Xem chi tiết yêu cầu")
-    a.final("f", CD, 19)
+    a.act("w10", WB, 18, "Kiểm tra mức ưu tiên", dx=75, w=118)
+    a.dec("d6", WB, 19, "Mức khẩn cấp?", dx=75)
+    a.act("e3", EM, 19, "Gửi thư giao việc")
+    a.act("e4", EM, 20, "Báo cả thợ và quản lý")
+    a.merge("m2", WB, 21, dx=75)
+    a.act("a3", CD, 21, "Xem chi tiết yêu cầu")
+    a.final("f", CD, 22)
     for x, y in [("i", "m0"), ("m0", "a1"), ("a1", "a2"), ("a2", "w1"), ("w1", "d1"), ("x2", "d3"),
-                 ("m1", "w4"), ("w4", "w5"), ("w5", "w6"), ("w6", "d4"), ("w7", "d5"), ("w8", "e3"),
+                 ("m1", "w4"), ("w4", "w5"), ("w5", "w6"), ("w6", "d4"), ("w7", "d5"), ("w8", "w10"), ("w10", "d6"),
                  ("a3", "f")]:
         a.flow(x, y)
     a.flow("d1", "w0", "không", [a.L("d1"), [a.T("w0")[0], a.L("d1")[1]], a.T("w0")])
@@ -306,7 +309,10 @@ def activity_ai():
     a.flow("d4", "w7", "có")
     a.flow("d5", "e2", "không", [a.R("d5"), a.L("e2")])
     a.flow("d5", "w8", "có")
-    for e in ("e1", "e2", "e3"):
+    # Sự cố khẩn cấp đã giao thợ: quản lý vẫn nhận thư để theo dõi.
+    a.flow("d6", "e3", "không", [a.R("d6"), a.L("e3")])
+    a.flow("d6", "e4", "có", [a.B("d6"), [a.B("d6")[0], a.L("e4")[1]], a.L("e4")])
+    for e in ("e1", "e2", "e3", "e4"):
         a.flow(e, "m2", points=[a.R(e), [xe, a.R(e)[1]], [xe, a.R("m2")[1]], a.R("m2")])
     a.flow("m2", "a3")
     return a.spec()
@@ -321,7 +327,7 @@ ATTR = {
     "NGUOI_DUNG": ["NguoiDungId*", "HoTen", "Email", "SoDienThoai"],
     "VAI_TRO": ["VaiTroId*", "TenVaiTro"],
     "QUYEN": ["QuyenId*", "MaQuyen", "TenQuyen"],
-    "NHAT_KY_HE_THONG": ["NhatKyHeThongId*", "TenBang", "LoaiThaoTac", "ThoiDiem"],
+    "NHAT_KY_HE_THONG": ["NhatKyHeThongId*", "TenBang", "LoaiThaoTac", "NguoiThaoTacId", "ThoiDiem"],
     "MUC_UU_TIEN": ["MucUuTienId*", "TenMucUuTien", "PhutHoanTat"],
     "YEU_CAU_BAO_TRI": ["YeuCauBaoTriId*", "SoYeuCau", "LoaiSuCo", "TrangThaiYeuCau", "NgayBao", "HanXuLy"],
     "ANH_YEU_CAU": ["AnhYeuCauId*", "DuongDan", "GiaiDoan"],
@@ -437,6 +443,14 @@ def erd_tong():
     e.rel("r20", "được lập", "CAN_HO", "(0,n)", "HOA_DON", "(1,1)")
     e.rel("r21", "gồm dịch vụ", "HOA_DON", "(1,n)", "LOAI_DICH_VU", "(0,n)", at=(864, 1092), attrs=CHI_TIET_ATTR)
     e.rel("r22", "được thanh toán", "HOA_DON", "(0,n)", "THANH_TOAN", "(1,1)")
+    # Phí sửa chữa tính cho căn: hoá đơn ghi yêu cầu sinh ra nó. Hình thoi dưới hoá đơn; đường từ đáy yêu cầu
+    # (dưới hình thoi mức ưu tiên) đi vòng bên phải (ngoài đường toà – căn), xuống dưới cùng rồi sang trái.
+    hx, hy, hw, hh = e.box["HOA_DON"]
+    e.rel("r23", "phát sinh phí", "YEU_CAU_BAO_TRI", "(0,n)", "HOA_DON", "(0,1)", at=(hx + hw // 2, hy + hh + 110))
+    yx, yy, yw, yh = e.box["YEU_CAU_BAO_TRI"]
+    dx, dy, dw, dh = e.box["r23"]
+    next(x for x in e.edges if x["from"] == "YEU_CAU_BAO_TRI" and x["to"] == "r23")["points"] = [
+        [yx + yw - 20, yy + yh], [yx + yw - 20, 490], [1340, 490], [1340, dy + dh // 2], [dx + dw, dy + dh // 2]]
     return e.spec()
 
 
@@ -608,6 +622,13 @@ def rd_tong():
     r.route("LoaiDichVu", "ChiSoDichVu", "LoaiDichVuId", lambda b: [
         [b("LoaiDichVu")[0] + 90, b("LoaiDichVu")[1]], [b("LoaiDichVu")[0] + 90, b("ChiSoDichVu")[1] + 70],
         [R(b, "ChiSoDichVu"), b("ChiSoDichVu")[1] + 70]])
+    # Yêu cầu → hoá đơn phí sửa chữa: ra cạnh phải YeuCauBaoTri, vòng ngoài đường toà – căn, xuống dưới cùng rồi
+    # lên đáy HoaDon. Đường toà – căn bao quanh nhóm sự cố nên phải cắt nó đúng một lần (kiem_tra_so_do cho phép).
+    ngoai = phai + 40
+    day = lambda b: D(b, "ChiTietHoaDon") + 40
+    r.route("YeuCauBaoTri", "HoaDon", "YeuCauBaoTriId", lambda b: [
+        [R(b, "YeuCauBaoTri"), D(b, "YeuCauBaoTri") - 20], [ngoai, D(b, "YeuCauBaoTri") - 20], [ngoai, day(b)],
+        [b("HoaDon")[0] + 120, day(b)], [b("HoaDon")[0] + 120, D(b, "HoaDon")]])
     # Hoá đơn → dòng chi tiết.
     r.route("HoaDon", "ChiTietHoaDon", "HoaDonId", lambda b: [
         [R(b, "HoaDon"), D(b, "HoaDon") - 30], [giua(b) - 15, D(b, "HoaDon") - 30],
@@ -647,15 +668,20 @@ def use_case_overview():
     cd = [("uc02", "UC02 Kích hoạt tài khoản"), ("uc03", "UC03 Báo sự cố"), ("uc04", "UC04 Theo dõi sự cố"),
           ("uc05", "UC05 Huỷ yêu cầu sự cố"), ("uc06", "UC06 Xác nhận kết quả xử lý"),
           ("uc06b", "UC06b Báo sự cố chưa khắc phục"), ("uc19", "UC19 Thanh toán hoá đơn")]
-    ql = [("uc09", "UC09 Quản lý cơ cấu khu – toà – tầng – căn"), ("uc10", "UC10 Quản lý cư dân"),
-          ("uc11", "UC11 Phân công xử lý sự cố"), ("uc12", "UC12 Xem báo cáo sự cố"),
+    ql = [("uc09", "UC09 Quản lý cơ cấu khu – toà – căn hộ"), ("uc10", "UC10 Quản lý cư dân"),
+          None, ("uc12", "UC12 Xem báo cáo sự cố"),
           ("uc17", "UC17 Ghi chỉ số điện nước"), ("uc18", "UC18 Lập hoá đơn"), ("uc20", "UC20 Xử lý thanh toán"),
           ("uc21", "UC21 Xem báo cáo tài chính")]
     for i, (k, n) in enumerate(cd):
         nodes.append(_uc(k, n, c1, 135 + i * 78))
-    for i, (k, n) in enumerate(ql):
-        nodes.append(_uc(k, n, c4, 115 + i * 72))
+    # UC11 đặt ở cột giữa, ngang ô trống của nó ở cột phải: đường tới Quản lý đi qua ô trống,
+    # đường tới Dịch vụ email đi dọc khe giữa UC08 và cột phải, không cắt use case nào.
+    for i, it in enumerate(ql):
+        if it:
+            nodes.append(_uc(it[0], it[1], c4, 115 + i * 72))
+    ql = [it for it in ql if it]
     nodes += [_uc("uc07", "UC07 Phân loại sự cố", c2, 115), _uc("uc08", "UC08 Điều phối sự cố", c3, 115),
+              _uc("uc11", "UC11 Phân công xử lý sự cố", c3, 259),
               _uc("uc13", "UC13 Quản lý người dùng và phân quyền", c4, 700), _uc("uc14", "UC14 Xem nhật ký hệ thống", c4, 772),
               _uc("uc15", "UC15 Xem việc được giao", c2, 620), _uc("uc16", "UC16 Cập nhật tiến độ xử lý", c3, 620),
               _uc("uc01", "UC01 Đăng nhập", c1, 710)]
@@ -666,7 +692,9 @@ def use_case_overview():
     a = lambda x, y: {"kind": "assoc", "from": x, "to": y, "lineStyle": 1}
     edges = [a("cd", k) for k, _ in cd] + [a("ql", k) for k, _ in ql]
     edges += [a("ai", "uc07"), a("mail", "uc08"), a("qt", "uc13"), a("qt", "uc14"), a("ktv", "uc15"),
-              a("ktv", "uc16"), a("nd", "uc01")]
+              a("ktv", "uc16"), a("nd", "uc01"), a("ql", "uc11"),
+              {**a("mail", "uc11"), "lineStyle": 0, "points": [[c3 + 45, -10], [1015, -10], [1015, 259], [1000, 259]]}]
+    edges += [{"kind": "include", "from": "uc16", "to": "uc15", "lineStyle": 1}]
     edges += [{"kind": "include", "from": "uc03", "to": "uc07", "lineStyle": 1},
               {"kind": "include", "from": "uc03", "to": "uc08", "lineStyle": 1}]
     # Cư dân, quản lý, kỹ thuật viên đều là người dùng (tổng quát hoá) nên cùng dùng UC01;
@@ -697,7 +725,8 @@ def uc_detail(name, title, ucs, rels, actors, links, w, h):
     nodes = [{"key": "sub", "kind": "subject", "name": title, "x": 160, "y": 10, "w": w, "h": h}]
     nodes += [_uc(k, n, x, y) for k, (n, x, y) in ucs.items()]
     nodes += [_actor(k, n, x, y) for k, (n, x, y) in actors.items()]
-    edges = [{"kind": kind, "from": a, "to": b, "lineStyle": 1} for kind, a, b in rels]
+    # Mỗi quan hệ: (loại, từ, tới) hoặc thêm dict tuỳ chọn, vd lật nhãn «extend» sang phía trống của đường.
+    edges = [{"kind": r[0], "from": r[1], "to": r[2], "lineStyle": 1, **(r[3] if len(r) > 3 else {})} for r in rels]
     edges += [{"kind": "assoc", "from": a, "to": u, "lineStyle": 1} for a, u in links]
     return {"kind": "usecase", "model": title, "name": name, "title": title, "fontSize": 13,
             "nodes": nodes, "edges": edges}
@@ -717,6 +746,7 @@ def uc03():
            "u8": ("UC08 Điều phối sự cố", 900 + X, 520),
            "tim": ("Tìm kỹ thuật viên phù hợp", 720 + X, 690), "giao": ("Giao việc cho kỹ thuật viên", 940 + X, 690),
            "tbgiao": ("Thông báo giao việc", 940 + X, 800), "phancong": ("Báo quản lý phân công", 1160 + X, 690),
+           "hoilai": ("Báo quản lý hỏi lại cư dân", 1160 + X, 440),
            "khancap": ("Báo quản lý sự cố khẩn cấp", 1160 + X, 590)}
     rels = [("include", "root", "mota"), ("include", "root", "noi"), ("extend", "vitri", "noi"),
             ("extend", "loai", "root"), ("extend", "anh", "root"),
@@ -724,7 +754,7 @@ def uc03():
             ("include", "u7", "xdloai"), ("include", "u7", "xdmuc"), ("include", "u7", "nguyhiem"),
             # Điều phối luôn tìm thợ; chỉ giao việc khi có thợ phù hợp và mô tả rõ (mở rộng), giao thì luôn kèm thư
             ("include", "u8", "tim"), ("extend", "giao", "u8"), ("include", "giao", "tbgiao"),
-            ("extend", "phancong", "u8"), ("extend", "khancap", "u8")]
+            ("extend", "phancong", "u8"), ("extend", "khancap", "u8"), ("extend", "hoilai", "u8")]
     actors = {"cd": ("Cư dân", 60, 380), "ai": ("Mô hình AI", 1500, 260), "mail": ("Dịch vụ email", 1500, 480)}
     return uc_detail("Hinh 3.2 Use case UC03 Bao su co", "UC03 – Báo sự cố", ucs, rels, actors,
                      [("cd", "root"), ("ai", "u7"), ("mail", "u8")], 1280, 860)
@@ -732,10 +762,10 @@ def uc03():
 
 def uc11():
     ucs = {"root": ("UC11 Phân công xử lý sự cố", 470, 70),
-           "xem": ("Xem danh sách sự cố", 300, 200), "giao": ("Giao kỹ thuật viên", 640, 200),
-           "pl": ("Phân loại lại sự cố", 300, 330), "tc": ("Từ chối yêu cầu sự cố", 640, 330)}
-    rels = [("include", "root", "xem"), ("include", "root", "giao"), ("extend", "pl", "root"),
-            ("extend", "tc", "root")]
+           "xem": ("Xem danh sách sự cố", 280, 200), "giao": ("Giao kỹ thuật viên", 680, 200),
+           "pl": ("Phân loại lại sự cố", 360, 330), "tc": ("Từ chối yêu cầu sự cố", 600, 330)}
+    rels = [("include", "root", "xem"), ("include", "root", "giao"),
+            ("extend", "pl", "root", {"stLabelAlpha": -1.5708, "stLabelDistance": 36}), ("extend", "tc", "root")]
     actors = {"ql": ("Quản lý BQL", 70, 30), "mail": ("Dịch vụ email", 980, 160)}
     return uc_detail("Hinh 3.3 Use case UC11 Phan cong xu ly su co", "UC11 – Phân công xử lý sự cố", ucs, rels, actors,
                      [("ql", "root"), ("mail", "giao")], 700, 390)
@@ -750,7 +780,7 @@ def uc16():
            "kq": ("Ghi kết quả xử lý", 920 + X, 340), "anh": ("Tải ảnh nghiệm thu", 920 + X, 470),
            "td": ("Tạm dừng xử lý", 260 + X, 560), "lydo": ("Ghi lý do tạm dừng", 260 + X, 680),
            "tt": ("Tiếp tục xử lý", 560 + X, 600)}
-    rels = [("include", "root", "u15"), ("extend", "ct", "u15"), ("include", "root", "bd"), ("include", "root", "ht"),
+    rels = [("include", "root", "u15"), ("extend", "ct", "u15"), ("extend", "bd", "root"), ("extend", "ht", "root"),
             ("include", "ht", "kq"), ("extend", "anh", "ht"), ("extend", "td", "root"), ("include", "td", "lydo"),
             ("extend", "tt", "root")]
     return uc_detail("Hinh 3.4 Use case UC16 Cap nhat tien do xu ly", "UC16 – Cập nhật tiến độ xử lý", ucs, rels,
@@ -758,22 +788,23 @@ def uc16():
 
 
 def uc06():
-    ucs = {"u6": ("UC06 Xác nhận kết quả xử lý", 400, 80), "u6b": ("UC06b Báo sự cố chưa khắc phục", 400, 300),
-           "xem": ("Xem kết quả xử lý", 720, 190), "dg": ("Đánh giá mức hài lòng", 720, 60)}
-    rels = [("include", "u6", "xem"), ("include", "u6b", "xem"), ("extend", "dg", "u6")]
+    ucs = {"u6": ("UC06 Xác nhận kết quả xử lý", 400, 130), "u6b": ("UC06b Báo sự cố chưa khắc phục", 400, 340),
+           "dg": ("Đánh giá mức hài lòng", 740, 70), "xem": ("Xem kết quả xử lý", 740, 235),
+           "lydo": ("Ghi lý do chưa khắc phục", 740, 410)}
+    rels = [("include", "u6", "xem"), ("include", "u6b", "xem"), ("extend", "dg", "u6"), ("include", "u6b", "lydo")]
     return uc_detail("Hinh 3.5 Use case UC06 Xac nhan ket qua xu ly", "UC06, UC06b – Xác nhận kết quả xử lý", ucs,
-                     rels, {"cd": ("Cư dân", 70, 140)}, [("cd", "u6"), ("cd", "u6b")], 720, 370)
+                     rels, {"cd": ("Cư dân", 70, 195)}, [("cd", "u6"), ("cd", "u6b")], 720, 470)
 
 
 def uc20():
-    ucs = {"root": ("UC20 Xử lý thanh toán", 520, 70),
-           "xem": ("Xem thanh toán chờ duyệt", 300, 200), "duyet": ("Duyệt thanh toán", 540, 200),
-           "tc": ("Từ chối thanh toán", 780, 200), "gn": ("Thu tiền trực tiếp", 380, 330),
-           "ht": ("Hoàn tiền", 700, 330)}
+    ucs = {"root": ("UC20 Xử lý thanh toán", 550, 70),
+           "xem": ("Xem thanh toán chờ duyệt", 260, 210), "tc": ("Từ chối thanh toán", 840, 210),
+           "gn": ("Thu tiền trực tiếp", 300, 370), "duyet": ("Duyệt thanh toán", 550, 390),
+           "ht": ("Hoàn tiền", 800, 370)}
     rels = [("include", "root", "xem"), ("extend", "duyet", "root"), ("extend", "tc", "root"),
             ("extend", "gn", "root"), ("extend", "ht", "root")]
     return uc_detail("Hinh 3.6 Use case UC20 Xu ly thanh toan", "UC20 – Xử lý thanh toán", ucs, rels,
-                     {"ql": ("Quản lý BQL", 70, 30)}, [("ql", "root")], 780, 390)
+                     {"ql": ("Quản lý BQL", 70, 30)}, [("ql", "root")], 840, 450)
 
 
 # ======================================================================= sơ đồ lớp
@@ -811,7 +842,8 @@ CLS = {
     "AnhYeuCau": ([_p("duongDan", "string"), _p("giaiDoan", "int"), _p("ngayTai", "datetime")], [_o("luuAnh")]),
     "LichSuYeuCau": ([_p("trangThaiMoi", "TrangThaiYeuCau"), _p("thoiDiem", "datetime"), _p("ghiChu", "string")],
                      [_o("ghiLichSu"), _o("trangThaiTruoc", ret="TrangThaiYeuCau")]),
-    "NhatKyHeThong": ([_p("tenBang", "string"), _p("loaiThaoTac", "int"), _p("thoiDiem", "datetime")],
+    "NhatKyHeThong": ([_p("tenBang", "string"), _p("loaiThaoTac", "int"), _p("nguoiThaoTacId", "string"),
+                       _p("thoiDiem", "datetime")],
                       [_o("ghiNhatKy"), _o("xemNhatKy")]),
     "LoaiDichVu": ([_p("maLoaiDichVu", "string"), _p("tenLoaiDichVu", "string"), _p("donViTinh", "string"),
                     _p("donGia", "decimal"), _p("cachTinh", "CachTinh")], [_o("capNhatDonGia")]),
@@ -898,6 +930,10 @@ def class_tong():
     k.a("CanHo", "YeuCauBaoTri", "0..1", "0..*")
     k.a("ToaNha", "YeuCauBaoTri", "0..1", "0..*", name="toaNha")
     k.a("MucUuTien", "YeuCauBaoTri", "1", "0..*")
+    # Hai liên kết căn hộ / toà loại trừ nhau (CHECK trong CSDL): ghi ràng buộc {xor}.
+    k.nodes.append({"key": "xor", "kind": "note", "name": "{xor} Mỗi yêu cầu ở đúng một nơi:\ncăn hộ hoặc khu vực chung của toà",
+                    "x": 1140, "y": 470, "w": 250, "h": 50})
+    k.edges.append({"kind": "notelink", "from": "xor", "to": "YeuCauBaoTri"})
     k.a("NguoiDung", "YeuCauBaoTri", "1", "0..*", name="nguoiBao", pts=[[452, 460], [900, 460]])
     k.a("NguoiDung", "YeuCauBaoTri", "0..1", "0..*", name="nguoiPhuTrach", pts=[[452, 540], [900, 540]])
     k.edges[-1]["lineStyle"] = k.edges[-2]["lineStyle"] = 0
@@ -913,6 +949,10 @@ def class_tong():
     k.a("HoaDon", "ChiTietHoaDon", "1", "1..*", comp=True)
     k.a("LoaiDichVu", "ChiTietHoaDon", "1", "0..*")
     k.a("HoaDon", "ThanhToan", "1", "0..*")
+    # Hoá đơn phí sửa chữa ghi yêu cầu sinh ra nó; đường vòng bên phải rồi vào đáy HoaDon.
+    k.a("YeuCauBaoTri", "HoaDon", "0..1", "0..*", name="phiSuaChua",
+        pts=[[1115, 600], [1620, 600], [1620, 1620], [820, 1620], [820, 1537]])
+    k.edges[-1]["lineStyle"] = 0
     return k.spec()
 
 
@@ -973,11 +1013,13 @@ def seq_bao_su_co():
 def seq_dieu_phoi():
     s = Seq([("tn", ":Tiếp nhận sự cố"), ("dp", ":Điều phối sự cố"), ("qt", ":Quy trình sự cố"), ("db", ":CSDL"),
              ("mail", ":Dịch vụ email")])
-    s.m("tn", "dp", "điều phối(yêu cầu)")
-    s.begin("alt", "mô tả rõ và có thợ phù hợp", "dp", "mail")
-    s.m("dp", "db", "đếm việc đang mở của từng thợ")
-    s.m("db", "dp", "số việc theo thợ", "reply")
+    s.m("tn", "dp", "điều phối(yêu cầu, kết quả AI)")
+    s.begin("opt", "mô tả rõ và loại sự cố có thợ chuyên trách", "dp", "db")
+    s.m("dp", "db", "tìm thợ đúng chuyên môn, đếm việc đang mở")
+    s.m("db", "dp", "danh sách thợ, số việc", "reply")
     s.m("dp", "dp", "chọn thợ ít việc nhất")
+    s.end()
+    s.begin("alt", "đã chọn được thợ", "dp", "mail")
     s.m("dp", "qt", "giao việc(yêu cầu, thợ)")
     s.m("qt", "db", "lưu người phụ trách, lịch sử")
     s.m("db", "qt", "đã lưu", "reply")
@@ -988,8 +1030,15 @@ def seq_dieu_phoi():
     s.m("dp", "mail", "gửi thư theo dõi(quản lý)")
     s.m("mail", "dp", "đã gửi", "reply")
     s.end()
-    s.other("mô tả mơ hồ hoặc không có thợ")
+    s.other("mô tả mơ hồ")
+    s.m("dp", "mail", "gửi thư hỏi lại cư dân(quản lý)")
+    s.m("mail", "dp", "đã gửi", "reply")
+    s.other("không có thợ phù hợp")
     s.m("dp", "mail", "gửi thư nhờ phân công(quản lý)")
+    s.m("mail", "dp", "đã gửi", "reply")
+    s.end()
+    s.begin("opt", "AI đang bật nhưng không trả kết quả", "dp", "mail")
+    s.m("dp", "mail", "gửi thư báo AI lỗi(quản trị viên)")
     s.m("mail", "dp", "đã gửi", "reply")
     s.end()
     s.m("dp", "tn", "đã điều phối", "reply")
@@ -1025,7 +1074,7 @@ def seq_duyet_thanh_toan():
     s.m("xl", "db", "đọc thanh toán, hoá đơn")
     s.m("db", "xl", "thanh toán, hoá đơn", "reply")
     s.m("xl", "xl", "kiểm tra trạng thái, số còn lại")
-    s.begin("alt", "không còn chờ, hoá đơn đã huỷ hoặc vượt số còn lại", "ql", "db")
+    s.begin("alt", "không còn chờ, hoá đơn nháp, đã huỷ, đã hoàn tiền hoặc vượt số còn lại", "ql", "db")
     s.m("xl", "ql", "báo lỗi, không lưu", "reply", close=False)
     s.other("hợp lệ")
     s.m("xl", "db", "lưu thanh toán Thành công, số đã trả, trạng thái hoá đơn")

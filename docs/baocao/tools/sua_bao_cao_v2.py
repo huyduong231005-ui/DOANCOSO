@@ -181,6 +181,7 @@ CAO_TOI_DA = {"Hinh 4.5": Pt(283), "Hinh 4.6": Pt(283), "Hinh 4.7": Pt(300)}   #
 # Sơ đồ duyệt chuyển khoản (Hình 3.6 trong báo cáo) thấp lại 2 dòng để đoạn cuối Chương 3 không rơi sang trang riêng.
 CAO_TOI_DA["Hinh 3.14"] = Pt(450)
 CAO_TOI_DA["Hinh 3.11"] = Pt(370)   # Hình 3.4 vừa nửa dưới trang có đoạn mở mục 3.4
+CAO_TOI_DA["Hinh 3.7"] = Pt(495)    # Hình 3.2 (thêm nhánh khẩn cấp) vẫn nằm cùng trang với mở đầu mục 3.2
 
 
 def fig_size(png):
@@ -534,7 +535,22 @@ def fix_text():
     gon_bao_cao.sua_o(body, set_text)
 
 
+def chan_de_file_sua_tay():
+    """Không dựng đè khi file Word đã bị sửa tay sau lần dựng gần nhất (mốc do cap_nhat_word.ps1 lưu)."""
+    if "BAOCAO_OUT" in os.environ or not OUT.exists():
+        return
+    import kiem_loi_bao_cao as kl
+    if not kl.MOC.exists():
+        return
+    cu, nay = kl.MOC.read_text(encoding="utf8").split("\n"), kl.doan(docx.Document(str(OUT)))
+    if cu != nay:
+        khac = [x[:60] for x in nay if x not in set(cu)][:3]
+        sys.exit(f"DỪNG: {OUT.name} đã bị sửa tay sau lần dựng gần nhất, ví dụ {khac}. Đưa chỗ sửa vào công cụ "
+                 "(hoặc chạy kiem_loi_bao_cao.py --chup nếu giữ bản hiện tại) rồi dựng lại.")
+
+
 def main():
+    chan_de_file_sua_tay()
     rebuild_chapter2()
     replace_figures()
     fix_text()

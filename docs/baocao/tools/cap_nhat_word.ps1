@@ -27,3 +27,8 @@ try {
 $tep = Get-Item $pdf
 if ($tep.LastWriteTime -lt $batDau) { throw "PDF không được ghi đè (đang mở ở chương trình khác?): $pdf" }
 "pdf: $pdf ($($tep.LastWriteTime))"
+# Lưu mốc chữ của bản vừa dựng: lần dựng sau sẽ dừng nếu file Word bị sửa tay khác mốc này.
+$env:BAOCAO_OUT = $Docx
+$env:PYTHONIOENCODING = "utf-8"
+& python (Join-Path $PSScriptRoot "kiem_loi_bao_cao.py") --chup
+Remove-Item Env:BAOCAO_OUT

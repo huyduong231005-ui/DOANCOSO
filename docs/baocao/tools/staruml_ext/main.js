@@ -257,6 +257,9 @@ function buildEdge (diagram, owner, views, e, d) {
   if (ev && ev.nameLabel && e.labelDistance !== undefined) app.engine.setProperty(ev.nameLabel, 'distance', e.labelDistance)
   if (ev && ev.nameLabel && e.labelAlpha !== undefined) app.engine.setProperty(ev.nameLabel, 'alpha', e.labelAlpha)
   if (ev && ev.nameLabel && e.labelEdgePosition !== undefined) app.engine.setProperty(ev.nameLabel, 'edgePosition', e.labelEdgePosition)
+  // Nhãn «stereotype» (vd «use»): lật sang phía bên kia đường khi phía mặc định nằm ngoài khung.
+  if (ev && ev.stereotypeLabel && e.stLabelAlpha !== undefined) app.engine.setProperty(ev.stereotypeLabel, 'alpha', e.stLabelAlpha)
+  if (ev && ev.stereotypeLabel && e.stLabelDistance !== undefined) app.engine.setProperty(ev.stereotypeLabel, 'distance', e.stLabelDistance)
   // Thanh kích hoạt kéo dài tới lúc trả về: mọi lời gọi tiếp theo của đối tượng đi ra từ thanh này.
   if (e.kind === 'message' && e.activationHeight && ev && ev.activation) {
     app.engine.setProperty(ev.activation, 'height', e.activationHeight)

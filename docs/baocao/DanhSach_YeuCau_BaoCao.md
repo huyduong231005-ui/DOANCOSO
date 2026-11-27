@@ -202,3 +202,36 @@ Bảng 4.3 (máy chủ chặn, không lưu). Sửa:
 - Sơ đồ: bỏ mối kết hợp "quản lý toà", "tải ảnh" (ERD) và quanLy, nguoiTai (sơ đồ lớp); lược đồ quan hệ tự cập nhật.
 - Chữ: Bảng 2.1 lý do TOA_NHA; hai câu mục 3.3 về quanLy và "người tải lên".
 - Thêm tools/kiem_loi_bao_cao.py (chạy --lap tới khi 0 lỗi) và QuyTrinh_SuaLoi.md.
+
+## Rà lần 9 ngày 27/11/2026 (lỗi nghiệp vụ, logic trong các sơ đồ)
+
+Đối chiếu từng hình với mã nguồn (bảng chuyển trạng thái, bộ điều phối, controller, dịch vụ nền). Sửa:
+- Code: quản lý giao việc bằng tay không gửi thư cho thợ (chỉ khi hệ thống tự giao mới gửi), trái với UC11 →
+  thêm MaintenanceDispatcher.NotifyAssigneeAsync, gọi sau khi giao; thêm test (126/126 đạt).
+- Hình 1.6: UC09 còn ghi "tầng" dù tầng đã gộp vào căn → "khu – toà – căn hộ"; thêm UC11 – Dịch vụ email và
+  UC16 «include» UC15 cho khớp sơ đồ chi tiết. Chữ "Khu – Toà – Tầng – Căn" sửa theo (mục 1.x, FR-02, 4.x).
+- Hình 1.7 (UC03): thiếu nhánh mô tả mơ hồ → thêm "Báo quản lý hỏi lại cư dân"; chữ mô tả sửa theo.
+- Hình 1.8 (UC16): "Bắt đầu", "Hoàn tất" là «include» (nghĩa là lần nào cũng làm) → «extend».
+- Hình 1.5: "CD/QL: xác nhận, đánh giá" nhưng quản lý chỉ đóng, không chấm điểm → "CD: xác nhận, đánh giá; QL: đóng".
+- Hình 2.1, 3.3: nhật ký hệ thống thiếu người thao tác → thêm NguoiThaoTacId (không phải khoá ngoại).
+- Hình 3.3: hai liên kết căn hộ / toà của yêu cầu loại trừ nhau (CHECK trong CSDL) → ghi chú {xor}.
+- Hình 3.1: dịch vụ nền lập hoá đơn qua tầng nghiệp vụ và nạp sẵn mô hình AI → thêm hai «use»; sắp lại bố cục.
+- Hình 3.2: thiếu nhánh khẩn cấp (đã giao thợ vẫn báo quản lý theo dõi) → thêm; giới hạn cao để không nhảy trang.
+- Hình 3.6 (tuần tự duyệt): điều kiện "hoá đơn đã huỷ" thiếu nháp, đã hoàn tiền → ghi đủ.
+- Sơ đồ chi tiết UC06, UC11, UC20 (không in trong báo cáo): đường cắt qua use case khác, nhãn chồng → sắp lại.
+Ghi nhận, chưa sửa: hoá đơn phí sửa chữa sinh từ yêu cầu sự cố chỉ ghi số yêu cầu trong ghi chú, không có khoá
+ngoại nối hai bảng.
+
+## Hoá đơn phí sửa chữa nối với yêu cầu sự cố (27/11/2026)
+
+- Trước: hoá đơn phí sửa chữa chỉ ghi số yêu cầu trong ghi chú; mở lại yêu cầu rồi hoàn tất lần nữa thì lập thêm hoá
+  đơn thứ hai (thu tiền hai lần).
+- Sửa: HoaDon thêm khoá ngoại YeuCauBaoTriId (NULL với hoá đơn khác) và UNIQUE có điều kiện
+  UX_HoaDon_SuaChua_MoiYeuCau (mỗi yêu cầu một hoá đơn chưa huỷ); InvoiceGenerator kiểm tra trước khi lập.
+  Migration Tuan9HoaDonNoiYeuCauSuCo: sao lưu, chạy bản _thu, rồi bản thật; tổng hoá đơn không đổi.
+- Thử thật trên localhost: hoàn tất có tính phí → mở lại → hoàn tất lần nữa: lần hai báo "đã có hoá đơn sửa chữa",
+  chỉ một hoá đơn nối với yêu cầu; dữ liệu thử đã xoá. Thêm test (127/127 đạt).
+- Sơ đồ: ERD thêm mối kết hợp "phát sinh phí", sơ đồ lớp thêm phiSuaChua, lược đồ quan hệ thêm đường (cắt đường
+  toà – căn một lần, không tránh được với bố cục hiện tại, ghi ngoại lệ trong kiem_tra_so_do). Chữ: mục 2.2, 3.3,
+  BR-SC-14.
+- Quy trình: sua_bao_cao_v2.py tự dừng nếu file Word khác mốc (bị sửa tay); cap_nhat_word.ps1 tự lưu mốc sau khi xuất.

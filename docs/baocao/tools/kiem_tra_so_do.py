@@ -82,6 +82,11 @@ def seg_cross(p1, q1, p2, q2):
     return p2[0] + t * (q2[0] - p2[0]), p2[1] + t * (q2[1] - p2[1])
 
 
+# Cặp đường được phép cắt nhau (bố cục không tránh được): đường toà – căn bao quanh nhóm sự cố, nên đường
+# yêu cầu – hoá đơn phí sửa chữa phải cắt nó một lần.
+CHO_PHEP_CAT = {frozenset({("YeuCauBaoTri", "HoaDon"), ("ToaNha", "CanHo")})}
+
+
 def check_rd(d):
     """Lược đồ quan hệ: đủ khoá chính, khoá ngoại; đường nối không cắt qua bảng khác; hai khoá ngoại cùng cặp bảng
     phải tách và có tên."""
@@ -115,6 +120,8 @@ def check_rd(d):
             # hai đường cùng nối vào một bảng được gặp nhau sát bảng đó (trong 60px), không được cắt nhau ở xa
             if any(b[k][0] - 60 < x[0] < b[k][0] + b[k][2] + 60 and b[k][1] - 60 < x[1] < b[k][1] + b[k][3] + 60
                    for k in chung):
+                continue
+            if frozenset({(e1["from"], e1["to"]), (e2["from"], e2["to"])}) in CHO_PHEP_CAT:
                 continue
             err(d, f"đường {e1['from']} → {e1['to']} cắt đường {e2['from']} → {e2['to']}")
     for (a, c), es in seen.items():

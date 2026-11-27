@@ -1464,6 +1464,16 @@
     "on_delete": null,
     "unique": false,
     "generated": true
+   },
+   {
+    "name": "YeuCauBaoTriId",
+    "type": "integer",
+    "null": true,
+    "pk": false,
+    "fk": "YeuCauBaoTri",
+    "on_delete": "RESTRICT",
+    "unique": false,
+    "generated": false
    }
   ],
   "unique": [
@@ -1481,6 +1491,13 @@
     ],
     "where": "((\"LoaiHoaDon\" = 0) AND (\"TrangThaiHoaDon\" <> 5) AND (\"DaXoa\" = false))",
     "name": "UX_HoaDon_PhiThang_MoiKy"
+   },
+   {
+    "cols": [
+     "YeuCauBaoTriId"
+    ],
+    "where": "((\"YeuCauBaoTriId\" IS NOT NULL) AND (\"TrangThaiHoaDon\" <> 5) AND (\"DaXoa\" = false))",
+    "name": "UX_HoaDon_SuaChua_MoiYeuCau"
    }
   ],
   "checks": [

@@ -177,7 +177,7 @@ def states():
         tr("i", "open", ls=1), tr("open", "ack", "QL/HT: tiếp nhận, giao việc", doc=True),
         tr("ack", "prog", "KTV/QL: bắt đầu", doc=True),
         tr("prog", "res", "KTV/QL: hoàn tất [có kết quả]", doc=True),
-        tr("res", "closed", "CD/QL: xác nhận, đánh giá", doc=True),
+        tr("res", "closed", "CD: xác nhận, đánh giá; QL: đóng", doc=True),
         dict(tr("res", "prog", "CD/QL: chưa khắc phục [có lý do]",
                 points=[[X, r + 22], [X - 150, r + 22], [X - 150, p + 22], [X, p + 22]]),
              labelDistance=125, labelAlpha=-1.5708),   # nhãn sang trái đoạn dọc, không đè đường

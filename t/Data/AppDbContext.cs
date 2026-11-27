@@ -416,6 +416,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
              .HasComputedColumnSql("\"TienPhi\" + \"PhiTreHan\" - \"DaThu\"", stored: true);
             e.Property(x => x.Status).HasColumnName("TrangThaiHoaDon");
             e.Property(x => x.Note).HasColumnName("GhiChu");
+            e.Property(x => x.MaintenanceRequestId).HasColumnName("YeuCauBaoTriId");
 
             e.HasIndex(x => x.InvoiceNumber).IsUnique();
             e.HasIndex(x => x.Status);
@@ -425,6 +426,13 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.HasIndex(x => new { x.ApartmentId, x.BillingMonth })
              .HasDatabaseName("UX_HoaDon_PhiThang_MoiKy").IsUnique()
              .HasFilter("\"LoaiHoaDon\" = 0 AND \"TrangThaiHoaDon\" <> 5 AND \"DaXoa\" = false");
+            // Mỗi yêu cầu sự cố chỉ một hoá đơn phí sửa chữa còn hiệu lực: mở lại rồi hoàn tất lần nữa không thu hai lần.
+            e.HasIndex(x => x.MaintenanceRequestId)
+             .HasDatabaseName("UX_HoaDon_SuaChua_MoiYeuCau").IsUnique()
+             .HasFilter("\"YeuCauBaoTriId\" IS NOT NULL AND \"TrangThaiHoaDon\" <> 5 AND \"DaXoa\" = false");
+            e.HasOne(x => x.MaintenanceRequest).WithMany()
+             .HasForeignKey(x => x.MaintenanceRequestId)
+             .OnDelete(DeleteBehavior.Restrict);
 
             e.HasOne(x => x.Apartment)
              .WithMany(a => a.Invoices)

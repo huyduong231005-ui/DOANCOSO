@@ -22,10 +22,12 @@ public class MaintenanceController : AdminBaseController
     private readonly UserManager<AppUser> _userManager;
     private readonly InvoiceGenerator _invoiceGen;
     private readonly MaintenanceWorkflow _workflow;
+    private readonly MaintenanceDispatcher _dispatcher;
 
     public MaintenanceController(AppDbContext db, UserManager<AppUser> userManager, InvoiceGenerator invoiceGen,
-        MaintenanceWorkflow workflow) : base(db)
+        MaintenanceWorkflow workflow, MaintenanceDispatcher dispatcher) : base(db)
     {
+        _dispatcher = dispatcher;
         _userManager = userManager;
         _invoiceGen = invoiceGen;
         _workflow = workflow;
@@ -219,6 +221,7 @@ public class MaintenanceController : AdminBaseController
             return RedirectToAction(nameof(Details), new { id = input.Id });
         }
         var error = await _workflow.AssignAsync(r, assignee, WorkflowActor.Manager, Me, input.Note);
+        if (error == null) await _dispatcher.NotifyAssigneeAsync(r, assignee, HttpContext.RequestAborted);
         Flash(error, $"Đã giao cho {assignee.FullName}.");
         return RedirectToAction(nameof(Details), new { id = input.Id });
     }
@@ -249,7 +252,8 @@ public class MaintenanceController : AdminBaseController
                 : await _invoiceGen.GenerateOneOffInvoiceAsync(
                     r.ApartmentId!.Value, $"Bảo trì {r.RequestNumber}", new[] { (repairId, 1m, input.ActualCost) },
                     t.Infrastructure.Time.VnTime.Today.AddDays(7),
-                    note: $"Sửa chữa {r.RequestNumber} — {r.Title}" + (string.IsNullOrWhiteSpace(input.ResolutionNote) ? "" : $". {input.ResolutionNote}"));
+                    note: $"Sửa chữa {r.RequestNumber} — {r.Title}" + (string.IsNullOrWhiteSpace(input.ResolutionNote) ? "" : $". {input.ResolutionNote}"),
+                    maintenanceRequestId: r.Id);
             TempData["Success"] = result.Success
                 ? $"Đã hoàn tất. Sinh hoá đơn truy đòi {result.InvoiceId}."
                 : "Đã hoàn tất (không sinh được hoá đơn: " + result.Message + ").";

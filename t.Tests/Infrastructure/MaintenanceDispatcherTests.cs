@@ -65,6 +65,23 @@ public class MaintenanceDispatcherTests
     }
 
     [Fact]
+    public async Task Manual_assignment_mails_only_the_chosen_technician()
+    {
+        await using var db = NewDb();
+        var tech = AddUser(db, "carpenter", SeedData.RoleCarpenter);
+        AddUser(db, "manager", SeedData.RoleManager);
+        var req = AddRequest(db, MaintenanceCategory.Pest, MaintenancePriority.Urgent);
+        await db.SaveChangesAsync();
+        var sender = new RecordingSender();
+
+        await Dispatcher(db, sender).NotifyAssigneeAsync(req, tech);
+
+        var mail = Assert.Single(sender.Mails);
+        Assert.Equal("carpenter@test.local", mail.To);
+        Assert.Contains("KHẨN CẤP - Giao việc", mail.Subject);
+    }
+
+    [Fact]
     public async Task Request_without_a_matching_technician_goes_to_all_managers_in_one_mail()
     {
         await using var db = NewDb();

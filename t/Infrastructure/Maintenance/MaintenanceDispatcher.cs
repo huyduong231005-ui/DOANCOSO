@@ -141,6 +141,24 @@ public class MaintenanceDispatcher
         }
     }
 
+    /// <summary>Thư giao việc khi quản lý giao (hoặc giao lại) bằng tay: thợ nhận cùng thư như khi hệ thống tự giao.</summary>
+    public async Task NotifyAssigneeAsync(MaintenanceRequest req, AppUser assignee, CancellationToken ct = default)
+    {
+        try
+        {
+            await _db.Entry(req).Reference(r => r.Apartment).LoadAsync(ct);
+            await _db.Entry(req).Reference(r => r.CommonBuilding).LoadAsync(ct);
+            await _db.Entry(req).Reference(r => r.Reporter).LoadAsync(ct);
+            var tag = req.Priority == MaintenancePriority.Urgent ? "KHẨN CẤP - " : "";
+            await SendSafeAsync(new[] { assignee }, $"[Luxe Haven] {tag}Giao việc {req.RequestNumber}: {req.Title.ReplaceLineEndings(" ")}",
+                "<p>Anh/chị được giao xử lý sự cố sau.</p>" + BuildDetails(req, null), req.RequestNumber, ct);
+        }
+        catch (Exception ex)
+        {
+            _log.LogError(ex, "Assign mail failed for {RequestNumber}", req.RequestNumber);
+        }
+    }
+
     /// <summary>Thư cho quản lý, hoặc null khi sự cố thường đã giao được thợ (quản lý xem trên trang Bảo trì).</summary>
     private static (string Subject, string Lead)? ManagerMail(AppUser? assignee, bool isVague, bool isUrgent,
         MaintenanceTriage? triage, string? suggestedHandler)

@@ -118,9 +118,16 @@ public class InvoiceGenerator
     }
 
     /// <summary>Hoá đơn phát sinh (sửa chữa, khoản khác): mỗi dòng là một loại dịch vụ, cùng loại thì cộng số lượng.</summary>
-    public async Task<InvoiceResult> GenerateOneOffInvoiceAsync(int apartmentId, string title, IReadOnlyList<(int utilityTypeId, decimal qty, decimal unitPrice)> lines, DateTime dueDate, string? note = null, CancellationToken ct = default)
+    public async Task<InvoiceResult> GenerateOneOffInvoiceAsync(int apartmentId, string title, IReadOnlyList<(int utilityTypeId, decimal qty, decimal unitPrice)> lines, DateTime dueDate, string? note = null, int? maintenanceRequestId = null, CancellationToken ct = default)
     {
         if (!await _db.Apartments.AnyAsync(a => a.Id == apartmentId, ct)) return new(false, "Không tìm thấy căn hộ.");
+        if (maintenanceRequestId != null)
+        {
+            var existing = await _db.Invoices
+                .Where(i => i.MaintenanceRequestId == maintenanceRequestId && i.Status != InvoiceStatus.Cancelled)
+                .Select(i => i.InvoiceNumber).FirstOrDefaultAsync(ct);
+            if (existing != null) return new(false, $"yêu cầu này đã có hoá đơn sửa chữa {existing}");
+        }
         if (lines == null || lines.Count == 0) return new(false, "Hoá đơn phải có ít nhất một dòng.");
         var typeIds = lines.Select(l => l.utilityTypeId).Distinct().ToList();
         if (await _db.UtilityTypes.CountAsync(t => typeIds.Contains(t.Id), ct) != typeIds.Count)
@@ -142,6 +149,7 @@ public class InvoiceGenerator
             Balance = subTotal,
             Status = InvoiceStatus.Issued,
             Note = note,
+            MaintenanceRequestId = maintenanceRequestId,
             Items = items
         };
         _db.Invoices.Add(invoice);

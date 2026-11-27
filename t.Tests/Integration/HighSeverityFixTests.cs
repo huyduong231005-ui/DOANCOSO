@@ -178,6 +178,32 @@ public sealed class HighSeverityFixTests : IClassFixture<TestWebApplicationFacto
         Assert.Equal(100_000m, await TotalAsync(invId));
     }
 
+    // Hoá đơn phí sửa chữa nối với yêu cầu sự cố; hoàn tất lại lần nữa không lập hoá đơn thứ hai.
+    [Fact]
+    public async Task RepairInvoice_IsLinkedToRequest_AndNotChargedTwice()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var apt = await NewApartmentAsync(db);
+        var req = new MaintenanceRequest
+        {
+            RequestNumber = "YC-THU-" + Guid.NewGuid().ToString("N")[..8], ApartmentId = apt.Id,
+            ReporterId = await UserIdAsync("quanly@luxehaven.vn"), Title = "Thử", Description = "Thử",
+        };
+        db.MaintenanceRequests.Add(req);
+        await db.SaveChangesAsync();
+        var gen = scope.ServiceProvider.GetRequiredService<InvoiceGenerator>();
+        var lines = new[] { (await ServiceIdAsync(db, UtilityType.RepairCode), 1m, 200_000m) };
+
+        var first = await gen.GenerateOneOffInvoiceAsync(apt.Id, "Bảo trì", lines, DateTime.Today.AddDays(7), maintenanceRequestId: req.Id);
+        var second = await gen.GenerateOneOffInvoiceAsync(apt.Id, "Bảo trì", lines, DateTime.Today.AddDays(7), maintenanceRequestId: req.Id);
+
+        Assert.True(first.Success);
+        Assert.False(second.Success);
+        Assert.Equal(req.Id, (await db.Invoices.AsNoTracking().SingleAsync(i => i.Id == first.InvoiceId)).MaintenanceRequestId);
+        Assert.Equal(1, await db.Invoices.CountAsync(i => i.MaintenanceRequestId == req.Id));
+    }
+
     // T1: đã hoàn một phần vẫn hoàn tiếp được phần còn lại.
     [Fact]
     public async Task Refund_CanContinueAfterPartialRefund()

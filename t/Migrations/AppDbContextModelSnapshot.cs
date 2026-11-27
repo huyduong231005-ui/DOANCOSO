@@ -688,6 +688,10 @@ namespace t.Migrations
                         .HasColumnType("decimal(18,0)")
                         .HasColumnName("PhiTreHan");
 
+                    b.Property<int?>("MaintenanceRequestId")
+                        .HasColumnType("integer")
+                        .HasColumnName("YeuCauBaoTriId");
+
                     b.Property<string>("Note")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
@@ -722,6 +726,11 @@ namespace t.Migrations
 
                     b.HasIndex("InvoiceNumber")
                         .IsUnique();
+
+                    b.HasIndex("MaintenanceRequestId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_HoaDon_SuaChua_MoiYeuCau")
+                        .HasFilter("\"YeuCauBaoTriId\" IS NOT NULL AND \"TrangThaiHoaDon\" <> 5 AND \"DaXoa\" = false");
 
                     b.HasIndex("Status");
 
@@ -1646,7 +1655,14 @@ namespace t.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("t.Models.Entities.MaintenanceRequest", "MaintenanceRequest")
+                        .WithMany()
+                        .HasForeignKey("MaintenanceRequestId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Apartment");
+
+                    b.Navigation("MaintenanceRequest");
                 });
 
             modelBuilder.Entity("t.Models.Entities.InvoiceItem", b =>

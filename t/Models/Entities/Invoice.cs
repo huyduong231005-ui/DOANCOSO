@@ -42,6 +42,10 @@ public class Invoice : BaseEntity
     public InvoiceStatus Status { get; set; } = InvoiceStatus.Draft;
     public string? Note { get; set; }
 
+    /// <summary>Hoá đơn phí sửa chữa: yêu cầu sự cố sinh ra nó (null với hoá đơn khác).</summary>
+    public int? MaintenanceRequestId { get; set; }
+    public MaintenanceRequest? MaintenanceRequest { get; set; }
+
     public ICollection<InvoiceItem> Items { get; set; } = new List<InvoiceItem>();
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }

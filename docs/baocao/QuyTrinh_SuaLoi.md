@@ -31,6 +31,8 @@ python kiem_loi_bao_cao.py --chup   # lưu bản chữ của file Word làm mố
 4. **Dựng nháp** khi Word đang mở: đặt `BAOCAO_OUT` ra thư mục tạm, chạy `sua_bao_cao_v2.py` và công cụ kiểm trên bản nháp.
 5. **Dựng thật:** đóng Word → `sua_bao_cao_v2.py` → `cap_nhat_word.ps1` (cập nhật mục lục, xuất PDF, tự lưu mốc) →
    `kiem_loi_bao_cao.py` phải báo 0 lỗi.
+   Bước dựng tự dừng khi một câu thay không còn khớp (câu nguồn đã bị bước trước đổi) hoặc ô bảng cần sửa không có;
+   đọc dòng "SUA_SAU không gặp câu nguồn" trong đầu ra, phải là "không".
 6. **Xem bằng mắt** các trang đã đổi trong PDF (bố cục, hình nhảy trang, chữ). Công cụ đạt không thay được bước này.
 7. **Ghi sổ** `DanhSach_YeuCau_BaoCao.md`; commit khi được yêu cầu.
 

@@ -179,9 +179,10 @@ def new_table(header, rows, widths):
 # Ảnh màn hình đứng liền nhau (Hình 4.5, 4.6) giới hạn cao 10 cm để hai hình chung một trang, không bỏ trống nửa trang.
 CAO_TOI_DA = {"Hinh 4.5": Pt(283), "Hinh 4.6": Pt(283), "Hinh 4.7": Pt(300)}   # 4.7 vừa nửa trang dưới 4.6
 # Sơ đồ duyệt chuyển khoản (Hình 3.6 trong báo cáo) thấp lại 2 dòng để đoạn cuối Chương 3 không rơi sang trang riêng.
-CAO_TOI_DA["Hinh 3.14"] = Pt(450)
+CAO_TOI_DA["Hinh 3.14"] = Pt(425)
 CAO_TOI_DA["Hinh 3.11"] = Pt(370)   # Hình 3.4 vừa nửa dưới trang có đoạn mở mục 3.4
-CAO_TOI_DA["Hinh 3.7"] = Pt(495)    # Hình 3.2 (thêm nhánh khẩn cấp) vẫn nằm cùng trang với mở đầu mục 3.2
+CAO_TOI_DA["Hinh 3.7"] = Pt(495)
+CAO_TOI_DA["Hinh 2.1"] = Pt(395)    # ERD (thêm "phát sinh phí") vẫn cùng trang với mở đầu mục 2.2    # Hình 3.2 (thêm nhánh khẩn cấp) vẫn nằm cùng trang với mở đầu mục 3.2
 
 
 def fig_size(png):
@@ -569,10 +570,17 @@ def main():
     treo, doi = gon_bao_cao.danh_so_lai(body, set_text)
     print(f"đánh số lại {doi} bảng; tham chiếu treo: {treo or 'không'}")
     treo, doi = gon_bao_cao.danh_so_hinh(body, set_text, {"3.2": "1", "3.4": "1"})
-    print(f"dẫn bảng, hình: không áp được {gon_bao_cao.dan_bang_hinh(body, set_text, new_p) or 'không'}")
+    sot = [x[:60] for x, _ in gon_bao_cao.SUA_SAU if x not in gon_bao_cao.SUA_SAU_DA_AP]
+    print(f"SUA_SAU không gặp câu nguồn: {sot or 'không'}")
+    con = gon_bao_cao.dan_bang_hinh(body, set_text, new_p)
+    if con:   # câu nguồn đã bị bước trước đổi mất: dừng, không lưu file thiếu câu sửa
+        sys.exit(f"DỪNG: {len(con)} câu thay trong DAN_THAY không còn khớp: {[c[:70] for c in con]}")
     print(f"đánh số lại {doi} hình; tham chiếu hình treo: {treo or 'không'}")
     groups, nland = landscape_sections()
     doc.save(str(OUT))
+    if "BAOCAO_OUT" not in os.environ:   # mốc cho bản vừa ghi; cap_nhat_word.ps1 lưu lại sau khi Word cập nhật mục lục
+        import kiem_loi_bao_cao as kl
+        kl.MOC.write_text("\n".join(kl.doan(docx.Document(str(OUT)))), encoding="utf8")
     leftovers = [w for w in ("MucSla", "CuDan", "MUC_SLA", "YEU_CAU_SU_CO", "[P1]", "NgayTiepNhan", "SoLuongTang",
                              "DaKichHoat", "KhuVuc", "DuAn", "GiamGia", "ThueHoaDon", "TrangThaiTruoc", "NgayBaoSuCo",
                              "HanXuLyYeuCau", "TongTienHoaDon", "ConLaiHoaDon", "DaThanhToanHoaDon", "SoPhongTam", "HuongNha",

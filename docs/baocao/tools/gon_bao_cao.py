@@ -326,9 +326,23 @@ DOAN_UC_MOI = {   # đoạn bắt đầu bằng ... -> nội dung mới (số h�
 }
 
 
-SUA_SAU = [   # thay chuỗi con, chạy sau cùng trên mọi đoạn (kể cả ô bảng), trừ mục lục
+SUA_SAU_DA_AP = set()   # câu nguồn của SUA_SAU đã gặp; câu không gặp được in ra để không trượt im lặng
+SUA_SAU = [   # thay chuỗi con trên mọi đoạn (kể cả ô bảng) trừ mục lục; chạy trong bo_muc_uc_chuong3, trước DAN_THAY
     # Tuần 9: bỏ cột quản lý toà và người tải ảnh (không quy tắc nào dùng)
     # Rà sơ đồ 27/11: tầng đã gộp vào căn; chữ theo các hình đã sửa
+    # Rà toàn bài 27/11
+    ("mô hình hoá dữ liệu xây dựng một hệ thống", "mô hình hoá dữ liệu để xây dựng một hệ thống"),
+    ("Gửi thư giao việc, thư cần phân công, thư cảnh báo",
+     "Gửi thư mời cư dân, thư giao việc, thư cần phân công, thư cảnh báo, nhắc hạn thanh toán"),
+    ("Hệ thống, vào ngày lập phí", "Hệ thống, vào ngày lập phí; quản lý, khi lập hoá đơn phát sinh"),
+    ("Kỳ, hạn thanh toán, tiền phí, phí trễ, số đã thu",
+     "Kỳ, hạn thanh toán, tiền phí, phí trễ, số đã thu; yêu cầu sự cố sinh ra hoá đơn phí sửa chữa"),
+    ("từng lỗi được thử lại trên trình duyệt.",
+     "từng lỗi được thử lại trên trình duyệt. Lần đối chiếu các sơ đồ với mã nguồn ngày 27/11/2026 tìm thêm hai lỗi "
+     "nghiệp vụ, cũng đã sửa: quản lý giao việc bằng tay thì thợ không nhận thư giao việc; yêu cầu bị mở lại rồi hoàn "
+     "tất lần nữa thì lập thêm một hoá đơn phí sửa chữa, tức thu tiền cư dân hai lần (nay mỗi yêu cầu chỉ có một hoá "
+     "đơn chưa huỷ, BR-SC-14). Sau đó 127 kiểm thử tự động đều đạt; tình huống hoàn tất hai lần được thử lại trên "
+     "trình duyệt."),
     # Hoá đơn phí sửa chữa nối với yêu cầu sự cố (khoá ngoại YeuCauBaoTriId của HoaDon)
     ("Một yêu cầu xảy ra tại một căn hoặc ở khu vực chung của một toà, không đồng thời cả hai.",
      "Một yêu cầu xảy ra tại một căn hoặc ở khu vực chung của một toà, không đồng thời cả hai. Hoá đơn phí sửa chữa "
@@ -395,7 +409,6 @@ SUA_SAU = [   # thay chuỗi con, chạy sau cùng trên mọi đoạn (kể c�
      "nhận mã 403 (không có quyền) và vẫn giữ phiên."),
     ("đều nhận mã 404.", "đều nhận mã 404 (không tìm thấy), để không lộ là dữ liệu đó có tồn tại."),
     # Gộp Tầng vào Căn hộ (26/11): bỏ bảng Tang ở mọi chương
-    ("Thiết kế CSDL đạt 3NF cho cơ cấu Khu – Toà – Tầng – Căn,", "Thiết kế CSDL đạt 3NF cho cơ cấu Khu – Toà – Căn,"),
     ("hệ thống tự sinh tầng và căn với mã dạng", "hệ thống tự sinh căn cho từng tầng với mã dạng"),
     ("Mã căn trùng trong toà, tầng của toà khác, diện tích âm", "Mã căn trùng, số tầng 0, diện tích âm"),
     # Bản nháp không có chức năng nào tạo ra: không nhắc trong báo cáo
@@ -425,12 +438,8 @@ SUA_SAU = [   # thay chuỗi con, chạy sau cùng trên mọi đoạn (kể c�
     ("Lưu loại mới; hạn xử lý tính lại từ lúc báo", "Lưu loại mới; mức ưu tiên không đổi nên hạn xử lý giữ nguyên"),
     ("Mới gửi → Đã từ chối", "Mới gửi → Từ chối"),
     ("dùng khoá lạc quan theo cột hệ thống xmin của PostgreSQL: lệnh", "dùng khoá lạc quan: lệnh"),
-    ("chạy thẳng trên CSDL ngày 18/11/2026", "chạy thẳng trên CSDL ngày 25/11/2026"),
     ("Đối chiếu các báo cáo với SQL ngày 18/11/2026", "Đối chiếu các báo cáo với SQL ngày 25/11/2026"),
-    ("Trong lúc đối chiếu, nhóm phát hiện và sửa thêm ba lỗi.", "Lần đối chiếu đầu (18/11) giúp nhóm phát hiện và sửa "
-     "thêm ba lỗi."),
     ("706.065.000 / 316.048.734 / 0 / 53.398.530 / 69.174.666", "706.065.000 / 0 / 316.048.734 / 53.398.530 / 69.174.666"),
-    ("tính số ngày trễ theo ngày UTC", "tính số ngày trễ theo giờ quốc tế (UTC) thay vì giờ Việt Nam"),
     ("tính mốc theo giờ UTC", "tính mốc theo giờ quốc tế (UTC) thay vì giờ Việt Nam"),
     ("báo cáo tài chính, bảng điều khiển và nhật ký tính mốc theo giờ quốc tế (UTC) thay vì giờ Việt Nam. "
      "Sau khi sửa,",
@@ -481,6 +490,8 @@ def bo_muc_uc_chuong3(body, set_text):
         else:
             n = t
             for x, y in SUA_SAU:
+                if x in n:
+                    SUA_SAU_DA_AP.add(x)
                 n = n.replace(x, y)
             if n != t:
                 set_text(p, n)
@@ -650,14 +661,15 @@ DAN_THAY = [   # (chuỗi cũ, chuỗi mới) trong đoạn văn, áp một lầ
      "ràng buộc hoặc bước kiểm tra tương ứng.",
      "Các mô hình được đối chiếu chéo: hai use case trọng tâm có đặc tả (Bảng 1.13, 1.14) và sơ đồ tuần tự tương ứng "
      "(Hình 3.4, 3.5), các bước của hai sơ đồ này khớp với luồng chính trong đặc tả và sơ đồ hoạt động; mỗi lớp nghiệp vụ "
-     "ứng với một bảng, mỗi liên kết ứng với một khoá ngoại; mỗi quy tắc nghiệp vụ có ràng buộc hoặc bước kiểm tra "
-     "tương ứng (Bảng 1.8)."),
+     "ứng với một bảng, mỗi liên kết ứng với một khoá ngoại hoặc bảng trung gian; mỗi quy "
+     "tắc nghiệp vụ có ràng buộc hoặc bước kiểm tra tương ứng (Bảng 1.8)."),
     ("Khung opt là đoạn chỉ chạy khi điều kiện đúng,", "Đối tượng có dấu “:” là bộ phận xử lý của ứng dụng (Hình "
      "3.1), không phải bảng dữ liệu. Khung opt là đoạn chỉ chạy khi điều kiện đúng,"),
     # Rà lần 5 (27/11): nội dung trong bảng
     ("Không tạo được hai căn cùng mã trong một toà", "Không tạo được hai căn trùng mã; số tầng phải từ 1 trở lên"),
     ("use case chi tiết và đặc tả, activity, class, sequence (AI phân loại, điều phối, hoàn tất)",
-     "use case chi tiết và đặc tả, sơ đồ hoạt động, lớp, tuần tự (AI phân loại, điều phối, hoàn tất)"),
+     "use case chi tiết và đặc tả, sơ đồ hoạt động, lớp, tuần tự (báo sự cố có AI phân loại, hoàn tất xử lý, duyệt "
+     "chuyển khoản)"),
     ("ba trigger cho ràng buộc cần dữ liệu nhiều dòng", "ba trigger cho ràng buộc liên bộ, liên quan hệ phải đúng cả khi "
      "sửa thẳng cơ sở dữ liệu"),
     ("Ba trigger và một hàm ở Bảng 2.6 chỉ kiểm tra rồi chấp nhận hoặc từ chối lệnh ghi, không tự ghi thêm dữ liệu; mỗi "
@@ -682,6 +694,7 @@ def dan_bang_hinh(body, set_text, new_p):
         for a, b in DAN_THAY:
             if a in n and b not in n:
                 n = n.replace(a, b, 1)
+            if a in n or b in n:
                 con.discard(a)
         if n != t:
             set_text(p, n)
@@ -707,8 +720,10 @@ def sua_muc_tinh_chat(body, set_text):
 
 
 # Sửa một ô theo (bảng, dòng, cột) khi chữ trong ô lặp ở nhiều dòng, không thay chuỗi được.
-O_THEO_DONG = [   # (chữ trong chú thích bảng, ô đầu của dòng, số thứ tự cột, chữ mới)
+O_THEO_DONG = [   # (chữ trong chú thích bảng, ô đầu của dòng, số thứ tự cột, chữ mới hoặc (chữ cũ, chữ mới))
     ("Yêu cầu chức năng, mức ưu tiên", "FR-03", 3, "Quản lý, Cư dân"),   # UC02 (kích hoạt tài khoản) do cư dân làm
+    ("Thành phần kiến trúc", "Gửi email", 2, ("Gửi thư giao việc, theo dõi, cảnh báo; khi chưa cấu hình SMTP thì chỉ ghi "
+     "nội dung thư", "Gửi thư mời, giao việc, cảnh báo, nhắc hạn; chưa cấu hình SMTP thì chỉ ghi thư")),
 ]
 
 
@@ -719,7 +734,14 @@ def sua_o_theo_dong(body, set_text):
         for tr in cap.getnext().iter(qn("w:tr")):
             tcs = tr.findall(qn("w:tc"))
             if _text(tcs[0]).strip() == dong:
-                set_text(tcs[cot].find(qn("w:p")), moi)
+                o = tcs[cot].find(qn("w:p"))
+                if isinstance(moi, tuple):
+                    assert moi[0] in _text(o), f"không thấy '{moi[0]}' ở dòng {dong} của bảng {cap_chu}"
+                    moi = _text(o).replace(*moi)
+                set_text(o, moi)
+                break
+        else:
+            raise AssertionError(f"không thấy dòng {dong} trong bảng {cap_chu}")
 
 
 # ====================================================================== tài liệu tham khảo

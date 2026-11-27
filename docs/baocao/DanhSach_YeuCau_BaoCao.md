@@ -235,3 +235,16 @@ ngoại nối hai bảng.
   toà – căn một lần, không tránh được với bố cục hiện tại, ghi ngoại lệ trong kiem_tra_so_do). Chữ: mục 2.2, 3.3,
   BR-SC-14.
 - Quy trình: sua_bao_cao_v2.py tự dừng nếu file Word khác mốc (bị sửa tay); cap_nhat_word.ps1 tự lưu mốc sau khi xuất.
+
+## Rà lần 10 ngày 27/11/2026 (đọc lại toàn bài sau các đợt sửa)
+
+- Lời cảm ơn: thiếu "để" ("mô hình hoá dữ liệu để xây dựng").
+- Bảng 1.3, Bảng 3.1: Dịch vụ email còn gửi thư mời cư dân, nhắc hạn thanh toán (đặt lại mật khẩu) → bổ sung.
+- Bảng 2.2: HoaDon còn do quản lý lập (hoá đơn phát sinh) và ghi yêu cầu sinh ra phí sửa chữa → bổ sung.
+- Bảng 1.16 tuần 4: sơ đồ tuần tự ghi "điều phối" nhưng Chương 3 là báo sự cố, hoàn tất, duyệt chuyển khoản → sửa.
+- Mục 3.5: một câu thêm ở bước thay chữ sớm làm câu sửa của rà lần 6 không còn khớp, câu sai cũ ("mỗi thông điệp
+  tuần tự gọi thao tác có trong lớp nhận") quay lại → sửa đúng chỗ; thêm "khoá ngoại hoặc bảng trung gian".
+- Mục 4.7: ghi hai lỗi nghiệp vụ tìm được ngày 27/11 và số kiểm thử 127.
+- Bố cục: giới hạn cao ERD, Hình 3.2, Hình 3.6 để không nhảy trang; vẫn 76 trang.
+- Công cụ: bước dựng dừng khi câu thay của DAN_THAY không còn khớp hoặc ô bảng cần sửa không tìm thấy; in danh sách
+  câu SUA_SAU không gặp; tự lưu mốc ngay sau khi ghi file (tránh báo nhầm "sửa tay" khi chưa xuất PDF).

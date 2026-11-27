@@ -23,6 +23,5 @@ public class AppUser : IdentityUser, IAuditable, ISoftDeletable
     public string? DeletedBy { get; set; }
 
 
-    public ICollection<Building> ManagedBuildings { get; set; } = new List<Building>();
     public ICollection<ApartmentResident> Residencies { get; set; } = new List<ApartmentResident>();
 }

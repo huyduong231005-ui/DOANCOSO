@@ -179,7 +179,7 @@ public class MaintenanceWorkflow
         (urls ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Where(u => u.Length <= 500)
             .Distinct()
-            .Select(u => new MaintenancePhoto { Url = u, Stage = stage, UploadedById = userId });
+            .Select(u => new MaintenancePhoto { Url = u, Stage = stage });
 
     /// <summary>Đang mở và đã quá hạn hoàn tất (dùng trong truy vấn).</summary>
     public static System.Linq.Expressions.Expression<Func<MaintenanceRequest, bool>> IsOverdue(DateTime now) =>

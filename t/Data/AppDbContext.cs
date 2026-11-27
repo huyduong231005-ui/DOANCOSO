@@ -209,7 +209,6 @@ public class AppDbContext : IdentityDbContext<AppUser>
 
             e.Property(x => x.Code).HasColumnName("MaToaNha").HasMaxLength(40);
             e.Property(x => x.ProjectId).HasColumnName("KhuId");
-            e.Property(x => x.ManagerId).HasColumnName("QuanLyId");
             e.Property(x => x.Status).HasColumnName("TrangThaiToaNha");
             e.Property(x => x.DefaultBillingDay).HasColumnName("NgayLapPhi").HasDefaultValue(1);
             e.Property(x => x.DefaultLateFeeAfterDays).HasColumnName("SoNgayAnHan").HasDefaultValue(7);
@@ -220,7 +219,6 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.HasIndex(x => x.Status);
 
             e.HasOne(x => x.Project).WithMany(p => p.Buildings).HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Restrict);
-            e.HasOne(x => x.Manager).WithMany(u => u.ManagedBuildings).HasForeignKey(x => x.ManagerId).OnDelete(DeleteBehavior.SetNull);
         });
 
         // ================== MaintenanceRequest ==================
@@ -302,12 +300,10 @@ public class AppDbContext : IdentityDbContext<AppUser>
             e.Property(x => x.MaintenanceRequestId).HasColumnName("YeuCauBaoTriId");
             e.Property(x => x.Url).HasColumnName("DuongDan").HasMaxLength(500).IsRequired();
             e.Property(x => x.Stage).HasColumnName("GiaiDoan");
-            e.Property(x => x.UploadedById).HasColumnName("NguoiTaiId");
             e.Property(x => x.UploadedAt).HasColumnName("NgayTai");
             e.HasIndex(x => x.MaintenanceRequestId);
             e.HasOne(x => x.MaintenanceRequest).WithMany(r => r.Photos)
              .HasForeignKey(x => x.MaintenanceRequestId).OnDelete(DeleteBehavior.Cascade);
-            e.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UploadedById).OnDelete(DeleteBehavior.SetNull);
         });
 
         b.Entity<MaintenanceStatusChange>(e =>

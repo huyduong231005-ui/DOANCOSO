@@ -85,7 +85,6 @@ public class BuildingListVm
     public string Name { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
     public string? ProjectName { get; set; }
-    public string? ManagerName { get; set; }
     public BuildingStatus Status { get; set; }
     public int FloorCount { get; set; }
     public int UnitsTotal { get; set; }
@@ -102,7 +101,6 @@ public class BuildingEditVm
     [Required, StringLength(40)] public string Code { get; set; } = string.Empty;
     [Required(ErrorMessage = "Chọn khu chứa toà.")] public int? ProjectId { get; set; }
     [Range(1, 120)] public int FloorCount { get; set; } = 1;
-    public string? ManagerId { get; set; }
     public BuildingStatus Status { get; set; } = BuildingStatus.Active;
 
     [Range(1, 28)] public int DefaultBillingDay { get; set; } = 1;
@@ -112,7 +110,6 @@ public class BuildingEditVm
     [Range(0, 1000)] public decimal DefaultUnitArea { get; set; } = 70;
 
     public List<Project> Projects { get; set; } = new();
-    public List<HostOption> Managers { get; set; } = new();
 }
 
 public class BuildingPlanVm

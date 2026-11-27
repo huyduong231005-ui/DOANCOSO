@@ -78,7 +78,6 @@ public static class SeedData
         var water = TypeOf(ctx, "NUOC");
         await ctx.SaveChangesAsync();
 
-        var manager = await userMgr.FindByEmailAsync("quanly@luxehaven.vn");
 
         var grandPark = new Project
         {
@@ -95,11 +94,11 @@ public static class SeedData
 
         var buildings = new[]
         {
-            NewBuilding(grandPark, "A", 20, 8, manager?.Id),
-            NewBuilding(grandPark, "B", 18, 8, manager?.Id),
-            NewBuilding(grandPark, "C", 15, 6, manager?.Id),
-            NewBuilding(riverside, "R1", 12, 6, manager?.Id),
-            NewBuilding(riverside, "R2", 12, 6, manager?.Id),
+            NewBuilding(grandPark, "A", 20, 8),
+            NewBuilding(grandPark, "B", 18, 8),
+            NewBuilding(grandPark, "C", 15, 6),
+            NewBuilding(riverside, "R1", 12, 6),
+            NewBuilding(riverside, "R2", 12, 6),
         };
         ctx.Buildings.AddRange(buildings);
         await ctx.SaveChangesAsync();
@@ -130,17 +129,16 @@ public static class SeedData
     // Số tầng của toà mẫu (toà không lưu số tầng; mỗi căn ghi số tầng của mình).
     private static readonly Dictionary<string, int> FloorsOf = new();
 
-    private static Building NewBuilding(Project p, string code, int floors, int perFloor, string? managerId)
+    private static Building NewBuilding(Project p, string code, int floors, int perFloor)
     {
         FloorsOf[code] = floors;
-        return NewBuildingCore(p, code, managerId);
+        return NewBuildingCore(p, code);
     }
 
-    private static Building NewBuildingCore(Project p, string code, string? managerId) => new()
+    private static Building NewBuildingCore(Project p, string code) => new()
     {
         Code = code,
         ProjectId = p.Id,
-        ManagerId = managerId,
         Status = BuildingStatus.Active,
         DefaultBillingDay = 1, DefaultLateFeeAfterDays = 15, DefaultLateFeePercent = 2
     };

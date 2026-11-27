@@ -59,7 +59,6 @@ public class ProjectsController : AdminBaseController
             {
                 Id = b.Id, Name = "Toà " + b.Code, Code = b.Code,
                 FloorCount = b.Apartments.Select(a => a.FloorNumber).Distinct().Count(),
-                ManagerName = b.Manager != null ? b.Manager.FullName : null,
                 Status = b.Status,
                 UnitsTotal = b.Apartments.Count(),
                 UnitsOccupied = b.Apartments.AsQueryable().Count(Apartment.IsOccupied),

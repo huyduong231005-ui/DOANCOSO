@@ -42,14 +42,6 @@
                     </select>
                     <span class="err" asp-validation-for="ProjectId"></span>
                 </div>
-                <div class="form-field span-4">
-                    <label asp-for="ManagerId">Quản lý phụ trách</label>
-                    <select asp-for="ManagerId">
-                        <option value="">— Chưa phân công —</option>
-                        @foreach (var m in Model.Managers) { <option value="@m.Id">@m.Label</option> }
-                    </select>
-                    <span class="err" asp-validation-for="ManagerId"></span>
-                </div>
 
                 <div class="form-field span-4">
                     <label asp-for="Status">Trạng thái</label>

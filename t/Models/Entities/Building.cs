@@ -16,8 +16,6 @@ public class Building : BaseEntity
     // Địa chỉ của toà là địa chỉ của dự án (Project.Address), không lưu lại ở toà.
     // Số tầng không lưu ở toà: là số tầng khác nhau của các căn trong toà.
 
-    public string? ManagerId { get; set; }
-    public AppUser? Manager { get; set; }
 
     public BuildingStatus Status { get; set; } = BuildingStatus.Active;
 

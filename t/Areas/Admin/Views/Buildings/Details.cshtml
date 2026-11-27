@@ -34,7 +34,7 @@
         <span class="eyebrow"><span class="material-symbols-outlined" style="font-size:16px;">domain</span>@(b.Project?.Name ?? "Chưa thuộc khu")</span>
         <h1>@b.Name <span class="text-muted" style="font-weight:500;font-size:1.1rem;">· mã @b.Code</span></h1>
         <p class="subtitle">
-            @Model.Floors.Count tầng · @total căn · @Model.ResidentCount cư dân · Quản lý: @(b.Manager?.FullName ?? "chưa phân công")
+            @Model.Floors.Count tầng · @total căn · @Model.ResidentCount cư dân
         </p>
         <p class="summary-line" style="margin-top:.35rem;">
             <span><b>@occupied/@total</b> căn có người ở (@(total == 0 ? 0 : Math.Round(occupied * 100.0 / total, 1))%)</span>

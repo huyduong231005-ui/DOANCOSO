@@ -580,11 +580,6 @@ namespace t.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("DaXoa");
 
-                    b.Property<string>("ManagerId")
-                        .HasMaxLength(36)
-                        .HasColumnType("character varying(36)")
-                        .HasColumnName("QuanLyId");
-
                     b.Property<int>("ProjectId")
                         .HasColumnType("integer")
                         .HasColumnName("KhuId");
@@ -607,8 +602,6 @@ namespace t.Migrations
                     b.HasIndex("Code")
                         .IsUnique()
                         .HasFilter("\"DaXoa\" = false");
-
-                    b.HasIndex("ManagerId");
 
                     b.HasIndex("ProjectId");
 
@@ -808,11 +801,6 @@ namespace t.Migrations
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("NgayTai");
 
-                    b.Property<string>("UploadedById")
-                        .HasMaxLength(36)
-                        .HasColumnType("character varying(36)")
-                        .HasColumnName("NguoiTaiId");
-
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -822,8 +810,6 @@ namespace t.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("MaintenanceRequestId");
-
-                    b.HasIndex("UploadedById");
 
                     b.ToTable("AnhYeuCau", null, t =>
                         {
@@ -1643,18 +1629,11 @@ namespace t.Migrations
 
             modelBuilder.Entity("t.Models.Entities.Building", b =>
                 {
-                    b.HasOne("t.Models.Entities.AppUser", "Manager")
-                        .WithMany("ManagedBuildings")
-                        .HasForeignKey("ManagerId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("t.Models.Entities.Project", "Project")
                         .WithMany("Buildings")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Manager");
 
                     b.Navigation("Project");
                 });
@@ -1696,11 +1675,6 @@ namespace t.Migrations
                         .HasForeignKey("MaintenanceRequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("t.Models.Entities.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("UploadedById")
-                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("MaintenanceRequest");
                 });
@@ -1844,8 +1818,6 @@ namespace t.Migrations
 
             modelBuilder.Entity("t.Models.Entities.AppUser", b =>
                 {
-                    b.Navigation("ManagedBuildings");
-
                     b.Navigation("Residencies");
                 });
 

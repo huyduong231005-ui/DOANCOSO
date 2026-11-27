@@ -12,12 +12,10 @@ namespace t.Areas.Admin.Controllers;
 [t.Infrastructure.Security.Permission("projects.view", "projects.manage")]
 public class BuildingsController : AdminBaseController
 {
-    private readonly UserManager<AppUser> _userManager;
     private readonly InvoiceGenerator _invoiceGen;
 
-    public BuildingsController(AppDbContext db, UserManager<AppUser> userManager, InvoiceGenerator invoiceGen) : base(db)
+    public BuildingsController(AppDbContext db, InvoiceGenerator invoiceGen) : base(db)
     {
-        _userManager = userManager;
         _invoiceGen = invoiceGen;
     }
 
@@ -48,7 +46,7 @@ public class BuildingsController : AdminBaseController
     {
         SetActiveNav("projects");
         var b = await Db.Buildings
-            .Include(x => x.Project).Include(x => x.Manager)
+            .Include(x => x.Project)
             .FirstOrDefaultAsync(x => x.Id == id);
         if (b == null) return NotFound();
 
@@ -120,7 +118,7 @@ public class BuildingsController : AdminBaseController
         {
             Id = b.Id, Code = b.Code,
             ProjectId = b.ProjectId,
-            ManagerId = b.ManagerId, Status = b.Status,
+            Status = b.Status,
             DefaultBillingDay = b.DefaultBillingDay,
             DefaultLateFeeAfterDays = b.DefaultLateFeeAfterDays,
             DefaultLateFeePercent = b.DefaultLateFeePercent
@@ -152,7 +150,6 @@ public class BuildingsController : AdminBaseController
 
         b.Code = input.Code?.Trim() ?? string.Empty;
         b.ProjectId = input.ProjectId!.Value; // [Required] đã kiểm tra
-        b.ManagerId = string.IsNullOrEmpty(input.ManagerId) ? null : input.ManagerId;
         b.Status = input.Status;
         b.DefaultBillingDay = input.DefaultBillingDay;
         b.DefaultLateFeeAfterDays = input.DefaultLateFeeAfterDays;
@@ -214,10 +211,5 @@ public class BuildingsController : AdminBaseController
     private async Task PopulateLookupsAsync(BuildingEditVm vm)
     {
         vm.Projects = await Db.Projects.OrderBy(p => p.Name).ToListAsync();
-        var staff = (await _userManager.GetUsersInRoleAsync("Admin"))
-            .Concat(await _userManager.GetUsersInRoleAsync("Manager"))
-            .DistinctBy(u => u.Id)
-            .OrderBy(u => u.FullName);
-        vm.Managers = staff.Select(u => new HostOption { Id = u.Id, Label = u.FullName + " · " + u.Email }).ToList();
     }
 }

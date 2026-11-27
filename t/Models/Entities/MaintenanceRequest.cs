@@ -123,7 +123,6 @@ public class MaintenancePhoto
     public MaintenanceRequest MaintenanceRequest { get; set; } = null!;
     public string Url { get; set; } = string.Empty;
     public MaintenancePhotoStage Stage { get; set; }
-    public string? UploadedById { get; set; }
     public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 }
 
